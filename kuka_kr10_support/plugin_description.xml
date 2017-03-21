@@ -1,0 +1,7 @@
+<library path="lib/librviz_plugin_tutorials">
+  <class name="framefab/Teleop"
+	 type="framefab::TeleopPanel"
+	 base_class_type="rviz::Panel">
+  </class>
+</library>
+

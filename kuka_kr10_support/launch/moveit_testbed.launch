@@ -1,0 +1,6 @@
+<launch>
+
+  <include file="$(find kuka_kr10_moveit_config)/launch/demo.launch"/>
+
+
+</launch>
