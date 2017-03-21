@@ -2,12 +2,10 @@
 #define TELEOP_PANEL_H
 
 #include <ros/ros.h>
-
+#include <QLineEdit>
+#include <QTextEdit>
 #include <rviz/panel.h>
 
-class QLineEdit;
-
-class QTextEdit;
 
 namespace framefab {
 
