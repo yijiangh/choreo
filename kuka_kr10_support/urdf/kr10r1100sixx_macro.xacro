@@ -2,8 +2,23 @@
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
   <xacro:include filename="$(find kuka_resources)/urdf/common_constants.xacro"/>
   <xacro:include filename="$(find kuka_resources)/urdf/common_materials.xacro"/>
+  <xacro:property name="baseheight" value=".400" />
+  <xacro:property name="link1height" value="0"/>
+  <xacro:property name="link2height" value=".56" />
+  <xacro:property name="link3length" value=".035"/>
+  <xacro:property name="link4length" value=".515"/>
+  <xacro:property name="link5length" value=".01" />
+  <xacro:property name="link6length" value=".08" />
+  <xacro:property name="PI" value="3.1415926535897931"/>
 
   <xacro:macro name="kuka_kr10r1100sixx" params="prefix">
+  
+    <link name="world"/>
+    
+    <joint name="fixed" type="fixed">
+      <parent link="world"/>
+      <child link="${prefix}base_link"/>
+    </joint>
     <link name="${prefix}base_link">
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -18,6 +33,14 @@
           <mesh filename="package://kuka_kr10_support/meshes/kr10r1100sixx/collision/base.stl" />
         </geometry>
       </collision>
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="13.5"/>
+	<inertia
+	    ixx="0.27" ixy="0" ixz="-0.07"
+	    iyy="0.36" iyz="0"
+	    izz="0.17"/>
+      </inertial>
     </link>
     <link name="${prefix}link_1">
       <visual>
@@ -33,6 +56,14 @@
           <mesh filename="package://kuka_kr10_support/meshes/kr10r1100sixx/collision/link_1.stl" />
         </geometry>
       </collision>
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="11.4"/>
+	<inertia
+	    ixx="0.15" ixy="0.0" ixz="0"
+	    iyy="0.13" iyz="0"
+	    izz="0.09"/>
+      </inertial>
     </link>
     <link name="${prefix}link_2">
       <visual>
@@ -48,6 +79,14 @@
           <mesh filename="package://kuka_kr10_support/meshes/kr10r1100sixx/collision/link_2.stl" />
         </geometry>
       </collision>
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="20.63"/>
+	<inertia
+	    ixx="0.11" ixy="-0.02" ixz="0"
+	    iyy="2.65" iyz="0"
+	    izz="2.67"/>
+      </inertial>
     </link>
     <link name="${prefix}link_3">
       <visual>
@@ -63,6 +102,14 @@
           <mesh filename="package://kuka_kr10_support/meshes/kr10r1100sixx/collision/link_3.stl" />
         </geometry>
       </collision>
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="3.06"/>
+	<inertia
+	    ixx="0.01" ixy="0" ixz="0"
+	    iyy="0.01" iyz="0"
+	    izz="0.01"/>
+      </inertial>
     </link>
     <link name="${prefix}link_4">
       <visual>
@@ -78,6 +125,14 @@
           <mesh filename="package://kuka_kr10_support/meshes/kr10r1100sixx/collision/link_4.stl" />
         </geometry>
       </collision>
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="5.09"/>
+	<inertia
+	    ixx="0.01" ixy="0" ixz="0.01"
+	    iyy="0.61" iyz="0"
+	    izz="0.61"/>
+      </inertial>
     </link>
     <link name="${prefix}link_5">
       <visual>
@@ -93,6 +148,14 @@
           <mesh filename="package://kuka_kr10_support/meshes/kr10r1100sixx/collision/link_5.stl" />
         </geometry>
       </collision>
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value=".52"/>
+	<inertia
+	    ixx="0" ixy="0" ixz="0"
+	    iyy="0" iyz="0"
+	    izz="0"/>
+      </inertial>
     </link>
     <link name="${prefix}link_6">
       <visual>
@@ -108,6 +171,14 @@
           <mesh filename="package://kuka_kr10_support/meshes/kr10r1100sixx/collision/link_6.stl" />
         </geometry>
       </collision>
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="0.2"/>
+	<inertia
+	    ixx="0" ixy="0" ixz="0"
+	    iyy="0" iyz="0"
+	    izz="0"/>
+      </inertial>
     </link>
     <!-- This frame corresponds to the $FLANGE coordinate system in KUKA KRC controllers. -->
     <link name="${prefix}tool0"/>
