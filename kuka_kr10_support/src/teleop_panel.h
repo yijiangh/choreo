@@ -3,6 +3,7 @@
 
 #include <ros/ros.h>
 #include <QLineEdit>
+#include <QPushButton>
 #include <QTextEdit>
 #include <rviz/panel.h>
 
@@ -33,14 +34,13 @@ public:
   // Next come a couple of public Qt slots.
 public Q_SLOTS:
   
-  void readFile( const QString& file);
   void readFile();
   // Here we declare some internal slots.
   // Then we finish up with protected member variables.
 protected:
   // One-line text editor for entering the outgoing ROS topic name.
   QLineEdit* seq_file_editor_;
-
+  QPushButton* button_;
   // The current filename in the field
   QString file_name_;
   
