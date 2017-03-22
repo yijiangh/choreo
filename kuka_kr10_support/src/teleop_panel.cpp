@@ -6,6 +6,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QTimer>
+#include <QFileDialog>
 #include <QTextEdit>
 #include <geometry_msgs/Twist.h>
 #include "teleop_panel.h"
@@ -20,8 +21,9 @@ TeleopPanel::TeleopPanel( QWidget* parent )
   QHBoxLayout* topic_layout = new QHBoxLayout;
   topic_layout->addWidget( new QLabel( "Sequence File:" ));
   seq_file_editor_ = new QLineEdit;
+  button_ = new QPushButton("Browse");
   topic_layout->addWidget( seq_file_editor_ );
-
+  topic_layout->addWidget( button_ );
   file_display_ = new QTextEdit;
   // Lay out the topic field above the control widget.
   QVBoxLayout* layout = new QVBoxLayout;
@@ -41,7 +43,7 @@ TeleopPanel::TeleopPanel( QWidget* parent )
   QTimer* output_timer = new QTimer( this );
 
   // Next we make signal/slot connections.
-  connect( seq_file_editor_, SIGNAL( editingFinished() ), this, SLOT( readFile() ));
+  connect( button_ , SIGNAL( clicked() ), this, SLOT( readFile() ));
 
   // Start the timer.
   output_timer->start( 100 );
@@ -56,17 +58,14 @@ TeleopPanel::TeleopPanel( QWidget* parent )
 // away.
 void TeleopPanel::readFile()
 {
-  readFile( seq_file_editor_->text() );
-}
-
-// Input the sequence files
-void TeleopPanel::readFile( const QString& seq_file)
-{
-    QFile inputFile(seq_file);
+    QString fileName = QFileDialog::getOpenFileName(this,
+         tr("Open File 1"), "/home", tr("txt Files (*.txt)"));
+    QFile inputFile(fileName);
     if (!inputFile.open(QIODevice::ReadOnly | QIODevice::Text))
 	return;
     QString contents = inputFile.readAll();
     file_display_->setText(contents);
+    seq_file_edit_->setText(fileName);
     // rviz::Panel defines the configChanged() signal.  Emitting it
     // tells RViz that something in this panel has changed that will
     // affect a saved config file.  Ultimately this signal can cause
