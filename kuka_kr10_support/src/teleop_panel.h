@@ -47,6 +47,10 @@ protected:
   //Show the points 
   QTextEdit* file_display_;
 
+  ros::Publisher pose_publisher_;
+
+  ros::NodeHandle nh_;
+
 };
 }
 #endif // TELEOP_PANEL_H
