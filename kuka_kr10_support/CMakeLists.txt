@@ -37,10 +37,10 @@ include_directories(${catkin_INCLUDE_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 
 qt4_wrap_cpp(MOC_FILES 
-	src/teleop_panel.h
+	src/framefab_panel.h
 )
 
-set(SOURCE_FILES src/teleop_panel.cpp ${MOC_FILES})
+set(SOURCE_FILES src/framefab_panel.cpp ${MOC_FILES})
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 add_library(${PROJECT_NAME} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES})
