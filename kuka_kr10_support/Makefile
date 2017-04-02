@@ -864,6 +864,30 @@ gtest_main/fast:
 	$(MAKE) -f gtest/CMakeFiles/gtest_main.dir/build.make gtest/CMakeFiles/gtest_main.dir/build
 .PHONY : gtest_main/fast
 
+src/framefab_panel.o: src/framefab_panel.cpp.o
+.PHONY : src/framefab_panel.o
+
+# target to build an object file
+src/framefab_panel.cpp.o:
+	$(MAKE) -f CMakeFiles/kuka_kr10_support.dir/build.make CMakeFiles/kuka_kr10_support.dir/src/framefab_panel.cpp.o
+.PHONY : src/framefab_panel.cpp.o
+
+src/framefab_panel.i: src/framefab_panel.cpp.i
+.PHONY : src/framefab_panel.i
+
+# target to preprocess a source file
+src/framefab_panel.cpp.i:
+	$(MAKE) -f CMakeFiles/kuka_kr10_support.dir/build.make CMakeFiles/kuka_kr10_support.dir/src/framefab_panel.cpp.i
+.PHONY : src/framefab_panel.cpp.i
+
+src/framefab_panel.s: src/framefab_panel.cpp.s
+.PHONY : src/framefab_panel.s
+
+# target to generate assembly for a file
+src/framefab_panel.cpp.s:
+	$(MAKE) -f CMakeFiles/kuka_kr10_support.dir/build.make CMakeFiles/kuka_kr10_support.dir/src/framefab_panel.cpp.s
+.PHONY : src/framefab_panel.cpp.s
+
 src/kuka_node.o: src/kuka_node.cpp.o
 .PHONY : src/kuka_node.o
 
@@ -888,53 +912,29 @@ src/kuka_node.cpp.s:
 	$(MAKE) -f CMakeFiles/kuka_node.dir/build.make CMakeFiles/kuka_node.dir/src/kuka_node.cpp.s
 .PHONY : src/kuka_node.cpp.s
 
-src/moc_teleop_panel.o: src/moc_teleop_panel.cxx.o
-.PHONY : src/moc_teleop_panel.o
+src/moc_framefab_panel.o: src/moc_framefab_panel.cxx.o
+.PHONY : src/moc_framefab_panel.o
 
 # target to build an object file
-src/moc_teleop_panel.cxx.o:
-	$(MAKE) -f CMakeFiles/kuka_kr10_support.dir/build.make CMakeFiles/kuka_kr10_support.dir/src/moc_teleop_panel.cxx.o
-.PHONY : src/moc_teleop_panel.cxx.o
+src/moc_framefab_panel.cxx.o:
+	$(MAKE) -f CMakeFiles/kuka_kr10_support.dir/build.make CMakeFiles/kuka_kr10_support.dir/src/moc_framefab_panel.cxx.o
+.PHONY : src/moc_framefab_panel.cxx.o
 
-src/moc_teleop_panel.i: src/moc_teleop_panel.cxx.i
-.PHONY : src/moc_teleop_panel.i
-
-# target to preprocess a source file
-src/moc_teleop_panel.cxx.i:
-	$(MAKE) -f CMakeFiles/kuka_kr10_support.dir/build.make CMakeFiles/kuka_kr10_support.dir/src/moc_teleop_panel.cxx.i
-.PHONY : src/moc_teleop_panel.cxx.i
-
-src/moc_teleop_panel.s: src/moc_teleop_panel.cxx.s
-.PHONY : src/moc_teleop_panel.s
-
-# target to generate assembly for a file
-src/moc_teleop_panel.cxx.s:
-	$(MAKE) -f CMakeFiles/kuka_kr10_support.dir/build.make CMakeFiles/kuka_kr10_support.dir/src/moc_teleop_panel.cxx.s
-.PHONY : src/moc_teleop_panel.cxx.s
-
-src/teleop_panel.o: src/teleop_panel.cpp.o
-.PHONY : src/teleop_panel.o
-
-# target to build an object file
-src/teleop_panel.cpp.o:
-	$(MAKE) -f CMakeFiles/kuka_kr10_support.dir/build.make CMakeFiles/kuka_kr10_support.dir/src/teleop_panel.cpp.o
-.PHONY : src/teleop_panel.cpp.o
-
-src/teleop_panel.i: src/teleop_panel.cpp.i
-.PHONY : src/teleop_panel.i
+src/moc_framefab_panel.i: src/moc_framefab_panel.cxx.i
+.PHONY : src/moc_framefab_panel.i
 
 # target to preprocess a source file
-src/teleop_panel.cpp.i:
-	$(MAKE) -f CMakeFiles/kuka_kr10_support.dir/build.make CMakeFiles/kuka_kr10_support.dir/src/teleop_panel.cpp.i
-.PHONY : src/teleop_panel.cpp.i
+src/moc_framefab_panel.cxx.i:
+	$(MAKE) -f CMakeFiles/kuka_kr10_support.dir/build.make CMakeFiles/kuka_kr10_support.dir/src/moc_framefab_panel.cxx.i
+.PHONY : src/moc_framefab_panel.cxx.i
 
-src/teleop_panel.s: src/teleop_panel.cpp.s
-.PHONY : src/teleop_panel.s
+src/moc_framefab_panel.s: src/moc_framefab_panel.cxx.s
+.PHONY : src/moc_framefab_panel.s
 
 # target to generate assembly for a file
-src/teleop_panel.cpp.s:
-	$(MAKE) -f CMakeFiles/kuka_kr10_support.dir/build.make CMakeFiles/kuka_kr10_support.dir/src/teleop_panel.cpp.s
-.PHONY : src/teleop_panel.cpp.s
+src/moc_framefab_panel.cxx.s:
+	$(MAKE) -f CMakeFiles/kuka_kr10_support.dir/build.make CMakeFiles/kuka_kr10_support.dir/src/moc_framefab_panel.cxx.s
+.PHONY : src/moc_framefab_panel.cxx.s
 
 # Help Target
 help:
@@ -1004,15 +1004,15 @@ help:
 	@echo "... visualization_msgs_generate_messages_py"
 	@echo "... gtest"
 	@echo "... gtest_main"
+	@echo "... src/framefab_panel.o"
+	@echo "... src/framefab_panel.i"
+	@echo "... src/framefab_panel.s"
 	@echo "... src/kuka_node.o"
 	@echo "... src/kuka_node.i"
 	@echo "... src/kuka_node.s"
-	@echo "... src/moc_teleop_panel.o"
-	@echo "... src/moc_teleop_panel.i"
-	@echo "... src/moc_teleop_panel.s"
-	@echo "... src/teleop_panel.o"
-	@echo "... src/teleop_panel.i"
-	@echo "... src/teleop_panel.s"
+	@echo "... src/moc_framefab_panel.o"
+	@echo "... src/moc_framefab_panel.i"
+	@echo "... src/moc_framefab_panel.s"
 .PHONY : help
 
 

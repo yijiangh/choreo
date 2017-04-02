@@ -1,6 +1,6 @@
 <library path="devel/lib/libkuka_kr10_support">
   <class name="Framefab sequence tester"
-	 type="framefab::TeleopPanel"
+	 type="framefab::FramefabPanel"
 	 base_class_type="rviz::Panel">
     <description>
 	The panel for opening sequence files

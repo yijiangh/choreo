@@ -10,10 +10,17 @@
 #include <QFileDialog>
 #include <QTextEdit>
 #include <geometry_msgs/PoseArray.h>
+#include <deque>
 #include "framefab_panel.h"
 
+// RViz plugin for interacting with framefab files and publishing to kuka_node
 namespace framefab 
 {
+   //set up graph rep
+static std::vector<geometry_msgs::Point> nodes;
+static std::deque<std::pair<int,int> > edges;
+static std::vector<std::pair<int,int> > pillars;
+static std::vector<std::pair<int,int> > ceilings;
 
 FramefabPanel::FramefabPanel( QWidget* parent )
   : rviz::Panel( parent )
@@ -40,7 +47,7 @@ FramefabPanel::FramefabPanel( QWidget* parent )
   // 
   // Here we take advantage of QObject's memory management behavior:
   // since "this" is passed to the new QTimer as its parent, the
-  // QTimer is deleted by the QObject destructor when this TeleopPanel
+  // QTimer is deleted by the QObject destructor when this 
   // object is destroyed.  Therefore we don't need to keep a pointer
   // to the timer.
   QTimer* output_timer = new QTimer( this );
@@ -59,14 +66,9 @@ FramefabPanel::FramefabPanel( QWidget* parent )
 // Read the file name from the dialog and parse results
 void FramefabPanel::readFile()
 {
-    //set up graph rep
-    std::vector<geometry_msgs::Point> nodes;
-    std::vector<std::pair<int,int> > edges;
-    std::vector<std::pair<int,int> > pillars;
-    std::vector<std::pair<int,int> > ceilings;
-    //open file
+      //open file
     QString fileName = QFileDialog::getOpenFileName(this,
-         tr("Open File"), "/home/ubuntu/ros_ws/src/kuka_experimental/kuka_kr10_support/", tr("pwf Files (*.pwf)"));
+         tr("Open File"), "/home/ubuntu/ros_ws/src/kuka_experimental/kuka_kr10_support/data/", tr("pwf Files (*.pwf)"));
     QFile inputFile(fileName);
     if (inputFile.open(QIODevice::ReadOnly | QIODevice::Text))
     {
@@ -94,7 +96,8 @@ void FramefabPanel::readFile()
 	inputFile.close();
     }
     seq_file_editor_->setText(fileName);
-    QString parse_msg = "Nodes: " + QString::number(nodes.size()) + " Links: " + QString::number( edges.size()) + "Pillars: " + QString::number(pillars.size()) + "Ceilings: " + QString::number( ceilings.size());
+    QString parse_msg = "Nodes: " + QString::number(nodes.size()) + " Links: " + QString::number( edges.size()) +
+		" Pillars: " + QString::number(pillars.size()) + " Ceilings: " + QString::number( ceilings.size());
     file_display_->setText(parse_msg);
     // rviz::Panel defines the configChanged() signal.  Emitting it
     // tells RViz that something in this panel has changed that will
@@ -121,10 +124,36 @@ void FramefabPanel::load( const rviz::Config& config )
 {
   rviz::Panel::load( config );
 }
+ 
+static geometry_msgs::Point scale(geometry_msgs::Point p, float sf){
+  geometry_msgs::Point result;
+  result.x = p.x * sf;
+  result.y = p.y * sf;
+  result.z = p.z * sf;
+  return result;
+}
 
+//Publishes single link at beginning of edges list and pops off list
 void FramefabPanel::drawLink()
-{
-  std::cout << "Publishing Link" << std::endl;
+{ 
+  if (edges.size() == 0 ) {
+    ROS_INFO("no links to draw");
+    return;
+  }
+  std::cout << "Publishing Link: " << edges[0].first << " " << edges[0].second << std::endl;
+  geometry_msgs::PoseArray msg;
+  std::pair<int,int> edge = edges[0];
+  geometry_msgs::Pose pose_a;
+  geometry_msgs::Pose pose_b;
+  pose_a.position = scale(nodes[edge.first], 0.001);
+  pose_b.position = scale(nodes[edge.second], 0.001);
+  
+  msg.poses.push_back( pose_a);
+  msg.poses.push_back( pose_b); 
+  std::cout << "Publishing points: " << nodes[edge.first] << " " <<  nodes[edge.second] << std::endl;
+  edges.pop_front();
+  pose_publisher_.publish(msg);
+    
 } 
 
 } //namespace
