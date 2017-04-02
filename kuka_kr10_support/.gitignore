@@ -1,0 +1,7 @@
+catkin/*
+catkin_generated/*
+CMakefiles/*
+gtest/*
+test/*
+devel/*
+*.cmake

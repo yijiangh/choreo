@@ -1,7 +1,7 @@
 FILE(REMOVE_RECURSE
-  "src/moc_teleop_panel.cxx"
-  "CMakeFiles/kuka_kr10_support.dir/src/teleop_panel.cpp.o"
-  "CMakeFiles/kuka_kr10_support.dir/src/moc_teleop_panel.cxx.o"
+  "src/moc_framefab_panel.cxx"
+  "CMakeFiles/kuka_kr10_support.dir/src/framefab_panel.cpp.o"
+  "CMakeFiles/kuka_kr10_support.dir/src/moc_framefab_panel.cxx.o"
   "devel/lib/libkuka_kr10_support.pdb"
   "devel/lib/libkuka_kr10_support.so"
 )

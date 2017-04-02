@@ -1,6 +1,8 @@
 <launch>
 
   <include file="$(find kuka_kr10_moveit_config)/launch/demo.launch"/>
-
+  
+  <node name="kuka_node" pkg="kuka_kr10_support" type="kuka_node" respawn="false" output="screen">
+  </node>
 
 </launch>
