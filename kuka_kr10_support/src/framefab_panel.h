@@ -2,11 +2,12 @@
 #define FRAMEFAB_PANEL_H
 
 #include <ros/ros.h>
+
 #include <QLineEdit>
 #include <QPushButton>
 #include <QTextEdit>
-#include <rviz/panel.h>
 
+#include <rviz/panel.h>
 
 namespace framefab {
 
@@ -31,28 +32,32 @@ public:
   virtual void load( const rviz::Config& config );
   virtual void save( rviz::Config config ) const;
 
-  // Next come a couple of public Qt slots.
-public Q_SLOTS:
-  
+public Q_SLOTS:  
   void readFile();
   void drawLink();
-  // Here we declare some internal slots.
-  // Then we finish up with protected member variables.
+	void activateMP();
+
 protected:
+	
+	/* --- widget --- */
   // One-line text editor for entering the outgoing ROS topic name.
   QLineEdit* seq_file_editor_;
-  QPushButton* button_;
-  QPushButton* publish_;
-  // The current filename in the field
-  QString file_name_;
-  
+
   //Show the points 
   QTextEdit* file_display_;
 
+  QPushButton* browse_button_;
+  QPushButton* publishlink_button_;
+  QPushButton* startplan_button_;
+
+  QString file_name_;						  // The current filename in the field
+  
+	/* --- publisher --- */
   ros::Publisher pose_publisher_;
+	ros::Publisher mplan_publisher_;
 
+	/* --- node handle --- */
   ros::NodeHandle nh_;
-
 };
 }
 #endif // FRAMEFAB_PANEL_H

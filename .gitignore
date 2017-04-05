@@ -54,3 +54,8 @@ CATKIN_IGNORE
 */catkin_generated/*
 .*/devel/*
 .*/CMakefiles/*
+
+# temporal file
+*.cpp~
+*.h~
+*.txt~

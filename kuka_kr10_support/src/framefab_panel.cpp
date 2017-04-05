@@ -9,7 +9,10 @@
 #include <QTimer>
 #include <QFileDialog>
 #include <QTextEdit>
+
 #include <geometry_msgs/PoseArray.h>
+#include <std_msgs/Bool.h>
+
 #include <deque>
 #include "framefab_panel.h"
 
@@ -27,41 +30,35 @@ FramefabPanel::FramefabPanel( QWidget* parent )
 {
   // Next we lay out the "output topic" text entry field using a
   // QLabel and a QLineEdit in a QHBoxLayout.
+  seq_file_editor_ = new QLineEdit;
+  browse_button_ = new QPushButton("Browse");
+  connect( browse_button_ , SIGNAL( clicked() ), this, SLOT( readFile() ));
+
   QHBoxLayout* topic_layout = new QHBoxLayout;
   topic_layout->addWidget( new QLabel( "Sequence File:" ));
-  seq_file_editor_ = new QLineEdit;
-  button_ = new QPushButton("Browse");
   topic_layout->addWidget( seq_file_editor_ );
-  topic_layout->addWidget( button_ );
-  file_display_ = new QTextEdit;
+  topic_layout->addWidget( browse_button_ );
+
   // Lay out the topic field above the control widget.
+  file_display_ = new QTextEdit;
+  publishlink_button_ = new QPushButton("Publish links");
+  connect( publishlink_button_, SIGNAL( clicked() ), this, SLOT( drawLink() ));
+
+  startplan_button_ = new QPushButton("Activate motion planning");
+  connect( startplan_button_, SIGNAL( clicked() ), this, SLOT( activateMP() ));
+
   QVBoxLayout* layout = new QVBoxLayout;
   layout->addLayout( topic_layout );
   layout->addWidget( file_display_ );
-  publish_ = new QPushButton("Publish links");
-  layout->addWidget( publish_ );
+  layout->addWidget( publishlink_button_ );
+  layout->addWidget( startplan_button_ );
   setLayout( layout );
-  // Create a timer for sending the output.  Motor controllers want to
-  // be reassured frequently that they are doing the right thing, so
-  // we keep re-sending velocities even when they aren't changing.
-  // 
-  // Here we take advantage of QObject's memory management behavior:
-  // since "this" is passed to the new QTimer as its parent, the
-  // QTimer is deleted by the QObject destructor when this 
-  // object is destroyed.  Therefore we don't need to keep a pointer
-  // to the timer.
-  QTimer* output_timer = new QTimer( this );
-
-  // Next we make signal/slot connections.
-  connect( button_ , SIGNAL( clicked() ), this, SLOT( readFile() ));
-  connect( publish_, SIGNAL( clicked() ), this, SLOT( drawLink() ));  
-  pose_publisher_ = nh_.advertise<geometry_msgs::PoseArray>("/framelinks",1000);
-  // Start the timer.
-  output_timer->start( 100 );
+	
+	//todo: the topic queue size (1000, 1, etc) is only for temporal usage, not safe
+  pose_publisher_ = nh_.advertise<geometry_msgs::PoseArray>("/framelinks", 1000);
+	mplan_publisher_ = nh_advertise<std_msgs::bool>("/activate_mplan", 1);
 
 }
-
-
 
 // Read the file name from the dialog and parse results
 void FramefabPanel::readFile()
@@ -109,8 +106,6 @@ void FramefabPanel::readFile()
   // Gray out the control widget when the output topic is empty.
 }
 
-
-
 // Save all configuration data from this panel to the given
 // Config object.  It is important here that you call save()
 // on the parent class so the class id and panel name get saved.
@@ -153,8 +148,13 @@ void FramefabPanel::drawLink()
   std::cout << "Publishing points: " << nodes[edge.first] << " " <<  nodes[edge.second] << std::endl;
   edges.pop_front();
   pose_publisher_.publish(msg);
-    
 } 
+
+void FramefabPanel::activateMP()
+{
+	std_msgs::bool mp_msg = true;
+	mplan_publisher_.publish(mp_msg);
+}
 
 } //namespace
 // Tell pluginlib about this class.  Every class which should be
