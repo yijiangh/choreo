@@ -1,5 +1,6 @@
 #include <moveit/move_group_interface/move_group.h>
 
+#include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/planning_scene/planning_scene.h>
@@ -38,7 +39,7 @@ void frameCallback(geometry_msgs::PoseArray msg){
   link_list.scale.z = 1.0; 
   link_list.header.stamp = ros::Time::now();
   
-  geometry_msgs::Point p;
+  geometry_msgs::Point p;	
   p.x = 1.0;
   p.y = 1.0;
   p.z = 0.0;
@@ -48,10 +49,12 @@ void frameCallback(geometry_msgs::PoseArray msg){
   r->sleep();
 }    
 
-void mplanCallback(std_msgs::bool mp_msg){
+void mplanCallback(std_msgs::Bool mp_msg){
+
 	ROS_INFO("motion planning callback");
 	robot_model_loader::RobotModelLoader robot_model_loader("robot_description");
   robot_model::RobotModelPtr robot_model = robot_model_loader.getModel();
+
 }
  
 int main(int argc, char **argv)
