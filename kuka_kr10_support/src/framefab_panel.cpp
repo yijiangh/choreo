@@ -56,7 +56,7 @@ FramefabPanel::FramefabPanel( QWidget* parent )
 	
 	//todo: the topic queue size (1000, 1, etc) is only for temporal usage, not safe
   pose_publisher_ = nh_.advertise<geometry_msgs::PoseArray>("/framelinks", 1000);
-	mplan_publisher_ = nh_advertise<std_msgs::bool>("/activate_mplan", 1);
+	mplan_publisher_ = nh_.advertise<std_msgs::Bool>("/activate_mplan", 1);
 
 }
 
@@ -152,7 +152,9 @@ void FramefabPanel::drawLink()
 
 void FramefabPanel::activateMP()
 {
-	std_msgs::bool mp_msg = true;
+	std_msgs::Bool mp_msg;
+	mp_msg.data = true;
+
 	mplan_publisher_.publish(mp_msg);
 }
 
