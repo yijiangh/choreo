@@ -1,6 +1,11 @@
-#include <moveit/move_group_interface/move_group.h>
+#include <cmath>
+#include <ros/ros.h>
+#include <pluginlib/class_loader.h>
 
+// moveit include
+#include <moveit/move_group_interface/move_group.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
+
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit/planning_interface/planning_interface.h>
 #include <moveit/planning_scene/planning_scene.h>
@@ -13,12 +18,14 @@
 #include <moveit_msgs/AttachedCollisionObject.h>
 #include <moveit_msgs/CollisionObject.h>
 
-#include <ros/ros.h>
-#include <visualization_msgs/Marker.h>
-#include <cmath>
-
+// ros message include
 #include <geometry_msgs/PoseArray.h>
 #include <std_msgs/Bool.h>
+
+// visualizer-related include 
+#include <visualization_msgs/Marker.h>
+
+#include <kuka_node.h>
 
 // todo:
 // static variable for temporal experiment
@@ -49,52 +56,67 @@ void frameCallback(geometry_msgs::PoseArray msg){
   r->sleep();
 }    
 
-void mplanCallback(std_msgs::Bool mp_msg){
+void kuka_node::mplanCallback(std_msgs::Bool mp_msg){
+	// todo: end effector "printer" added - need to remake moveit config files
+	
+	/* --- planner setup --- */
 
+	// consturct RobotModel for planner
+	// RobotModelLoader object will look up the robot description on the ROS
+	// parameter server and construct a :moveit_core:'RobotModel' for us
 	ROS_INFO("motion planning callback");
 	robot_model_loader::RobotModelLoader robot_model_loader("robot_description");
   robot_model::RobotModelPtr robot_model = robot_model_loader.getModel();
+	
+	// construct Planning scene for planner
+	// Using the :moveit_core:`RobotModel`, construct a :planning_scene:`PlanningScene` 
+	// that maintains the state of the world (including the robot).
+  planning_scene::PlanningScenePtr planning_scene(new planning_scene::PlanningScene(robot_model));	
+	
+  // construct a loader to load a planner
+	// use ROS pluginlib interface to load a planner
+  boost::scoped_ptr<pluginlib::ClassLoader<planning_interface::PlannerManager> > planner_plugin_loader;
+  planning_interface::PlannerManagerPtr planner_instance;
+  std::string planner_plugin_name;
 
-}
- 
-int main(int argc, char **argv)
-{
-	//todo: 
-	// should keep main function clean
-	// should move these marker related 
-	// setting to visualization class
+  // We will get the name of planning plugin we want to load
+  // from the ROS param server, and then load the planner
+  // making sure to catch all exceptions.
+	// make sure target planner name has been implemented in ROSParam/
+  if (!node_handle.getParam("planning_plugin", planner_plugin_name))
+	{
+    ROS_FATAL_STREAM("Could not find planner plugin name");
+	}
 
-  ros::init(argc, argv, "kuka_node");
-  ros::NodeHandle node_handle;  
-  ros::AsyncSpinner spinner(1);
-  spinner.start();
+	// try resetting plugin_loader (creating a new planner_mananger using class PlannerManager in package moveit_core)
+  try
+  {
+    planner_plugin_loader.reset(new pluginlib::ClassLoader<planning_interface::PlannerManager>("moveit_core", "planning_interface::PlannerManager"));
+  }
+  catch(pluginlib::PluginlibException& ex)
+  {
+    ROS_FATAL_STREAM("Exception while creating planning plugin loader " << ex.what());
+  }
+	
+	// try resetting (scoped_ptr delete old and init a new) planner_plugin_loader (planner_manager)
+	// plugin::ClassLoader<T>::createUnmanagedInstance (loopup_name)
+	try
+  {
+    planner_instance.reset(planner_plugin_loader->createUnmanagedInstance(planner_plugin_name));
+    if (!planner_instance->initialize(robot_model, node_handle.getNamespace()))
+		{
+      ROS_FATAL_STREAM("Could not initialize planner instance");
+		}
 
-	// visualize framelinks message subsriber
-  ros::Subscriber frame_sub = node_handle.subscribe("framelinks", 		0, &frameCallback);  
-	ros::Subscriber mplan_sub = node_handle.subscribe("activate_mplan", 0, &mplanCallback);
-
-	// global marker(link in Rviz) property init
-	link_list.header.frame_id = "world";
-  link_list.action = visualization_msgs::Marker::ADD;
-  link_list.pose.orientation.w = 1.0;
-  link_list.id = 0; 
-  link_list.type = visualization_msgs::Marker::LINE_LIST;
-
-  marker_pub = node_handle.advertise<visualization_msgs::Marker>("visualization_marker",0);
- 
-	/* This sleep is ONLY to allow Rviz to come up */
-  // We will use the :planning_scene_interface:`PlanningSceneInterface`
-  // class to deal directly with the world.
-  r = new ros::Rate(20.0);
-  r->sleep();
-  moveit::planning_interface::PlanningSceneInterface planning_scene_interface;  
-
-  // Publisher for visualizing plans in Rviz.
-  display_publisher = node_handle.advertise<moveit_msgs::DisplayTrajectory>("/move_group/display_planned_path", 1, true);
-
-  while(ros::ok()) {
-    ros::spinOnce();
-  } 
-  ros::shutdown();
-  return 0;
+    ROS_INFO_STREAM("Using planning interface '" << planner_instance->getDescription() << "'");
+  }
+  catch(pluginlib::PluginlibException& ex)
+  {
+    const std::vector<std::string> &classes = planner_plugin_loader->getDeclaredClasses();
+    std::stringstream ss;
+    for (std::size_t i = 0 ; i < classes.size() ; ++i)
+      ss << classes[i] << " ";
+    ROS_ERROR_STREAM("Exception while loading planner '" << planner_plugin_name << "': " << ex.what() << std::endl
+                     << "Available plugins: " << ss.str());
+  }	
 }

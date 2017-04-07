@@ -1,8 +1,0 @@
-prefix=/usr/local
-
-Name: kuka_kr10_support
-Description: Description of kuka_kr10_support
-Version: 0.1.0
-Cflags: 
-Libs: -L/usr/local/lib 
-Requires: moveit_core moveit_ros_planning_interface interactive_markers

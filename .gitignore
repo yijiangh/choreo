@@ -59,3 +59,4 @@ CATKIN_IGNORE
 *.cpp~
 *.h~
 *.txt~
+*.swp
