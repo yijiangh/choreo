@@ -40,7 +40,7 @@ qt4_wrap_cpp(MOC_FILES
 	src/framefab_panel.h
 )
 
-set(SOURCE_FILES src/framefab_panel.cpp ${MOC_FILES})
+set(SOURCE_FILES src/FrameFabPanel.cpp ${MOC_FILES})
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 add_library(${PROJECT_NAME} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES})

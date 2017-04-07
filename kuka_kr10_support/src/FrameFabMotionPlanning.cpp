@@ -2,7 +2,7 @@
 #include <ros/ros.h>
 #include <pluginlib/class_loader.h>
 
-// moveit include
+// moveit
 #include <moveit/move_group_interface/move_group.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 
@@ -18,21 +18,20 @@
 #include <moveit_msgs/AttachedCollisionObject.h>
 #include <moveit_msgs/CollisionObject.h>
 
-// ros message include
+// ros message
 #include <geometry_msgs/PoseArray.h>
 #include <std_msgs/Bool.h>
 
-// visualizer-related include 
+// visualizer-related
 #include <visualization_msgs/Marker.h>
 
+// framefab
 #include <kuka_node.h>
 
 // todo:
 // static variable for temporal experiment
 // should get them into class later
-static ros::Publisher display_publisher;
-static ros::Publisher marker_pub;
-static visualization_msgs::Marker link_list;
+// static visualization_msgs::Marker link_list;
 static ros::Rate * r;
 static float f;
 

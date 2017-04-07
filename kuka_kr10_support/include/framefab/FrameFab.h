@@ -6,9 +6,8 @@
  * Institute:  MIT, Digital Structure Group, Building Tech 
 */
 
-#pragma once
-
-
+#ifndef FRAMEFAB_H
+#define FRAMEFAB_H
 
 namespace framefab {
 
@@ -20,6 +19,7 @@ namespace framefab {
 */
 class FrameFab
 {
+    /* public functions */
 public:
 
 	/*!
@@ -33,6 +33,25 @@ public:
 	 */
 	~FrameFab();
 
-}
+    /* private functions */
+private:
+
+    /*!
+     * Reads and verifies the ROS parameters.
+     * @return true if successful
+     */
+     bool readParameters();
+
+    /* private data */
+private:
+
+    //! ROS nodehandle.
+    ros::NodeHandle& nodeHandle_;
+
+    //! RSO subscribers.
+
+};
 
 } /* namespace */
+
+#endif // FRAMEFAB_H

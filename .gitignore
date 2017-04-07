@@ -60,3 +60,7 @@ CATKIN_IGNORE
 *.h~
 *.txt~
 *.swp
+
+# clion file
+**/.idea
+**/cmake-build-debug/*
