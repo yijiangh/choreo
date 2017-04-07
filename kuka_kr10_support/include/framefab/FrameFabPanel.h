@@ -11,53 +11,75 @@
 
 namespace framefab {
 
-class FramefabPanel: public rviz::Panel
+    //! @class FrameFabPanel
+    /*!
+     * @brief framefab UI panel for Rviz
+     */
+    class FrameFabPanel: public rviz::Panel
 {
-// This class uses Qt slots and is a subclass of QObject, so it needs
-// the Q_OBJECT macro.
-Q_OBJECT
-public:
-  // QWidget subclass constructors usually take a parent widget
-  // parameter (which usually defaults to 0).  At the same time,
-  // pluginlib::ClassLoader creates instances by calling the default
-  // constructor (with no arguments).  Taking the parameter and giving
-  // a default of 0 lets the default constructor work and also lets
-  // someone using the class for something else to pass in a parent
-  // widget as they normally would with Qt.
-  FramefabPanel( QWidget* parent = 0 );
+    Q_OBJECT
 
-  // Now we declare overrides of rviz::Panel functions for saving and
-  // loading data from the config file.  Here the data is the
-  // topic name.
-  virtual void load( const rviz::Config& config );
-  virtual void save( rviz::Config config ) const;
+    public:
+        FrameFabPanel( QWidget* parent = 0 );
+        ~FrameFabPanel() {}
 
-public Q_SLOTS:  
-  void readFile();
-  void drawLink();
-	void activateMP();
+        // Now we declare overrides of rviz::Panel functions for saving and
+        // loading data from the config file.  Here the data is the
+        // topic name.
+        virtual void load( const rviz::Config& config );
+        virtual void save( rviz::Config config ) const;
 
-protected:
-	
-	/* --- widget --- */
-  // One-line text editor for entering the outgoing ROS topic name.
-  QLineEdit* seq_file_editor_;
+    public Q_SLOTS:
 
-  //Show the points 
-  QTextEdit* file_display_;
+        /*!
+         * @brief Read the file name from the dialog and parse results
+         */
+        void readFile();
 
-  QPushButton* browse_button_;
-  QPushButton* publishlink_button_;
-  QPushButton* startplan_button_;
+        /*!
+         * @brief publish ros message "draw links"
+         */
+        void drawLink();
 
-  QString file_name_;						  // The current filename in the field
-  
-	/* --- publisher --- */
-  ros::Publisher pose_publisher_;
-	ros::Publisher mplan_publisher_;
+        /*!
+         * @brief publish ros message "activate motion planning"
+         */
+        void activateMP();
 
-	/* --- node handle --- */
-  ros::NodeHandle nh_;
+    private:
+        void createTextEdits();
+        void createLineEdits();
+        void createPushButtons();
+
+        geometry_msgs::Point scale(geometry_msgs::Point p, float sf);
+
+//signals:
+//    // change mode, send parameters
+
+    protected:
+        QLineEdit* lineEdit_seqFile_; /*!< One-line text editor for entering the outgoing ROS topic name. */
+
+        QTextEdit* textEdit_ptDisplay_; /*!< Show the points */
+
+        QPushButton* pushButton_browse_;
+        QPushButton* pushButton_publishLink_;
+        QPushButton* pushButton_startPlan_;
+
+        QString file_name_; /*!< The current filename in the field  */
+
+    private:
+        //! ROS nodehandle
+        ros::NodeHandle nodeHandle_;
+
+        //! ROS publisher
+        ros::Publisher publisher_pose_;
+        ros::Publisher publisher_motionPlan_;
+
+        // todo: should separate data from this visualiztion class
+        std::vector<geometry_msgs::Point> nodes_;
+        std::deque<std::pair<int,int> >   edges_;
+        std::vector<std::pair<int,int> >  pillars_;
+        std::vector<std::pair<int,int> >  ceilings_;
 };
 }
 #endif // FRAMEFAB_PANEL_H
