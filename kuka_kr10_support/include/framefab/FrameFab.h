@@ -1,56 +1,87 @@
 /*
  * FrameFab.h
  * 
- * Created on: April 7, 2017
- * Author:		 Yijiang Huang, Thomas Cook
- * Institute:  MIT, Digital Structure Group, Building Tech 
+ * Created on:  April 7, 2017
+ * Author:      Yijiang Huang, Thomas Cook
+ * Institute:   MIT, Digital Structure Group, Building Tech
 */
 
 #ifndef FRAMEFAB_H
 #define FRAMEFAB_H
 
+// framfab
+#include <framefab/FrameFabMotionPlanning.h>
+
+// ROS
+#include <ros/ros.h>
+
 namespace framefab {
 
-/*! @class FrameFab
- *  @brief The framefab main container class.
- * 
- *  The framefab main container class. Coordinates the ROS interface
- *  and the data handling between the other classes.
-*/
-class FrameFab
-{
-    /* public functions */
-public:
+    /*! @class FrameFab
+     *  @brief The framefab main container class.
+     *
+     *  The framefab main container class. Coordinates the ROS interface
+     *  and the data handling between the other classes.
+    */
+    class FrameFab {
 
-	/*!
-	 *	@brief Constructor.
-	 * 	@param[in] nodeHandle the ROS node handle
-	 */
-	FrameFab(ros::NodeHandle& nodeHandle);
+        /* public functions */
+    public:
 
-	/*!
-	 *	@brief Destructor.
-	 */
-	~FrameFab();
+        /*!
+         *	@brief Constructor.
+         * 	@param[in] nodeHandle the ROS node handle
+         */
+        FrameFab(ros::NodeHandle &nodeHandle);
 
-    /* private functions */
-private:
+        /*!
+         *	@brief Destructor.
+         */
+        ~FrameFab();
 
-    /*!
-     * Reads and verifies the ROS parameters.
-     * @return true if successful
-     */
-     bool readParameters();
+        /*!
+         *  @brief Callback function for displaying frame links in Rviz
+         *
+         */
+        void panelDisplayFrameCallback();
 
-    /* private data */
-private:
+        /*!
+         *  @brief Callback function for activating motion planning computation
+         */
+        void mplanActivateCallback();
 
-    //! ROS nodehandle.
-    ros::NodeHandle& nodeHandle_;
+        /* private functions */
+    private:
 
-    //! RSO subscribers.
+        /*!
+         * Reads and verifies the ROS parameters.
+         * @return true if successful
+         */
+        bool readParameters() {}
 
-};
+        /*!
+        * Performs the initialization procedure.
+        * @return true if successful.
+        */
+        bool initialize() {}
+
+
+        /* private data */
+    private:
+
+        //! ROS nodehandle.
+        ros::NodeHandle &nodeHandle_;
+
+        //! ROS subscribers.
+
+
+        //! ROS topics for subscriptions.
+        std::string panelTopic_;
+        std::string mplanTopic_;
+
+        //! Motion planning component
+        FramefabMotion
+    };
 
 } /* namespace */
 

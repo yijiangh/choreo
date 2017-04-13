@@ -43,10 +43,6 @@ namespace framefab
         layout->addWidget( pushButton_publishLink_ );
         layout->addWidget( pushButton_startPlan_ );
         setLayout( layout );
-
-        //todo: the topic queue size (1000, 1, etc) is only for temporal usage, not safe
-        publisher_pose_ = nodeHandle_.advertise<geometry_msgs::PoseArray>("/framelinks", 1000);
-        publisher_motionPlan_ = nodeHandle_.advertise<std_msgs::Bool>("/activate_mplan", 1);
     }
 
     void FrameFabPanel::createTextEdits()

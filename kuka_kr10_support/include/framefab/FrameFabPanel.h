@@ -1,13 +1,16 @@
 #ifndef FRAMEFAB_PANEL_H
 #define FRAMEFAB_PANEL_H
 
-#include <ros/ros.h>
-
+// Qt
 #include <QLineEdit>
 #include <QPushButton>
 #include <QTextEdit>
 
+// Rviz
 #include <rviz/panel.h>
+
+// ROS
+#include <ros/ros.h>
 
 namespace framefab {
 
@@ -69,7 +72,7 @@ namespace framefab {
 
     private:
         //! ROS nodehandle
-        ros::NodeHandle nodeHandle_;
+        //ros::NodeHandle nodeHandle_;
 
         //! ROS publisher
         ros::Publisher publisher_pose_;

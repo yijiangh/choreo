@@ -1,17 +1,54 @@
+/*
+ * FrameFabMotionPlanning.h
+ *
+ * Created on:  April 7, 2017
+ * Author:      Yijiang Huang, Thomas Cook
+ * Institute:   MIT, Digital Structure Group, Building Tech
+*/
+
+#ifndef FRAMEFAB_MOTIONPLANNING_H
+#define FRAMEFAB_MOTIONPLANNING_H
+
+// ROS
 #include <ros/ros.h>
 
-class kuka_node
-{
-public:
-kuka_node() {}
-~kuka_node() {}
+namespace framefab {
 
-public:
-void setNodeHandle(ros::NodeHandle* _ptr_node_handle) { ptr_node_handle_ = _ptr_node_handle; }
+    /*! @class FrameFab
+     *  @brief The framefab main container class.
+     *
+     *  The framefab main container class. Coordinates the ROS interface
+     *  and the data handling between the other classes.
+    */
+    class FrameFabMotionPlanning {
 
-// call back function for message subscription
-void mplanCallback(std_msgs::Bool mp_msg);
+        /* public functions */
+    public:
+        /*!
+         *	@brief Constructor.
+         * 	@param[in] nodeHandle the ROS node handle
+         */
+        FrameFabMotionPlanning(ros::NodeHandle nodeHandle);
 
-private:
-ros::NodeHandle* ptr_node_handle_;
-}
+        /*!
+         *	@brief Constructor.
+         *
+         */
+        ~FrameFabMotionPlanning() {}
+
+        /*!
+         * Reads and verifies the ROS parameters.
+         * @return true if successful.
+         */
+        bool readParameters();
+
+        /* private data */
+    private:
+
+        //! Ros nodehandle
+        ros::NodeHandle *ptr_node_handle_;
+    };
+
+} /* namespace */
+
+#endif
