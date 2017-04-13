@@ -80,7 +80,7 @@ namespace framefab {
         std::string mplanTopic_;
 
         //! Motion planning component
-        FramefabMotion
+        FramefabMotionPlanning ffMotionPlanner_;
     };
 
 } /* namespace */
