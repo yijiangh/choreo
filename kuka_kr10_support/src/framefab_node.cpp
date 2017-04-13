@@ -1,9 +1,9 @@
 /*
  * framefab_node.cpp
  * 
- * Created on: April 7, 2017
- * Author:		 Yijiang Huang, Thomas Cook
- * Institute:  MIT, Digital Structure Group, Building Tech 
+ * Created on:  April 7, 2017
+ * Author:      Yijiang Huang, Thomas Cook
+ * Institute:   MIT, Digital Structure Group, Building Tech
 */
 
 #include <ros/ros.h>
@@ -38,7 +38,7 @@ int main(int argc, char **argv)
     //--------------------------------------------------
 
     // visualize framelinks message subsriber
-    ros::Subscriber frame_sub = node_handle.subscribe("framelinks", 		0, &frameCallback);
+    ros::Subscriber frame_sub = node_handle.subscribe("framelinks", 0, &frameCallback);
     ros::Subscriber mplan_sub = node_handle.subscribe("activate_mplan", 0, &k_node.mplanCallback);
 
 //    // global marker(link in Rviz) property init
