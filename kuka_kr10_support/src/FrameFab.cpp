@@ -3,7 +3,7 @@
 namespace framefab{
     Framefab::Framefab(ros::NodeHandle& nodeHandle)
     : nodeHandle_(nodeHandle),
-
+      ffMotionPlanner_(nodeHandle)
     {
         ROS_INFO("FrameFab node started.");
 
