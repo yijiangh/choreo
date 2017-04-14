@@ -7,7 +7,7 @@
 */
 
 #include <ros/ros.h>
-#include <framefab/FrameFab.h>
+#include <FrameFab.h>
 
 int main(int argc, char **argv)
 {
@@ -37,9 +37,6 @@ int main(int argc, char **argv)
 
     //--------------------------------------------------
 
-    // visualize framelinks message subsriber
-    ros::Subscriber frame_sub = node_handle.subscribe("framelinks", 0, &frameCallback);
-    ros::Subscriber mplan_sub = node_handle.subscribe("activate_mplan", 0, &k_node.mplanCallback);
 
 //    // global marker(link in Rviz) property init
 //    link_list.header.frame_id = "world";
@@ -47,19 +44,6 @@ int main(int argc, char **argv)
 //    link_list.pose.orientation.w = 1.0;
 //    link_list.id = 0;
 //    link_list.type = visualization_msgs::Marker::LINE_LIST;
-
-    ros::Publisher display_publisher;
-    ros::Publisher marker_pub;
-    marker_pub        = node_handle.advertise<visualization_msgs::Marker>("visualization_marker",0);
-    display_publisher = node_handle.advertise<moveit_msgs::DisplayTrajectory>(
-            "/move_group/display_planned_path", 1, true);
-
-//    moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
-
-    // Publisher for visualizing plans in Rviz.
-
-
-    //--------------------------------------------------
 
     return 0;
 }

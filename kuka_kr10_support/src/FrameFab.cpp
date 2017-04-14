@@ -1,30 +1,37 @@
-#include <framefab/FrameFab.h>
+#include <FrameFab.h>
 
 namespace framefab{
-    Framefab::Framefab(ros::NodeHandle& nodeHandle)
-    : nodeHandle_(nodeHandle),
-      ffMotionPlanner_(nodeHandle)
+    FrameFab::FrameFab(ros::NodeHandle& node_handle)
+    : node_handle_(node_handle)
     {
         ROS_INFO("FrameFab node started.");
 
         // readParameters
+        readParameters();
 
-        // advertise topics
-        //todo: the topic queue size (1000, 1, etc) is only for temporal usage, not safe
-        publisher_pose_ = nodeHandle_.advertise<geometry_msgs::PoseArray>("/framelinks", 1000);
-        publisher_motionPlan_ = nodeHandle_.advertise<std_msgs::Bool>("/activate_mplan", 1);
+        // advertise topics - should be done in computation class
+//        publisher_pose_     = nodeHandle_.advertise<geometry_msgs::PoseArray>("/framelinks", 1);
+//        publisher_mplan_    = nodeHandle_.advertise<std_msgs::Bool>("/activate_mplan", 1);
+
+        // visualize framelinks message subsriber
+        ros::Subscriber frame_sub = node_handle.subscribe(displaypose_topic_, 0, &frameCallback);
+
     }
 
-    Framefab::~Framefab()
+    FrameFab::~FrameFab()
     {
         nodeHandle_.shutdown();
     }
 
-    Framefab::readParameters()
+    FrameFab::readParameters()
     {
+        //FrameFab Parameters
+        node_handle_.param("display_pose_topic", display_pose_topic_, string("/framelinks"));
+
+        return true;
     }
 
-    Framefab::displayFrameCallback()
+    FrameFab::displayFrameCallback()
     {
 
     }

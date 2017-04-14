@@ -32,7 +32,7 @@ namespace framefab {
          *	@brief Constructor.
          * 	@param[in] nodeHandle the ROS node handle
          */
-        FrameFab(ros::NodeHandle &nodeHandle);
+        FrameFab(ros::NodeHandle &node_handle);
 
         /*!
          *	@brief Destructor.
@@ -57,7 +57,7 @@ namespace framefab {
          * Reads and verifies the ROS parameters.
          * @return true if successful
          */
-        bool readParameters() {}
+        bool readParameters();
 
         /*!
         * Performs the initialization procedure.
@@ -70,17 +70,14 @@ namespace framefab {
     private:
 
         //! ROS nodehandle.
-        ros::NodeHandle &nodeHandle_;
+        ros::NodeHandle &node_handle_;
 
         //! ROS subscribers.
 
 
         //! ROS topics for subscriptions.
-        std::string panelTopic_;
-        std::string mplanTopic_;
-
-        //! Motion planning component
-        FramefabMotionPlanning ffMotionPlanner_;
+        std::string display_pose_topic_;
+        std::string mplan_topic_;
     };
 
 } /* namespace */

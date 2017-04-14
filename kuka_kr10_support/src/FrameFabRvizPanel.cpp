@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <utility>
 
 // QT
@@ -6,11 +5,11 @@
 #include <QPainter>
 #include <QTextStream>
 #include <QVBoxLayout>
-#include <QHBoxLayout>
 #include <QLabel>
 #include <QTimer>
 #include <QFileDialog>
 #include <QTextEdit>
+#include <QtGui>
 
 // ROS msgs
 #include <geometry_msgs/PoseArray.h>
@@ -19,14 +18,19 @@
 #include <deque>
 #include <QtCore/QtCore>
 #include <QtCore/QFile>
-#include "framefab/FrameFabPanel.h"
+
+// framefab
+#include "FrameFabRvizPanel.h"
 
 namespace framefab
 {
 
-    FrameFabPanel::FrameFabPanel( QWidget* parent )
+    FrameFabRvizPanel::FrameFabRvizPanel( QWidget* parent )
             : rviz::Panel( parent )
     {
+        ROS_INFO("FrameFab Rviz Panel started.");
+        readParameters();
+
         createLineEdits();
         createTextEdits();
         createPushButtons();
@@ -43,19 +47,38 @@ namespace framefab
         layout->addWidget( pushButton_publishLink_ );
         layout->addWidget( pushButton_startPlan_ );
         setLayout( layout );
+
+        if(!display_pose_topic_.empty())
+        {
+            display_pose_publisher_ = node_handle_.advertise<std_msgs::Bool>(display_pose_topic_, 1);
+        }
+
+        if(!read_file_topic_.empty())
+        {
+            read_file_publisher_    = node_handle_.advertise<std_msgs::Bool>(read_file_topic_, 1);
+        }
     }
 
-    void FrameFabPanel::createTextEdits()
+    bool FrameFabRvizPanel::readParameters()
+    {
+        //FrameFab Parameters
+        node_handle_.param("display_pose_topic", display_pose_topic_, std::string("/framelinks"));
+        node_handle_.param("read_file_topic", read_file_topic_, std::string("/readfile"));
+
+        return true;
+    }
+
+    void FrameFabRvizPanel::createTextEdits()
     {
         textEdit_ptDisplay_ = new QTextEdit;
     }
 
-    void FrameFabPanel::createLineEdits()
+    void FrameFabRvizPanel::createLineEdits()
     {
         lineEdit_seqFile_ = new QLineEdit;
     }
 
-    void FrameFabPanel::createPushButtons()
+    void FrameFabRvizPanel::createPushButtons()
     {
         pushButton_publishLink_ = new QPushButton("Publish links");
         connect( pushButton_publishLink_, SIGNAL( clicked() ), this, SLOT( drawLink() ));
@@ -64,9 +87,9 @@ namespace framefab
         connect( pushButton_startPlan_, SIGNAL( clicked() ), this, SLOT( activateMP() ));
     }
 
-    void FrameFabPanel::readFile()
+    void FrameFabRvizPanel::readFile()
     {
-        QString filename = QFileDialog::getOpenfilename(
+        QString filename = QFileDialog::getOpenfileName(
                 this,
                 tr("Open File"),
                 "/home/ubuntu/ros_ws/src/kuka_experimental/kuka_kr10_support/data/",
@@ -74,7 +97,7 @@ namespace framefab
 
         if(filename.isEmpty())
         {
-            emit(operatorInfo(QString("Read Mesh Failed!")));
+            ROS_ERROR("Read Model Failed!");
             return;
         }
 
@@ -123,24 +146,23 @@ namespace framefab
         // rviz::VisualizationFrame, which causes a little asterisk ("*")
         // to show in the window's title bar indicating unsaved changes.
         Q_EMIT configChanged();
-        // Gray out the control widget when the output topic is empty.
     }
 
-// Save all configuration data from this panel to the given
-// Config object.  It is important here that you call save()
-// on the parent class so the class id and panel name get saved.
-    void FrameFabPanel::save( rviz::Config config ) const
+    // Save all configuration data from this panel to the given
+    // Config object.  It is important here that you call save()
+    // on the parent class so the class id and panel name get saved.
+    void FrameFabRvizPanel::save( rviz::Config config ) const
     {
         rviz::Panel::save( config );
     }
 
-// Load all configuration data for this panel from the given Config object.
-    void FrameFabPanel::load( const rviz::Config& config )
+    // Load all configuration data for this panel from the given Config object.
+    void FrameFabRvizPanel::load( const rviz::Config& config )
     {
         rviz::Panel::load( config );
     }
 
-    geometry_msgs::Point FrameFabPanel::scale(geometry_msgs::Point p, float sf)
+    geometry_msgs::Point FrameFabRvizPanel::scale(geometry_msgs::Point p, float sf)
     {
         geometry_msgs::Point result;
         result.x = p.x * sf;
@@ -151,7 +173,7 @@ namespace framefab
 
 
 //Publishes single link at beginning of edges_ list and pops off list
-    void FrameFabPanel::drawLink()
+    void FrameFabRvizPanel::drawLink()
     {
         if (edges_.size() == 0 ) {
             ROS_INFO("no links to draw");
@@ -170,20 +192,14 @@ namespace framefab
         std::cout << "Publishing points: " << nodes_[edge.first] << " " <<  nodes_[edge.second] << std::endl;
         edges_.pop_front();
 
-        publisher_pose_.publish(msg);
-    }
-
-    void FrameFabPanel::activateMP()
-    {
-        std_msgs::Bool mp_msg;
-        mp_msg.data = true;
-
-        publisher_motionPlan_.publish(mp_msg);
+        display_pose_publisher_.publish(msg);
+        ROS_DEBUG("MSG: link pose visualize has been published");
     }
 
 } //namespace
+
 // Tell pluginlib about this class.  Every class which should be
 // loadable by pluginlib::ClassLoader must have these two lines
 // compiled in its .cpp file, outside of any namespace scope.
 #include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(framefab::FrameFabPanel,rviz::Panel)
+PLUGINLIB_EXPORT_CLASS(framefab::FrameFabRvizPanel,rviz::Panel)

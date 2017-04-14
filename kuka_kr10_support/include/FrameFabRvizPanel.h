@@ -1,7 +1,16 @@
-#ifndef FRAMEFAB_PANEL_H
-#define FRAMEFAB_PANEL_H
+/*
+ * FrameFabRvizPanel.h
+ *
+ * Created on:  April 7, 2017
+ * Author:      Thomas Cook, Yijiang Huang
+ * Institute:   MIT, Digital Structure Group, Building Tech
+*/
+
+#ifndef FRAMEFAB_RVIZPANEL_H
+#define FRAMEFAB_RVIZPANEL_H
 
 // Qt
+#include <QObject>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QTextEdit>
@@ -14,17 +23,30 @@
 
 namespace framefab {
 
-    //! @class FrameFabPanel
+    //! @class FrameFabRvizPanel
     /*!
      * @brief framefab UI panel for Rviz
+     *
+     * This class create UI button, slider and text panel
+     * etc. for Framefab control panel on Rviz. The host
+     * node for this class is Rviz node. Thus the FrameFab-
+     * RvizPanel class is a UI container class connecting
+     * Qt object with slot effect functions.
      */
-    class FrameFabPanel: public rviz::Panel
-{
+    class FrameFabRvizPanel: public rviz::Panel
+    {
     Q_OBJECT
 
     public:
-        FrameFabPanel( QWidget* parent = 0 );
-        ~FrameFabPanel() {}
+        /*!
+         * @brief Constructor
+         */
+        FrameFabRvizPanel( QWidget* parent = 0 );
+
+        /*!
+         * @brief Destructor
+        */
+        ~FrameFabRvizPanel() {}
 
         // Now we declare overrides of rviz::Panel functions for saving and
         // loading data from the config file.  Here the data is the
@@ -32,36 +54,15 @@ namespace framefab {
         virtual void load( const rviz::Config& config );
         virtual void save( rviz::Config config ) const;
 
-    public Q_SLOTS:
-
-        /*!
-         * @brief Read the file name from the dialog and parse results
-         */
-        void readFile();
-
-        /*!
-         * @brief publish ros message "draw links"
-         */
-        void drawLink();
-
-        /*!
-         * @brief publish ros message "activate motion planning"
-         */
-        void activateMP();
+        bool readParameters();
 
     private:
         void createTextEdits();
         void createLineEdits();
         void createPushButtons();
 
-        geometry_msgs::Point scale(geometry_msgs::Point p, float sf);
-
-//signals:
-//    // change mode, send parameters
-
-    protected:
+    private:
         QLineEdit* lineEdit_seqFile_; /*!< One-line text editor for entering the outgoing ROS topic name. */
-
         QTextEdit* textEdit_ptDisplay_; /*!< Show the points */
 
         QPushButton* pushButton_browse_;
@@ -70,19 +71,25 @@ namespace framefab {
 
         QString file_name_; /*!< The current filename in the field  */
 
-    private:
-        //! ROS nodehandle
-        //ros::NodeHandle nodeHandle_;
+        //! ROS NodeHandle
+        ros::NodeHandle node_handle_;
 
         //! ROS publisher
-        ros::Publisher publisher_pose_;
-        ros::Publisher publisher_motionPlan_;
+        ros::Publisher display_pose_publisher_;
+        ros::Publisher read_file_publisher_;
+
+        //! ROS topics
+        std::string display_pose_topic_;
+        std::string read_file_topic_;
+
+        //! FrameFab widget - function level
+        framefab::FrameFabRenderWidget ff_render_widget_;
 
         // todo: should separate data from this visualiztion class
         std::vector<geometry_msgs::Point> nodes_;
         std::deque<std::pair<int,int> >   edges_;
         std::vector<std::pair<int,int> >  pillars_;
         std::vector<std::pair<int,int> >  ceilings_;
-};
+    };
 }
-#endif // FRAMEFAB_PANEL_H
+#endif // FRAMEFAB_RVIZPANEL_H
