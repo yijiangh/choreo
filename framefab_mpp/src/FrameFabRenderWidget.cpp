@@ -23,11 +23,9 @@ namespace framefab
 {
 
 FrameFabRenderWidget::FrameFabRenderWidget( QWidget* parent )
-    : rviz::Panel( parent ),
-      ptr_frame_(NULL),
-      display_id_(0)
+    : ptr_frame_(NULL)
 {
-  ROS_INFO("FrameFabRenderWidget class started.");
+  ROS_INFO("FrameFab Render Widget started.");
 
   // readParameters
   readParameters();
@@ -49,7 +47,7 @@ FrameFabRenderWidget::FrameFabRenderWidget( QWidget* parent )
 
 FrameFabRenderWidget::~FrameFabRenderWidget()
 {
-  SafeDelete(ptr_frame_);
+  framefab::SafeDelete(ptr_frame_);
 }
 
 bool FrameFabRenderWidget::readParameters()
@@ -63,11 +61,11 @@ bool FrameFabRenderWidget::readParameters()
 
 void FrameFabRenderWidget::displayPoses()
 {
-  if (NULL == ptr_frame_ ||  0 == ptr_frame_->SizeOfVertList())
-  {
-    ROS_INFO("Input frame empty, no links to draw.");
-    return;
-  }
+//  if (NULL == ptr_frame_ ||  0 == ptr_frame_->SizeOfVertList())
+//  {
+//    ROS_INFO("Input frame empty, no links to draw.");
+//    return;
+//  }
 
 //  geometry_msgs::PoseArray pose_msgs;
 //
@@ -100,7 +98,7 @@ void FrameFabRenderWidget::displayPoses()
 //
 //  display_marker_publisher_.publish(msg);
 
-  ROS_DEBUG("MSG: link pose visualize has been published");
+  ROS_INFO("MSG: link pose visualize has been published");
 }
 
 void FrameFabRenderWidget::readFile()
@@ -108,7 +106,7 @@ void FrameFabRenderWidget::readFile()
   QString filename = QFileDialog::getOpenFileName(
       this,
       tr("Open File"),
-      "/home/ubuntu/ros_ws/src/kuka_experimental/kuka_kr10_support/data/",
+      "$HOME/Documents",
       tr("pwf Files (*.pwf)"));
 
   if(filename.isEmpty())
@@ -135,15 +133,13 @@ void FrameFabRenderWidget::readFile()
   }
 
   //todo: emit input model info
-//        // emit file info
-//        lineEdit_seqFile_->setText(filename);
-//        QString parse_msg = "Nodes: "       + QString::number(nodes_.size())    + "\n"
-//                            + " Links: "    + QString::number(edges_.size())    + "\n"
-//                            + " Pillars: "  + QString::number(pillars_.size())  + "\n"
-//                            + " Ceilings: " + QString::number(ceilings_.size());
-//        textEdit_ptDisplay_->setText(parse_msg);
+  QString parse_msg = "Nodes: "       + QString::number(ptr_frame_->SizeOfVertList()) + "\n"
+                    + " Links: "    + QString::number(ptr_frame_->SizeOfEdgeList()) + "\n"
+                    + " Pillars: "  + QString::number(ptr_frame_->SizeOfPillar()) + "\n"
+                    + " Ceilings: " + QString::number(ptr_frame_->SizeOfCeiling());
 
-  Q_EMIT configChanged();
+  ROS_INFO_STREAM("MSG:" << parse_msg.toStdString());
+  ROS_INFO("model loaded successfully");
 }
 
 //geometry_msgs::Point FrameFabRenderWidget::scale(geometry_msgs::Point p, float sf)
