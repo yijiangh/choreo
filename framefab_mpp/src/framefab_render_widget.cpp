@@ -3,10 +3,10 @@
 //
 
 // framefab
-#include <FrameFabRenderWidget.h>
+#include <framefab_render_widget.h>
 
 // util
-#include <util/GlobalFunctions.h>
+#include <util/global_functions.h>
 
 // ROS msgs
 #include <visualization_msgs/Marker.h>
@@ -16,7 +16,7 @@
 // Qt
 #include <QtCore>
 #include <QFileDialog>
-#include <WireFrame.h>
+#include <wire_frame.h>
 #include <geometry_msgs/PoseArray.h>
 
 namespace framefab
@@ -47,7 +47,7 @@ FrameFabRenderWidget::FrameFabRenderWidget( QWidget* parent )
 
 FrameFabRenderWidget::~FrameFabRenderWidget()
 {
-  framefab::SafeDelete(ptr_frame_);
+  framefab::safeDelete(ptr_frame_);
 }
 
 bool FrameFabRenderWidget::readParameters()
@@ -121,7 +121,7 @@ void FrameFabRenderWidget::readFile()
   QByteArray byfilename = filename.toLocal8Bit();
 
   delete ptr_frame_;
-  ptr_frame_ = new WireFrame();
+  ptr_frame_ = new wire_frame();
 
   if (filename.contains(".obj") || filename.contains(".OBJ"))
   {

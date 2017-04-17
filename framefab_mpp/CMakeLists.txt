@@ -84,14 +84,14 @@ add_definitions(-DQT_NO_KEYWORDS)
 ## otherwise AUTO_MOC cannot find header file successfully even you
 ## include the directory.
 set(HEADER_FILES
-        include/FrameFabRvizPanel.h
-        include/FrameFabRenderWidget.h
+        include/framefab_rviz_panel.h
+        include/framefab_render_widget.h
         )
 
 set(SRC_FILES
-        src/FrameFabRvizPanel.cpp
-        src/FrameFabRenderWidget.cpp
-        src/WireFrame.cpp
+        src/framefab_rviz_panel.cpp
+        src/framefab_render_widget.cpp
+        src/wire_frame.cpp
         )
 
 add_library(${PROJECT_NAME} ${SRC_FILES} ${HEADER_FILES})

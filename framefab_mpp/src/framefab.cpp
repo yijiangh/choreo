@@ -1,4 +1,4 @@
-#include <FrameFab.h>
+#include <framefab.h>
 
 namespace framefab
 {

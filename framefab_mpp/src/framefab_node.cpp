@@ -7,7 +7,7 @@
 */
 
 #include <ros/ros.h>
-#include <FrameFab.h>
+#include <framefab.h>
 
 int main(int argc, char **argv)
 {

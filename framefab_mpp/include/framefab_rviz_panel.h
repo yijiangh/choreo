@@ -22,7 +22,7 @@
 #include <ros/ros.h>
 
 // framefab
-#include <FrameFabRenderWidget.h>
+#include <framefab_render_widget.h>
 
 namespace framefab
 {

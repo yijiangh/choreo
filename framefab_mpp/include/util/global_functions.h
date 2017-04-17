@@ -23,7 +23,7 @@
 namespace framefab
 {
 template<class object>
-void SafeDelete(object *ptr)
+void safeDelete(object *ptr)
 {
     if (ptr != NULL)
     {
@@ -33,7 +33,7 @@ void SafeDelete(object *ptr)
 }
 
 template<class object>
-void SafeDeletes(object *ptr)
+void safeDeletes(object *ptr)
 {
     if (ptr != NULL)
     {
