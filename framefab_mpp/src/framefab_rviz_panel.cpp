@@ -1,5 +1,5 @@
 // Util
-#include "util/GlobalFunctions.h"
+#include "util/global_functions.h"
 
 // QT
 #include <QVBoxLayout>
@@ -7,7 +7,7 @@
 #include <QtGui>
 
 // framefab
-#include "FrameFabRvizPanel.h"
+#include "framefab_rviz_panel.h"
 
 namespace framefab
 {
@@ -39,7 +39,7 @@ FrameFabRvizPanel::FrameFabRvizPanel( QWidget* parent )
 
 FrameFabRvizPanel::~FrameFabRvizPanel()
 {
-  framefab::SafeDelete(ptr_ff_render_widget_);
+  framefab::safeDelete(ptr_ff_render_widget_);
 }
 
 void FrameFabRvizPanel::createTextEdits()

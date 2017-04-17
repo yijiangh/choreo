@@ -13,7 +13,7 @@
 #include <ros/ros.h>
 
 // framefab
-#include <WireFrame.h>
+#include <wire_frame.h>
 
 namespace framefab
 {
