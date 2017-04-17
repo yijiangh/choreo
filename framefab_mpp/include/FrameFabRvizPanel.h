@@ -24,7 +24,8 @@
 // framefab
 #include <FrameFabRenderWidget.h>
 
-namespace framefab {
+namespace framefab
+{
 
 //! @class FrameFabRvizPanel
 /*!
@@ -39,7 +40,6 @@ namespace framefab {
 class FrameFabRvizPanel: public rviz::Panel
 {
  Q_OBJECT
-
  public:
   /*!
    * @brief Constructor
@@ -57,20 +57,14 @@ class FrameFabRvizPanel: public rviz::Panel
   virtual void load( const rviz::Config& config );
   virtual void save( rviz::Config config ) const;
 
-  bool readParameters();
+  bool readParameters() {}
 
  private:
   void createTextEdits();
   void createLineEdits();
   void createPushButtons();
 
-  void advertiseUITopics();
-
-  public Q_SLOTS:
-  void readFile();
-  void displayPoses();
-
- private:
+ protected:
   //! One-line text editor for entering the outgoing ROS topic name.
   QLineEdit* lineEdit_seqFile_;
 
@@ -81,8 +75,8 @@ class FrameFabRvizPanel: public rviz::Panel
   QPushButton* pushbutton_readfile_;
   QPushButton* pushbutton_displaypose_;
 
-  //! The current filename in the field
-  QString file_name_;
+  //! The ROS node handle.
+  ros::NodeHandle nh_;
 
   //! FrameFab widget - function level
   framefab::FrameFabRenderWidget* ptr_ff_render_widget_;

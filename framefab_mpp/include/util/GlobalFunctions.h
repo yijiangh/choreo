@@ -20,6 +20,8 @@
 #ifndef GLOBALFUNCTIONS_H
 #define GLOBALFUNCTIONS_H
 
+namespace framefab
+{
 template<class object>
 void SafeDelete(object *ptr)
 {
@@ -39,6 +41,6 @@ void SafeDeletes(object *ptr)
         ptr = NULL;
     }
 }
-
+}
 
 #endif // GLOBALFUNCTIONS_H

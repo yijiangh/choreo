@@ -1,28 +1,25 @@
+# following the overall structure and ordering
+# indicated by ros cmake: http://wiki.ros.org/catkin/CMakeLists.txt
+
 cmake_minimum_required(VERSION 3.0)
 project(framefab_mpp)
-
-# output CXX compiler info
-message(STATUS "CMAKE_SYSTEM_NAME          = ${CMAKE_SYSTEM_NAME}"         )
-message(STATUS "CMAKE_CXX_COMPILER_ID      = ${CMAKE_CXX_COMPILER_ID}"     )
-message(STATUS "CMAKE_CXX_COMPILER_VERSION = ${CMAKE_CXX_COMPILER_VERSION}")
-message(STATUS "CMAKE_COMPILER_IS_GNUCXX   = ${CMAKE_COMPILER_IS_GNUCXX}"  )
 
 # SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -D__LINUX__ -DGTE_DEV_OPENGL -DGTE_DISABLE_PCH")
 
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED COMPONENTS
-  moveit_core
-  moveit_ros_planning
-  moveit_ros_planning_interface
-  pluginlib
-  cmake_modules
-  geometric_shapes
+        rviz
+#  moveit_core
+#  moveit_ros_planning
+#  moveit_ros_planning_interface
+#  pluginlib
+  #cmake_modules
+#  geometric_shapes
 )
 
 ## System dependencies are found with CMake's conventions
-find_package(Boost REQUIRED system filesystem date_time thread)
-find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
-find_package(Eigen REQUIRED)
+#find_package(Boost REQUIRED system filesystem date_time thread)
+#find_package(Eigen REQUIRED)
 
 ###################################
 ## catkin specific configuration ##
@@ -34,65 +31,102 @@ find_package(Eigen REQUIRED)
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-	INCLUDE_DIRS
-		include
-  CATKIN_DEPENDS
-    moveit_core
-    moveit_ros_planning_interface
-    interactive_markers
+    CATKIN_DEPENDS
+#    rviz_visual_tools
+#    tf_conversions
+#    eigen_conversions
+#    interactive_markers
+#    moveit_core
+#    moveit_ros_planning
+#    moveit_ros_planning_interface
+#    moveit_ros_robot_interaction
+#    moveit_msgs
+#    moveit_visual_tools
+#    pluginlib
+#    geometric_shapes
+#    graph_msgs
+#    std_msgs
 )
+
+include_directories(
+        include
+#        ${catkin_INCLUDE_DIRS}
+)
+
+## This setting causes Qt's "MOC" generation to happen automatically.
+set(CMAKE_AUTOMOC ON)
+
+## This plugin includes Qt widgets, so we must include Qt.
+## We'll use the version that rviz used so they are compatible.
+if(rviz_QT_VERSION VERSION_LESS "5")
+    message(STATUS "Using Qt4 based on the rviz_QT_VERSION: ${rviz_QT_VERSION}")
+    find_package(Qt4 ${rviz_QT_VERSION} EXACT REQUIRED QtCore QtGui)
+    ## pull in all required include dirs, define QT_LIBRARIES, etc.
+    include(${QT_USE_FILE})
+else()
+    message(STATUS "Using Qt5 based on the rviz_QT_VERSION: ${rviz_QT_VERSION}")
+    find_package(Qt5 ${rviz_QT_VERSION} EXACT REQUIRED Core Widgets)
+    ## make target_link_libraries(${QT_LIBRARIES}) pull in all required dependencies
+    set(QT_LIBRARIES Qt5::Widgets)
+endif()
+
+add_definitions(-DQT_NO_KEYWORDS)
 
 ###########
 ## Build ##
 ###########
-add_definitions(-DQT_NO_KEYWORDS)
+## Specifying build targets
 
-include_directories(
-        include
-        ${catkin_INCLUDE_DIRS}
-        ${Boost_INCLUDE_DIR}
-        ${EIGEN_INCLUDE_DIRS}
-        SYSTEM
-)
+### ------------------ declare cpp library ------------------ ###
 
-include(${QT_USE_FILE})
-
-#if (CATKIN_ENABLE_TESTING)
-#  find_package(roslaunch REQUIRED)
-#  roslaunch_add_file_check(test/roslaunch_test_kr10r1100sixx.xml)
-#endif()
-
-#install(DIRECTORY config launch meshes urdf
-#  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-#)
-
-
-# link_directories(${catkin_LIBRARY_DIRS})
-
-qt4_wrap_cpp(MOC_FILES
+## The generated MOC files are included automatically as headers.
+## header and source files should be added to library at the same time
+## otherwise AUTO_MOC cannot find header file successfully even you
+## include the directory.
+set(HEADER_FILES
         include/FrameFabRvizPanel.h
-	    include/FrameFabRenderWidget.h
+        include/FrameFabRenderWidget.h
+        )
+
+set(SRC_FILES
+        src/FrameFabRvizPanel.cpp
+        src/FrameFabRenderWidget.cpp
+        src/WireFrame.cpp
+        )
+
+add_library(${PROJECT_NAME} ${SRC_FILES} ${HEADER_FILES})
+
+target_link_libraries(
+	${PROJECT_NAME} ${QT_LIBRARIES} ${catkin_LIBRARIES}
 )
 
-# declare a cpp library
-add_library(lib${PROJECT_NAME}
-	${MOC_FILES}
-	src/FrameFab.cpp
-	src/FrameFabRenderWidget.cpp
-	src/FrameFabRvizPanel.cpp
-  src/WireFrame.cpp
-)
+### ------------------ end library ------------------ ###
 
-# declare a cpp executable
-add_executable(
-	${PROJECT_NAME} 
-	src/framefab_node.cpp
-)
+### ------------------ declare a cpp executable ------------------ ###
+#add_executable(
+#        ${PROJECT_NAME}_node
+#        src/framefab_node.cpp
+#)
+#
+#target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
-target_link_libraries(${PROJECT_NAME}
-	lib${PROJECT_NAME} ${catkin_LIBRARIES}
-)
-#${Boost_LIBRARIES}
+### ------------------ end executable ------------------ ###
 
-#install(TARGETS ${PROJECT_NAME} DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-#install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+###########
+## Installation ##
+###########
+## After build time, targets are placed into the devel space of the catkin workspace. However, often we want to install
+## targets to the system so that they can be used by others or to a local folder to test a system-level installation.
+## In other words, if you want to be able to do a "make install" of your code, you need to specify where targets should
+## end up.
+
+#install(TARGETS
+#        ${PROJECT_NAME}
+#        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+#        )
+#
+#install(FILES
+#        framefab_rviz_panel_package_description.xml
+#        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})

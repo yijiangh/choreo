@@ -6,10 +6,8 @@
 #define FRAMEFABRENDERWIDGET_H
 
 // Qt
-#include <QObject>
-
-// Rviz
-#include <rviz/panel.h>
+//#include <QObject>
+#include <QWidget>
 
 // ROS
 #include <ros/ros.h>
@@ -25,10 +23,9 @@ namespace framefab
  * @brief framefab UI interaction coordinator
  *
  */
-class FrameFabRenderWidget : public rviz::Panel
+class FrameFabRenderWidget : public QWidget
 {
  Q_OBJECT
-
  public:
   /*!
    * @brief constructor
@@ -80,10 +77,6 @@ class FrameFabRenderWidget : public rviz::Panel
   //! ROS topics
   std::string display_pose_topic_;
   std::string read_file_topic_;
-
-  // todo: to be replaced, only for testing
-  //! display links id
-  int display_id_;
 };
 }/* namespace */
 

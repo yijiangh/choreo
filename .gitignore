@@ -64,4 +64,3 @@ CATKIN_IGNORE
 # clion file
 **/.idea
 **/cmake-build-debug/*
-
