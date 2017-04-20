@@ -65,11 +65,20 @@ class FrameFabRenderWidget : public QWidget
   void displayPoses();
 
  private:
+  moveit_msgs::CollisionObject makeCollisionCylinder(geometry_msgs::Point start, geometry_msgs::Point end,std::string id);
+  geometry_msgs::Point transformPoint(geometry_msgs::Point pwf_point);
   //geometry_msgs::Point scale(geometry_msgs::Point p, float sf);
 
  public:
   //! wireframe data structure
   WireFrame* ptr_frame_;
+
+  //! MoveIt interfaces
+  moveit::planning_interface::PlanningSceneInterface * planning_scene_interface_;
+  moveit::planning_interface::MoveGroup * move_group_;
+  // Rendering constants
+  float display_point_radius_;
+  geometry_msgs::Point testbed_offset_;
 
  private:
   //! ROS NodeHandle
@@ -86,8 +95,6 @@ class FrameFabRenderWidget : public QWidget
   std::string display_pose_topic_;
   std::string read_file_topic_;
 
-  //! MoveIt interfaces
-  moveit::planning_interface::PlanningSceneInterface * planning_scene_interface_;
 };
 }/* namespace */
 

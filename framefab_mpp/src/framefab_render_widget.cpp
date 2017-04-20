@@ -20,6 +20,8 @@
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit_msgs/DisplayRobotState.h>
 #include <moveit_msgs/DisplayTrajectory.h>
+#include <tf_conversions/tf_eigen.h>
+#include <eigen_conversions/eigen_msg.h>
 
 // Qt
 #include <QtCore>
@@ -44,7 +46,12 @@ FrameFabRenderWidget::FrameFabRenderWidget( QWidget* parent )
   display_marker_publisher_ = node_handle_.advertise<visualization_msgs::Marker>("visualization_marker", 1);
 
   planning_scene_interface_ = new moveit::planning_interface::PlanningSceneInterface();
+  move_group_ = new moveit::planning_interface::MoveGroup("manipulator");
 
+  display_point_radius_ = 0.0025; //TODO: make params
+  testbed_offset_.x = 0.1;
+  testbed_offset_.y = -0.5;
+  testbed_offset_.z = 0.33;
 //  // subscribe to RvizPanel's button-emitted topics
 //  display_pose_subsriber_ = node_handle_.subscribe(
 //      display_pose_topic_, 1,
@@ -71,31 +78,100 @@ bool FrameFabRenderWidget::readParameters()
   return true;
 }
 
+
+moveit_msgs::CollisionObject FrameFabRenderWidget::makeCollisionCylinder(geometry_msgs::Point start, geometry_msgs::Point end,std::string id) {
+  moveit_msgs::CollisionObject collision_object;
+
+  collision_object.id = id;
+  collision_object.header.frame_id = move_group_->getPlanningFrame();
+  collision_object.operation = moveit_msgs::CollisionObject::ADD;
+  shape_msgs::SolidPrimitive link_cylinder;
+  link_cylinder.type = shape_msgs::SolidPrimitive::CYLINDER;
+  link_cylinder.dimensions.resize(2);
+
+  shape_msgs::SolidPrimitive vertex_start;
+  shape_msgs::SolidPrimitive vertex_end;
+  vertex_start.type = shape_msgs::SolidPrimitive::SPHERE;
+  vertex_end.type = shape_msgs::SolidPrimitive::SPHERE;
+  vertex_start.dimensions.resize(1);
+  vertex_end.dimensions.resize(1);
+
+  vertex_start.dimensions[0] = display_point_radius_;
+  vertex_end.dimensions[0] = display_point_radius_;
+
+
+  Eigen::Vector3d eStart, eEnd;
+  tf::pointMsgToEigen(start, eStart);
+  tf::pointMsgToEigen(end, eEnd);
+  double height = (eStart-eEnd).lpNorm<2>();
+  link_cylinder.dimensions[0] = height;
+  link_cylinder.dimensions[1] = display_point_radius_;
+
+  Eigen::Vector3d axis = eEnd - eStart;
+  axis.normalize();
+  Eigen::Vector3d zVec(0.0,0.0,1.0);
+  Eigen::Vector3d xVec = axis.cross(zVec);
+  xVec.normalize();
+  double theta = axis.dot(zVec);
+  double angle = -1.0 * acos(theta);
+
+  tf::Vector3 tf_right_axis_vector;
+  tf::vectorEigenToTF(xVec, tf_right_axis_vector);
+  Eigen::Quaterniond q;
+  // Create quaternion
+  tf::Quaternion tf_q(tf_right_axis_vector, angle);
+
+  // Convert back to Eigen
+  tf::quaternionTFToEigen(tf_q, q);
+  q.normalize();
+  Eigen::Affine3d pose;
+  pose = q * Eigen::AngleAxisd(-0.5*M_PI, Eigen::Vector3d::UnitY());
+  Eigen::Vector3d origin;
+  tf::pointMsgToEigen(testbed_offset_, origin);
+  pose.translation() = origin + eStart;
+  geometry_msgs::Pose start_pose;
+  geometry_msgs::Pose link_pose;
+  geometry_msgs::Pose end_pose;
+  start_pose.position = transformPoint(start);
+  end_pose.position = transformPoint(end);
+  tf::poseEigenToMsg(pose , link_pose);
+  collision_object.primitive_poses.push_back(start_pose);
+  collision_object.primitives.push_back(vertex_start);
+  //collision_object.primitive_poses.push_back(link_pose);
+  //collision_object.primitives.push_back(link_cylinder);
+  collision_object.primitive_poses.push_back(end_pose);
+  collision_object.primitives.push_back(vertex_end);
+  // Drawing frame w/ no collision
+  //nodes.points.push_back(start);
+  //nodes.points.push_back(end);
+  //marker_pub.publish(nodes);
+  //marker_pub.publish(link_list);
+
+
+
+  return collision_object;
+}
+
+geometry_msgs::Point FrameFabRenderWidget::transformPoint(geometry_msgs::Point pwf_point) {
+  pwf_point.x += testbed_offset_.x;
+  pwf_point.y += testbed_offset_.y;
+  pwf_point.z += testbed_offset_.z; //TODO likely need to find lowest link and offset all by some amount
+  return pwf_point;
+}
+
 void FrameFabRenderWidget::displayPoses()
 {
-//  if (NULL == ptr_frame_ ||  0 == ptr_frame_->SizeOfVertList())
-//  {
-//    ROS_INFO("Input frame empty, no links to draw.");
-//    return;
-//  }
+  if (NULL == ptr_frame_ ||  0 == ptr_frame_->SizeOfVertList())
+  {
+    ROS_INFO("Input frame empty, no links to draw.");
+    return;
+  }
 
-//  geometry_msgs::PoseArray pose_msgs;
-//
-//  const std::vector<WF_edge*>& wf_edges = *(ptr_frame_->GetEdgeList());
-//  int m = ptr_frame_->SizeOfEdgeList();
-//
-//  // convert wf_edges into nodes
-//  for(size_t i = 0; i < m; i++)
-//  {
-//    WF_edge *e = wf_edges[i];
-//    WF_edge *e_pair = wf_edges[i]->ppair_;
-//
-//    if (e->ID() < e_pair->ID())
-//    {
-//      e->pvert_->RenderPos().data();
-//      glVertex3fv(e->ppair_->pvert_->RenderPos().data());
-//    }
-//  }
+  const std::vector<WF_vert*> wf_verts = *(ptr_frame_->GetVertList());
+  for (size_t i = 0; i < wf_verts.size(); i++) {
+
+  }
+
 //
 //  std::pair<int,int> edge = edges_[0];
 //  geometry_msgs::Pose pose_a;
