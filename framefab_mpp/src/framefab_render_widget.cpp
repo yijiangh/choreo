@@ -27,7 +27,6 @@
 #include <QtCore>
 #include <QFileDialog>
 #include "../include/wire_frame.h"
-#include <geometry_msgs/PoseArray.h>
 #include "../include/framefab_render_widget.h"
 #include "../include/util/global_functions.h"
 
@@ -43,25 +42,19 @@ FrameFabRenderWidget::FrameFabRenderWidget( QWidget* parent )
   readParameters();
 
   // advertise topics - should be done in computation class
-  display_marker_publisher_ = node_handle_.advertise<visualization_msgs::Marker>("visualization_marker", 1);
-
+  display_marker_publisher_ = node_handle_.advertise<visualization_msgs::Marker>("visualization_marker", 1 , true);
+  display_pose_publisher_ = node_handle_.advertise<moveit_msgs::DisplayTrajectory>("/move_group/display_planned_path", 1 ,true);
   planning_scene_interface_ = new moveit::planning_interface::PlanningSceneInterface();
   move_group_ = new moveit::planning_interface::MoveGroup("manipulator");
 
+  //params
   display_point_radius_ = 0.0025; //TODO: make params
   testbed_offset_.x = 0.1;
   testbed_offset_.y = -0.5;
   testbed_offset_.z = 0.33;
-//  // subscribe to RvizPanel's button-emitted topics
-//  display_pose_subsriber_ = node_handle_.subscribe(
-//      display_pose_topic_, 1,
-//      &FrameFabRenderWidget::displayPoseCallBack,
-//      this);
+  pwf_scale_factor_ = 0.001; // mm to m
 
-//  read_file_subsriber_  = node_handle_.subscribe(
-//      read_file_topic_, 1,
-//      &FrameFabRenderWidget::readFileCallBack,
-//      this);
+
 }
 
 FrameFabRenderWidget::~FrameFabRenderWidget()
@@ -78,17 +71,28 @@ bool FrameFabRenderWidget::readParameters()
   return true;
 }
 
-
-moveit_msgs::CollisionObject FrameFabRenderWidget::makeCollisionCylinder(geometry_msgs::Point start, geometry_msgs::Point end,std::string id) {
+/**
+ *
+ * @param edge
+ * @param id
+ * @return
+ */
+moveit_msgs::CollisionObject FrameFabRenderWidget::initCollisionLink(WF_edge* edge, std::string id) {
+  //TODO consider preallocating/preprocessing
+  //define object
   moveit_msgs::CollisionObject collision_object;
-
   collision_object.id = id;
-  collision_object.header.frame_id = move_group_->getPlanningFrame();
+  collision_object.header.frame_id = move_group_->getPlanningFrame(); //TODO investigate whether worth to make class variable for efficiency
   collision_object.operation = moveit_msgs::CollisionObject::ADD;
+  collision_object.primitives.resize(3);
+  collision_object.primitive_poses.resize(3);
+
+  //set up cylinder that models the link between two nodes
   shape_msgs::SolidPrimitive link_cylinder;
   link_cylinder.type = shape_msgs::SolidPrimitive::CYLINDER;
   link_cylinder.dimensions.resize(2);
 
+  //set up the spheres that model the nodes
   shape_msgs::SolidPrimitive vertex_start;
   shape_msgs::SolidPrimitive vertex_end;
   vertex_start.type = shape_msgs::SolidPrimitive::SPHERE;
@@ -96,16 +100,61 @@ moveit_msgs::CollisionObject FrameFabRenderWidget::makeCollisionCylinder(geometr
   vertex_start.dimensions.resize(1);
   vertex_end.dimensions.resize(1);
 
+  //set the resolution for spheres and cylinder
   vertex_start.dimensions[0] = display_point_radius_;
   vertex_end.dimensions[0] = display_point_radius_;
+  link_cylinder.dimensions[0] = display_point_radius_;
+  link_cylinder.dimensions[1] = edge->Length();
+
+  //set poses
+  geometry_msgs::Point start = transformPoint(edge->pvert_->Position());
+  geometry_msgs::Point end = transformPoint(edge->ppair_->pvert_->Position());
+  geometry_msgs::Pose start_pose;
+  geometry_msgs::Pose end_pose;
+  start_pose.position = start;
+  end_pose.position = end;
+
+  collision_object.primitive_poses[0] = start_pose;
+  collision_object.primitives[0] = vertex_start;
+
+  collision_object.primitives[1] = link_cylinder;
+  collision_object.primitive_poses[1] = computeCylinderPose(start, end);
+
+  collision_object.primitive_poses[2] = end_pose;
+  collision_object.primitives[2] = vertex_end;
+  return collision_object;
+}
+
+/**
+ *
+ * @param edge
+ * @param id
+ */
+void FrameFabRenderWidget::makeCollisionCylinder(WF_edge* edge , std::string id)
+{
+
+  moveit_msgs::CollisionObject collision_object = initCollisionLink(edge,id);
+  std::vector<moveit_msgs::CollisionObject> links;
+  links.push_back(collision_object);
+
+  planning_scene_interface_->addCollisionObjects(links);
+  sleep(10);
 
 
+}
+
+/**
+ * Computes quaternion transformation for cylinder with base at start oriented toward end with length = dist(start, end)
+ * where dist(start, end) is Euclidean distance between points start,end in R^3
+ * @param start geometry_msgs::Point starting point in R^3
+ * @param end geometry_msgs::Point endpoint in R^3
+ * @return orientation and position of cylinder collision object wrt testbed offset as origin
+ */
+geometry_msgs::Pose FrameFabRenderWidget::computeCylinderPose(geometry_msgs::Point start, geometry_msgs::Point end) {
+  //transform upright cylinder to cylinder-shaped vector starting at eStart, oriented toward eEnd
   Eigen::Vector3d eStart, eEnd;
   tf::pointMsgToEigen(start, eStart);
   tf::pointMsgToEigen(end, eEnd);
-  double height = (eStart-eEnd).lpNorm<2>();
-  link_cylinder.dimensions[0] = height;
-  link_cylinder.dimensions[1] = display_point_radius_;
 
   Eigen::Vector3d axis = eEnd - eStart;
   axis.normalize();
@@ -129,36 +178,29 @@ moveit_msgs::CollisionObject FrameFabRenderWidget::makeCollisionCylinder(geometr
   Eigen::Vector3d origin;
   tf::pointMsgToEigen(testbed_offset_, origin);
   pose.translation() = origin + eStart;
-  geometry_msgs::Pose start_pose;
+
   geometry_msgs::Pose link_pose;
-  geometry_msgs::Pose end_pose;
-  start_pose.position = transformPoint(start);
-  end_pose.position = transformPoint(end);
+
   tf::poseEigenToMsg(pose , link_pose);
-  collision_object.primitive_poses.push_back(start_pose);
-  collision_object.primitives.push_back(vertex_start);
-  //collision_object.primitive_poses.push_back(link_pose);
-  //collision_object.primitives.push_back(link_cylinder);
-  collision_object.primitive_poses.push_back(end_pose);
-  collision_object.primitives.push_back(vertex_end);
-  // Drawing frame w/ no collision
-  //nodes.points.push_back(start);
-  //nodes.points.push_back(end);
-  //marker_pub.publish(nodes);
-  //marker_pub.publish(link_list);
+  return link_pose;
 
-
-
-  return collision_object;
 }
 
-geometry_msgs::Point FrameFabRenderWidget::transformPoint(geometry_msgs::Point pwf_point) {
-  pwf_point.x += testbed_offset_.x;
-  pwf_point.y += testbed_offset_.y;
-  pwf_point.z += testbed_offset_.z; //TODO likely need to find lowest link and offset all by some amount
-  return pwf_point;
+/**
+ *
+ * @param pwf_point
+ * @return
+ */
+geometry_msgs::Point FrameFabRenderWidget::transformPoint(point  pwf_point) {
+  geometry_msgs::Point point;
+  point.x += testbed_offset_.x + (pwf_scale_factor_ * pwf_point.x());
+  point.y += testbed_offset_.y + (pwf_scale_factor_ * pwf_point.y());
+  point.z += testbed_offset_.z + (pwf_scale_factor_ * pwf_point.z()); //TODO likely need to find lowest link and offset all by some amount
+  return point;
 }
-
+/**
+ *
+ */
 void FrameFabRenderWidget::displayPoses()
 {
   if (NULL == ptr_frame_ ||  0 == ptr_frame_->SizeOfVertList())
@@ -167,26 +209,16 @@ void FrameFabRenderWidget::displayPoses()
     return;
   }
 
-  const std::vector<WF_vert*> wf_verts = *(ptr_frame_->GetVertList());
-  for (size_t i = 0; i < wf_verts.size(); i++) {
-
+  const std::vector<WF_edge*> wf_edges = *(ptr_frame_->GetEdgeList());
+  for (size_t i = 0; i < wf_edges.size(); i++) {
+    makeCollisionCylinder(wf_edges[i], "link");
   }
 
-//
-//  std::pair<int,int> edge = edges_[0];
-//  geometry_msgs::Pose pose_a;
-//  geometry_msgs::Pose pose_b;
-//  pose_a.position = scale(nodes_[edge.first], 0.001);
-//  pose_b.position = scale(nodes_[edge.second], 0.001);
-//
-//  pose_msgs.poses.push_back( pose_a);
-//  pose_msgs.poses.push_back( pose_b);
-//  std::cout << "Publishing points: " << nodes_[edge.first] << " " <<  nodes_[edge.second] << std::endl;
-//  edges_.pop_front();
-//
-//  display_marker_publisher_.publish(msg);
-
   ROS_INFO("MSG: link pose visualize has been published");
+}
+
+void FrameFabRenderWidget::stepRobot() {
+
 }
 
 void FrameFabRenderWidget::readFile()
@@ -230,13 +262,5 @@ void FrameFabRenderWidget::readFile()
   ROS_INFO("model loaded successfully");
 }
 
-//geometry_msgs::Point FrameFabRenderWidget::scale(geometry_msgs::Point p, float sf)
-//{
-//  geometry_msgs::Point result;
-//  result.x = p.x * sf;
-//  result.y = p.y * sf;
-//  result.z = p.z * sf;
-//  return result;
-//}
 
-} /* namespace */
+} /* namespace framefab */
