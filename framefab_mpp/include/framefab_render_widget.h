@@ -6,8 +6,9 @@
 #define FRAMEFABRENDERWIDGET_H
 
 // Qt
-//#include <QObject>
+#include <QObject>
 #include <QWidget>
+#include <QSlider>
 
 // ROS
 #include <ros/ros.h>
@@ -63,11 +64,16 @@ class FrameFabRenderWidget : public QWidget
    * @brief publish ros message "draw links"
    */
   void displayPoses();
+  /**
+   * @brief Advances robot one step along current trajectory
+   */
+  void stepRobot();
 
  private:
-  moveit_msgs::CollisionObject makeCollisionCylinder(geometry_msgs::Point start, geometry_msgs::Point end,std::string id);
-  geometry_msgs::Point transformPoint(geometry_msgs::Point pwf_point);
-  //geometry_msgs::Point scale(geometry_msgs::Point p, float sf);
+  void makeCollisionCylinder(WF_edge* edge, std::string id);
+  geometry_msgs::Point transformPoint(point pwf_point);
+  geometry_msgs::Pose computeCylinderPose(geometry_msgs::Point start, geometry_msgs::Point end);
+  moveit_msgs::CollisionObject initCollisionLink(WF_edge* edge, std::string id);
 
  public:
   //! wireframe data structure
@@ -76,21 +82,23 @@ class FrameFabRenderWidget : public QWidget
   //! MoveIt interfaces
   moveit::planning_interface::PlanningSceneInterface * planning_scene_interface_;
   moveit::planning_interface::MoveGroup * move_group_;
-  // Rendering constants
+
+  //! Rendering constants
   float display_point_radius_;
+  float pwf_scale_factor_;
   geometry_msgs::Point testbed_offset_;
+
 
  private:
   //! ROS NodeHandle
   ros::NodeHandle node_handle_;
 
   //! ROS subscriber
-  ros::Subscriber display_pose_subsriber_;
   ros::Subscriber read_file_subsriber_;
 
   //! ROS publisher
   ros::Publisher display_marker_publisher_;
-
+  ros::Publisher display_pose_publisher_;
   //! ROS topics
   std::string display_pose_topic_;
   std::string read_file_topic_;

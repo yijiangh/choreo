@@ -63,6 +63,7 @@ class FrameFabRvizPanel: public rviz::Panel
   void createTextEdits();
   void createLineEdits();
   void createPushButtons();
+  void createPathSlider();
 
  protected:
   //! One-line text editor for entering the outgoing ROS topic name.
@@ -75,17 +76,16 @@ class FrameFabRvizPanel: public rviz::Panel
   QPushButton* pushbutton_readfile_;
   QPushButton* pushbutton_displaypose_;
 
+  //! Qt Slider
+  QSlider* path_slider_;
+
   //! The ROS node handle.
   ros::NodeHandle nh_;
 
   //! FrameFab widget - function level
   framefab::FrameFabRenderWidget* ptr_ff_render_widget_;
 
-  // todo: should separate data from this visualiztion class
-//  std::vector<geometry_msgs::Point> nodes_;
-//  std::deque<std::pair<int,int> >   edges_;
-//  std::vector<std::pair<int,int> >  pillars_;
-//  std::vector<std::pair<int,int> >  ceilings_;
+
 };
 }
 #endif // FRAMEFABRVIZPANEL_H

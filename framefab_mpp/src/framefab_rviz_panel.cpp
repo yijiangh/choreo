@@ -25,6 +25,7 @@ FrameFabRvizPanel::FrameFabRvizPanel( QWidget* parent )
   createLineEdits();
   createTextEdits();
   createPushButtons();
+  createPathSlider();
 
   QHBoxLayout* topic_layout = new QHBoxLayout;
   topic_layout->addWidget( new QLabel( "Sequence File:" ));
@@ -61,6 +62,10 @@ void FrameFabRvizPanel::createPushButtons()
 //
   pushbutton_readfile_ = new QPushButton("Read File");
   connect( pushbutton_readfile_, SIGNAL( clicked() ), ptr_ff_render_widget_, SLOT( readFile() ));
+}
+
+void FrameFabRvizPanel::createPathSlider() {
+  path_slider_ = new QSlider;
 }
 
 // Save all configuration data from this panel to the given
