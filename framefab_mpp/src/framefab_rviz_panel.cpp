@@ -8,6 +8,8 @@
 
 // framefab
 #include "framefab_rviz_panel.h"
+#include "../include/framefab_rviz_panel.h"
+#include "../include/util/global_functions.h"
 
 namespace framefab
 {

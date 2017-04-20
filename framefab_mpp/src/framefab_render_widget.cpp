@@ -13,11 +13,21 @@
 #include <std_msgs/Bool.h>
 #include <geometry_msgs/PoseArray.h>
 
+//MoveIt
+#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/move_group_interface/move_group.h>
+#include <moveit/planning_scene_interface/planning_scene_interface.h>
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+#include <moveit_msgs/DisplayRobotState.h>
+#include <moveit_msgs/DisplayTrajectory.h>
+
 // Qt
 #include <QtCore>
 #include <QFileDialog>
-#include <wire_frame.h>
+#include "../include/wire_frame.h"
 #include <geometry_msgs/PoseArray.h>
+#include "../include/framefab_render_widget.h"
+#include "../include/util/global_functions.h"
 
 namespace framefab
 {
@@ -32,6 +42,8 @@ FrameFabRenderWidget::FrameFabRenderWidget( QWidget* parent )
 
   // advertise topics - should be done in computation class
   display_marker_publisher_ = node_handle_.advertise<visualization_msgs::Marker>("visualization_marker", 1);
+
+  planning_scene_interface_ = new moveit::planning_interface::PlanningSceneInterface();
 
 //  // subscribe to RvizPanel's button-emitted topics
 //  display_pose_subsriber_ = node_handle_.subscribe(
@@ -121,7 +133,7 @@ void FrameFabRenderWidget::readFile()
   QByteArray byfilename = filename.toLocal8Bit();
 
   delete ptr_frame_;
-  ptr_frame_ = new wire_frame();
+  ptr_frame_ = new WireFrame();
 
   if (filename.contains(".obj") || filename.contains(".OBJ"))
   {

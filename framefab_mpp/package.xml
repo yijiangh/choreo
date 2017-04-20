@@ -22,15 +22,22 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   <test_depend>roslaunch</test_depend>
-
+  <build_depend>moveit_core</build_depend>
+  <build_depend>moveit_ros_planning_interface</build_depend>
+  <build_depend>moveit_ros_planning</build_depend>
   <build_depend>qtbase5-dev</build_depend>
   <build_depend>rviz</build_depend>
-
+  <run_depend>eigen_conversions</run_depend>
+  <run_depend>tf_conversions</run_depend>
   <run_depend>libqt5-core</run_depend>
   <run_depend>libqt5-gui</run_depend>
   <run_depend>libqt5-widgets</run_depend>
   <run_depend>rviz</run_depend>
-
+  <run_depend>moveit_core</run_depend>
+  <run_depend>moveit_ros_planning_interface</run_depend>
+  <run_depend>moveit_ros_planning</run_depend>
+  <run_depend>moveit_msgs</run_depend>
+  <run_depend>std_msgs</run_depend>
   <export>
     <rviz plugin ="${prefix}/framefab_rviz_panel_package_description.xml"/>
   </export>

@@ -1,8 +1,8 @@
 #include <cstdio>
 #include <cstring>
-#include "wire_frame.h"
+#include "../include/wire_frame.h"
 
-WireFrame::wire_frame()
+WireFrame::WireFrame()
         :delta_tol_(1e-1), unify_size_(2.0), layer_size_(0)
 {
     pvert_list_ = new vector<WF_vert*>;
@@ -10,7 +10,7 @@ WireFrame::wire_frame()
 }
 
 
-WireFrame::~wire_frame()
+WireFrame::~WireFrame()
 {
     int N = pvert_list_->size();
     for (int i = 0; i < N; i++)

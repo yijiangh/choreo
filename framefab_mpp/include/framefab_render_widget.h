@@ -12,6 +12,14 @@
 // ROS
 #include <ros/ros.h>
 
+// MoveIt
+#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/move_group_interface/move_group.h>
+#include <moveit/planning_scene_interface/planning_scene_interface.h>
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+#include <moveit_msgs/DisplayRobotState.h>
+#include <moveit_msgs/DisplayTrajectory.h>
+
 // framefab
 #include <wire_frame.h>
 
@@ -77,6 +85,9 @@ class FrameFabRenderWidget : public QWidget
   //! ROS topics
   std::string display_pose_topic_;
   std::string read_file_topic_;
+
+  //! MoveIt interfaces
+  moveit::planning_interface::PlanningSceneInterface * planning_scene_interface_;
 };
 }/* namespace */
 
