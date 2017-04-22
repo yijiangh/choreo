@@ -2,22 +2,18 @@
 // Created by yijiangh on 4/13/17.
 //
 
-// framefab
-#include <framefab_render_widget.h>
-
-// util
-#include <util/global_functions.h>
 
 // ROS msgs
 #include <visualization_msgs/Marker.h>
 #include <std_msgs/Bool.h>
 #include <geometry_msgs/PoseArray.h>
+#include <std_msgs/ColorRGBA.h>
 
 //MoveIt
 #include <moveit/robot_model_loader/robot_model_loader.h>
-#include <moveit/move_group_interface/move_group.h>
-#include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+
+
 #include <moveit_msgs/DisplayRobotState.h>
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <tf_conversions/tf_eigen.h>
@@ -29,6 +25,7 @@
 #include "../include/wire_frame.h"
 #include "../include/framefab_render_widget.h"
 #include "../include/util/global_functions.h"
+#include "../include/framefab_rviz_panel.h"
 
 namespace framefab
 {
@@ -36,24 +33,45 @@ namespace framefab
 FrameFabRenderWidget::FrameFabRenderWidget( QWidget* parent )
     : ptr_frame_(NULL)
 {
+  parent_ = parent;
   ROS_INFO("FrameFab Render Widget started.");
 
   // readParameters
   readParameters();
+  rate_ = new ros::Rate(10.0);
+  //rate->sleep();
 
   // advertise topics - should be done in computation class
-  display_marker_publisher_ = node_handle_.advertise<visualization_msgs::Marker>("visualization_marker", 1 , true);
+  //display_marker_publisher_ = node_handle_.advertise<visualization_msgs::Marker>("visualization_marker", 1 , true);
   display_pose_publisher_ = node_handle_.advertise<moveit_msgs::DisplayTrajectory>("/move_group/display_planned_path", 1 ,true);
-  planning_scene_interface_ = new moveit::planning_interface::PlanningSceneInterface();
-  move_group_ = new moveit::planning_interface::MoveGroup("manipulator");
 
+
+  std::ostringstream motion_topic;
+  //ROS_INFO(ros::this_node::getName().c_str());
+  motion_topic << "/rviz_ubuntu_24663_1410616146488788559" << "/monitored_planning_scene";
+  planning_scene_monitor_ = new planning_scene_monitor::PlanningSceneMonitor("robot_description");
+
+  //planning_scene_monitor_->startSceneMonitor(motion_topic.str());
   //params
   display_point_radius_ = 0.0025; //TODO: make params
   testbed_offset_.x = 0.1;
   testbed_offset_.y = -0.5;
   testbed_offset_.z = 0.33;
   pwf_scale_factor_ = 0.001; // mm to m
+  start_color_.r = 0;
+  start_color_.g = 255;
+  start_color_.b = 0;
+  start_color_.a = 1;
+  end_color_.r = 255;
+  end_color_.g = 0;
+  end_color_.b = 0;
+  end_color_.a = 1;
+  cylinder_color_.r = 122;
+  cylinder_color_.g = 122;
+  cylinder_color_.b = 122;
+  cylinder_color_.a = 0.25;
 
+  planning_scene_monitor_->startPublishingPlanningScene(planning_scene_monitor::PlanningSceneMonitor::UPDATE_SCENE,motion_topic.str());
 
 }
 
@@ -77,22 +95,37 @@ bool FrameFabRenderWidget::readParameters()
  * @param id
  * @return
  */
-moveit_msgs::CollisionObject FrameFabRenderWidget::initCollisionLink(WF_edge* edge, std::string id) {
+void FrameFabRenderWidget::initCollisionLink(WF_edge* edge, int index, std::vector<moveit_msgs::CollisionObject> * collision_objects) {
   //TODO consider preallocating/preprocessing
-  //define object
-  moveit_msgs::CollisionObject collision_object;
-  collision_object.id = id;
-  collision_object.header.frame_id = move_group_->getPlanningFrame(); //TODO investigate whether worth to make class variable for efficiency
-  collision_object.operation = moveit_msgs::CollisionObject::ADD;
-  collision_object.primitives.resize(3);
-  collision_object.primitive_poses.resize(3);
-
+  //define container for result
   //set up cylinder that models the link between two nodes
+  std::string frame_id = planning_scene_monitor_->getPlanningScene()->getPlanningFrame();
+  moveit_msgs::CollisionObject collision_cylinder;
+  std::ostringstream cyl_id;
+  cyl_id << "cylinder" << index;
+  collision_cylinder.id = cyl_id.str();
+  collision_cylinder.header.frame_id = frame_id;//TODO investigate whether worth to make class variable for efficiency
+  collision_cylinder.operation = moveit_msgs::CollisionObject::ADD;
+
   shape_msgs::SolidPrimitive link_cylinder;
   link_cylinder.type = shape_msgs::SolidPrimitive::CYLINDER;
   link_cylinder.dimensions.resize(2);
 
   //set up the spheres that model the nodes
+  moveit_msgs::CollisionObject collision_start_node;
+  moveit_msgs::CollisionObject collision_end_node;
+
+  std::ostringstream start_id;
+  std::ostringstream end_id;
+  start_id << "start_node" << index;
+  end_id << "end_node" << index;
+  collision_start_node.id = start_id.str();
+  collision_end_node.id = end_id.str();
+  collision_start_node.header.frame_id = frame_id;//TODO investigate whether worth to make class variable for efficiency
+  collision_start_node.operation = moveit_msgs::CollisionObject::ADD;
+  collision_end_node.header.frame_id = frame_id; //TODO investigate whether worth to make class variable for efficiency
+  collision_end_node.operation = moveit_msgs::CollisionObject::ADD;
+
   shape_msgs::SolidPrimitive vertex_start;
   shape_msgs::SolidPrimitive vertex_end;
   vertex_start.type = shape_msgs::SolidPrimitive::SPHERE;
@@ -103,26 +136,40 @@ moveit_msgs::CollisionObject FrameFabRenderWidget::initCollisionLink(WF_edge* ed
   //set the resolution for spheres and cylinder
   vertex_start.dimensions[0] = display_point_radius_;
   vertex_end.dimensions[0] = display_point_radius_;
-  link_cylinder.dimensions[0] = display_point_radius_;
-  link_cylinder.dimensions[1] = edge->Length();
+
+  link_cylinder.dimensions[0] = pwf_scale_factor_ * edge->Length(); //TODO check
+  link_cylinder.dimensions[1] = display_point_radius_;
 
   //set poses
   geometry_msgs::Point start = transformPoint(edge->pvert_->Position());
   geometry_msgs::Point end = transformPoint(edge->ppair_->pvert_->Position());
+  geometry_msgs::Point center = transformPoint(edge->CenterPos());
   geometry_msgs::Pose start_pose;
   geometry_msgs::Pose end_pose;
   start_pose.position = start;
   end_pose.position = end;
 
-  collision_object.primitive_poses[0] = start_pose;
-  collision_object.primitives[0] = vertex_start;
+  collision_start_node.primitives.push_back(vertex_start);
+  collision_start_node.primitive_poses.push_back(start_pose);
+  collision_cylinder.primitives.push_back(link_cylinder);
+  collision_cylinder.primitive_poses.push_back(computeCylinderPose(start, center ,end));
+  collision_end_node.primitives.push_back(vertex_end);
+  collision_end_node.primitive_poses.push_back(end_pose);
+  collision_cylinder.primitives.resize(1);
+  collision_cylinder.primitive_poses.resize(1);
+  collision_start_node.primitives.resize(1);
+  collision_start_node.primitive_poses.resize(1);
+  collision_end_node.primitives.resize(1);
+  collision_end_node.primitive_poses.resize(1);
 
-  collision_object.primitives[1] = link_cylinder;
-  collision_object.primitive_poses[1] = computeCylinderPose(start, end);
-
-  collision_object.primitive_poses[2] = end_pose;
-  collision_object.primitives[2] = vertex_end;
-  return collision_object;
+  collision_objects->push_back(collision_start_node);
+  collision_objects->push_back(collision_cylinder);
+  collision_objects->push_back(collision_end_node);
+  collision_objects->resize(3);
+  planning_scene::PlanningScenePtr current = planning_scene_monitor_->getPlanningScene();
+  current->setObjectColor(cyl_id.str(), cylinder_color_);
+  current->setObjectColor(start_id.str(),start_color_);
+  current->setObjectColor(end_id.str(), end_color_);
 }
 
 /**
@@ -130,16 +177,19 @@ moveit_msgs::CollisionObject FrameFabRenderWidget::initCollisionLink(WF_edge* ed
  * @param edge
  * @param id
  */
-void FrameFabRenderWidget::makeCollisionCylinder(WF_edge* edge , std::string id)
+void FrameFabRenderWidget::makeCollisionCylinder(WF_edge* edge , int index)
 {
 
-  moveit_msgs::CollisionObject collision_object = initCollisionLink(edge,id);
   std::vector<moveit_msgs::CollisionObject> links;
-  links.push_back(collision_object);
-
-  planning_scene_interface_->addCollisionObjects(links);
-  sleep(10);
-
+  initCollisionLink(edge, index, &links);
+  moveit_msgs::PlanningScene scene;
+  planning_scene_monitor_->getPlanningScene()->getPlanningSceneMsg(scene);
+  for (int i=0; i < links.size(); i++) {
+    scene.world.collision_objects.push_back(links[i]);
+  }
+  scene.is_diff = 1;
+  planning_scene_monitor_->newPlanningSceneMessage(scene);
+  //rate_->sleep();
 
 }
 
@@ -150,44 +200,36 @@ void FrameFabRenderWidget::makeCollisionCylinder(WF_edge* edge , std::string id)
  * @param end geometry_msgs::Point endpoint in R^3
  * @return orientation and position of cylinder collision object wrt testbed offset as origin
  */
-geometry_msgs::Pose FrameFabRenderWidget::computeCylinderPose(geometry_msgs::Point start, geometry_msgs::Point end) {
-  //transform upright cylinder to cylinder-shaped vector starting at eStart, oriented toward eEnd
-  Eigen::Vector3d eStart, eEnd;
-  tf::pointMsgToEigen(start, eStart);
-  tf::pointMsgToEigen(end, eEnd);
+geometry_msgs::Pose FrameFabRenderWidget::computeCylinderPose(geometry_msgs::Point start, geometry_msgs::Point center, geometry_msgs::Point end) {
 
-  Eigen::Vector3d axis = eEnd - eStart;
+  Eigen::Vector3d e_start, e_end;
+  tf::pointMsgToEigen(start, e_start);
+  tf::pointMsgToEigen(end, e_end);
+
+  //rotation
+  Eigen::Vector3d axis = e_end - e_start;
   axis.normalize();
-  Eigen::Vector3d zVec(0.0,0.0,1.0);
-  Eigen::Vector3d xVec = axis.cross(zVec);
-  xVec.normalize();
-  double theta = axis.dot(zVec);
+  Eigen::Vector3d z_vec(0.0,0.0,1.0);
+  const Eigen::Vector3d &x_vec = axis.cross(z_vec);
+  double theta = axis.dot(z_vec);
   double angle = -1.0 * acos(theta);
-
-  tf::Vector3 tf_right_axis_vector;
-  tf::vectorEigenToTF(xVec, tf_right_axis_vector);
-  Eigen::Quaterniond q;
+  tf::Vector3 xVec;
+  tf::vectorEigenToTF(x_vec, xVec);
   // Create quaternion
-  tf::Quaternion tf_q(tf_right_axis_vector, angle);
+  tf::Quaternion tf_q(xVec , angle);
+  tf_q.normalize();
 
-  // Convert back to Eigen
-  tf::quaternionTFToEigen(tf_q, q);
-  q.normalize();
-  Eigen::Affine3d pose;
-  pose = q * Eigen::AngleAxisd(-0.5*M_PI, Eigen::Vector3d::UnitY());
-  Eigen::Vector3d origin;
-  tf::pointMsgToEigen(testbed_offset_, origin);
-  pose.translation() = origin + eStart;
-
+  //back to ros coords
   geometry_msgs::Pose link_pose;
+  tf::quaternionTFToMsg(tf_q, link_pose.orientation);
+  link_pose.position = center;
 
-  tf::poseEigenToMsg(pose , link_pose);
   return link_pose;
 
 }
 
 /**
- *
+ * Takes R^3 point from pwf file and converts to units for rviz
  * @param pwf_point
  * @return
  */
@@ -211,13 +253,18 @@ void FrameFabRenderWidget::displayPoses()
 
   const std::vector<WF_edge*> wf_edges = *(ptr_frame_->GetEdgeList());
   for (size_t i = 0; i < wf_edges.size(); i++) {
-    makeCollisionCylinder(wf_edges[i], "link");
+    makeCollisionCylinder(wf_edges[i], i);
   }
+  rate_->sleep();
 
   ROS_INFO("MSG: link pose visualize has been published");
 }
 
 void FrameFabRenderWidget::stepRobot() {
+
+}
+
+void FrameFabRenderWidget::setValue(int i) {
 
 }
 
@@ -257,7 +304,7 @@ void FrameFabRenderWidget::readFile()
                     + " Links: "    + QString::number(ptr_frame_->SizeOfEdgeList()) + "\n"
                     + " Pillars: "  + QString::number(ptr_frame_->SizeOfPillar()) + "\n"
                     + " Ceilings: " + QString::number(ptr_frame_->SizeOfCeiling());
-
+  ((FrameFabRvizPanel*)parent_)->console(parse_msg);
   ROS_INFO_STREAM("MSG:" << parse_msg.toStdString());
   ROS_INFO("model loaded successfully");
 }
