@@ -57,7 +57,10 @@ class FrameFabRvizPanel: public rviz::Panel
   virtual void load( const rviz::Config& config );
   virtual void save( rviz::Config config ) const;
 
-  bool readParameters() {}
+
+  void console(QString msg) {
+    textEdit_ptDisplay_->setText(msg);
+  };
 
  private:
   void createTextEdits();
@@ -83,7 +86,7 @@ class FrameFabRvizPanel: public rviz::Panel
   ros::NodeHandle nh_;
 
   //! FrameFab widget - function level
-  framefab::FrameFabRenderWidget* ptr_ff_render_widget_;
+  FrameFabRenderWidget* ptr_ff_render_widget_;
 
 
 };
