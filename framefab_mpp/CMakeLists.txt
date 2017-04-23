@@ -4,8 +4,6 @@
 cmake_minimum_required(VERSION 3.0)
 project(framefab_mpp)
 
-# SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -D__LINUX__ -DGTE_DEV_OPENGL -DGTE_DISABLE_PCH")
-
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED COMPONENTS
         rviz
@@ -50,6 +48,7 @@ catkin_package(
 
 include_directories(
         include
+        ${CMAKE_CURRENT_BINARY_DIR}
 #        ${catkin_INCLUDE_DIRS}
 )
 
@@ -130,3 +129,5 @@ target_link_libraries(
 #install(FILES
 #        framefab_rviz_panel_package_description.xml
 #        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+
+add_subdirectory(src)

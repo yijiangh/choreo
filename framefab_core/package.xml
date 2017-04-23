@@ -1,0 +1,22 @@
+<package>
+  <name>framefab_mpp</name>
+  <version>0.1.0</version>
+  <description>The framefab core package</description>
+  <author email="yijiangh@mit.edu">Yijiang Huang (MIT)</author>
+	<author email="tomcook@mit.edu">Thomascook (MIT)</author>
+	<maintainer email="yijiangh@mit.edu">Yijiang Huang (MIT)</maintainer>
+	<maintainer email="tomcook@mit.edu">Thomascook (MIT)</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+<!--  <test_depend>roslaunch</test_depend>-->
+
+	<build_depend>eigen</build_depend>
+	<build_depend>LAPACK</build_depend>
+	<build_depend>MOSEK</build_depend>
+
+	<run_depend>eigen</run_depend>
+	<run_depend>LAPACK</run_depend>
+	<run_depend>MOSEK</run_depend>
+
+</package>
