@@ -1,5 +1,5 @@
 <package>
-  <name>framefab_mpp</name>
+  <name>framefab_core</name>
   <version>0.1.0</version>
   <description>The framefab core package</description>
   <author email="yijiangh@mit.edu">Yijiang Huang (MIT)</author>
@@ -11,12 +11,10 @@
   <buildtool_depend>catkin</buildtool_depend>
 <!--  <test_depend>roslaunch</test_depend>-->
 
-	<build_depend>eigen</build_depend>
-	<build_depend>LAPACK</build_depend>
-	<build_depend>MOSEK</build_depend>
+	<build_depend>cmake_modules</build_depend>
+	<build_depend>geometric_tools_engine</build_depend>
 
-	<run_depend>eigen</run_depend>
-	<run_depend>LAPACK</run_depend>
-	<run_depend>MOSEK</run_depend>
+	<run_depend>cmake_modules</run_depend>
+	<run_depend>geometric_tools_engine</run_depend>
 
 </package>

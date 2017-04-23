@@ -6,9 +6,9 @@
 *		Yijiang Huang, Juyong Zhang, Xin Hu, Guoxian Song, Zhongyuan Liu, Lei Yu, Ligang Liu
 *		In ACM Transactions on Graphics (Proc. SIGGRAPH Asia 2016)
 ----------------------------------------------------------------------------
-*		class:	FiberPrintPARM
+*		Class:	QpMosek
 *
-*		Description:	FiberPrintPARM takes charge of computation related parameters configuration.
+*		Description:
 *
 *		Version: 2.0
 *		Created: Oct/10/2015
@@ -16,7 +16,12 @@
 *
 *		Author:  Xin Hu, Yijiang Huang, Guoxian Song
 *		Company:  GCL@USTC
-
+*		Citation:	This file completely rely on
+*			Title:			Mosek
+*							High performance software for large-scale LP, QP, SOCP, SDP
+*							and MIP including interfaces to C, Java, MATLAB, .NET, R and Python. 
+*			Code Version:	7.1
+*			Availability:	https://www.mosek.com/
 ----------------------------------------------------------------------------
 *		Copyright (C) 2016  Yijiang Huang, Xin Hu, Guoxian Song, Juyong Zhang
 *		and Ligang Liu.
@@ -38,49 +43,51 @@
 
 #pragma once
 
-#include <utils/GCommon.h>
+#ifndef QPMOSEK_H
+#define QPMOSEK_H
 
-class FiberPrintPARM
+#include <cut_generators/QP.h>
+#include <utils/Timer.h>
+
+class QPMosek : public QP
 {
 public:
-	FiberPrintPARM(
-		double Wp = 1.0,
-		double Wa = 1.0,
-		double Wi = 5.0,
-		double seq_D_tol = 2.0,
-		double ADMM_D_tol = 1.0,
-		double penalty = 1e2,
-		double pri_tol = 1e-2,
-		double dual_tol = 1e-2,
-		double radius = 0.75,
-		double density = 1210 * 1e-12,
-		double g = -9806.3,
-		double youngs_modulus = 3457,
-		double shear_modulus = 1294,
-		double poisson_ratio = 0.335
-		);
+	QPMosek();
+	virtual ~QPMosek();
 
-	~FiberPrintPARM();
+	/* for FrameFab graphcut: CalculateX*/
+	virtual bool solve(
+		const S& H, const V& f,
+		const S& C, const V& d,
+		V& _x,
+		bool _debug = false);
+	
+	/* for FrameFab graphcut: CalculateD*/
+	virtual bool solve(
+		const S& H, const V& f, 
+		V &_d,
+		const V& _x,
+		const double& d_tol,
+		bool _debug);
 
-public:
-	// material & environment
-	double		radius_;
-	double		density_;
-	double		g_;
-	double		youngs_modulus_;
-	double		shear_modulus_;
-	double		poisson_ratio_;
+	virtual std::string		report() const;
+	virtual double			functionValue() const { return fVal_; }
+	virtual int				exitFlag() const { return xFlag_; }
 
-	// ADMM
-	double		ADMM_D_tol_;	// ADMM_D_tol_	: tolerance of offset in stiffness for ADMMCut 
-	double		penalty_;		// penalty		: penalty factor used in ADMM  
-	double		pri_tol_;		// pri_tol		: primal residual tolerance for ADMM termination criterion
-	double		dual_tol_;		// dual_tol		: dual   residual tolerance for ADMM termination criterion
+	void	setNTasks(int n){ nTasks_ = n; };
+	int		nTasks() const { return nTasks_; }
 
-	// Sequence Analyzer
-	double		Wp_;
-	double		Wa_;
-	double		Wi_;
-	double		seq_D_tol_;		// seq_D_tol_   : tolerance of offset in stiffness for SeqAnalyzer 
+	void	setThreshold(double t){ mP_ = t; }
+	double	threshold(){ return mP_; }
+
+	std::string exitFlagToString(int _xFlag) const;
+
+private:
+	Timer tSetup, tSolve;
+	void*	env_;		// environment in Mosek
+	double	fVal_;		// objective fdunction value
+	int		xFlag_;		// solution status
+	int		nTasks_;	// for multi task number
+	double	mP_;		// threshold
 };
-
+#endif // QPMOSEK_H

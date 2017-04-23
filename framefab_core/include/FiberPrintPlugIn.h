@@ -42,11 +42,11 @@
 #define FIBERPRINTPLUGIN_H
 
 #include <vector>
-#include "framefab/ADMMCut.h"
-#include "framefab/NormalCut.h"
-#include "framefab/FFAnalyzer.h"
-#include "framefab/BFAnalyzer.h"
-#include "framefab/ProcAnalyzer.h"
+#include <cut_generators/ADMMCut.h>
+#include <cut_generators/NormalCut.h>
+#include <sequence_analyzers/FFAnalyzer.h>
+#include <sequence_analyzers/BFAnalyzer.h>
+#include <sequence_analyzers/ProcAnalyzer.h>
 
 
 class FiberPrintPlugIn

@@ -6,17 +6,21 @@
 *		Yijiang Huang, Juyong Zhang, Xin Hu, Guoxian Song, Zhongyuan Liu, Lei Yu, Ligang Liu
 *		In ACM Transactions on Graphics (Proc. SIGGRAPH Asia 2016)
 ----------------------------------------------------------------------------
-*		class:	FiberPrintPARM
+*		class:	ResolveAngle
 *
-*		Description:	FiberPrintPARM takes charge of computation related parameters configuration.
+*		Description:
 *
-*		Version: 2.0
-*		Created: Oct/10/2015
-*		Updated: Aug/24/2016
+*		Version:  2.0
+*		Created:  Oct/20/2015
 *
 *		Author:  Xin Hu, Yijiang Huang, Guoxian Song
 *		Company:  GCL@USTC
-
+*		Citation:	This file use some geometric API and objects from
+*			Title:			Geometric Tools Engine
+*							a library of source code for computing in the fields of
+*							mathematics, graphics, image analysis, and physics.
+*			Code Version:	3.2.6
+*			Availability:	http://www.geometrictools.com/index.html
 ----------------------------------------------------------------------------
 *		Copyright (C) 2016  Yijiang Huang, Xin Hu, Guoxian Song, Juyong Zhang
 *		and Ligang Liu.
@@ -37,50 +41,32 @@
 */
 
 #pragma once
+#include <utils/WireFrame.h>
+#include <utils/Geometry.h>
+#include <utils/ExtruderCone.h>
 
-#include <utils/GCommon.h>
-
-class FiberPrintPARM
+class ResolveAngle
 {
 public:
-	FiberPrintPARM(
-		double Wp = 1.0,
-		double Wa = 1.0,
-		double Wi = 5.0,
-		double seq_D_tol = 2.0,
-		double ADMM_D_tol = 1.0,
-		double penalty = 1e2,
-		double pri_tol = 1e-2,
-		double dual_tol = 1e-2,
-		double radius = 0.75,
-		double density = 1210 * 1e-12,
-		double g = -9806.3,
-		double youngs_modulus = 3457,
-		double shear_modulus = 1294,
-		double poisson_ratio = 0.335
-		);
+    ResolveAngle();
+	ResolveAngle( vector< Geometry::Vector3d> list );
+	~ResolveAngle();
 
-	~FiberPrintPARM();
 
-public:
-	// material & environment
-	double		radius_;
-	double		density_;
-	double		g_;
-	double		youngs_modulus_;
-	double		shear_modulus_;
-	double		poisson_ratio_;
+	Geometry::Vector3d dec;
+	double wave;
+	vector< Geometry::Vector3d> a_;
+	vector< Geometry::Vector3d> b_;
+	vector< Geometry::Vector3d> c_;
 
-	// ADMM
-	double		ADMM_D_tol_;	// ADMM_D_tol_	: tolerance of offset in stiffness for ADMMCut 
-	double		penalty_;		// penalty		: penalty factor used in ADMM  
-	double		pri_tol_;		// pri_tol		: primal residual tolerance for ADMM termination criterion
-	double		dual_tol_;		// dual_tol		: dual   residual tolerance for ADMM termination criterion
+	ExtruderCone extruder_;
+	vector< Geometry::Vector3d> list_;
+	vector< Geometry::Vector3d> Resolve();
 
-	// Sequence Analyzer
-	double		Wp_;
-	double		Wa_;
-	double		Wi_;
-	double		seq_D_tol_;		// seq_D_tol_   : tolerance of offset in stiffness for SeqAnalyzer 
+	
+	
+	void Dec();
+
+	Geometry::Vector3d Ave(vector<Geometry::Vector3d> t);
 };
 
