@@ -7,7 +7,9 @@
 #include <QtGui>
 
 // framefab
-#include "framefab_rviz_panel.h"
+#include "../include/framefab_render_widget.h"
+#include "../include/framefab_rviz_panel.h"
+#include "../include/util/global_functions.h"
 
 namespace framefab
 {
@@ -16,13 +18,13 @@ FrameFabRvizPanel::FrameFabRvizPanel( QWidget* parent )
     : rviz::Panel( parent )
 {
   ROS_INFO("FrameFab Rviz Panel started.");
-  readParameters();
 
   ptr_ff_render_widget_ = new FrameFabRenderWidget(this);
 
   createLineEdits();
   createTextEdits();
   createPushButtons();
+  createPathSlider();
 
   QHBoxLayout* topic_layout = new QHBoxLayout;
   topic_layout->addWidget( new QLabel( "Sequence File:" ));
@@ -34,6 +36,7 @@ FrameFabRvizPanel::FrameFabRvizPanel( QWidget* parent )
   layout->addLayout( topic_layout );
   layout->addWidget( textEdit_ptDisplay_ );
   layout->addWidget( pushbutton_displaypose_ );
+  layout->addWidget( path_slider_ );
   setLayout( layout );
 }
 
@@ -56,9 +59,17 @@ void FrameFabRvizPanel::createPushButtons()
 {
   pushbutton_displaypose_ = new QPushButton("Display Poses");
   connect( pushbutton_displaypose_, SIGNAL( clicked() ), ptr_ff_render_widget_, SLOT( displayPoses() ));
-//
+
   pushbutton_readfile_ = new QPushButton("Read File");
   connect( pushbutton_readfile_, SIGNAL( clicked() ), ptr_ff_render_widget_, SLOT( readFile() ));
+}
+
+void FrameFabRvizPanel::createPathSlider() {
+  path_slider_ = new QSlider(Qt::Horizontal);
+  path_slider_->setTickPosition(QSlider::TicksBothSides);
+  path_slider_->setTickInterval(10);
+  path_slider_->setSingleStep(1);
+  connect( path_slider_, SIGNAL( valueChanged(int) ), ptr_ff_render_widget_, SLOT( setValue(int) ) );
 }
 
 // Save all configuration data from this panel to the given
@@ -74,7 +85,6 @@ void FrameFabRvizPanel::load( const rviz::Config& config )
 {
   rviz::Panel::load( config );
 }
-
 
 } /* namespace */
 

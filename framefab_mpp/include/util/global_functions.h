@@ -16,7 +16,7 @@
 *		Company:  GCL@USTC
 * ==========================================================================
 */
-
+#include <cstddef>
 #ifndef GLOBALFUNCTIONS_H
 #define GLOBALFUNCTIONS_H
 

@@ -1,2 +1,1 @@
 display_pose_topic: "/framelinks"
-read_file_topic: "/readfile"

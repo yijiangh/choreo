@@ -2,8 +2,8 @@
 
   <include file="$(find kuka_kr10_moveit_config)/launch/demo.launch"/>
   
-  <node name="FrameFab" pkg="framefab_mpp" type="framefab_mpp_node" respawn="false" output="screen">
-  </node>
+ <!-- <node name="FrameFab" pkg="framefab_mpp" type="framefab_node" respawn="false" output="screen"> -->
+ <!--  </node> -->
 
 <!--  <node name="FrameFab" pkg="framefab_mpp" type="framefab_mpp" respawn="false" output="screen">-->
 <!--	<rosparam command="load" file="$(find framefab_mpp)/config/framefab/framefab_demo.yaml" />-->

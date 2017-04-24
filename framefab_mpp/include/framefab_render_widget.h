@@ -6,11 +6,18 @@
 #define FRAMEFABRENDERWIDGET_H
 
 // Qt
-//#include <QObject>
+#include <QObject>
 #include <QWidget>
+#include <QSlider>
 
 // ROS
 #include <ros/ros.h>
+#include <std_msgs/ColorRGBA.h>
+
+// MoveIt
+#include <moveit/robot_model_loader/robot_model_loader.h>
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+#include <moveit_msgs/CollisionObject.h>
 
 // framefab
 #include <wire_frame.h>
@@ -18,10 +25,13 @@
 namespace framefab
 {
 
+// TODO: this class should be an interface class, share the function of
+// scene generation, but keep independent of specific visualizer platform
+// (Qt in Rviz for now)
+
 //! @class FrameFabRenderWidget
 /*!
- * @brief framefab UI interaction coordinator
- *
+ * @brief input model, generate geometry for visualization & computation class
  */
 class FrameFabRenderWidget : public QWidget
 {
@@ -47,36 +57,70 @@ class FrameFabRenderWidget : public QWidget
  public Q_SLOTS:
 
   /*!
-   * @brief Read the file name from the dialog and parse results
+   * @brief (Qt slot function) Read the file name from the dialog and parse results
    */
   void readFile();
 
   /*!
-   * @brief publish ros message "draw links"
+   * @brief (Qt slot function) publish ros message "draw links"
    */
   void displayPoses();
 
+  /**
+   * @brief (Qt slot function) Advances robot one step along current trajectory
+   */
+  void stepRobot();
+
+  /**
+   *
+   * @brief sets value of slider
+   */
+  void setValue(int i);
+
  private:
-  //geometry_msgs::Point scale(geometry_msgs::Point p, float sf);
+
+  void initCollisionLink(WF_edge* edge, int index, std::vector<moveit_msgs::CollisionObject> * collision_objects);
+  void makeCollisionCylinder(WF_edge* edge, int index);
+
+  geometry_msgs::Point transformPoint(point pwf_point);
+  geometry_msgs::Pose computeCylinderPose(geometry_msgs::Point start, geometry_msgs::Point center, geometry_msgs::Point end);
 
  public:
   //! wireframe data structure
   WireFrame* ptr_frame_;
 
+  //! Rendering constants
+  float display_point_radius_;
+  float pwf_scale_factor_;
+
+  //TODO: this point should be part of user interface in Qt
+  geometry_msgs::Point testbed_offset_;
+
+  //TODO: these color should be read from an external ros message file
+  std_msgs::ColorRGBA start_color_;
+  std_msgs::ColorRGBA end_color_;
+  std_msgs::ColorRGBA cylinder_color_;
+
  private:
+  //! Parent pointer for ui updates
+  QWidget * parent_;
+
   //! ROS NodeHandle
   ros::NodeHandle node_handle_;
 
-  //! ROS subscriber
-  ros::Subscriber display_pose_subsriber_;
-  ros::Subscriber read_file_subsriber_;
+  //! ROS Rate to refresh Rviz
+  ros::Rate*      rate_;
+
+  //! MoveIt! interfaces
+  robot_model::RobotModelPtr robot_model_;
+  planning_scene_monitor::PlanningSceneMonitor* planning_scene_monitor_;
 
   //! ROS publisher
-  ros::Publisher display_marker_publisher_;
+  ros::Publisher display_pose_publisher_;
 
   //! ROS topics
   std::string display_pose_topic_;
-  std::string read_file_topic_;
+
 };
 }/* namespace */
 

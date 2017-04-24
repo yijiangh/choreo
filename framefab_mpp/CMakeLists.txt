@@ -1,22 +1,23 @@
 # following the overall structure and ordering
 # indicated by ros cmake: http://wiki.ros.org/catkin/CMakeLists.txt
 
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 2.8.3)
 project(framefab_mpp)
 
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED COMPONENTS
         rviz
-#  moveit_core
-#  moveit_ros_planning
-#  moveit_ros_planning_interface
+   moveit_core
+   moveit_ros_planning
+   moveit_ros_planning_interface
 #  pluginlib
   #cmake_modules
 #  geometric_shapes
 )
-
+find_package(PkgConfig)
+pkg_search_module(Eigen3 REQUIRED eigen3)
 ## System dependencies are found with CMake's conventions
-#find_package(Boost REQUIRED system filesystem date_time thread)
+find_package(Boost REQUIRED system filesystem date_time thread)
 #find_package(Eigen REQUIRED)
 
 ###################################
@@ -31,25 +32,21 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
     CATKIN_DEPENDS
 #    rviz_visual_tools
-#    tf_conversions
-#    eigen_conversions
+    tf_conversions
+    eigen_conversions
 #    interactive_markers
-#    moveit_core
-#    moveit_ros_planning
-#    moveit_ros_planning_interface
-#    moveit_ros_robot_interaction
-#    moveit_msgs
-#    moveit_visual_tools
-#    pluginlib
-#    geometric_shapes
+    moveit_core
+    moveit_ros_planning
+    moveit_ros_planning_interface
+    #moveit_ros_robot_interaction
+    moveit_msgs
 #    graph_msgs
-#    std_msgs
+    std_msgs
 )
 
 include_directories(
         include
-        ${CMAKE_CURRENT_BINARY_DIR}
-#        ${catkin_INCLUDE_DIRS}
+        ${catkin_INCLUDE_DIRS}
 )
 
 ## This setting causes Qt's "MOC" generation to happen automatically.
@@ -85,6 +82,7 @@ add_definitions(-DQT_NO_KEYWORDS)
 set(HEADER_FILES
         include/framefab_rviz_panel.h
         include/framefab_render_widget.h
+        include/wire_frame.h
         )
 
 set(SRC_FILES
@@ -98,6 +96,9 @@ add_library(${PROJECT_NAME} ${SRC_FILES} ${HEADER_FILES})
 target_link_libraries(
 	${PROJECT_NAME} ${QT_LIBRARIES} ${catkin_LIBRARIES}
 )
+include_directories(SYSTEM ${Boost_INCLUDE_DIR} ${EIGEN_INCLUDE_DIRS})
+include_directories(${catkin_INCLUDE_DIRS})
+link_directories(${catkin_LIBRARY_DIRS})
 
 ### ------------------ end library ------------------ ###
 
@@ -129,5 +130,3 @@ target_link_libraries(
 #install(FILES
 #        framefab_rviz_panel_package_description.xml
 #        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
-
-add_subdirectory(src)
