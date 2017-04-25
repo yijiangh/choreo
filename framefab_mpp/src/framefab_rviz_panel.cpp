@@ -1,15 +1,12 @@
-// Util
-#include "util/global_functions.h"
-
 // QT
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QtGui>
 
 // framefab
-#include "../include/framefab_render_widget.h"
-#include "../include/framefab_rviz_panel.h"
-#include "../include/util/global_functions.h"
+#include <util/global_functions.h>
+#include <framefab_rviz_panel.h>
+#include <framefab_render_widget.h>
 
 namespace framefab
 {
@@ -33,11 +30,12 @@ FrameFabRvizPanel::FrameFabRvizPanel( QWidget* parent )
 
   // Lay out the topic field above the control widget.
   QVBoxLayout* layout = new QVBoxLayout;
-  layout->addLayout( topic_layout );
-  layout->addWidget( textEdit_ptDisplay_ );
-  layout->addWidget( pushbutton_displaypose_ );
-  layout->addWidget( path_slider_ );
-  setLayout( layout );
+  layout->addLayout(topic_layout);
+  layout->addWidget(textEdit_ptDisplay_);
+  layout->addWidget(pushbutton_displaypose_);
+  layout->addWidget(pushbutton_advancerobot_);
+  layout->addWidget(path_slider_);
+  setLayout(layout);
 }
 
 FrameFabRvizPanel::~FrameFabRvizPanel()
@@ -58,13 +56,17 @@ void FrameFabRvizPanel::createLineEdits()
 void FrameFabRvizPanel::createPushButtons()
 {
   pushbutton_displaypose_ = new QPushButton("Display Poses");
-  connect( pushbutton_displaypose_, SIGNAL( clicked() ), ptr_ff_render_widget_, SLOT( displayPoses() ));
+  connect(pushbutton_displaypose_, SIGNAL(clicked()), ptr_ff_render_widget_, SLOT(displayPoses()));
 
   pushbutton_readfile_ = new QPushButton("Read File");
-  connect( pushbutton_readfile_, SIGNAL( clicked() ), ptr_ff_render_widget_, SLOT( readFile() ));
+  connect(pushbutton_readfile_, SIGNAL(clicked()), ptr_ff_render_widget_, SLOT(readFile()));
+
+  pushbutton_advancerobot_ = new QPushButton("Advance Robot");
+  connect(pushbutton_advancerobot_, SIGNAL(clicked()), ptr_ff_render_widget_, SLOT(advanceRobot()));
 }
 
-void FrameFabRvizPanel::createPathSlider() {
+void FrameFabRvizPanel::createPathSlider()
+{
   path_slider_ = new QSlider(Qt::Horizontal);
   path_slider_->setTickPosition(QSlider::TicksBothSides);
   path_slider_->setTickInterval(10);
