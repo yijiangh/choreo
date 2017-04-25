@@ -27,7 +27,7 @@ class FrameFab {
 
   /*!
    *	@brief Constructor.
-   * 	@param[in] nodeHandle the ROS node handle
+   * 	@param[in] ROS nodeHandle for parameters request
    */
   FrameFab(ros::NodeHandle &node_handle);
 
@@ -36,20 +36,13 @@ class FrameFab {
    */
   ~FrameFab();
 
-  /*!
-   *  @brief Callback function for displaying frame links in Rviz
-   *
+  /*
+   * function for development, experiment goes here.
    */
-  void panelDisplayFrameCallback();
-
-  /*!
-   *  @brief Callback function for activating motion planning computation
-   */
-  void mplanActivateCallback();
+  void debug();
 
   /* private functions */
  private:
-
   /*!
    * Reads and verifies the ROS parameters.
    * @return true if successful
@@ -62,7 +55,6 @@ class FrameFab {
   */
   bool initialize() {}
 
-
   /* private data */
  private:
 
@@ -72,8 +64,7 @@ class FrameFab {
   //! ROS subscribers.
 
   //! ROS topics for subscriptions.
-  std::string display_pose_topic_;
-  std::string mplan_topic_;
+
 };
 
 } /* namespace */

@@ -24,20 +24,22 @@
 // framefab
 #include <wire_frame.h>
 #include <framefab_rviz_panel.h>
-#include <framefab_render_widget.h>
 #include <util/global_functions.h>
 
 namespace framefab
 {
 
 FrameFabRenderWidget::FrameFabRenderWidget( QWidget* parent )
-    : ptr_frame_(NULL)
+    : ptr_frame_(NULL),
+      ptr_framefab_(NULL),
+      parent_(parent)
 {
-  parent_ = parent;
   ROS_INFO("FrameFab Render Widget started.");
 
   // readParameters
   readParameters();
+
+  // TODO: does this rate belongs to a node?
   rate_ = new ros::Rate(10.0);
   //rate->sleep();
 
@@ -48,9 +50,14 @@ FrameFabRenderWidget::FrameFabRenderWidget( QWidget* parent )
       "/move_group/display_planned_path", 1 ,true);
 
   // TODO: move this motion topic into external ros parameters
+  // should figure out a way to extract rviz nodehandle
+  // the member variable now seems not to be the rviz one.
+  // check:
+  //  ROS_INFO(ros::this_node::getName().c_str());
+  //  std::string a = node_handle_.getNamespace();
+  //  ROS_INFO(a.c_str());
   std::ostringstream motion_topic;
   motion_topic << "/rviz_ubuntu_24663_1410616146488788559" << "/monitored_planning_scene";
-  //ROS_INFO(ros::this_node::getName().c_str());
 
   planning_scene_monitor_ = new planning_scene_monitor::PlanningSceneMonitor("robot_description");
 
@@ -81,6 +88,7 @@ FrameFabRenderWidget::FrameFabRenderWidget( QWidget* parent )
 FrameFabRenderWidget::~FrameFabRenderWidget()
 {
   framefab::safeDelete(ptr_frame_);
+  framefab::safeDelete(ptr_framefab_);
 }
 
 bool FrameFabRenderWidget::readParameters()
@@ -90,12 +98,6 @@ bool FrameFabRenderWidget::readParameters()
   return true;
 }
 
-/**
- *
- * @param edge
- * @param id
- * @return
- */
 void FrameFabRenderWidget::initCollisionLink(
     WF_edge* edge, int index, std::vector<moveit_msgs::CollisionObject> * collision_objects)
 {
@@ -265,9 +267,6 @@ geometry_msgs::Point FrameFabRenderWidget::transformPoint(point  pwf_point)
   return point;
 }
 
-/**
- *
- */
 void FrameFabRenderWidget::displayPoses()
 {
   if (NULL == ptr_frame_ ||  0 == ptr_frame_->SizeOfVertList())
@@ -286,8 +285,16 @@ void FrameFabRenderWidget::displayPoses()
   ROS_INFO("MSG: link pose visualize has been published");
 }
 
-void FrameFabRenderWidget::stepRobot() {
+void FrameFabRenderWidget::advanceRobot()
+{
+  // init main computation class - FrameFab here
+  ROS_INFO("Renderwidget: advance robot called");
 
+  // init framefab
+  safeDelete(ptr_framefab_);
+  ptr_framefab_ = new FrameFab(node_handle_);
+
+  ptr_framefab_->debug();
 }
 
 void FrameFabRenderWidget::setValue(int i) {
@@ -326,7 +333,7 @@ void FrameFabRenderWidget::readFile()
   }
 
   //todo: emit input model info
-  QString parse_msg = "Nodes: "       + QString::number(ptr_frame_->SizeOfVertList()) + "\n"
+  QString parse_msg = "Nodes: "     + QString::number(ptr_frame_->SizeOfVertList()) + "\n"
                     + " Links: "    + QString::number(ptr_frame_->SizeOfEdgeList()) + "\n"
                     + " Pillars: "  + QString::number(ptr_frame_->SizeOfPillar()) + "\n"
                     + " Ceilings: " + QString::number(ptr_frame_->SizeOfCeiling());

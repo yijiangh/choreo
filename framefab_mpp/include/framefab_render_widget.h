@@ -21,6 +21,7 @@
 
 // framefab
 #include <wire_frame.h>
+#include <framefab.h>
 
 namespace framefab
 {
@@ -61,6 +62,8 @@ class FrameFabRenderWidget : public QWidget
    */
   void readFile();
 
+  // TODO: this should not be Poses (just collision object visualization)
+  // TODO: the orientation for robot should leave to be determined later
   /*!
    * @brief (Qt slot function) publish ros message "draw links"
    */
@@ -68,8 +71,10 @@ class FrameFabRenderWidget : public QWidget
 
   /**
    * @brief (Qt slot function) Advances robot one step along current trajectory
+   *
+   * Current a descartes planning testbed.
    */
-  void stepRobot();
+  void advanceRobot();
 
   /**
    *
@@ -85,10 +90,7 @@ class FrameFabRenderWidget : public QWidget
   geometry_msgs::Point transformPoint(point pwf_point);
   geometry_msgs::Pose computeCylinderPose(geometry_msgs::Point start, geometry_msgs::Point center, geometry_msgs::Point end);
 
- public:
-  //! wireframe data structure
-  WireFrame* ptr_frame_;
-
+ private:
   //! Rendering constants
   float display_point_radius_;
   float pwf_scale_factor_;
@@ -101,7 +103,6 @@ class FrameFabRenderWidget : public QWidget
   std_msgs::ColorRGBA end_color_;
   std_msgs::ColorRGBA cylinder_color_;
 
- private:
   //! Parent pointer for ui updates
   QWidget * parent_;
 
@@ -121,6 +122,11 @@ class FrameFabRenderWidget : public QWidget
   //! ROS topics
   std::string display_pose_topic_;
 
+  //! FrameFab computation class
+  FrameFab* ptr_framefab_;
+
+  //! wireframe data structure
+  WireFrame* ptr_frame_;
 };
 }/* namespace */
 

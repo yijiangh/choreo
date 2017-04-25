@@ -20,8 +20,6 @@ int main(int argc, char **argv)
   ros::NodeHandle node_handle("~");
   ros::Rate *r;
 
-  // init framefab class
-
   // spin
   ros::AsyncSpinner spinner(1);
   spinner.start();

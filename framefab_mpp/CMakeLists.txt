@@ -83,12 +83,14 @@ set(HEADER_FILES
         include/framefab_rviz_panel.h
         include/framefab_render_widget.h
         include/wire_frame.h
+        include/framefab.h
         )
 
 set(SRC_FILES
         src/framefab_rviz_panel.cpp
         src/framefab_render_widget.cpp
         src/wire_frame.cpp
+        src/framefab.cpp
         )
 
 add_library(${PROJECT_NAME} ${SRC_FILES} ${HEADER_FILES})

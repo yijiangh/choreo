@@ -22,7 +22,7 @@
 #include <ros/ros.h>
 
 // framefab
-#include "framefab_render_widget.h"
+#include <framefab_render_widget.h>
 
 namespace framefab
 {
@@ -78,12 +78,10 @@ class FrameFabRvizPanel: public rviz::Panel
   //! Qt Pushbuttons
   QPushButton* pushbutton_readfile_;
   QPushButton* pushbutton_displaypose_;
+  QPushButton* pushbutton_advancerobot_;
 
   //! Qt Slider
   QSlider* path_slider_;
-
-  //! The ROS node handle.
-  ros::NodeHandle nh_;
 
   //! FrameFab widget - function level
   FrameFabRenderWidget* ptr_ff_render_widget_;

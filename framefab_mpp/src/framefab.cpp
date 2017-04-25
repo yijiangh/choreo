@@ -1,4 +1,4 @@
-#include "../include/framefab.h"
+#include <framefab.h>
 
 namespace framefab
 {
@@ -8,21 +8,25 @@ FrameFab::FrameFab(ros::NodeHandle& node_handle)
 {
   ROS_INFO("FrameFab node started.");
 
-  // readParameters
   readParameters();
 
 }
 
 FrameFab::~FrameFab()
 {
-  node_handle_.shutdown();
+
 }
 
 bool FrameFab::readParameters()
 {
-  //FrameFab Parameters
-  node_handle_.param("display_pose_topic", display_pose_topic_, std::string("/framelinks"));
 
   return true;
 }
+
+void FrameFab::debug()
+{
+  ROS_INFO("FrameFab: ROS debug function called.");
+
+}
+
 }
