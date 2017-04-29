@@ -6,7 +6,6 @@
 #include <visualization_msgs/Marker.h>
 #include <std_msgs/Bool.h>
 #include <geometry_msgs/PoseArray.h>
-#include <std_msgs/ColorRGBA.h>
 
 //MoveIt
 #include <moveit/robot_model_loader/robot_model_loader.h>
@@ -22,7 +21,7 @@
 #include <QFileDialog>
 
 // framefab
-#include <wire_frame.h>
+#include <wire_frame/wire_frame_line_graph.h>
 #include <framefab_rviz_panel.h>
 #include <util/global_functions.h>
 
@@ -99,7 +98,7 @@ bool FrameFabRenderWidget::readParameters()
 }
 
 void FrameFabRenderWidget::initCollisionLink(
-    WF_edge* edge, int index, std::vector<moveit_msgs::CollisionObject> * collision_objects)
+    wire_frame::WF_edge* edge, int index, std::vector<moveit_msgs::CollisionObject>* collision_objects)
 {
   //TODO consider preallocating/preprocessing
 
@@ -193,7 +192,7 @@ void FrameFabRenderWidget::initCollisionLink(
  * @param edge
  * @param id
  */
-void FrameFabRenderWidget::makeCollisionCylinder(WF_edge* edge , int index)
+void FrameFabRenderWidget::makeCollisionCylinder(wire_frame::WF_edge* edge , int index)
 {
   std::vector<moveit_msgs::CollisionObject> links;
   initCollisionLink(edge, index, &links);
@@ -256,7 +255,7 @@ geometry_msgs::Pose FrameFabRenderWidget::computeCylinderPose(
  * @param pwf_point
  * @return
  */
-geometry_msgs::Point FrameFabRenderWidget::transformPoint(point  pwf_point)
+geometry_msgs::Point FrameFabRenderWidget::transformPoint(trimesh::point  pwf_point)
 {
   geometry_msgs::Point point;
   point.x += testbed_offset_.x + (pwf_scale_factor_ * pwf_point.x());
@@ -269,6 +268,8 @@ geometry_msgs::Point FrameFabRenderWidget::transformPoint(point  pwf_point)
 
 void FrameFabRenderWidget::displayPoses()
 {
+  using wire_frame::WF_edge;
+
   if (NULL == ptr_frame_ ||  0 == ptr_frame_->SizeOfVertList())
   {
     ROS_INFO("Input frame empty, no links to draw.");
@@ -320,8 +321,8 @@ void FrameFabRenderWidget::readFile()
   QTextCodec::setCodecForLocale(code);
   QByteArray byfilename = filename.toLocal8Bit();
 
-  delete ptr_frame_;
-  ptr_frame_ = new WireFrame();
+  framefab::safeDelete(ptr_frame_);
+  ptr_frame_ = new wire_frame::WireFrameLineGraph();
 
   if (filename.contains(".obj") || filename.contains(".OBJ"))
   {

@@ -5,6 +5,9 @@
 #ifndef FRAMEFABRENDERWIDGET_H
 #define FRAMEFABRENDERWIDGET_H
 
+// for C++11 share_ptr
+#include <memory>
+
 // Qt
 #include <QObject>
 #include <QWidget>
@@ -19,8 +22,11 @@
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit_msgs/CollisionObject.h>
 
-// framefab
-#include <wire_frame.h>
+// framefab - wireframe
+#include <wire_frame/Vec.h>
+#include <wire_frame/wire_frame_line_graph.h>
+#include <wire_frame/wire_frame_collision_objects.h>
+
 #include <framefab.h>
 
 namespace framefab
@@ -84,11 +90,14 @@ class FrameFabRenderWidget : public QWidget
 
  private:
 
-  void initCollisionLink(WF_edge* edge, int index, std::vector<moveit_msgs::CollisionObject> * collision_objects);
-  void makeCollisionCylinder(WF_edge* edge, int index);
+  void initCollisionLink(
+      wire_frame::WF_edge* edge, int index, std::vector<moveit_msgs::CollisionObject> * collision_objects);
+  void makeCollisionCylinder(
+      wire_frame::WF_edge* edge, int index);
 
-  geometry_msgs::Point transformPoint(point pwf_point);
-  geometry_msgs::Pose computeCylinderPose(geometry_msgs::Point start, geometry_msgs::Point center, geometry_msgs::Point end);
+  geometry_msgs::Point transformPoint(trimesh::point pwf_point);
+  geometry_msgs::Pose computeCylinderPose(
+      geometry_msgs::Point start, geometry_msgs::Point center, geometry_msgs::Point end);
 
  private:
   //! Rendering constants
@@ -104,7 +113,7 @@ class FrameFabRenderWidget : public QWidget
   std_msgs::ColorRGBA cylinder_color_;
 
   //! Parent pointer for ui updates
-  QWidget * parent_;
+  QWidget* parent_;
 
   //! ROS NodeHandle
   ros::NodeHandle node_handle_;
@@ -122,11 +131,13 @@ class FrameFabRenderWidget : public QWidget
   //! ROS topics
   std::string display_pose_topic_;
 
+  // TODO: use smart_ptr
   //! FrameFab computation class
   FrameFab* ptr_framefab_;
 
+  // TODO: use smart_ptr
   //! wireframe data structure
-  WireFrame* ptr_frame_;
+  wire_frame::WireFrameLineGraph* ptr_frame_;
 };
 }/* namespace */
 
