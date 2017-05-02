@@ -41,24 +41,27 @@
 
 #include <assert.h>
 #include <vector>
-#include <memory>
 
-#include <wire_frame/wire_frame_interface.h>
+#include <boost/shared_ptr.hpp>
+
+#include <wire_frame/Vec.h>
 
 namespace framefab
 {
 namespace wire_frame
 {
+typedef trimesh::point point;
+typedef trimesh::vec3  Vec3f;
 
 class WF_vert;
-typedef std::shared_ptr<WF_vert> WFVertPtr;
-typedef std::shared_ptr<const WF_vert> WFVertConstPtr;
+typedef boost::shared_ptr<WF_vert> WFVertPtr;
+typedef boost::shared_ptr<const WF_vert> WFVertConstPtr;
 
 class WF_edge;
-typedef std::shared_ptr<WF_edge> WFEdgePtr;
-typedef std::shared_ptr<const WF_edge> WFEdgeConstPtr;
+typedef boost::shared_ptr<WF_edge> WFEdgePtr;
+typedef boost::shared_ptr<const WF_edge> WFEdgeConstPtr;
 
-class WF_vert : public WireFrameVertInterface
+class WF_vert
 {
 
  public:
@@ -112,7 +115,7 @@ class WF_vert : public WireFrameVertInterface
   bool b_subg_;
 };
 
-class WF_edge : public WireFrameEdgeInterface
+class WF_edge
 {
  public:
   WF_edge()
@@ -123,11 +126,6 @@ class WF_edge : public WireFrameEdgeInterface
  public:
   int ID()          const { return id_; }
   int Layer()       const { return layer_; }
-
-  // TODO: complete this
-  WireFrameVertInterfacePtr getVert()     const { return NULL; }
-  WireFrameEdgeInterfacePtr getPairEdge() const { return NULL; }
-  WireFrameEdgeInterfacePtr getNextEdge() const { return NULL; }
 
   bool isPillar()   const { return b_pillar_; }
   bool isCeiling()  const { return b_ceiling_; }
@@ -183,7 +181,7 @@ class WF_face
   std::vector<WF_vert*> *bound_points_;
 };
 
-class WireFrameLineGraph : WireFrameInterface
+class WireFrameLineGraph
 {
  public:
   WireFrameLineGraph();
@@ -232,17 +230,17 @@ class WireFrameLineGraph : WireFrameInterface
   // TODO: should make these query function const
   inline std::vector<WF_vert*>* GetVertList() { return pvert_list_; }
   inline std::vector<WF_edge*>* GetEdgeList() { return pedge_list_; }
-  inline WireFrameVertInterface* GetVert(int u) const
+  inline WF_vert* GetVert(int u) const
   {
     return (u >= SizeOfVertList() || u < 0) ? NULL : (*pvert_list_)[u];
   }
 
-  inline WireFrameEdgeInterface* GetEdge(int i) const
+  inline WF_edge* GetEdge(int i) const
   {
     return (i >= SizeOfEdgeList() || i < 0) ? NULL : (*pedge_list_)[i];
   }
 
-  inline WireFrameEdgeInterface* GetNeighborEdge(int u) const
+  inline WF_edge* GetNeighborEdge(int u) const
   {
     return (u >= SizeOfVertList() || u < 0) ? NULL : (*pvert_list_)[u]->pedge_;
   }
@@ -342,8 +340,8 @@ class WireFrameLineGraph : WireFrameInterface
   double unify_size_;
   double delta_tol_;
 };
-typedef std::shared_ptr<WireFrameLineGraph> WireFrameLineGraphPtr;
-typedef std::shared_ptr<const WireFrameLineGraph> WireFrameLineGraphConstPtr;
+typedef boost::shared_ptr<WireFrameLineGraph> WireFrameLineGraphPtr;
+typedef boost::shared_ptr<const WireFrameLineGraph> WireFrameLineGraphConstPtr;
 }// namespace wireframe
 }// namespace framefab
 

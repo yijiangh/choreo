@@ -2,8 +2,7 @@
 // Created by yijiangh on 4/13/17.
 //
 
-// std::smart_ptr
-#include <memory>
+#include <boost/shared_ptr.hpp>
 
 // ROS msgs
 #include <visualization_msgs/Marker.h>
@@ -59,7 +58,8 @@ FrameFabRenderWidget::FrameFabRenderWidget( QWidget* parent )
   std::ostringstream motion_topic;
   motion_topic << "/rviz_ubuntu_24663_1410616146488788559" << "/monitored_planning_scene";
 
-  planning_scene_monitor_ = new planning_scene_monitor::PlanningSceneMonitor("robot_description");
+  ptr_planning_scene_monitor_ =
+      boost::make_shared<planning_scene_monitor::PlanningSceneMonitor>("robot_description");
 
   //planning_scene_monitor_->startSceneMonitor(motion_topic.str());
   //params
@@ -68,20 +68,8 @@ FrameFabRenderWidget::FrameFabRenderWidget( QWidget* parent )
   testbed_offset_.y = -0.5;
   testbed_offset_.z = 0.33;
   pwf_scale_factor_ = 0.001; // mm to m
-  start_color_.r = 0;
-  start_color_.g = 255;
-  start_color_.b = 0;
-  start_color_.a = 1;
-  end_color_.r = 255;
-  end_color_.g = 0;
-  end_color_.b = 0;
-  end_color_.a = 1;
-  cylinder_color_.r = 122;
-  cylinder_color_.g = 122;
-  cylinder_color_.b = 122;
-  cylinder_color_.a = 0.25;
 
-  planning_scene_monitor_->startPublishingPlanningScene(
+  ptr_planning_scene_monitor_->startPublishingPlanningScene(
       planning_scene_monitor::PlanningSceneMonitor::UPDATE_SCENE, motion_topic.str());
 }
 
@@ -92,8 +80,25 @@ FrameFabRenderWidget::~FrameFabRenderWidget()
 
 bool FrameFabRenderWidget::readParameters()
 {
-  // FrameFab Parameters
+  // render widget topic name parameters
   node_handle_.param("display_pose_topic", display_pose_topic_, std::string("/framelinks"));
+
+  // rviz render parameters
+  node_handle_.param("wire_frame_collision_start_vertex_color_r", start_color_.r, float(0.0));
+  node_handle_.param("wire_frame_collision_start_vertex_color_g", start_color_.g, float(0.0));
+  node_handle_.param("wire_frame_collision_start_vertex_color_b", start_color_.b, float(0.0));
+  node_handle_.param("wire_frame_collision_start_vertex_color_a", start_color_.a, float(0.0));
+
+  node_handle_.param("wire_frame_collision_end_vertex_color_r", end_color_.r, float(0.0));
+  node_handle_.param("wire_frame_collision_end_vertex_color_g", end_color_.g, float(0.0));
+  node_handle_.param("wire_frame_collision_end_vertex_color_b", end_color_.b, float(0.0));
+  node_handle_.param("wire_frame_collision_end_vertex_color_a", end_color_.a, float(0.0));
+
+  node_handle_.param("wire_frame_collision_cylinder_color_r", cylinder_color_.r, float(0.0));
+  node_handle_.param("wire_frame_collision_cylinder_color_g", cylinder_color_.g, float(0.0));
+  node_handle_.param("wire_frame_collision_cylinder_color_b", cylinder_color_.b, float(0.0));
+  node_handle_.param("wire_frame_collision_cylinder_color_a", cylinder_color_.a, float(0.0));
+
   return true;
 }
 
@@ -102,7 +107,7 @@ void FrameFabRenderWidget::initCollisionLink(
 {
   //TODO consider preallocating/preprocessing
 
-  std::string frame_id = planning_scene_monitor_->getPlanningScene()->getPlanningFrame();
+  std::string frame_id = ptr_planning_scene_monitor_->getPlanningScene()->getPlanningFrame();
 
   /*
    * Collision_cylinder: a CollisionObject container,
@@ -181,23 +186,18 @@ void FrameFabRenderWidget::initCollisionLink(
   collision_objects->push_back(collision_end_node);
   collision_objects->resize(3);
 
-  planning_scene::PlanningScenePtr current = planning_scene_monitor_->getPlanningScene();
+  planning_scene::PlanningScenePtr current = ptr_planning_scene_monitor_->getPlanningScene();
   current->setObjectColor(cyl_id.str(), cylinder_color_);
   current->setObjectColor(start_id.str(),start_color_);
   current->setObjectColor(end_id.str(), end_color_);
 }
 
-/**
- *
- * @param edge
- * @param id
- */
 void FrameFabRenderWidget::makeCollisionCylinder(wire_frame::WF_edge* edge , int index)
 {
   std::vector<moveit_msgs::CollisionObject> links;
   initCollisionLink(edge, index, &links);
   moveit_msgs::PlanningScene scene;
-  planning_scene_monitor_->getPlanningScene()->getPlanningSceneMsg(scene);
+  ptr_planning_scene_monitor_->getPlanningScene()->getPlanningSceneMsg(scene);
 
   // TODO: make a class to store the collision objects
   // this is the main reason why this is slow
@@ -209,18 +209,10 @@ void FrameFabRenderWidget::makeCollisionCylinder(wire_frame::WF_edge* edge , int
     scene.world.collision_objects.push_back(links[i]);
   }
   scene.is_diff = 1;
-  planning_scene_monitor_->newPlanningSceneMessage(scene);
+  ptr_planning_scene_monitor_->newPlanningSceneMessage(scene);
   //rate_->sleep();
-
 }
 
-/**
- * Computes quaternion transformation for cylinder with base at start oriented toward end with length = dist(start, end)
- * where dist(start, end) is Euclidean distance between points start,end in R^3
- * @param start geometry_msgs::Point starting point in R^3
- * @param end geometry_msgs::Point endpoint in R^3
- * @return orientation and position of cylinder collision object wrt testbed offset as origin
- */
 geometry_msgs::Pose FrameFabRenderWidget::computeCylinderPose(
     geometry_msgs::Point start, geometry_msgs::Point center, geometry_msgs::Point end)
 {
@@ -298,7 +290,8 @@ void FrameFabRenderWidget::advanceRobot()
   ptr_framefab_->debug();
 }
 
-void FrameFabRenderWidget::setValue(int i) {
+void FrameFabRenderWidget::setValue(int i)
+{
 
 }
 
@@ -323,7 +316,7 @@ void FrameFabRenderWidget::readFile()
 
   ptr_wire_frame_collision_objects_.reset();
 
-  ptr_wire_frame_collision_objects_ = std::make_shared<wire_frame::WireFrameCollisionObjects>();
+  ptr_wire_frame_collision_objects_ = boost::make_shared<wire_frame::WireFrameCollisionObjects>();
 
   if (filename.contains(".obj") || filename.contains(".OBJ"))
   {

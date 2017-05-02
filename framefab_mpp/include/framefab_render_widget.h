@@ -93,6 +93,14 @@ class FrameFabRenderWidget : public QWidget
       wire_frame::WF_edge* edge, int index);
 
   geometry_msgs::Point transformPoint(trimesh::point pwf_point);
+
+/*!
+ * Computes quaternion transformation for cylinder with base at start oriented toward end with length = dist(start, end)
+ * where dist(start, end) is Euclidean distance between points start,end in R^3
+ * @param start geometry_msgs::Point starting point in R^3
+ * @param end geometry_msgs::Point endpoint in R^3
+ * @return orientation and position of cylinder collision object wrt testbed offset as origin
+ */
   geometry_msgs::Pose computeCylinderPose(
       geometry_msgs::Point start, geometry_msgs::Point center, geometry_msgs::Point end);
 
@@ -119,8 +127,8 @@ class FrameFabRenderWidget : public QWidget
   ros::Rate*      rate_;
 
   //! MoveIt! interfaces
-  robot_model::RobotModelPtr robot_model_;
-  planning_scene_monitor::PlanningSceneMonitor* planning_scene_monitor_;
+  robot_model::RobotModelPtr                      ptr_robot_model_;
+  planning_scene_monitor::PlanningSceneMonitorPtr ptr_planning_scene_monitor_;
 
   //! ROS publisher
   ros::Publisher display_pose_publisher_;

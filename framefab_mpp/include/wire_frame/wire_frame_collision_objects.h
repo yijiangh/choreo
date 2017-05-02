@@ -6,22 +6,31 @@
 #define FRAMEFAB_MPP_WIRE_FRAME_COLLISION_OBJECTS_H
 
 #include <vector>
-#include <memory>
+
+#include <boost/shared_ptr.hpp>
 
 #include <moveit_msgs/CollisionObject.h>
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 
 #include <wire_frame/Vec.h>
-#include <wire_frame/wire_frame_interface.h>
 #include <wire_frame/wire_frame_line_graph.h>
 
 namespace framefab
 {
 namespace wire_frame
 {
+typedef moveit_msgs::CollisionObject    MoveitCollisionObject;
 typedef moveit_msgs::CollisionObjectPtr MoveitCollisionObjectPtr;
 
-typedef std::vector<moveit_msgs::CollisionObjectPtr>                  MoveitCollisionObjectsList;
-typedef std::shared_ptr<std::vector<moveit_msgs::CollisionObjectPtr>> MoveitCollisionObjectsListPtr;
+struct MoveitLinearMemberCollisionObjects
+{
+  MoveitCollisionObjectPtr start_vertex_collision;
+  MoveitCollisionObjectPtr end_vertex_collision;
+  MoveitCollisionObjectPtr edge_cylinder_collision;
+};
+typedef boost::shared_ptr<MoveitLinearMemberCollisionObjects>       MoveitLinearMemberCollisionObjectsPtr;
+typedef std::vector<MoveitLinearMemberCollisionObjectsPtr>          MoveitLinearMemberCollisionObjectsList;
+typedef boost::shared_ptr<MoveitLinearMemberCollisionObjectsList>   MoveitLinearMemberCollisionObjectsListPtr;
 
 /*! @class WireFrameCollisionObjects
  *  @brief extended class for WireFrameLineGraph with Moveit Collision Objects
@@ -34,26 +43,30 @@ class WireFrameCollisionObjects : public WireFrameLineGraph
 
  public:
   //! construct moveit_msg collision object using WF_line_graph info
-  void constructCollisionObjects();
+  void constructCollisionObjects(
+      const planning_scene_monitor::PlanningSceneMonitorConstPtr ptr_planning_scene_monitor,
+      const int pwf_scale_factor, const double display_point_radius);
 
-  inline MoveitCollisionObjectsListPtr getVertCollisionObjectsList() { return ptr_vert_collision_objects_list_; }
-  inline MoveitCollisionObjectsListPtr getEdgeCollisionObjectsList() { return ptr_edge_collision_objects_list_; }
+  inline MoveitLinearMemberCollisionObjectsListPtr getVertCollisionObjectsList()
+    { return ptr_vert_collision_objects_list_; }
+  inline MoveitLinearMemberCollisionObjectsListPtr getEdgeCollisionObjectsList()
+    { return ptr_edge_collision_objects_list_; }
 
-  inline MoveitCollisionObjectPtr getVertCollisionObject(int u)
+  inline MoveitLinearMemberCollisionObjectsPtr getVertCollisionObject(int u)
   {
     return (u >= SizeOfVertList() || u < 0) ? NULL : (*ptr_vert_collision_objects_list_)[u];
   }
 
-  inline MoveitCollisionObjectPtr getEdgeCollisionObject(int i)
+  inline MoveitLinearMemberCollisionObjectsPtr getEdgeCollisionObject(int i)
   {
     return (i >= SizeOfEdgeList() || i < 0) ? NULL : (*ptr_edge_collision_objects_list_)[i];
   }
 
  private:
-  MoveitCollisionObjectsListPtr ptr_vert_collision_objects_list_;
-  MoveitCollisionObjectsListPtr ptr_edge_collision_objects_list_;
+  MoveitLinearMemberCollisionObjectsListPtr ptr_vert_collision_objects_list_;
+  MoveitLinearMemberCollisionObjectsListPtr ptr_edge_collision_objects_list_;
 };
-typedef std::shared_ptr<WireFrameCollisionObjects> WireFrameCollisionObjectsPtr;
+typedef boost::shared_ptr<WireFrameCollisionObjects> WireFrameCollisionObjectsPtr;
 
 }// namespace wireframe
 }// namespace framefab
