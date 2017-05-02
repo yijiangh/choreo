@@ -5,9 +5,6 @@
 #ifndef FRAMEFABRENDERWIDGET_H
 #define FRAMEFABRENDERWIDGET_H
 
-// for C++11 share_ptr
-#include <memory>
-
 // Qt
 #include <QObject>
 #include <QWidget>
@@ -135,9 +132,8 @@ class FrameFabRenderWidget : public QWidget
   //! FrameFab computation class
   FrameFab* ptr_framefab_;
 
-  // TODO: use smart_ptr
   //! wireframe data structure
-  wire_frame::WireFrameLineGraph* ptr_frame_;
+  wire_frame::WireFrameCollisionObjectsPtr ptr_wire_frame_collision_objects_;
 };
 }/* namespace */
 

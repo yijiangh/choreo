@@ -2,6 +2,9 @@
 // Created by yijiangh on 4/13/17.
 //
 
+// std::smart_ptr
+#include <memory>
+
 // ROS msgs
 #include <visualization_msgs/Marker.h>
 #include <std_msgs/Bool.h>
@@ -21,7 +24,6 @@
 #include <QFileDialog>
 
 // framefab
-#include <wire_frame/wire_frame_line_graph.h>
 #include <framefab_rviz_panel.h>
 #include <util/global_functions.h>
 
@@ -29,8 +31,7 @@ namespace framefab
 {
 
 FrameFabRenderWidget::FrameFabRenderWidget( QWidget* parent )
-    : ptr_frame_(NULL),
-      ptr_framefab_(NULL),
+    : ptr_framefab_(NULL),
       parent_(parent)
 {
   ROS_INFO("FrameFab Render Widget started.");
@@ -86,7 +87,6 @@ FrameFabRenderWidget::FrameFabRenderWidget( QWidget* parent )
 
 FrameFabRenderWidget::~FrameFabRenderWidget()
 {
-  framefab::safeDelete(ptr_frame_);
   framefab::safeDelete(ptr_framefab_);
 }
 
@@ -270,13 +270,13 @@ void FrameFabRenderWidget::displayPoses()
 {
   using wire_frame::WF_edge;
 
-  if (NULL == ptr_frame_ ||  0 == ptr_frame_->SizeOfVertList())
+  if (nullptr == ptr_wire_frame_collision_objects_  ||  0 == ptr_wire_frame_collision_objects_->SizeOfVertList())
   {
     ROS_INFO("Input frame empty, no links to draw.");
     return;
   }
 
-  const std::vector<WF_edge*> wf_edges = *(ptr_frame_->GetEdgeList());
+  const std::vector<WF_edge*> wf_edges = *(ptr_wire_frame_collision_objects_->GetEdgeList());
   for (size_t i = 0; i < wf_edges.size(); i++)
   {
     makeCollisionCylinder(wf_edges[i], i);
@@ -321,23 +321,24 @@ void FrameFabRenderWidget::readFile()
   QTextCodec::setCodecForLocale(code);
   QByteArray byfilename = filename.toLocal8Bit();
 
-  framefab::safeDelete(ptr_frame_);
-  ptr_frame_ = new wire_frame::WireFrameLineGraph();
+  ptr_wire_frame_collision_objects_.reset();
+
+  ptr_wire_frame_collision_objects_ = std::make_shared<wire_frame::WireFrameCollisionObjects>();
 
   if (filename.contains(".obj") || filename.contains(".OBJ"))
   {
-    ptr_frame_->LoadFromOBJ(byfilename.data());
+    ptr_wire_frame_collision_objects_->LoadFromOBJ(byfilename.data());
   }
   else
   {
-    ptr_frame_->LoadFromPWF(byfilename.data());
+    ptr_wire_frame_collision_objects_->LoadFromPWF(byfilename.data());
   }
 
   //todo: emit input model info
-  QString parse_msg = "Nodes: "     + QString::number(ptr_frame_->SizeOfVertList()) + "\n"
-                    + " Links: "    + QString::number(ptr_frame_->SizeOfEdgeList()) + "\n"
-                    + " Pillars: "  + QString::number(ptr_frame_->SizeOfPillar()) + "\n"
-                    + " Ceilings: " + QString::number(ptr_frame_->SizeOfCeiling());
+  QString parse_msg = "Nodes: "     + QString::number(ptr_wire_frame_collision_objects_->SizeOfVertList()) + "\n"
+                    + " Links: "    + QString::number(ptr_wire_frame_collision_objects_->SizeOfEdgeList()) + "\n"
+                    + " Pillars: "  + QString::number(ptr_wire_frame_collision_objects_->SizeOfPillar()) + "\n"
+                    + " Ceilings: " + QString::number(ptr_wire_frame_collision_objects_->SizeOfCeiling());
   ((FrameFabRvizPanel*)parent_)->console(parse_msg);
   ROS_INFO_STREAM("MSG:" << parse_msg.toStdString());
   ROS_INFO("model loaded successfully");

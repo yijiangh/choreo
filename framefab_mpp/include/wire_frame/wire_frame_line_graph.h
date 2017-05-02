@@ -81,9 +81,6 @@ class WF_vert : public WireFrameVertInterface
   int ID()      const { return id_; }
   int Degree()  const { return degree_; }
 
-  // TODO: complete this
-  WireFrameEdgeInterfacePtr getNeighborEdge() const { return NULL; }
-
   bool isFixed()    const { return b_fixed_; }
   bool isBase()     const { return b_base_; }
   bool isSubgraph() const { return b_subg_; }
@@ -94,9 +91,6 @@ class WF_vert : public WireFrameVertInterface
   void SetRenderPos(double x, double y, double z) { render_pos_ = point(x, y, z); }
   void SetID(int id) { id_ = id; }
 
-  //TODO: complete this
-  void setNeighborEdge() {};
-
   void IncreaseDegree() { degree_++; }
 
   void SetFixed(bool b_fixed) { b_fixed_ = b_fixed; }
@@ -104,11 +98,9 @@ class WF_vert : public WireFrameVertInterface
   void SetSubgraph(bool b_subg) { b_subg_ = b_subg; }
 
  public:
-  // replace this
   WF_edge   *pedge_;
-  WFEdgePtr ptr_wireframe_neighbor_edge_;
 
- private:
+ protected:
   point position_;
   point render_pos_;
 
@@ -147,7 +139,6 @@ class WF_edge : public WireFrameEdgeInterface
   void SetCeiling(bool b_ceiling) { b_ceiling_ = b_ceiling; }
   void SetSubgraph(bool b_subg) { b_subg_ = b_subg; }
 
-  // TODO: complete this
   void setVert() {}
   void setPairEdge() {}
   void setNextEdge() {}
@@ -174,11 +165,7 @@ class WF_edge : public WireFrameEdgeInterface
   WF_edge *pnext_;
   WF_edge *ppair_;
 
-  WFVertPtr ptr_wireframe_end_vert_;
-  WFEdgePtr ptr_wireframe_next_edge_;
-  WFEdgePtr ptr_wireframe_pair_edge_;
-
- private:
+ protected:
   int id_;
   int layer_;
   bool b_pillar_;
@@ -200,7 +187,7 @@ class WireFrameLineGraph : WireFrameInterface
 {
  public:
   WireFrameLineGraph();
-  WireFrameLineGraph(std::vector<int> *bound);
+  WireFrameLineGraph(std::vector<int>* bound);
   ~WireFrameLineGraph();
 
  public:
@@ -332,7 +319,7 @@ class WireFrameLineGraph : WireFrameInterface
     return Norm(CrossProduct(alpha, beta)) / Norm(beta);
   }
 
- private:
+ protected:
   // TODO: replace these pointers using smart_ptr
   std::vector<WF_vert*>* pvert_list_;
   std::vector<WF_edge*>* pedge_list_;

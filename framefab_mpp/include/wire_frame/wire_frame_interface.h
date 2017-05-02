@@ -34,7 +34,6 @@ class WireFrameVertInterface
   virtual point	Position() const = 0;
   virtual int	ID()	   const = 0;
   virtual int	Degree()   const = 0;
-  virtual WireFrameEdgeInterfacePtr getNeighborEdge() const = 0;
 
   virtual bool isFixed() const = 0;
   virtual bool isBase()  const = 0;

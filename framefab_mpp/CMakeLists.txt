@@ -95,6 +95,7 @@ set(SRC_FILES
         src/framefab_rviz_panel.cpp
         src/framefab_render_widget.cpp
         src/wire_frame/wire_frame_line_graph.cpp
+        src/wire_frame/wire_frame_collision_objects.cpp
         src/framefab.cpp
         )
 

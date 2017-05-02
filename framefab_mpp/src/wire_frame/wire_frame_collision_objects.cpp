@@ -9,20 +9,19 @@ namespace framefab
 {
 namespace wire_frame
 {
-WireFrameCollisionObjects::WireFrameCollisionObjects()
+
+WireFrameCollisionObjects::WireFrameCollisionObjects() : WireFrameLineGraph()
 {
-  ptr_vert_collision_obj_list_ = std::make_shared<WireFrameVertCollisionObjectsListPtr>();
-  ptr_edge_collision_obj_list_ = std::make_shared<WireFrameEdgeCollisionObjectsListPtr>();
-  ptr_wireframe_linegraph_ = std::make_shared<WireFrameLineGraphPtr>();
+  ptr_vert_collision_objects_list_ = std::make_shared<MoveitCollisionObjectsList>();
+  ptr_edge_collision_objects_list_ = std::make_shared<MoveitCollisionObjectsList>();
 }
 
-void WireFrameCollisionObjects::loadFromLineGraph(WireFrameCollisionObjects ptr_wire_frame_line_graph)
+void WireFrameCollisionObjects::constructCollisionObjects()
 {
-  std::weak_ptr<WireFrameLineGraph> ptr_weak_wf(ptr_wire_frame_line_graph);
-  assert(ptr_weak_wf.lock());
-
-  ptr_wire_frame_line_graph_ = ptr_wire_frame_line_graph;
-
+//  std::weak_ptr<WireFrameLineGraph> ptr_weak_wf(ptr_wire_frame_line_graph);
+//  assert(ptr_weak_wf.lock());
+//
+//  ptr_wire_frame_line_graph_ = ptr_wire_frame_line_graph;
 
 }
 
