@@ -9,13 +9,13 @@ add_definitions("-std=c++11")
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED COMPONENTS
         rviz
-   moveit_core
-   moveit_ros_planning
-   moveit_ros_planning_interface
-#  pluginlib
-  #cmake_modules
-#  geometric_shapes
-)
+        moveit_core
+        moveit_ros_planning
+        moveit_ros_planning_interface
+        #  pluginlib
+        #cmake_modules
+        #  geometric_shapes
+        )
 find_package(PkgConfig)
 pkg_search_module(Eigen3 REQUIRED eigen3)
 ## System dependencies are found with CMake's conventions
@@ -32,20 +32,20 @@ find_package(Boost REQUIRED)
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-    INCLUDE_DIRS include ${catkin_INCLUE_DIRS}
-    CATKIN_DEPENDS
-#    rviz_visual_tools
-    tf_conversions
-    eigen_conversions
-#    interactive_markers
-    moveit_core
-    moveit_ros_planning
-    moveit_ros_planning_interface
-    #moveit_ros_robot_interaction
-    moveit_msgs
-#    graph_msgs
-    std_msgs
-    DEPENDS boost
+        INCLUDE_DIRS include ${catkin_INCLUE_DIRS}
+        CATKIN_DEPENDS
+        # rviz_visual_tools
+        tf_conversions
+        eigen_conversions
+        # interactive_markers
+        moveit_core
+        moveit_ros_planning
+        moveit_ros_planning_interface
+        #moveit_ros_robot_interaction
+        moveit_msgs
+        #    graph_msgs
+        std_msgs
+        DEPENDS boost
 )
 
 include_directories(
@@ -102,7 +102,7 @@ set(SRC_FILES
 add_library(${PROJECT_NAME} ${SRC_FILES} ${HEADER_FILES})
 
 target_link_libraries(
-	${PROJECT_NAME} ${QT_LIBRARIES} ${catkin_LIBRARIES}
+        ${PROJECT_NAME} ${QT_LIBRARIES} ${catkin_LIBRARIES}
 )
 
 link_directories(${catkin_LIBRARY_DIRS})

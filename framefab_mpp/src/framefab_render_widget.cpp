@@ -195,21 +195,12 @@ void FrameFabRenderWidget::initCollisionLink(
 void FrameFabRenderWidget::makeCollisionCylinder(wire_frame::WF_edge* edge , int index)
 {
   std::vector<moveit_msgs::CollisionObject> links;
-  initCollisionLink(edge, index, &links);
-  moveit_msgs::PlanningScene scene;
-  ptr_planning_scene_monitor_->getPlanningScene()->getPlanningSceneMsg(scene);
 
-  // TODO: make a class to store the collision objects
-  // this is the main reason why this is slow
-  // resulting in collision objects queue like:
-  // 1-12-123-1234... (massive unnecessary creation of collision objects)
-  // from m (number of edges) -> m * (m + 1) / 2
-  for (int i=0; i < links.size(); i++)
-  {
-    scene.world.collision_objects.push_back(links[i]);
-  }
-  scene.is_diff = 1;
-  ptr_planning_scene_monitor_->newPlanningSceneMessage(scene);
+
+
+  //initCollisionLink(edge, index, &links);
+
+
   //rate_->sleep();
 }
 
@@ -268,11 +259,39 @@ void FrameFabRenderWidget::displayPoses()
     return;
   }
 
-  const std::vector<WF_edge*> wf_edges = *(ptr_wire_frame_collision_objects_->GetEdgeList());
-  for (size_t i = 0; i < wf_edges.size(); i++)
+  trimesh::point offset_point(testbed_offset_.x, testbed_offset_.y, testbed_offset_.z);
+
+  ptr_wire_frame_collision_objects_->constructCollisionObjects(
+      ptr_planning_scene_monitor_, pwf_scale_factor_, display_point_radius_, offset_point);
+
+  wire_frame::MoveitLinearMemberCollisionObjectsListPtr ptr_collision_objects
+    = ptr_wire_frame_collision_objects_->getCollisionObjectsList();
+
+  moveit_msgs::PlanningScene scene;
+  ptr_planning_scene_monitor_->getPlanningScene()->getPlanningSceneMsg(scene);
+  planning_scene::PlanningScenePtr ptr_current_scene = ptr_planning_scene_monitor_->getPlanningScene();
+
+  for (int i=0; i < ptr_collision_objects->size(); i++)
   {
-    makeCollisionCylinder(wf_edges[i], i);
+    scene.world.collision_objects.push_back((*ptr_collision_objects)[i]->start_vertex_collision);
+    scene.world.collision_objects.push_back((*ptr_collision_objects)[i]->edge_cylinder_collision);
+    scene.world.collision_objects.push_back((*ptr_collision_objects)[i]->end_vertex_collision);
+
+
+    ptr_current_scene->setObjectColor((*ptr_collision_objects)[i]->edge_cylinder_collision.id.c_str(), cylinder_color_);
+    ptr_current_scene->setObjectColor((*ptr_collision_objects)[i]->start_vertex_collision.id.c_str(), start_color_);
+    ptr_current_scene->setObjectColor((*ptr_collision_objects)[i]->end_vertex_collision.id.c_str(), end_color_);
   }
+
+  scene.is_diff = 1;
+  ptr_planning_scene_monitor_->newPlanningSceneMessage(scene);
+
+//  const std::vector<WF_edge*> wf_edges = *(ptr_wire_frame_collision_objects_->GetEdgeList());
+//  for (size_t i = 0; i < wf_edges.size(); i++)
+//  {
+//    makeCollisionCylinder(wf_edges[i], i);
+//  }
+
   rate_->sleep();
 
   ROS_INFO("MSG: link pose visualize has been published");

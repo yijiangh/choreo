@@ -46,6 +46,8 @@
 
 #include <wire_frame/Vec.h>
 
+#include <ros/ros.h>
+
 namespace framefab
 {
 namespace wire_frame
@@ -247,39 +249,39 @@ class WireFrameLineGraph
 
   inline point GetPosition(int u) const
   {
-    assert(u >= SizeOfVertList() || u < 0);
+    assert(u < SizeOfVertList() && u >= 0);
     return ((*pvert_list_)[u]->Position());
   }
   inline int GetDegree(int u) const
   {
-    assert(u >= SizeOfVertList() || u < 0);
+    assert(u < SizeOfVertList() && u >= 0);
     return ((*pvert_list_)[u]->Degree());
   }
 
   inline int GetEndu(int i) const
   {
-    assert(i >= SizeOfEdgeList() || i < 0);
+    assert(i < SizeOfEdgeList() && i >= 0);
     return ((*pedge_list_)[i]->ppair_->pvert_->ID());
   }
   inline int GetEndv(int i) const
   {
-    assert(i >= SizeOfEdgeList() || i < 0);
+    assert(i < SizeOfEdgeList() && i >= 0);
     return ((*pedge_list_)[i]->pvert_->ID());
   }
   inline point GetCenterPos(int i) const
   {
-    assert(i >= SizeOfEdgeList() || i < 0);
+    assert(i < SizeOfEdgeList() && i >= 0);
     return ((*pedge_list_)[i]->CenterPos());
   }
 
   inline bool isFixed(int u) const
   {
-    assert(u >= SizeOfVertList() || u < 0);
+    assert(u < SizeOfVertList() && u >= 0);
     return ((*pvert_list_)[u]->isFixed());
   }
   inline bool isPillar(int i) const
   {
-    assert(i >= SizeOfEdgeList() || i < 0);
+    assert(i < SizeOfEdgeList() && i >= 0);
     return ((*pedge_list_)[i]->isPillar());
   }
 
