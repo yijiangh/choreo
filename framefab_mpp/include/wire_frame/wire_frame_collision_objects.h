@@ -48,7 +48,7 @@ class WireFrameCollisionObjects : public WireFrameLineGraph
   //! construct moveit_msg collision object using WF_line_graph info
   void constructCollisionObjects(
       const planning_scene_monitor::PlanningSceneMonitorConstPtr ptr_planning_scene_monitor,
-      const int pwf_scale_factor,
+      const float pwf_scale_factor,
       const double display_point_radius,
       const trimesh::point offset_vec);
 

@@ -23,11 +23,17 @@ WireFrameCollisionObjects::WireFrameCollisionObjects() : WireFrameLineGraph()
 
 void WireFrameCollisionObjects::constructCollisionObjects(
     const planning_scene_monitor::PlanningSceneMonitorConstPtr ptr_planning_scene_monitor,
-    const int pwf_scale_factor, const double display_point_radius, const trimesh::point offset_vector)
+    const float pwf_scale_factor, const double display_point_radius, const trimesh::point offset_vector)
 {
   int m = pedge_list_->size();
   int n = pvert_list_->size();
   std::string frame_id = ptr_planning_scene_monitor->getPlanningScene()->getPlanningFrame();
+
+  ROS_INFO_STREAM("pwf_scale_factor - " << std::to_string(pwf_scale_factor));
+  ROS_INFO_STREAM("display point radius - " << std::to_string(display_point_radius));
+  ROS_INFO_STREAM("offset x" << std::to_string(offset_vector.x()));
+  ROS_INFO_STREAM("offset y" << std::to_string(offset_vector.y()));
+  ROS_INFO_STREAM("offset z" << std::to_string(offset_vector.z()));
 
   ptr_linear_member_collision_objects_list_->resize(0);
 
