@@ -4,20 +4,22 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(framefab_mpp)
 
+add_definitions("-std=c++11")
+
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED COMPONENTS
         rviz
-   moveit_core
-   moveit_ros_planning
-   moveit_ros_planning_interface
-#  pluginlib
-  #cmake_modules
-#  geometric_shapes
-)
+        moveit_core
+        moveit_ros_planning
+        moveit_ros_planning_interface
+        #  pluginlib
+        #cmake_modules
+        #  geometric_shapes
+        )
 find_package(PkgConfig)
 pkg_search_module(Eigen3 REQUIRED eigen3)
 ## System dependencies are found with CMake's conventions
-find_package(Boost REQUIRED system filesystem date_time thread)
+find_package(Boost REQUIRED)
 #find_package(Eigen REQUIRED)
 
 ###################################
@@ -30,24 +32,28 @@ find_package(Boost REQUIRED system filesystem date_time thread)
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-    CATKIN_DEPENDS
-#    rviz_visual_tools
-    tf_conversions
-    eigen_conversions
-#    interactive_markers
-    moveit_core
-    moveit_ros_planning
-    moveit_ros_planning_interface
-    #moveit_ros_robot_interaction
-    moveit_msgs
-#    graph_msgs
-    std_msgs
+        INCLUDE_DIRS include ${catkin_INCLUE_DIRS}
+        CATKIN_DEPENDS
+        # rviz_visual_tools
+        tf_conversions
+        eigen_conversions
+        # interactive_markers
+        moveit_core
+        moveit_ros_planning
+        moveit_ros_planning_interface
+        #moveit_ros_robot_interaction
+        moveit_msgs
+        #    graph_msgs
+        std_msgs
+        DEPENDS boost
 )
 
 include_directories(
         include
         ${catkin_INCLUDE_DIRS}
 )
+
+include_directories(SYSTEM ${Boost_INCLUDE_DIR} ${EIGEN_INCLUDE_DIRS})
 
 ## This setting causes Qt's "MOC" generation to happen automatically.
 set(CMAKE_AUTOMOC ON)
@@ -79,27 +85,26 @@ add_definitions(-DQT_NO_KEYWORDS)
 ## header and source files should be added to library at the same time
 ## otherwise AUTO_MOC cannot find header file successfully even you
 ## include the directory.
+
 set(HEADER_FILES
         include/framefab_rviz_panel.h
         include/framefab_render_widget.h
-        include/wire_frame.h
-        include/framefab.h
         )
 
 set(SRC_FILES
         src/framefab_rviz_panel.cpp
         src/framefab_render_widget.cpp
-        src/wire_frame.cpp
+        src/wire_frame/wire_frame_line_graph.cpp
+        src/wire_frame/wire_frame_collision_objects.cpp
         src/framefab.cpp
         )
 
 add_library(${PROJECT_NAME} ${SRC_FILES} ${HEADER_FILES})
 
 target_link_libraries(
-	${PROJECT_NAME} ${QT_LIBRARIES} ${catkin_LIBRARIES}
+        ${PROJECT_NAME} ${QT_LIBRARIES} ${catkin_LIBRARIES}
 )
-include_directories(SYSTEM ${Boost_INCLUDE_DIR} ${EIGEN_INCLUDE_DIRS})
-include_directories(${catkin_INCLUDE_DIRS})
+
 link_directories(${catkin_LIBRARY_DIRS})
 
 ### ------------------ end library ------------------ ###

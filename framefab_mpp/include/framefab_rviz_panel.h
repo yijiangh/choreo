@@ -85,6 +85,8 @@ class FrameFabRvizPanel: public rviz::Panel
 
   //! FrameFab widget - function level
   FrameFabRenderWidget* ptr_ff_render_widget_;
+
+  // TODO: renderwidget should maintain a planning scene message
 };
 }
 #endif // FRAMEFABRVIZPANEL_H
