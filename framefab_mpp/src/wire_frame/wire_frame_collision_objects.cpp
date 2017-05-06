@@ -19,23 +19,26 @@ namespace wire_frame
 WireFrameCollisionObjects::WireFrameCollisionObjects() : WireFrameLineGraph()
 {
   ptr_linear_member_collision_objects_list_ = boost::make_shared<MoveitLinearMemberCollisionObjectsList>();
+
+  unit_scale_factor_ = 1;
+  ref_point_transf_vec_ = trimesh::vec3(0,0,0);
 }
 
 void WireFrameCollisionObjects::constructCollisionObjects(
-    const planning_scene_monitor::PlanningSceneMonitorConstPtr ptr_planning_scene_monitor,
-    const float pwf_scale_factor, const double display_point_radius, const trimesh::point offset_vector)
+    const std::string frame_id, const float unit_scale_factor,
+    const double collision_cylinder_radius,
+    const double ref_pt_x, const double ref_pt_y, const double ref_pt_z)
 {
-  int m = pedge_list_->size();
-  int n = pvert_list_->size();
-  std::string frame_id = ptr_planning_scene_monitor->getPlanningScene()->getPlanningFrame();
+  int m = this->SizeOfEdgeList();
 
-  ROS_INFO_STREAM("pwf_scale_factor - " << std::to_string(pwf_scale_factor));
-  ROS_INFO_STREAM("display point radius - " << std::to_string(display_point_radius));
-  ROS_INFO_STREAM("offset x" << std::to_string(offset_vector.x()));
-  ROS_INFO_STREAM("offset y" << std::to_string(offset_vector.y()));
-  ROS_INFO_STREAM("offset z" << std::to_string(offset_vector.z()));
+  // reload scale factor and ref_point
+  unit_scale_factor_ = unit_scale_factor;
+  ref_point_transf_vec_.x() = (ref_pt_x - this->GetBaseCenterPos().x()) * unit_scale_factor_;
+  ref_point_transf_vec_.y() = (ref_pt_y - this->GetBaseCenterPos().y()) * unit_scale_factor_;
+  ref_point_transf_vec_.z() = (ref_pt_z - this->GetBaseCenterPos().z()) * unit_scale_factor_;
 
-  ptr_linear_member_collision_objects_list_->resize(0);
+  // clear and rebuild collision obj list
+  ptr_linear_member_collision_objects_list_->clear();
 
   for(int i=0; i < m; i++)
   {
@@ -57,13 +60,13 @@ void WireFrameCollisionObjects::constructCollisionObjects(
     shape_msgs::SolidPrimitive vertex_start_solid;
     vertex_start_solid.type = shape_msgs::SolidPrimitive::SPHERE;
     vertex_start_solid.dimensions.resize(1);
-    vertex_start_solid.dimensions[0] = display_point_radius;
+    vertex_start_solid.dimensions[0] = collision_cylinder_radius;
 
     geometry_msgs::Pose vertex_start_pose;
     geometry_msgs::Point vertex_start_point = transformPoint(
-        GetPosition(start_vertex_id_u), offset_vector, pwf_scale_factor);
+        GetPosition(start_vertex_id_u));
     vertex_start_pose.position = transformPoint(
-        GetPosition(start_vertex_id_u), offset_vector, pwf_scale_factor);
+        GetPosition(start_vertex_id_u));
 
     ptr_member_collision_obj->start_vertex_collision.primitives.push_back(vertex_start_solid);
     ptr_member_collision_obj->start_vertex_collision.primitive_poses.push_back(vertex_start_pose);
@@ -80,13 +83,13 @@ void WireFrameCollisionObjects::constructCollisionObjects(
     shape_msgs::SolidPrimitive vertex_end_solid;
     vertex_end_solid.type = shape_msgs::SolidPrimitive::SPHERE;
     vertex_end_solid.dimensions.resize(1);
-    vertex_end_solid.dimensions[0] = display_point_radius;
+    vertex_end_solid.dimensions[0] = collision_cylinder_radius;
 
     geometry_msgs::Pose vertex_end_pose;
     geometry_msgs::Point vertex_end_point = transformPoint(
-        GetPosition(end_vertex_id_v), offset_vector, pwf_scale_factor);
+        GetPosition(end_vertex_id_v));
     vertex_end_pose.position = transformPoint(
-        GetPosition(end_vertex_id_v), offset_vector, pwf_scale_factor);
+        GetPosition(end_vertex_id_v));
 
     ptr_member_collision_obj->end_vertex_collision.primitives.push_back(vertex_end_solid);
     ptr_member_collision_obj->end_vertex_collision.primitive_poses.push_back(vertex_end_pose);
@@ -104,11 +107,11 @@ void WireFrameCollisionObjects::constructCollisionObjects(
     shape_msgs::SolidPrimitive cylinder_solid;
     cylinder_solid.type = shape_msgs::SolidPrimitive::CYLINDER;
     cylinder_solid.dimensions.resize(2);
-    cylinder_solid.dimensions[0] = pwf_scale_factor * ptr_wf_e->Length();
-    cylinder_solid.dimensions[1] = display_point_radius;
+    cylinder_solid.dimensions[0] = unit_scale_factor * ptr_wf_e->Length();
+    cylinder_solid.dimensions[1] = collision_cylinder_radius;
 
     geometry_msgs::Point cylinder_center_point = transformPoint(
-        GetEdge(i)->CenterPos(), offset_vector, pwf_scale_factor);
+        GetEdge(i)->CenterPos());
     ptr_member_collision_obj->edge_cylinder_collision.primitives.push_back(cylinder_solid);
     ptr_member_collision_obj->edge_cylinder_collision.primitive_poses.push_back(
         computeCylinderPose(vertex_start_point, cylinder_center_point, vertex_end_point));
@@ -119,22 +122,13 @@ void WireFrameCollisionObjects::constructCollisionObjects(
   }
 }
 
-  geometry_msgs::Point WireFrameCollisionObjects::transformPoint(
-      const trimesh::point pwf_point,
-      const trimesh::point offset_vec,
-      const double pwf_scale_factor)
+  geometry_msgs::Point WireFrameCollisionObjects::transformPoint(const trimesh::point pwf_point)
   {
-    trimesh::point scaled_point(pwf_point.x() * pwf_scale_factor,
-                                pwf_point.y() * pwf_scale_factor,
-                                pwf_point.z() * pwf_scale_factor);
-    trimesh::point t_point = offset_vec + scaled_point;
     geometry_msgs::Point g_point;
+    g_point.x = pwf_point.x() * unit_scale_factor_ + ref_point_transf_vec_.x();
+    g_point.y = pwf_point.y() * unit_scale_factor_ + ref_point_transf_vec_.y();
+    g_point.z = pwf_point.z() * unit_scale_factor_ + ref_point_transf_vec_.z();
 
-    g_point.x = t_point.x();
-    g_point.y = t_point.y();
-    g_point.z = t_point.z();
-
-    //TODO likely need to find lowest link and offset all by some amount
     return g_point;
   }
 

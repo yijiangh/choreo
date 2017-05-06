@@ -21,6 +21,7 @@
 // Qt
 #include <QtCore>
 #include <QFileDialog>
+#include <QString>
 
 // framefab
 #include <framefab_rviz_panel.h>
@@ -31,7 +32,8 @@ namespace framefab
 
 FrameFabRenderWidget::FrameFabRenderWidget( QWidget* parent )
     : ptr_framefab_(NULL),
-      parent_(parent)
+      parent_(parent),
+      unit_conversion_scale_factor_(1)
 {
   ROS_INFO("FrameFab Render Widget started.");
 
@@ -44,6 +46,9 @@ FrameFabRenderWidget::FrameFabRenderWidget( QWidget* parent )
 
   display_pose_publisher_ = node_handle_.advertise<moveit_msgs::DisplayTrajectory>(
       "/move_group/display_planned_path", 1 ,true);
+
+  ROS_INFO("init ptr_wf_collision");
+  ptr_wire_frame_collision_objects_ = boost::make_shared<wire_frame::WireFrameCollisionObjects>();
 
   // TODO: move this motion topic into external ros parameters
   // should figure out a way to extract rviz nodehandle
@@ -63,11 +68,10 @@ FrameFabRenderWidget::FrameFabRenderWidget( QWidget* parent )
 
   //planning_scene_monitor_->startSceneMonitor(motion_topic.str());
   //params
-  display_point_radius_ = 0.0025; //TODO: make params
-  testbed_offset_.x = 0.1;
-  testbed_offset_.y = -0.5;
-  testbed_offset_.z = 0.33;
-  pwf_scale_factor_ = 0.001; // mm to m
+
+  ref_pt_x_ = 300;
+  ref_pt_y_ = 0;
+  ref_pt_z_ = 0;
 }
 
 FrameFabRenderWidget::~FrameFabRenderWidget()
@@ -81,64 +85,27 @@ bool FrameFabRenderWidget::readParameters()
   node_handle_.param("display_pose_topic", display_pose_topic_, std::string("/framelinks"));
 
   // rviz render parameters
-  node_handle_.param("wire_frame_collision_start_vertex_color_r", start_color_.r, float(0.0));
-  node_handle_.param("wire_frame_collision_start_vertex_color_g", start_color_.g, float(0.0));
-  node_handle_.param("wire_frame_collision_start_vertex_color_b", start_color_.b, float(0.0));
-  node_handle_.param("wire_frame_collision_start_vertex_color_a", start_color_.a, float(0.0));
+  node_handle_.param("/framefab_mpp/wire_frame_collision_start_vertex_color_r", start_color_.r, float(0.0));
+  node_handle_.param("/framefab_mpp/wire_frame_collision_start_vertex_color_g", start_color_.g, float(0.0));
+  node_handle_.param("/framefab_mpp/wire_frame_collision_start_vertex_color_b", start_color_.b, float(0.0));
+  node_handle_.param("/framefab_mpp/wire_frame_collision_start_vertex_color_a", start_color_.a, float(0.0));
 
-  node_handle_.param("wire_frame_collision_end_vertex_color_r", end_color_.r, float(0.0));
-  node_handle_.param("wire_frame_collision_end_vertex_color_g", end_color_.g, float(0.0));
-  node_handle_.param("wire_frame_collision_end_vertex_color_b", end_color_.b, float(0.0));
-  node_handle_.param("wire_frame_collision_end_vertex_color_a", end_color_.a, float(0.0));
+  node_handle_.param("/framefab_mpp/wire_frame_collision_end_vertex_color_r", end_color_.r, float(0.0));
+  node_handle_.param("/framefab_mpp/wire_frame_collision_end_vertex_color_g", end_color_.g, float(0.0));
+  node_handle_.param("/framefab_mpp/wire_frame_collision_end_vertex_color_b", end_color_.b, float(0.0));
+  node_handle_.param("/framefab_mpp/wire_frame_collision_end_vertex_color_a", end_color_.a, float(0.0));
 
-  node_handle_.param("wire_frame_collision_cylinder_color_r", cylinder_color_.r, float(0.0));
-  node_handle_.param("wire_frame_collision_cylinder_color_g", cylinder_color_.g, float(0.0));
-  node_handle_.param("wire_frame_collision_cylinder_color_b", cylinder_color_.b, float(0.0));
-  node_handle_.param("wire_frame_collision_cylinder_color_a", cylinder_color_.a, float(0.0));
+  node_handle_.param("/framefab_mpp/wire_frame_collision_cylinder_color_r", cylinder_color_.r, float(0.0));
+  node_handle_.param("/framefab_mpp/wire_frame_collision_cylinder_color_g", cylinder_color_.g, float(0.0));
+  node_handle_.param("/framefab_mpp/wire_frame_collision_cylinder_color_b", cylinder_color_.b, float(0.0));
+  node_handle_.param("/framefab_mpp/wire_frame_collision_cylinder_color_a", cylinder_color_.a, float(0.0));
 
+  node_handle_.param("/framefab_mpp/wire_frame_collision_cylinder_radius", collision_cylinder_radius_, float(0.0001));
   return true;
 }
 
 void FrameFabRenderWidget::displayPoses()
 {
-  using wire_frame::WF_edge;
-
-  if (nullptr == ptr_wire_frame_collision_objects_  ||  0 == ptr_wire_frame_collision_objects_->SizeOfVertList())
-  {
-    ROS_INFO("Input frame empty, no links to draw.");
-    return;
-  }
-
-  trimesh::point offset_point(testbed_offset_.x, testbed_offset_.y, testbed_offset_.z);
-
-  ptr_wire_frame_collision_objects_->constructCollisionObjects(
-      ptr_planning_scene_monitor_, pwf_scale_factor_, display_point_radius_, offset_point);
-
-  wire_frame::MoveitLinearMemberCollisionObjectsListPtr ptr_collision_objects
-      = ptr_wire_frame_collision_objects_->getCollisionObjectsList();
-
-  moveit_msgs::PlanningScene scene;
-  ptr_planning_scene_monitor_->getPlanningScene()->getPlanningSceneMsg(scene);
-  planning_scene::PlanningScenePtr ptr_current_scene = ptr_planning_scene_monitor_->getPlanningScene();
-
-  for (int i=0; i < ptr_collision_objects->size(); i++)
-  {
-    scene.world.collision_objects.push_back((*ptr_collision_objects)[i]->start_vertex_collision);
-    scene.world.collision_objects.push_back((*ptr_collision_objects)[i]->edge_cylinder_collision);
-    scene.world.collision_objects.push_back((*ptr_collision_objects)[i]->end_vertex_collision);
-
-
-    ptr_current_scene->setObjectColor((*ptr_collision_objects)[i]->edge_cylinder_collision.id.c_str(), cylinder_color_);
-    ptr_current_scene->setObjectColor((*ptr_collision_objects)[i]->start_vertex_collision.id.c_str(), start_color_);
-    ptr_current_scene->setObjectColor((*ptr_collision_objects)[i]->end_vertex_collision.id.c_str(), end_color_);
-  }
-
-  scene.is_diff = 1;
-  ptr_planning_scene_monitor_->newPlanningSceneMessage(scene);
-
-  rate_->sleep();
-
-  ROS_INFO("MSG: link pose visualize has been published");
 }
 
 void FrameFabRenderWidget::advanceRobot()
@@ -158,6 +125,98 @@ void FrameFabRenderWidget::setValue(int i)
 
 }
 
+void FrameFabRenderWidget::setScaleFactor(QString unit_info)
+{
+  Q_EMIT(sendLogInfo(QString("-----------MODEL UNIT-----------")));
+  Q_EMIT(sendLogInfo(unit_info));
+
+  if(QString("millimeter") == unit_info)
+  {
+    node_handle_.param("/framefab_mpp/unit_conversion_millimeter_to_meter", unit_conversion_scale_factor_, float(1));
+  }
+
+  if(QString("centimeter") == unit_info)
+  {
+    node_handle_.param("/framefab_mpp/unit_conversion_centimeter_to_meter", unit_conversion_scale_factor_, float(1));
+  }
+
+  if(QString("inch") == unit_info)
+  {
+    node_handle_.param("/framefab_mpp/unit_conversion_inch_to_meter", unit_conversion_scale_factor_, float(1));
+  }
+
+  if(QString("foot") == unit_info)
+  {
+    node_handle_.param("/framefab_mpp/unit_conversion_foot_to_meter", unit_conversion_scale_factor_, float(1));
+  }
+
+  Q_EMIT(sendLogInfo(QString("Convert to meter - scale factor %1").arg(unit_conversion_scale_factor_)));
+
+  // if collision objects exists, rebuild
+  if(0 != ptr_wire_frame_collision_objects_->sizeOfCollisionObjectsList())
+  {
+    ROS_INFO("rebuilding model");
+    Q_EMIT(sendLogInfo(QString("Model rebuilt for update on unit.")));
+    this->constructCollisionObjects();
+  }
+}
+
+void FrameFabRenderWidget::setRefPoint(double ref_pt_x, double ref_pt_y, double ref_pt_z)
+{
+  Q_EMIT(sendLogInfo(QString("-----------REF POINT-----------")));
+  Q_EMIT(sendLogInfo(QString("(%1, %2, %3)").arg(ref_pt_x).arg(ref_pt_y).arg(ref_pt_z)));
+
+  ref_pt_x_ = ref_pt_x;
+  ref_pt_y_ = ref_pt_y;
+  ref_pt_z_ = ref_pt_z;
+
+  // if collision objects exists, rebuild
+  if(0 != ptr_wire_frame_collision_objects_->sizeOfCollisionObjectsList())
+  {
+    ROS_INFO("rebuilding model");
+    Q_EMIT(sendLogInfo(QString("Model rebuilt for update on Ref Point.")));
+    this->constructCollisionObjects();
+  }
+}
+
+void FrameFabRenderWidget::constructCollisionObjects()
+{
+  //--------------- load wireframe collision objects start -----------------------
+  ptr_wire_frame_collision_objects_->constructCollisionObjects(
+      ptr_planning_scene_monitor_->getPlanningScene()->getPlanningFrame(),
+      unit_conversion_scale_factor_, collision_cylinder_radius_,
+      ref_pt_x_, ref_pt_y_, ref_pt_z_);
+
+  wire_frame::MoveitLinearMemberCollisionObjectsListPtr ptr_collision_objects
+      = ptr_wire_frame_collision_objects_->getCollisionObjectsList();
+
+  // TODO: based on PlanningSceneMonitor API doc, shouldn't use getPlanningScene,
+  // since this results in unsafe scene pointer
+  moveit_msgs::PlanningScene scene;
+  ptr_planning_scene_monitor_->getPlanningScene()->getPlanningSceneMsg(scene);
+  planning_scene::PlanningScenePtr ptr_current_scene = ptr_planning_scene_monitor_->getPlanningScene();
+
+  ptr_current_scene->removeAllCollisionObjects();
+
+  // TODO: planning scene not cleaned up in second time input case, ref issue #21
+  for (int i=0; i < ptr_collision_objects->size(); i++)
+  {
+    scene.world.collision_objects.push_back((*ptr_collision_objects)[i]->start_vertex_collision);
+    scene.world.collision_objects.push_back((*ptr_collision_objects)[i]->edge_cylinder_collision);
+    scene.world.collision_objects.push_back((*ptr_collision_objects)[i]->end_vertex_collision);
+
+    ptr_current_scene->setObjectColor((*ptr_collision_objects)[i]->edge_cylinder_collision.id.c_str(), cylinder_color_);
+    ptr_current_scene->setObjectColor((*ptr_collision_objects)[i]->start_vertex_collision.id.c_str(), start_color_);
+    ptr_current_scene->setObjectColor((*ptr_collision_objects)[i]->end_vertex_collision.id.c_str(), end_color_);
+  }
+  //--------------- load wireframe collision objects end -----------------------
+
+  scene.is_diff = 1;
+  ptr_planning_scene_monitor_->newPlanningSceneMessage(scene);
+
+  rate_->sleep();
+}
+
 void FrameFabRenderWidget::readFile()
 {
   QString filename = QFileDialog::getOpenFileName(
@@ -171,6 +230,10 @@ void FrameFabRenderWidget::readFile()
     ROS_ERROR("Read Model Failed!");
     return;
   }
+  else
+  {
+    ROS_INFO("Open Model: success.");
+  }
 
   // compatible with paths in Chinese
   QTextCodec *code = QTextCodec::codecForName("gd18030");
@@ -178,9 +241,9 @@ void FrameFabRenderWidget::readFile()
   QByteArray byfilename = filename.toLocal8Bit();
 
   ptr_wire_frame_collision_objects_.reset();
-
   ptr_wire_frame_collision_objects_ = boost::make_shared<wire_frame::WireFrameCollisionObjects>();
 
+  //--------------- load wireframe linegraph end -----------------------
   if (filename.contains(".obj") || filename.contains(".OBJ"))
   {
     ptr_wire_frame_collision_objects_->LoadFromOBJ(byfilename.data());
@@ -190,13 +253,27 @@ void FrameFabRenderWidget::readFile()
     ptr_wire_frame_collision_objects_->LoadFromPWF(byfilename.data());
   }
 
-  //todo: emit input model info
-  QString parse_msg = "Nodes: "     + QString::number(ptr_wire_frame_collision_objects_->SizeOfVertList()) + "\n"
-      + " Links: "    + QString::number(ptr_wire_frame_collision_objects_->SizeOfEdgeList()) + "\n"
-      + " Pillars: "  + QString::number(ptr_wire_frame_collision_objects_->SizeOfPillar()) + "\n"
-      + " Ceilings: " + QString::number(ptr_wire_frame_collision_objects_->SizeOfCeiling());
-  ((FrameFabRvizPanel*)parent_)->console(parse_msg);
-  ROS_INFO_STREAM("MSG:" << parse_msg.toStdString());
+  if (0 == ptr_wire_frame_collision_objects_->SizeOfVertList())
+  {
+    Q_EMIT(sendLogInfo(QString("Input frame empty, no links to draw.")));
+    return;
+  }
+
+  ROS_INFO("LineGraph Built: success.");
+  //--------------- load wireframe linegraph end -----------------------
+
+  this->constructCollisionObjects();
+
+  QString parse_msg =
+            "Nodes: "     + QString::number(ptr_wire_frame_collision_objects_->SizeOfVertList()) + "\n"
+          + "Links: "    + QString::number(ptr_wire_frame_collision_objects_->SizeOfEdgeList()) + "\n"
+          + "Pillars: "  + QString::number(ptr_wire_frame_collision_objects_->SizeOfPillar()) + "\n"
+          + "Ceilings: " + QString::number(ptr_wire_frame_collision_objects_->SizeOfCeiling());
+
+  Q_EMIT(sendLogInfo(QString("-----------MODEL INPUT-----------")));
+  Q_EMIT(sendLogInfo(parse_msg));
+  Q_EMIT(sendLogInfo(QString("factor scale: %1").arg(unit_conversion_scale_factor_)));
+
   ROS_INFO("model loaded successfully");
 }
 

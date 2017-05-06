@@ -1,0 +1,5 @@
+/framefab_mpp/unit_conversion_millimeter_to_meter: 0.001
+/framefab_mpp/unit_conversion_centimeter_to_meter: 0.01
+/framefab_mpp/unit_conversion_inch_to_meter: 0.0254
+/framefab_mpp/unit_conversion_foot_to_meter: 0.3048
+

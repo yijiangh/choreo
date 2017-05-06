@@ -1,14 +1,9 @@
 <launch>
 
   <include file="$(find kuka_kr10_moveit_config)/launch/demo.launch"/>
-  <rosparam command="load" file="$(find framefab_mpp)/config/framefab/framefab_topic_names.yaml" />
-  <rosparam command="load" file="$(find framefab_mpp)/config/framefab/framefab_rviz_property.yaml" />
-
- <!-- <node name="FrameFab" pkg="framefab_mpp" type="framefab_node" respawn="false" output="screen"> -->
- <!--  </node> -->
-
-<!--  <node name="FrameFab" pkg="framefab_mpp" type="framefab_mpp" respawn="false" output="screen">-->
-<!--	<rosparam command="load" file="$(find framefab_mpp)/config/framefab/framefab_demo.yaml" />-->
-<!--  </node>-->
+  <rosparam command="load" file="$(find framefab_mpp)/config/framefab_mpp/framefab_mpp_topic_names.yaml" />
+  <rosparam command="load" file="$(find framefab_mpp)/config/framefab_mpp/framefab_mpp_rviz_property.yaml" />
+  <rosparam command="load" file="$(find framefab_mpp)/config/framefab_mpp/framefab_mpp_collision_property.yaml" />
+  <rosparam command="load" file="$(find framefab_mpp)/config/framefab_mpp/framefab_mpp_unit_conversion.yaml" />
 
 </launch>

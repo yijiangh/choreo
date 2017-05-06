@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!--
+  Manipulator specific version of 'robot_interface_streaming.launch'.
+  Defaults provided for KR 6 r900 sixx:
+   - 6 joints
+
+  Usage:
+    robot_interface_streaming_kr6r900sixx.launch robot_ip:=<value>
+
+
+  NOTE: this is a convenience wrapper launch file intended to emulate a
+  typical ROS-Industrial robot support package variant specific 'robot
+  interface streaming' setup. It depends on the main 'robot interface
+  streaming' launch file provided by the kuka_rsi_hw_interface package.
+
+  This emulation is not complete (see the robot_interface_streaming.launch
+  file in the kuka_rsi_hw_interface package for more comments): starting
+  this launch file on its own for instance does not work, while that is
+  possible with industrial_robot_client-based ROS-Industrial drivers.
+-->
+<launch>
+  <arg name="robot_ip" doc="IP of controller" />
+
+  <rosparam command="load" file="$(find kuka_kr6_support)/config/joint_names_kr6r900sixx.yaml" />
+
+  <include file="$(find kuka_rsi_hw_interface)/launch/robot_interface_streaming.launch">
+    <arg name="robot_ip" value="$(arg robot_ip)" />
+  </include>
+</launch>

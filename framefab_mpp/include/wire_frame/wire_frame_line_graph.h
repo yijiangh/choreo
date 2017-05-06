@@ -133,11 +133,11 @@ class WF_edge
   bool isCeiling()  const { return b_ceiling_; }
   bool isSubgraph() const { return b_subg_; }
 
-  void SetID(int id) { id_ = id; }
+  void SetID(int id)       { id_ = id; }
   void SetLayer(int layer) { layer_ = layer; }
-  void SetPillar(bool b_pillar) { b_pillar_ = b_pillar; }
+  void SetPillar(bool b_pillar)   { b_pillar_ = b_pillar; }
   void SetCeiling(bool b_ceiling) { b_ceiling_ = b_ceiling; }
-  void SetSubgraph(bool b_subg) { b_subg_ = b_subg; }
+  void SetSubgraph(bool b_subg)   { b_subg_ = b_subg; }
 
   void setVert() {}
   void setPairEdge() {}
@@ -230,8 +230,8 @@ class WireFrameLineGraph
   inline int SizeOfLayer()     const { return layer_size_; }
 
   // TODO: should make these query function const
-  inline std::vector<WF_vert*>* GetVertList() { return pvert_list_; }
-  inline std::vector<WF_edge*>* GetEdgeList() { return pedge_list_; }
+  inline std::vector<WF_vert*>* GetVertList() const { return pvert_list_; }
+  inline std::vector<WF_edge*>* GetEdgeList() const { return pedge_list_; }
   inline WF_vert* GetVert(int u) const
   {
     return (u >= SizeOfVertList() || u < 0) ? NULL : (*pvert_list_)[u];
@@ -252,6 +252,7 @@ class WireFrameLineGraph
     assert(u < SizeOfVertList() && u >= 0);
     return ((*pvert_list_)[u]->Position());
   }
+
   inline int GetDegree(int u) const
   {
     assert(u < SizeOfVertList() && u >= 0);
@@ -263,15 +264,27 @@ class WireFrameLineGraph
     assert(i < SizeOfEdgeList() && i >= 0);
     return ((*pedge_list_)[i]->ppair_->pvert_->ID());
   }
+
   inline int GetEndv(int i) const
   {
     assert(i < SizeOfEdgeList() && i >= 0);
     return ((*pedge_list_)[i]->pvert_->ID());
   }
+
   inline point GetCenterPos(int i) const
   {
     assert(i < SizeOfEdgeList() && i >= 0);
     return ((*pedge_list_)[i]->CenterPos());
+  }
+
+  inline Vec3f GetCenterPos() const
+  {
+    return center_pos_;
+  }
+
+  inline Vec3f GetBaseCenterPos() const
+  {
+    return base_center_pos_;
   }
 
   inline bool isFixed(int u) const
@@ -279,6 +292,7 @@ class WireFrameLineGraph
     assert(u < SizeOfVertList() && u >= 0);
     return ((*pvert_list_)[u]->isFixed());
   }
+
   inline bool isPillar(int i) const
   {
     assert(i < SizeOfEdgeList() && i >= 0);
@@ -319,8 +333,9 @@ class WireFrameLineGraph
     return Norm(CrossProduct(alpha, beta)) / Norm(beta);
   }
 
- protected:
+ private:
   // TODO: replace these pointers using smart_ptr
+  // massive rewrite, postponed to release 2.0
   std::vector<WF_vert*>* pvert_list_;
   std::vector<WF_edge*>* pedge_list_;
 
@@ -338,6 +353,7 @@ class WireFrameLineGraph
   double minz_;
 
   Vec3f center_pos_;
+  Vec3f base_center_pos_;
   float scaleV_;
   double unify_size_;
   double delta_tol_;

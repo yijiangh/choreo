@@ -9,6 +9,7 @@
 #include <QObject>
 #include <QWidget>
 #include <QSlider>
+#include <QString>
 
 // ROS
 #include <ros/ros.h>
@@ -58,6 +59,9 @@ class FrameFabRenderWidget : public QWidget
    */
   bool readParameters();
 
+ Q_SIGNALS:
+ void sendLogInfo(QString);
+
  public Q_SLOTS:
 
   /*!
@@ -85,15 +89,21 @@ class FrameFabRenderWidget : public QWidget
    */
   void setValue(int i);
 
+  void setScaleFactor(QString unit_info);
+  void setRefPoint(double ref_pt_x, double ref_pt_y, double ref_pt_z);
+
+  void constructCollisionObjects();
+
  private:
-  //! Rendering constants
-  float display_point_radius_;
-  float pwf_scale_factor_;
+  //! Model constants
+  float collision_cylinder_radius_;
+  float unit_conversion_scale_factor_;
 
-  //TODO: this point should be part of user interface in Qt
-  geometry_msgs::Point testbed_offset_;
+  double ref_pt_x_;
+  double ref_pt_y_;
+  double ref_pt_z_;
 
-  //TODO: these color should be read from an external ros message file
+  //! Model rendering constants
   std_msgs::ColorRGBA start_color_;
   std_msgs::ColorRGBA end_color_;
   std_msgs::ColorRGBA cylinder_color_;

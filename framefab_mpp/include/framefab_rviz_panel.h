@@ -14,6 +14,11 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QTextEdit>
+#include <QSpinBox>
+#include <QString>
+#include <QLabel>
+#include <QComboBox>
+#include <QGroupBox>
 
 // Rviz
 #include <rviz/panel.h>
@@ -57,36 +62,63 @@ class FrameFabRvizPanel: public rviz::Panel
   virtual void load( const rviz::Config& config );
   virtual void save( rviz::Config config ) const;
 
-  void console(QString msg)
-  {
-    textEdit_ptDisplay_->setText(msg);
-  };
-
  private:
   void createTextEdits();
-  void createLineEdits();
+  void createLables();
   void createPushButtons();
+  void createSpinboxes();
+  void createComboBoxes();
   void createPathSlider();
+  void createGroups();
+
+ Q_SIGNALS:
+  void sendScaleFactor(QString);
+  void updateScaleFactor(QString);
+
+  void sendRefPoint(double, double, double);
+  void updateRefPoint(double, double, double);
+
+ public Q_SLOTS:
+  void getScaleFactor();
+  void getUpdatedScaleFactor();
+
+  void getRefPoint();
+  void getUpdatedRefPoint();
 
  protected:
-  //! One-line text editor for entering the outgoing ROS topic name.
-  QLineEdit* lineEdit_seqFile_;
+  // TODO: replace raw pointers with shared_ptr
 
-  //! Point display
-  QTextEdit* textEdit_ptDisplay_;
+  //! Qt TextEdit - Point display
+  QTextEdit* textedit_log_;
+
+  //! Qt Labels
+  QLabel* label_scale_;
+  QLabel* label_offset_x_;
+  QLabel* label_offset_y_;
+  QLabel* label_offset_z_;
 
   //! Qt Pushbuttons
   QPushButton* pushbutton_readfile_;
-  QPushButton* pushbutton_displaypose_;
+  QPushButton* pushbutton_update_ref_pt_;
+  QPushButton* pushbutton_update_unit_scale_;
   QPushButton* pushbutton_advancerobot_;
+
+  //! Qt Spinbox
+  QDoubleSpinBox* spinbox_offset_x_;
+  QDoubleSpinBox* spinbox_offset_y_;
+  QDoubleSpinBox* spinbox_offset_z_;
+
+  //! Qt ComboBox
+  QComboBox* combobox_scale_;
 
   //! Qt Slider
   QSlider* path_slider_;
 
+  //! Qt Groupboxes
+  QGroupBox* groupbox_model_param_;
+
   //! FrameFab widget - function level
   FrameFabRenderWidget* ptr_ff_render_widget_;
-
-  // TODO: renderwidget should maintain a planning scene message
 };
 }
 #endif // FRAMEFABRVIZPANEL_H
