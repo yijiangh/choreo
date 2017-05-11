@@ -1,0 +1,10 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: kr6r900sixx_with_hotend
+    relative_path: urdf/kr6r900sixx_with_hotend.urdf
+  SRDF:
+    relative_path: config/kr6r900sixx_with_hotend.srdf
+  CONFIG:
+    author_name: Yijiang Huang
+    author_email: yijiangh@mit.edu
+    generated_timestamp: 1494481881

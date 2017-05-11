@@ -18,6 +18,7 @@
 // MoveIt
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+#include <moveit/move_group_interface/move_group.h>
 #include <moveit_msgs/CollisionObject.h>
 
 // framefab - wireframe
@@ -25,7 +26,7 @@
 #include <wire_frame/wire_frame_line_graph.h>
 #include <wire_frame/wire_frame_collision_objects.h>
 
-#include <framefab.h>
+#include <framefab_planner.h>
 
 namespace framefab
 {
@@ -119,7 +120,10 @@ class FrameFabRenderWidget : public QWidget
 
   //! MoveIt! interfaces
   robot_model::RobotModelPtr                      ptr_robot_model_;
+
   planning_scene_monitor::PlanningSceneMonitorPtr ptr_planning_scene_monitor_;
+
+  move_group_interface::MoveGroupPtr ptr_move_group_;
 
   //! ROS publisher
   ros::Publisher display_pose_publisher_;
@@ -129,7 +133,7 @@ class FrameFabRenderWidget : public QWidget
 
   // TODO: use smart_ptr
   //! FrameFab computation class
-  FrameFab* ptr_framefab_;
+  FrameFabPlannerPtr ptr_framefab_planner_;
 
   //! wireframe data structure
   wire_frame::WireFrameCollisionObjectsPtr ptr_wire_frame_collision_objects_;

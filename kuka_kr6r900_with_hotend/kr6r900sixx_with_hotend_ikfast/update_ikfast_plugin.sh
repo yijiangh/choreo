@@ -1,0 +1,1 @@
+rosrun moveit_ikfast create_ikfast_moveit_plugin.py kr6r900sixx_with_hotend manipulator kr6r900sixx_with_hotend_ikfast /home/yijiangh/catkin_ws/src/kuka_kr6r900_with_hotend/kr6r900sixx_with_hotend_ikfast/src/kr6r900sixx_with_hotend_manipulator_ikfast_solver.cpp

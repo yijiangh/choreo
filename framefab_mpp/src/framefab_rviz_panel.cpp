@@ -15,7 +15,7 @@ namespace framefab
 FrameFabRvizPanel::FrameFabRvizPanel( QWidget* parent )
     : rviz::Panel( parent )
 {
-  ROS_INFO("FrameFab Rviz Panel started.");
+  ROS_INFO("FrameFabPlanner Rviz Panel started.");
 
   ptr_ff_render_widget_ = new FrameFabRenderWidget(this);
 

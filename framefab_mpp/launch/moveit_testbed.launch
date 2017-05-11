@@ -1,6 +1,7 @@
 <launch>
 
-  <include file="$(find kuka_kr10_moveit_config)/launch/demo.launch"/>
+<!-- <include file="$(find kuka_kr10_moveit_config)/launch/demo.launch"/>-->
+  <include file="$(find kr6r900sixx_with_hotend_moveit_config)/launch/demo.launch"/>
   <rosparam command="load" file="$(find framefab_mpp)/config/framefab_mpp/framefab_mpp_topic_names.yaml" />
   <rosparam command="load" file="$(find framefab_mpp)/config/framefab_mpp/framefab_mpp_rviz_property.yaml" />
   <rosparam command="load" file="$(find framefab_mpp)/config/framefab_mpp/framefab_mpp_collision_property.yaml" />

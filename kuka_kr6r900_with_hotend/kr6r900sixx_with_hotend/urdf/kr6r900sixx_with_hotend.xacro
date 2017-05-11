@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<robot name="kr6r900sixx_with_hotend" xmlns:xacro="http://www.ros.org/wiki/xacro">
+	<!-- display material macro -->
+	<material name="Grey">
+		<color rgba="0.5 0.5 0.5 1.0"/>
+	</material>
+
+<!--	<!Dummy base link -->
+<!--	<link name="base_link">-->
+<!--		<visual>-->
+<!--		  <geometry>-->
+<!--		    <box size="0.2 0.2 0.01"/>-->
+<!--		  </geometry>-->
+<!--		</visual>-->
+<!--		<collision>-->
+<!--		  <geometry>-->
+<!--		    <box size="0.2 0.2 0.01"/>-->
+<!--		  </geometry>-->
+<!--		</collision>-->
+<!--	</link>-->
+
+  <xacro:include filename="$(find kuka_kr6_support)/urdf/kr6r900sixx_macro.xacro" />
+	<xacro:kuka_kr6r900sixx prefix="arm_"/>
+
+<!--	<joint name="base_link_to_arm_base_link" type="fixed">-->
+<!--		<parent link="base_link"/>-->
+<!--		<child link="arm_base_link"/>-->
+<!--	</joint>-->
+
+	<!--Add spatial printing hotend-->
+	<!--Hotend model unit in millimeter - convert to meter (thus scale =.001)-->
+	<link name="hotend"> 
+	 <visual> 
+		  <origin xyz="0 0 0" rpy="0 0 0" /> 
+		  <geometry> 
+		    <mesh filename="package://kr6r900sixx_with_hotend/meshes/hotend/visual/hotend.stl" scale=".001 .001 .001"/> 
+		   </geometry> 
+		   <material name="Grey" />
+	 </visual> 
+	 <collision> 
+		  <origin xyz="0 0 0" rpy="0 0 0" /> 
+		  <geometry> 
+		    <mesh filename="package://kr6r900sixx_with_hotend/meshes/hotend/collision/hotend.stl" scale=".001 .001 .001"/>
+		  </geometry> 
+	 </collision> 
+	</link>
+
+	<link name="tool_tip" />
+
+	<joint name="tool_to_hotend" type="fixed">
+		<parent link="arm_tool0"/>
+		<child link="hotend"/>
+	</joint>
+
+	<joint name="hotend_to_tip" type="fixed">
+		<parent link="hotend"/>
+		<child link="tool_tip"/>
+		<origin xyz="0.15098 0.000655 0.115553" rpy="0 0.78526059641 0" />
+	</joint>
+
+</robot>
