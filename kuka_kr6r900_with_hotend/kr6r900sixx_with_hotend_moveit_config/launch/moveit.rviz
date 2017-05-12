@@ -6,7 +6,7 @@ Panels:
       Expanded:
         - /MotionPlanning1
       Splitter Ratio: 0.74256
-    Tree Height: 359
+    Tree Height: 214
   - Class: rviz/Help
     Name: Help
   - Class: rviz/Views
@@ -65,50 +65,55 @@ Visualization Manager:
           Expand Link Details: false
           Expand Tree: false
           Link Tree Style: Links in Alphabetic Order
-          base:
+          arm_base:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          base_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          link_1:
+          arm_base_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          link_2:
+          arm_link_1:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          link_3:
+          arm_link_2:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          link_4:
+          arm_link_3:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          link_5:
+          arm_link_4:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          link_6:
+          arm_link_5:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          tool0:
+          arm_link_6:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          world:
+            Value: true
+          arm_tool0:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          hotend:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          tool_tip:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -156,50 +161,55 @@ Visualization Manager:
           Expand Link Details: false
           Expand Tree: false
           Link Tree Style: Links in Alphabetic Order
-          base:
+          arm_base:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          base_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          link_1:
+          arm_base_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          link_2:
+          arm_link_1:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          link_3:
+          arm_link_2:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          link_4:
+          arm_link_3:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          link_5:
+          arm_link_4:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          link_6:
+          arm_link_5:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          tool0:
+          arm_link_6:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          world:
+            Value: true
+          arm_tool0:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          hotend:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          tool_tip:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -210,7 +220,7 @@ Visualization Manager:
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: world
+    Fixed Frame: arm_base_link
     Frame Rate: 30
   Name: root
   Tools:
@@ -222,38 +232,38 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 3.96562
+      Distance: 3.74864
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 1.02204
-        Y: 0.0570782
-        Z: 1.04309e-07
+        X: 0.113567
+        Y: 0.10592
+        Z: 2.23518e-07
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.184796
-      Target Frame: world
+      Pitch: -0.050203
+      Target Frame: arm_base_link
       Value: XYOrbit (rviz)
-      Yaw: 5.79493
+      Yaw: 5.88995
     Saved: ~
 Window Geometry:
   Displays:
     collapsed: false
   FrameFabRvizPanel:
     collapsed: false
-  Height: 1026
+  Height: 1176
   Help:
     collapsed: false
   Hide Left Dock: false
   Hide Right Dock: false
   Motion Planning:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000100000000000002b1000003e4fc0200000009fb00000030004600720061006d0065006600610062002000730065007100750065006e0063006500200074006500730074006500720000000000000000db0000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670000000000000001d7000001cc00fffffffb000000100044006900730070006c006100790073000000000000000223000000dd00fffffffb0000000800480065006c00700000000342000000bb0000007600fffffffb0000000a0056006900650077007300000003b0000000b0000000b000fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000000c00540065006c0065006f007000000002dd000000780000000000000000fb00000022004600720061006d0065004600610062005200760069007a00500061006e0065006c0100000000000003e40000022b00fffffffb00000022004600720061006d0065004600610062005200760069007a00500061006e0065006c01000000000000056a0000000000000000000003b2000003e400000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730000000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000100000000000002a200000452fc0200000006fb000000100044006900730070006c006100790073000000002800000165000000dd00fffffffb0000000800480065006c00700000000342000000bb0000007600fffffffb0000000a0056006900650077007300000003b0000000b0000000b000fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e0067000000010b000001d7000001cc00fffffffb00000022004600720061006d0065004600610062005200760069007a00500061006e0065006c0100000028000004520000022b00ffffff000004b10000045200000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Views:
     collapsed: false
-  Width: 1641
-  X: 39
-  Y: 169
+  Width: 1881
+  X: 1709
+  Y: -14
