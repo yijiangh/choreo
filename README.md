@@ -1,16 +1,22 @@
-# Framefab Motion Planning Platform
+##Framefab Motion Planning Platform
 
-<!--[![Build Status](http://build.ros.org/job/Idev__kuka_experimental__ubuntu_trusty_amd64/badge/icon)](http://build.ros.org/job/Idev__kuka_experimental__ubuntu_trusty_amd64)-->
+Author: 		Yijiang Huang (MIT), Thomas Cook (MIT)
+Email: 			yijiangh@mit.edu
+Status:			Tested in Rviv env, plan to test on real robot June 2017.
+Devel Status:	Tested on ROS-indigo (indigo-devel for depended package as well).
 
-**WORK IN PROGRESS**
+Development mainly on *kuka_kr6r900sixx robot* for now.
 
-Development mainly on *kuka_kr10 robot* for now.
+Catkin Dependencies:
+For kuka_kr6r900_withhotend
+- [industrial_core](http://wiki.ros.org/industrial_core)
+- [kuka-experiemental](http://wiki.ros.org/kuka_experimental)
 
-## Reference
+###launch
 
-kuka kr10 robot data based on [kuka-experimental] metapackage, especially on [kuka-experimental/kuka_kr10_support].
 
-For ros-industrial and ros-kuka, see [ROS-Industrial][] and [ROS wiki-kuka-experimental][] page for more information.
+###Reference
+
 
 [kuka-experimental]: https://github.com/ros-industrial/kuka_experimental
 [kuka-experimental/kuka_kr10_support]: https://github.com/ros-industrial/kuka_experimental/tree/indigo-devel/kuka_kr10_support
