@@ -1,18 +1,17 @@
 ##kuka_kr6r900sixx_with_hotend
 
-Author: 		Yijiang Huang (MIT)
-Email: 			yijiangh@mit.edu
-Created on: 5-10-2017
-Status:			Tested in Rviv env, plan to test on real robot June 2017.
-Devel Status:	Tested on ROS-indigo (indigo-devel for depended package as well).
+- Author: 		Yijiang Huang (MIT)
+- Email: 			yijiangh@mit.edu
+- Created on: 5-10-2017
+- Status:			Tested in Rviv env, plan to test on real robot June 2017.
+- Devel Status:	Tested on ROS-indigo (indigo-devel for depended package as well).
 
-Catkin Dependencies:
+**Catkin Dependencies:**
 - [industrial_core](http://wiki.ros.org/industrial_core)
 - [kuka-experiemental](http://wiki.ros.org/kuka_experimental)
 
 ###result SRDF overview
 
-`
 <robot name="kuka_kr6r900sixx_with_hotend">
 
     <group name="manipulator">
@@ -23,7 +22,6 @@ Catkin Dependencies:
 
 		<!-- omit disable collision -->
 </robot>
-`
 
 ###Test & Launch
 
