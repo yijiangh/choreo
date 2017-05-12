@@ -58,7 +58,7 @@ FrameFabRenderWidget::FrameFabRenderWidget( QWidget* parent )
   //  std::string a = node_handle_.getNamespace();
   //  ROS_INFO(a.c_str());
   std::ostringstream motion_topic;
-  motion_topic << "/rviz_ubuntu_24663_1410616146488788559" << "/monitored_planning_scene";
+  motion_topic << "/move_group" << "/monitored_planning_scene";
 
   ptr_planning_scene_monitor_ =
       boost::make_shared<planning_scene_monitor::PlanningSceneMonitor>("robot_description");
