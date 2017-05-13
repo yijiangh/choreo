@@ -8,22 +8,19 @@
 namespace framefab
 {
 
-FrameFabPlanner::FrameFabPlanner(
-    ros::NodeHandle &node_handle,
-    moveit::planning_interface::PlanningSceneInterfacePtr       ptr_planning_scene_interface,
-    const move_group_interface::MoveGroupPtr                    ptr_move_group,
-    const wire_frame::WireFrameCollisionObjectsPtr              ptr_wire_frame_collision_objects)
-    : node_handle_(node_handle),
-      ptr_planning_scene_interface_(ptr_planning_scene_interface),
-      ptr_move_group_(ptr_move_group),
-      ptr_wire_frame_collision_objects_(ptr_wire_frame_collision_objects)
+FrameFabPlanner::FrameFabPlanner(ros::NodeHandle &node_handle)
+    : node_handle_(node_handle)
 {
   ROS_INFO_NAMED("framefab_mpp", "[ff_planner] FrameFabPlanner node started.");
 
   readParameters();
 
+  ptr_planning_scene_interface_ = boost::make_shared<moveit::planning_interface::PlanningSceneInterface>();
+
+  ptr_move_group_ = boost::make_shared<move_group_interface::MoveGroup>("manipulator");
+
   ptr_moveit_visual_tools = boost::make_shared<moveit_visual_tools::MoveItVisualTools>(
-      ptr_move_group->getPlanningFrame());
+      ptr_move_group_->getPlanningFrame());
   ptr_moveit_visual_tools->deleteAllMarkers();
 }
 

@@ -20,9 +20,7 @@
     <build_depend>rviz</build_depend>
     <build_depend>moveit_visual_tools</build_depend>
 
-    Error at /opt/ros/indigo/share/catkin/cmake/catkin_package.cmake:191 (message):
-  catkin_package() the catkin package 'moveit_msgs' has been
- <run_depend>eigen_conversions</run_depend>
+    <run_depend>eigen_conversions</run_depend>
     <run_depend>tf_conversions</run_depend>
     <run_depend>libqt5-core</run_depend>
     <run_depend>libqt5-gui</run_depend>

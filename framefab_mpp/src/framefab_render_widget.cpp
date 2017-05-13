@@ -37,7 +37,7 @@ FrameFabRenderWidget::FrameFabRenderWidget( QWidget* parent )
       ref_pt_x_(0), ref_pt_y_(0), ref_pt_z_(0),
       async_spinner_(ros::AsyncSpinner(4))
 {
-  ROS_INFO_NAMED("framefab_mpp", "FrameFabPlanner Render Widget started.");
+  ROS_INFO_NAMED("framefab_mpp", "[ff_render_widget] FrameFabPlanner Render Widget started.");
 
 //  async_spinner_ = ros::AsyncSpinner(4, &qt_ui_callback_queue_);
 //  async_spinner_.start();
@@ -51,7 +51,7 @@ FrameFabRenderWidget::FrameFabRenderWidget( QWidget* parent )
   readParameters();
 
   // init collision objects
-  ROS_INFO_NAMED("framefab_mpp", "init ptr_wf_collision");
+  ROS_INFO_NAMED("framefab_mpp", "[ff_render_widget] init ptr_wf_collision");
   ptr_wire_frame_collision_objects_ = boost::make_shared<wire_frame::WireFrameCollisionObjects>();
 
   ptr_planning_scene_interface_ = boost::make_shared<moveit::planning_interface::PlanningSceneInterface>();
@@ -91,16 +91,25 @@ bool FrameFabRenderWidget::readParameters()
 void FrameFabRenderWidget::advanceRobot()
 {
   // init main computation class - FrameFabPlanner here
-  ROS_INFO_NAMED("framefab_mpp", "Renderwidget: advance robot called");
+  ROS_INFO_NAMED("framefab_mpp", "[FF_RenderWidget] advance robot called");
 
-  ptr_framefab_planner_ = boost::make_shared<FrameFabPlanner>(
-      node_handle_,
-      ptr_planning_scene_interface_,
-      ptr_move_group_,
-      ptr_wire_frame_collision_objects_
-  );
+//  ptr_framefab_planner_ = boost::make_shared<FrameFabPlanner>(node_handle_);
+//
+//  ptr_framefab_planner_->setRobotHomePose();
 
-  ptr_framefab_planner_->setRobotHomePose();
+  moveit::planning_interface::MoveGroup::Plan my_plan;
+  const std::map<std::string, double> home_state = ptr_move_group_->getNamedTargetValues("home_pose");
+
+  std::vector<double> group_variable_values;
+  ptr_move_group_->getCurrentState()->copyJointGroupPositions(
+      ptr_move_group_->getCurrentState()->getRobotModel()->getJointModelGroup(ptr_move_group_->getName()),
+      group_variable_values);
+
+  for(std::map<std::string, double>::const_iterator it = home_state.begin(); it!=home_state.end(); ++it)
+  {
+    ROS_INFO("[ff_render_widget] home_pose: %s, %f", it->first.c_str(), it->second);
+  }
+
   rate_->sleep();
 }
 
@@ -139,7 +148,7 @@ void FrameFabRenderWidget::setScaleFactor(QString unit_info)
   // if collision objects exists, rebuild
   if(0 != ptr_wire_frame_collision_objects_->sizeOfCollisionObjectsList())
   {
-    ROS_INFO_NAMED("framefab_mpp", "rebuilding model");
+    ROS_INFO_NAMED("framefab_mpp", "[FF_RenderWidget] rebuilding model");
     Q_EMIT(sendLogInfo(QString("Model rebuilt for update on unit.")));
     this->constructCollisionObjects();
   }
@@ -212,12 +221,12 @@ void FrameFabRenderWidget::readFile()
 
   if(filename.isEmpty())
   {
-    ROS_ERROR_NAMED("framefab_mpp", "Read Model Failed!");
+    ROS_ERROR_NAMED("framefab_mpp", "[FF_RenderWidget] Read Model Failed!");
     return;
   }
   else
   {
-    ROS_INFO_NAMED("framefab_mpp", "Open Model: success.");
+    ROS_INFO_NAMED("framefab_mpp", "[FF_RenderWidget] Open Model: success.");
   }
 
   // compatible with paths in Chinese
@@ -244,7 +253,7 @@ void FrameFabRenderWidget::readFile()
     return;
   }
 
-  ROS_INFO_NAMED("framefab_mpp", "LineGraph Built: success.");
+  ROS_INFO_NAMED("framefab_mpp", "[FF_RenderWidget] LineGraph Built: success.");
   //--------------- load wireframe linegraph end -----------------------
 
   this->constructCollisionObjects();
@@ -259,7 +268,7 @@ void FrameFabRenderWidget::readFile()
   Q_EMIT(sendLogInfo(parse_msg));
   Q_EMIT(sendLogInfo(QString("factor scale: %1").arg(unit_conversion_scale_factor_)));
 
-  ROS_INFO_NAMED("framefab_mpp", "model loaded successfully");
+  ROS_INFO_NAMED("framefab_mpp", "[FF_RenderWidget] model loaded successfully");
 }
 
 } /* namespace framefab */

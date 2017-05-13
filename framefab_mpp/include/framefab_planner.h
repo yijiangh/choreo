@@ -43,12 +43,7 @@ class FrameFabPlanner
    *	@brief Constructor.
    * 	@param[in] ROS nodeHandle for parameters request
    */
-  FrameFabPlanner(
-      ros::NodeHandle &node_handle,
-      moveit::planning_interface::PlanningSceneInterfacePtr       ptr_planning_scene_interface,
-      const move_group_interface::MoveGroupPtr                    ptr_move_group,
-      const wire_frame::WireFrameCollisionObjectsPtr              ptr_wire_frame_collision_objects
-      );
+  FrameFabPlanner(ros::NodeHandle &node_handle);
 
   /*!
    *	@brief Destructor.
@@ -85,8 +80,8 @@ class FrameFabPlanner
   ros::NodeHandle &node_handle_;
 
   moveit::planning_interface::PlanningSceneInterfacePtr ptr_planning_scene_interface_;
-  const move_group_interface::MoveGroupPtr              ptr_move_group_;
-  const wire_frame::WireFrameCollisionObjectsPtr        ptr_wire_frame_collision_objects_;
+  move_group_interface::MoveGroupPtr              ptr_move_group_;
+  wire_frame::WireFrameCollisionObjectsPtr        ptr_wire_frame_collision_objects_;
 
   moveit_visual_tools::MoveItVisualToolsPtr ptr_moveit_visual_tools;
 };
