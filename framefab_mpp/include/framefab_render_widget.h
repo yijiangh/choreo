@@ -109,6 +109,9 @@ class FrameFabRenderWidget : public QWidget
   //! ROS NodeHandle
   ros::NodeHandle node_handle_;
 
+  ros::CallbackQueue qt_ui_callback_queue_;
+  ros::AsyncSpinner  async_spinner_;
+
   //! ROS Rate to refresh Rviz
   ros::Rate*      rate_;
 

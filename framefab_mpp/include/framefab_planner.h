@@ -60,6 +60,7 @@ class FrameFabPlanner
    */
   void testCartPlanning();
   void testDescartesPlanning();
+  void setRobotHomePose();
 
   /* private functions */
  private:

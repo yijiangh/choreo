@@ -2,6 +2,7 @@
 // Created by yijiangh on 4/13/17.
 //
 
+#include <map>
 #include <boost/shared_ptr.hpp>
 
 // ROS msgs
@@ -33,9 +34,15 @@ namespace framefab
 FrameFabRenderWidget::FrameFabRenderWidget( QWidget* parent )
     : parent_(parent),
       unit_conversion_scale_factor_(1),
-      ref_pt_x_(0), ref_pt_y_(0), ref_pt_z_(0)
+      ref_pt_x_(0), ref_pt_y_(0), ref_pt_z_(0),
+      async_spinner_(ros::AsyncSpinner(4))
 {
   ROS_INFO_NAMED("framefab_mpp", "FrameFabPlanner Render Widget started.");
+
+//  async_spinner_ = ros::AsyncSpinner(4, &qt_ui_callback_queue_);
+//  async_spinner_.start();
+//
+//  ros::waitForShutdown();
 
   node_handle_ = ros::NodeHandle("framefab_render_widget");
   rate_ = new ros::Rate(10.0);
@@ -93,7 +100,7 @@ void FrameFabRenderWidget::advanceRobot()
       ptr_wire_frame_collision_objects_
   );
 
-  ptr_framefab_planner_->testCartPlanning();
+  ptr_framefab_planner_->setRobotHomePose();
   rate_->sleep();
 }
 

@@ -18,7 +18,7 @@ FrameFabPlanner::FrameFabPlanner(
       ptr_move_group_(ptr_move_group),
       ptr_wire_frame_collision_objects_(ptr_wire_frame_collision_objects)
 {
-  ROS_INFO_NAMED("framefab_mpp", "[MPP] FrameFabPlanner node started.");
+  ROS_INFO_NAMED("framefab_mpp", "[ff_planner] FrameFabPlanner node started.");
 
   readParameters();
 
@@ -41,7 +41,7 @@ void FrameFabPlanner::testCartPlanning()
 {
   std::string ff_tag = "framefab_planner";
 
-  ROS_INFO_NAMED(ff_tag, "[MPP] ROS test function called.");
+  ROS_INFO_NAMED(ff_tag, "[ff_planner] ROS test function called.");
 
   // Tom's experiment
 //  moveit::planning_interface::MoveGroup::Plan my_plan;
@@ -83,10 +83,10 @@ void FrameFabPlanner::testCartPlanning()
   // ^^^^^^^^^^^^^^^^^^^^^^^^^
   //
   // We can print the name of the reference frame for this robot.
-  ROS_INFO_NAMED(ff_tag, "[MPP] Reference frame: %s", ptr_move_group_->getPlanningFrame().c_str());
+  ROS_INFO_NAMED(ff_tag, "[ff_planner] Reference frame: %s", ptr_move_group_->getPlanningFrame().c_str());
 
   // We can also print the name of the end-effector link for this group.
-  ROS_INFO_NAMED(ff_tag, "[MPP] Reference frame: %s", ptr_move_group_->getEndEffectorLink().c_str());
+  ROS_INFO_NAMED(ff_tag, "[ff_planner] Reference frame: %s", ptr_move_group_->getEndEffectorLink().c_str());
 
   // Planning to a Pose goal
   // ^^^^^^^^^^^^^^^^^^^^^^^
@@ -108,7 +108,7 @@ void FrameFabPlanner::testCartPlanning()
   moveit::planning_interface::MoveGroup::Plan my_plan;
   bool success = ptr_move_group_->plan(my_plan);
 
-  ROS_INFO_NAMED(ff_tag, "[MPP] Visualizing plan 1 (pose goal) %s",success?"":"FAILED");
+  ROS_INFO_NAMED(ff_tag, "[ff_planner] Visualizing plan 1 (pose goal) %s",success?"":"FAILED");
   /* Sleep to give Rviz time to visualize the plan. */
   sleep(5.0);
 
@@ -120,20 +120,46 @@ void FrameFabPlanner::testCartPlanning()
   // want to visualize a previously created plan.
   if (1)
   {
-    ROS_INFO("[MPP] Visualizing plan 1 (again)");
+    ROS_INFO("[ff_planner] Visualizing plan 1 (again)");
     display_trajectory.trajectory_start = my_plan.start_state_;
     display_trajectory.trajectory.push_back(my_plan.trajectory_);
     display_publisher.publish(display_trajectory);
     /* Sleep to give Rviz time to visualize the plan. */
     sleep(5.0);
   }
-
-
 }
 
 void FrameFabPlanner::testDescartesPlanning()
 {
 
+}
+
+void FrameFabPlanner::setRobotHomePose()
+{
+  moveit::planning_interface::MoveGroup::Plan my_plan;
+  const std::map<std::string, double> home_state = ptr_move_group_->getNamedTargetValues("home_pose");
+
+  std::vector<double> group_variable_values;
+  ptr_move_group_->getCurrentState()->copyJointGroupPositions(
+      ptr_move_group_->getCurrentState()->getRobotModel()->getJointModelGroup(ptr_move_group_->getName()),
+      group_variable_values);
+
+//  group_variable_values[0] = -1.0;
+//  ptr_move_group_->setJointValueTarget(group_variable_values);
+//  bool success = ptr_move_group_->plan(my_plan);
+
+  for(std::map<std::string, double>::const_iterator it = home_state.begin(); it!=home_state.end(); ++it)
+  {
+    ROS_INFO("[ff_planner] home_pose: %s, %f", it->first.c_str(), it->second);
+  }
+
+  ptr_move_group_->setJointValueTarget(home_state);
+  bool success = ptr_move_group_->plan(my_plan);
+
+  ROS_INFO_NAMED("framefab_mpp", "[ff_planner] Returning Home Pose %s", success ? "" : "FAILED");
+
+  /* Sleep to give Rviz time to visualize the plan. */
+  sleep(5.0);
 }
 
 }// namespace frammefab
