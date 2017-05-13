@@ -50,10 +50,6 @@ FrameFabRenderWidget::FrameFabRenderWidget( QWidget* parent )
   ptr_planning_scene_interface_ = boost::make_shared<moveit::planning_interface::PlanningSceneInterface>();
 
   ptr_move_group_ = boost::make_shared<move_group_interface::MoveGroup>("manipulator");
-
-  // init publisher, name in global space
-  display_pose_publisher_ = node_handle_.advertise<moveit_msgs::DisplayTrajectory>(
-      "/move_group/display_planned_path", 1 ,true);
 }
 
 FrameFabRenderWidget::~FrameFabRenderWidget()
@@ -83,10 +79,6 @@ bool FrameFabRenderWidget::readParameters()
 
   node_handle_.param("/framefab_mpp/wire_frame_collision_cylinder_radius", collision_cylinder_radius_, float(0.0001));
   return true;
-}
-
-void FrameFabRenderWidget::displayPoses()
-{
 }
 
 void FrameFabRenderWidget::advanceRobot()

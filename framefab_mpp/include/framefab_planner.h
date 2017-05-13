@@ -20,6 +20,8 @@
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit/move_group_interface/move_group.h>
 
+#include <moveit_visual_tools/moveit_visual_tools.h>
+
 // framefab
 #include <wire_frame/wire_frame_collision_objects.h>
 
@@ -34,7 +36,6 @@ namespace framefab
 */
 class FrameFabPlanner
 {
-
   /* public functions */
  public:
 
@@ -42,7 +43,8 @@ class FrameFabPlanner
    *	@brief Constructor.
    * 	@param[in] ROS nodeHandle for parameters request
    */
-  FrameFabPlanner(const ros::NodeHandle &node_handle,
+  FrameFabPlanner(
+      ros::NodeHandle &node_handle,
       moveit::planning_interface::PlanningSceneInterfacePtr       ptr_planning_scene_interface,
       const move_group_interface::MoveGroupPtr                    ptr_move_group,
       const wire_frame::WireFrameCollisionObjectsPtr              ptr_wire_frame_collision_objects
@@ -79,11 +81,13 @@ class FrameFabPlanner
  private:
 
   //! ROS nodehandle.
-  const ros::NodeHandle &node_handle_;
+  ros::NodeHandle &node_handle_;
 
   moveit::planning_interface::PlanningSceneInterfacePtr ptr_planning_scene_interface_;
   const move_group_interface::MoveGroupPtr              ptr_move_group_;
   const wire_frame::WireFrameCollisionObjectsPtr        ptr_wire_frame_collision_objects_;
+
+  moveit_visual_tools::MoveItVisualToolsPtr ptr_moveit_visual_tools;
 };
 
 typedef boost::shared_ptr<FrameFabPlanner>        FrameFabPlannerPtr;

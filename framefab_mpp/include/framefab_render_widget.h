@@ -71,13 +71,6 @@ class FrameFabRenderWidget : public QWidget
    */
   void readFile();
 
-  // TODO: this should not be Poses (just collision object visualization)
-  // TODO: the orientation for robot should leave to be determined later
-  /*!
-   * @brief (Qt slot function) publish ros message "draw links"
-   */
-  void displayPoses();
-
   /**
    * @brief (Qt slot function) Advances robot one step along current trajectory
    *
@@ -124,9 +117,6 @@ class FrameFabRenderWidget : public QWidget
 
   moveit::planning_interface::PlanningSceneInterfacePtr ptr_planning_scene_interface_;
   move_group_interface::MoveGroupPtr ptr_move_group_;
-
-  //! ROS publisher
-  ros::Publisher display_pose_publisher_;
 
   //! ROS topics
   std::string display_pose_topic_;
