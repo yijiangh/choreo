@@ -19,6 +19,7 @@
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/move_group_interface/move_group.h>
+#include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit_msgs/CollisionObject.h>
 
 // framefab - wireframe
@@ -119,9 +120,8 @@ class FrameFabRenderWidget : public QWidget
   ros::Rate*      rate_;
 
   //! MoveIt! interfaces
-  robot_model::RobotModelPtr                      ptr_robot_model_;
-
-  planning_scene_monitor::PlanningSceneMonitorPtr ptr_planning_scene_monitor_;
+  planning_scene_monitor::PlanningSceneMonitorPtr       ptr_planning_scene_monitor_;
+  moveit::planning_interface::PlanningSceneInterfacePtr ptr_planning_scene_interface_;
 
   move_group_interface::MoveGroupPtr ptr_move_group_;
 
