@@ -16,6 +16,12 @@
 #include <ros/ros.h>
 #include <geometry_msgs/Pose.h>
 
+// Moveit
+#include <moveit/planning_scene_interface/planning_scene_interface.h>
+#include <moveit/move_group_interface/move_group.h>
+
+// framefab
+#include <wire_frame/wire_frame_collision_objects.h>
 
 namespace framefab
 {
@@ -36,7 +42,11 @@ class FrameFabPlanner
    *	@brief Constructor.
    * 	@param[in] ROS nodeHandle for parameters request
    */
-  FrameFabPlanner(ros::NodeHandle &node_handle);
+  FrameFabPlanner(const ros::NodeHandle &node_handle,
+      moveit::planning_interface::PlanningSceneInterfacePtr       ptr_planning_scene_interface,
+      const move_group_interface::MoveGroupPtr                    ptr_move_group,
+      const wire_frame::WireFrameCollisionObjectsPtr              ptr_wire_frame_collision_objects
+      );
 
   /*!
    *	@brief Destructor.
@@ -46,7 +56,8 @@ class FrameFabPlanner
   /*
    * function for development, experiment goes here.
    */
-  void debug();
+  void testCartPlanning();
+  void testDescartesPlanning();
 
   /* private functions */
  private:
@@ -68,13 +79,13 @@ class FrameFabPlanner
  private:
 
   //! ROS nodehandle.
-  ros::NodeHandle &node_handle_;
+  const ros::NodeHandle &node_handle_;
 
-  //! ROS subscribers.
-
-  //! ROS topics for subscriptions.
-
+  moveit::planning_interface::PlanningSceneInterfacePtr ptr_planning_scene_interface_;
+  const move_group_interface::MoveGroupPtr              ptr_move_group_;
+  const wire_frame::WireFrameCollisionObjectsPtr        ptr_wire_frame_collision_objects_;
 };
+
 typedef boost::shared_ptr<FrameFabPlanner>        FrameFabPlannerPtr;
 typedef boost::shared_ptr<const FrameFabPlanner>  FrameFabPlannerConstaPtr;
 

@@ -125,14 +125,12 @@ class FrameFabRenderWidget : public QWidget
   moveit::planning_interface::PlanningSceneInterfacePtr ptr_planning_scene_interface_;
   move_group_interface::MoveGroupPtr ptr_move_group_;
 
-
   //! ROS publisher
   ros::Publisher display_pose_publisher_;
 
   //! ROS topics
   std::string display_pose_topic_;
 
-  // TODO: use smart_ptr
   //! FrameFab computation class
   FrameFabPlannerPtr ptr_framefab_planner_;
 

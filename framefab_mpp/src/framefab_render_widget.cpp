@@ -33,7 +33,7 @@ namespace framefab
 FrameFabRenderWidget::FrameFabRenderWidget( QWidget* parent )
     : parent_(parent),
       unit_conversion_scale_factor_(1),
-      ref_pt_x_(300), ref_pt_y_(0), ref_pt_z_(0)
+      ref_pt_x_(0), ref_pt_y_(0), ref_pt_z_(0)
 {
   ROS_INFO_NAMED("framefab_mpp", "FrameFabPlanner Render Widget started.");
 
@@ -94,36 +94,15 @@ void FrameFabRenderWidget::advanceRobot()
   // init main computation class - FrameFabPlanner here
   ROS_INFO_NAMED("framefab_mpp", "Renderwidget: advance robot called");
 
-  // implement using framefab_planner
-//  ptr_framefab_planner_ = boost::make_shared<FrameFabPlanner>();
-//
-//  ptr_framefab_planner_->debug();
+  ptr_framefab_planner_ = boost::make_shared<FrameFabPlanner>(
+      node_handle_,
+      ptr_planning_scene_interface_,
+      ptr_move_group_,
+      ptr_wire_frame_collision_objects_
+  );
 
-  moveit::planning_interface::MoveGroup::Plan my_plan;
-  std::vector<geometry_msgs::Pose> waypoints;
-
-  geometry_msgs::Point start = ptr_move_group_->getCurrentPose().pose.position;
-  geometry_msgs::Pose start_pose, next_pose;
-
-  next_pose = ptr_wire_frame_collision_objects_->getCollisionObject(0)->start_vertex_collision.primitive_poses[0];
-
-  waypoints.push_back(next_pose);
-  moveit_msgs::RobotTrajectory trajectory;
-
-  double fraction = ptr_move_group_->computeCartesianPath(waypoints, 0.001, 0.00, trajectory);
-
-  if (fraction > 0.1)
-  {
-    my_plan.trajectory_ = trajectory;
-    ROS_INFO_NAMED("framefab_mpp", "Fraction %.2f", fraction);
-    ptr_move_group_->asyncExecute(my_plan);
-    rate_->sleep();
-  }
-  else
-  {
-    ROS_INFO_NAMED("framefab_mpp", "Fraction to small");
-    return;
-  }
+  ptr_framefab_planner_->testCartPlanning();
+  rate_->sleep();
 }
 
 void FrameFabRenderWidget::setValue(int i)
