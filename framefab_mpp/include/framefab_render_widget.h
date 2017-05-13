@@ -120,10 +120,11 @@ class FrameFabRenderWidget : public QWidget
   ros::Rate*      rate_;
 
   //! MoveIt! interfaces
-  planning_scene_monitor::PlanningSceneMonitorPtr       ptr_planning_scene_monitor_;
-  moveit::planning_interface::PlanningSceneInterfacePtr ptr_planning_scene_interface_;
+  std::string planning_group_name_;
 
+  moveit::planning_interface::PlanningSceneInterfacePtr ptr_planning_scene_interface_;
   move_group_interface::MoveGroupPtr ptr_move_group_;
+
 
   //! ROS publisher
   ros::Publisher display_pose_publisher_;
