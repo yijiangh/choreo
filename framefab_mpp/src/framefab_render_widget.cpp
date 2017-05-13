@@ -25,7 +25,7 @@
 
 // framefab
 #include <framefab_rviz_panel.h>
-#include <util/global_functions.h>
+#include <framefab_render_widget.h>
 
 namespace framefab
 {
@@ -35,28 +35,27 @@ FrameFabRenderWidget::FrameFabRenderWidget( QWidget* parent )
       unit_conversion_scale_factor_(1),
       ref_pt_x_(300), ref_pt_y_(0), ref_pt_z_(0)
 {
-  ROS_INFO("FrameFabPlanner Render Widget started.");
+  ROS_INFO("[framefab_mpp] FrameFabPlanner Render Widget started.");
+
+  node_handle_ = ros::NodeHandle("framefab_render_widget");
 
   // readParameters
   readParameters();
 
-  // TODO: does this rate belongs to a node?
   rate_ = new ros::Rate(10.0);
-  //rate->sleep();
 
+  // init publisher, name in global space
   display_pose_publisher_ = node_handle_.advertise<moveit_msgs::DisplayTrajectory>(
       "/move_group/display_planned_path", 1 ,true);
 
-  ROS_INFO("init ptr_wf_collision");
+  // init collision objects
+  ROS_INFO("[framefab_mpp] init ptr_wf_collision");
   ptr_wire_frame_collision_objects_ = boost::make_shared<wire_frame::WireFrameCollisionObjects>();
 
   // TODO: move this motion topic into external ros parameters
   // should figure out a way to extract rviz nodehandle
   // the member variable now seems not to be the rviz one.
-  // check:
-  //  ROS_INFO(ros::this_node::getName().c_str());
-  //  std::string a = node_handle_.getNamespace();
-  //  ROS_INFO(a.c_str());
+
   std::ostringstream motion_topic;
   motion_topic << "/move_group" << "/monitored_planning_scene";
 
@@ -64,10 +63,9 @@ FrameFabRenderWidget::FrameFabRenderWidget( QWidget* parent )
       boost::make_shared<planning_scene_monitor::PlanningSceneMonitor>("robot_description");
 
   ptr_planning_scene_monitor_->startPublishingPlanningScene(
-      planning_scene_monitor::PlanningSceneMonitor::UPDATE_SCENE, motion_topic.str());
+      planning_scene_monitor::PlanningSceneMonitor::UPDATE_GEOMETRY, "/move_group/monitored_planning_scene");
 
-  //planning_scene_monitor_->startSceneMonitor(motion_topic.str());
-  //params
+  ptr_planning_scene_interface_ = boost::make_shared<moveit::planning_interface::PlanningSceneInterface>();
 }
 
 FrameFabRenderWidget::~FrameFabRenderWidget()
@@ -106,7 +104,7 @@ void FrameFabRenderWidget::displayPoses()
 void FrameFabRenderWidget::advanceRobot()
 {
   // init main computation class - FrameFabPlanner here
-  ROS_INFO("Renderwidget: advance robot called");
+  ROS_INFO("[framefab_mpp] Renderwidget: advance robot called");
 
   // implement using framefab_planner
 //  ptr_framefab_planner_ = boost::make_shared<FrameFabPlanner>();
@@ -212,29 +210,31 @@ void FrameFabRenderWidget::constructCollisionObjects()
   wire_frame::MoveitLinearMemberCollisionObjectsListPtr ptr_collision_objects
       = ptr_wire_frame_collision_objects_->getCollisionObjectsList();
 
-  // TODO: based on PlanningSceneMonitor API doc, shouldn't use getPlanningScene,
-  // since this results in unsafe scene pointer
-  moveit_msgs::PlanningScene scene;
-  ptr_planning_scene_monitor_->getPlanningScene()->getPlanningSceneMsg(scene);
-  planning_scene::PlanningScenePtr ptr_current_scene = ptr_planning_scene_monitor_->getPlanningScene();
+  std::vector<std::string> objects_id = ptr_planning_scene_interface_->getKnownObjectNames();
+  ptr_planning_scene_interface_->removeCollisionObjects(objects_id);
 
-  ptr_current_scene->removeAllCollisionObjects();
+  std::vector<moveit_msgs::CollisionObject> collision_objects;
 
   // TODO: planning scene not cleaned up in second time input case, ref issue #21
   for (int i=0; i < ptr_collision_objects->size(); i++)
   {
-    scene.world.collision_objects.push_back((*ptr_collision_objects)[i]->start_vertex_collision);
-    scene.world.collision_objects.push_back((*ptr_collision_objects)[i]->edge_cylinder_collision);
-    scene.world.collision_objects.push_back((*ptr_collision_objects)[i]->end_vertex_collision);
+    collision_objects.push_back((*ptr_collision_objects)[i]->edge_cylinder_collision);
+    //scene.world.collision_objects.push_back((*ptr_collision_objects)[i]->edge_cylinder_collision);
+    //scene.world.collision_objects.push_back((*ptr_collision_objects)[i]->start_vertex_collision);
+    //scene.world.collision_objects.push_back((*ptr_collision_objects)[i]->end_vertex_collision);
 
-    ptr_current_scene->setObjectColor((*ptr_collision_objects)[i]->edge_cylinder_collision.id.c_str(), cylinder_color_);
-    ptr_current_scene->setObjectColor((*ptr_collision_objects)[i]->start_vertex_collision.id.c_str(), start_color_);
-    ptr_current_scene->setObjectColor((*ptr_collision_objects)[i]->end_vertex_collision.id.c_str(), end_color_);
+
+    //moveit_msgs::ObjectColor cylinder_moveit_color;
+    //cylinder_moveit_color.id = (*ptr_collision_objects)[i]->start_vertex_collision.id.c_str();
+    //cylinder_moveit_color.color = cylinder_color_;
+
+    //scene.object_colors.push_back(cylinder_moveit_color);
+    //ptr_current_scene->setObjectColor((*ptr_collision_objects)[i]->start_vertex_collision.id.c_str(), start_color_);
+    //ptr_current_scene->setObjectColor((*ptr_collision_objects)[i]->end_vertex_collision.id.c_str(), end_color_);
   }
   //--------------- load wireframe collision objects end -----------------------
 
-  scene.is_diff = 1;
-  ptr_planning_scene_monitor_->newPlanningSceneMessage(scene);
+  ptr_planning_scene_interface_->addCollisionObjects(collision_objects);
 
   rate_->sleep();
 }
@@ -287,7 +287,7 @@ void FrameFabRenderWidget::readFile()
   this->constructCollisionObjects();
 
   QString parse_msg =
-            "Nodes: "     + QString::number(ptr_wire_frame_collision_objects_->SizeOfVertList()) + "\n"
+      "Nodes: "     + QString::number(ptr_wire_frame_collision_objects_->SizeOfVertList()) + "\n"
           + "Links: "    + QString::number(ptr_wire_frame_collision_objects_->SizeOfEdgeList()) + "\n"
           + "Pillars: "  + QString::number(ptr_wire_frame_collision_objects_->SizeOfPillar()) + "\n"
           + "Ceilings: " + QString::number(ptr_wire_frame_collision_objects_->SizeOfCeiling());

@@ -6,7 +6,7 @@ namespace framefab
 FrameFabPlanner::FrameFabPlanner(ros::NodeHandle& node_handle)
     : node_handle_(node_handle)
 {
-  ROS_INFO("FrameFabPlanner node started.");
+  ROS_INFO("[framefab_mpp] FrameFabPlanner node started.");
 
   readParameters();
 
@@ -25,7 +25,7 @@ bool FrameFabPlanner::readParameters()
 
 void FrameFabPlanner::debug()
 {
-  ROS_INFO("FrameFabPlanner: ROS debug function called.");
+  ROS_INFO("[framefab_mpp] FrameFabPlanner: ROS debug function called.");
 
 }
 
