@@ -10,7 +10,7 @@
 - [industrial_core](http://wiki.ros.org/industrial_core)
 - [kuka-experiemental](http://wiki.ros.org/kuka_experimental)
 
-###result SRDF overview
+### result SRDF overview
 
 <robot name="kuka_kr6r900sixx_with_hotend">
 
@@ -23,21 +23,21 @@
 		<!-- omit disable collision -->
 </robot>
 
-###Test & Launch
+### Test & Launch
 
-####Test xacro file
+#### Test xacro file
 run: `roslaunch kr6r900sixx_with_hotend test_kr6r900sixx_with_hotend.launch`
 
-####Test moveit config in Rviz
+#### Test moveit config in Rviz
 run: `roslaunch kr6r900sixx_with_hotend_moveit_config demo.launch`
 
-###Reference:
+### Reference:
 
-####XACRO & URDF creation: 
+#### XACRO & URDF creation: 
 
 Based on knowledge learnt from [kuka_kr120_robot](https://github.com/JeroenDM/kuka_kr120_robot/tree/dd47dedebe0baf97b16ac3b67f1b5148e9b3cf05), used in [descartes_tutorials](https://github.com/JeroenDM/descartes_tutorials/tree/ef8819baa692e37b1325f53a59fb3d5213baa15c) by @JeroenDM.
 
-####Moveit setup assistant:
+#### Moveit setup assistant:
 
 [youtube video tutorial from Sachin Chitta](https://www.youtube.com/watch?v=asg-thB3mwA)
 
@@ -51,7 +51,7 @@ For fixed-joint end effector (e.g. 3D printing hotend, welding torch etc, not gr
 
 Refer to [ros tutorial](http://wiki.ros.org/Industrial/Tutorials/Create_a_MoveIt_Pkg_for_an_Industrial_Robot).
 
-####Known issue with IKFast & openrave
+#### Known issue with IKFast & openrave
 
 **Error**: `TypeError: symbolic boolean expression has no truth value`
 
@@ -59,7 +59,7 @@ Refer to [ros tutorial](http://wiki.ros.org/Industrial/Tutorials/Create_a_MoveIt
 
 **Solution**: For ubuntu 14.04, default sympy is 0.7.4, please use `pip install sympy==0.7.1` to downgrade to `0.7.1`. (type in `pip list | grep sympy` to check)
 
-####SRDF planning group syntax (get from SDRF file commment)
+#### SRDF planning group syntax (get from SDRF file commment)
 
  - GROUPS: Representation of a set of joints and links. This can be useful for specifying DOF to plan for, defining arms, end effectors, etc
 
