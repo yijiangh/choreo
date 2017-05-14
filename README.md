@@ -1,8 +1,9 @@
-[![MIT Digital Structure Logo](http://digitalstructures.mit.edu/theme/digistruct/images/digital-structures-logo-gray.svg)](hhttp://digitalstructures.mit.edu/) Framefab Motion Planning Platform
+
+<img src="http://digitalstructures.mit.edu/theme/digistruct/images/digital-structures-logo-gray.svg" width="200"> Framefab Motion Planning Platform
 ===
 
 - Author: 	Yijiang Huang (MIT), Thomas Cook (MIT)
-- Email: 	  yijiangh@mit.edu
+- Email: 	  <yijiangh@mit.edu>
 - Status:			Tested in Rviv env, plan to test on real robot June 2017.
 - Devel Status:	Tested on ROS-indigo (indigo-devel for depended package as well).
 
