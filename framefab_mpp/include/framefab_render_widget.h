@@ -109,23 +109,17 @@ class FrameFabRenderWidget : public QWidget
   //! ROS NodeHandle
   ros::NodeHandle node_handle_;
 
-  ros::CallbackQueue qt_ui_callback_queue_;
-  ros::AsyncSpinner  async_spinner_;
-
   //! ROS Rate to refresh Rviz
   ros::Rate*      rate_;
 
   //! MoveIt! interfaces
-  std::string planning_group_name_;
+  ros::ServiceClient adv_robot_srv_client_;
 
   moveit::planning_interface::PlanningSceneInterfacePtr ptr_planning_scene_interface_;
   move_group_interface::MoveGroupPtr ptr_move_group_;
 
   //! ROS topics
   std::string display_pose_topic_;
-
-  //! FrameFab computation class
-  FrameFabPlannerPtr ptr_framefab_planner_;
 
   //! wireframe data structure
   wire_frame::WireFrameCollisionObjectsPtr ptr_wire_frame_collision_objects_;

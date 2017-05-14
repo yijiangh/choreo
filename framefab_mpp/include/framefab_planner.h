@@ -25,14 +25,17 @@
 // framefab
 #include <wire_frame/wire_frame_collision_objects.h>
 
+// framefab msgs
+#include <framefab_msgs/AdvanceRobot.h>
+
 namespace framefab
 {
 
-/*! @class FrameFab
- *  @brief The framefab main container class.
+/*! @class FrameFabPlanner
+ *  @brief The framefab main container class. ros service client.
  *
- *  The framefab main container class. Coordinates the ROS interface
- *  and the data handling between the other classes.
+ * service client, listening service from FrameFabRenderWidget Rviz
+ * service node (from user's clicking buttons etc)
 */
 class FrameFabPlanner
 {
@@ -53,9 +56,10 @@ class FrameFabPlanner
   /*
    * function for development, experiment goes here.
    */
-  void testCartPlanning();
-  void testDescartesPlanning();
-  void setRobotHomePose();
+  bool testCartPlanning();
+  bool testDescartesPlanning();
+  bool setRobotHomePose(framefab_msgs::AdvanceRobot::Request& req,
+                        framefab_msgs::AdvanceRobot::Response& res);
 
   /* private functions */
  private:
@@ -63,7 +67,7 @@ class FrameFabPlanner
    * Reads and verifies the ROS parameters.
    * @return true if successful
    */
-  bool readParameters();
+  void readParameters();
 
   /*!
   * Performs the initialization procedure.

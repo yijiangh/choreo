@@ -3,6 +3,8 @@
 
 #include <moveit_msgs/DisplayTrajectory.h>
 
+#include <framefab_msgs/AdvanceRobot.h>
+
 #include <framefab_planner.h>
 
 namespace framefab
@@ -29,12 +31,12 @@ FrameFabPlanner::~FrameFabPlanner()
 
 }
 
-bool FrameFabPlanner::readParameters()
+void FrameFabPlanner::readParameters()
 {
-  return true;
+//  node_handle_.param()
 }
 
-void FrameFabPlanner::testCartPlanning()
+bool FrameFabPlanner::testCartPlanning()
 {
   std::string ff_tag = "framefab_planner";
 
@@ -105,7 +107,7 @@ void FrameFabPlanner::testCartPlanning()
   moveit::planning_interface::MoveGroup::Plan my_plan;
   bool success = ptr_move_group_->plan(my_plan);
 
-  ROS_INFO_NAMED(ff_tag, "[ff_planner] Visualizing plan 1 (pose goal) %s",success?"":"FAILED");
+  ROS_INFO_NAMED(ff_tag, "[ff_planner] Visualizing plan 1 (pose goal) %s", success ? "" : "FAILED");
   /* Sleep to give Rviz time to visualize the plan. */
   sleep(5.0);
 
@@ -126,37 +128,51 @@ void FrameFabPlanner::testCartPlanning()
   }
 }
 
-void FrameFabPlanner::testDescartesPlanning()
+bool FrameFabPlanner::testDescartesPlanning()
 {
 
 }
 
-void FrameFabPlanner::setRobotHomePose()
+bool FrameFabPlanner::setRobotHomePose(
+    framefab_msgs::AdvanceRobot::Request& req,
+    framefab_msgs::AdvanceRobot::Response& res)
 {
-  moveit::planning_interface::MoveGroup::Plan my_plan;
-  const std::map<std::string, double> home_state = ptr_move_group_->getNamedTargetValues("home_pose");
+  if(req.is_advance)
+  {
+    moveit::planning_interface::MoveGroup::Plan my_plan;
+    const std::map<std::string, double> home_state = ptr_move_group_->getNamedTargetValues("home_pose");
 
-  std::vector<double> group_variable_values;
-  ptr_move_group_->getCurrentState()->copyJointGroupPositions(
-      ptr_move_group_->getCurrentState()->getRobotModel()->getJointModelGroup(ptr_move_group_->getName()),
-      group_variable_values);
+    std::vector<double> group_variable_values;
+    ptr_move_group_->getCurrentState()->copyJointGroupPositions(
+        ptr_move_group_->getCurrentState()->getRobotModel()->getJointModelGroup(ptr_move_group_->getName()),
+        group_variable_values);
 
 //  group_variable_values[0] = -1.0;
 //  ptr_move_group_->setJointValueTarget(group_variable_values);
 //  bool success = ptr_move_group_->plan(my_plan);
 
-  for(std::map<std::string, double>::const_iterator it = home_state.begin(); it!=home_state.end(); ++it)
-  {
-    ROS_INFO("[ff_planner] home_pose: %s, %f", it->first.c_str(), it->second);
+    for (std::map<std::string, double>::const_iterator it = home_state.begin(); it != home_state.end(); ++it)
+    {
+      ROS_INFO("[ff_planner] home_pose: %s, %f", it->first.c_str(), it->second);
+    }
+
+    ptr_move_group_->setJointValueTarget(home_state);
+    bool success = ptr_move_group_->plan(my_plan);
+
+    ROS_INFO_NAMED("framefab_mpp", "[ff_planner] Returning Home Pose %s", success ? "" : "FAILED");
+
+    /* Sleep to give Rviz time to visualize the plan. */
+    sleep(5.0);
+
+    res.success = success;
+
+    return success;
   }
-
-  ptr_move_group_->setJointValueTarget(home_state);
-  bool success = ptr_move_group_->plan(my_plan);
-
-  ROS_INFO_NAMED("framefab_mpp", "[ff_planner] Returning Home Pose %s", success ? "" : "FAILED");
-
-  /* Sleep to give Rviz time to visualize the plan. */
-  sleep(5.0);
+  else
+  {
+    res.success = false;
+    return false;
+  }
 }
 
 }// namespace frammefab

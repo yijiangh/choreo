@@ -28,21 +28,17 @@
 #include <framefab_rviz_panel.h>
 #include <framefab_render_widget.h>
 
+#include <framefab_msgs/AdvanceRobot.h>
+
 namespace framefab
 {
 
 FrameFabRenderWidget::FrameFabRenderWidget( QWidget* parent )
     : parent_(parent),
       unit_conversion_scale_factor_(1),
-      ref_pt_x_(0), ref_pt_y_(0), ref_pt_z_(0),
-      async_spinner_(ros::AsyncSpinner(4))
+      ref_pt_x_(0), ref_pt_y_(0), ref_pt_z_(0)
 {
   ROS_INFO_NAMED("framefab_mpp", "[ff_render_widget] FrameFabPlanner Render Widget started.");
-
-//  async_spinner_ = ros::AsyncSpinner(4, &qt_ui_callback_queue_);
-//  async_spinner_.start();
-//
-//  ros::waitForShutdown();
 
   node_handle_ = ros::NodeHandle("framefab_render_widget");
   rate_ = new ros::Rate(10.0);
@@ -57,6 +53,9 @@ FrameFabRenderWidget::FrameFabRenderWidget( QWidget* parent )
   ptr_planning_scene_interface_ = boost::make_shared<moveit::planning_interface::PlanningSceneInterface>();
 
   ptr_move_group_ = boost::make_shared<move_group_interface::MoveGroup>("manipulator");
+
+  ros::ServiceClient adv_robot_srv_client_ = node_handle_.serviceClient<framefab_msgs::AdvanceRobot>(
+      "/framefab_mpp_node/advance_robot");
 }
 
 FrameFabRenderWidget::~FrameFabRenderWidget()
@@ -97,17 +96,31 @@ void FrameFabRenderWidget::advanceRobot()
 //
 //  ptr_framefab_planner_->setRobotHomePose();
 
-  moveit::planning_interface::MoveGroup::Plan my_plan;
-  const std::map<std::string, double> home_state = ptr_move_group_->getNamedTargetValues("home_pose");
+//  moveit::planning_interface::MoveGroup::Plan my_plan;
+//  const std::map<std::string, double> home_state = ptr_move_group_->getNamedTargetValues("home_pose");
+//
+//  std::vector<double> group_variable_values;
+//  ptr_move_group_->getCurrentState()->copyJointGroupPositions(
+//      ptr_move_group_->getCurrentState()->getRobotModel()->getJointModelGroup(ptr_move_group_->getName()),
+//      group_variable_values);
+//
+//  for(std::map<std::string, double>::const_iterator it = home_state.begin(); it!=home_state.end(); ++it)
+//  {
+//    ROS_INFO("[ff_render_widget] home_pose: %s, %f", it->first.c_str(), it->second);
+//  }
 
-  std::vector<double> group_variable_values;
-  ptr_move_group_->getCurrentState()->copyJointGroupPositions(
-      ptr_move_group_->getCurrentState()->getRobotModel()->getJointModelGroup(ptr_move_group_->getName()),
-      group_variable_values);
 
-  for(std::map<std::string, double>::const_iterator it = home_state.begin(); it!=home_state.end(); ++it)
+  framefab_msgs::AdvanceRobot adv_robot_srv;
+
+  adv_robot_srv.request.is_advance = true;
+
+  if(adv_robot_srv_client_.call(adv_robot_srv))
   {
-    ROS_INFO("[ff_render_widget] home_pose: %s, %f", it->first.c_str(), it->second);
+    ROS_INFO("[FF_RenderWidget] service result %d", adv_robot_srv.response.success);
+  }
+  else
+  {
+    ROS_ERROR("[FF_RenderWidget] failed to call service advance_robot");
   }
 
   rate_->sleep();

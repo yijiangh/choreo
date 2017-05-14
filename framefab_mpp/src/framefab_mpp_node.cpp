@@ -15,24 +15,26 @@
 // framefab_mpp
 #include <framefab_planner.h>
 
+#include <framefab_msgs/AdvanceRobot.h>
+
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "framefab_node");
-  ros::NodeHandle node_handle("framefab_node");
+  ros::init(argc, argv, "framefab_mpp_node");
+  ros::NodeHandle node_handle("framefab_mpp_node");
 
   ros::CallbackQueue rviz_ui_queue;
 
   // init framefab_planner
-  framefab::FrameFabPlannerPtr ptr_framefab_planner = boost::make_shared<framefab::FrameFabPlanner>(node_handle);
+  framefab::FrameFabPlanner framefab_planner(node_handle);
 
+  ros::ServiceServer ss = node_handle.advertiseService("advance_robot",
+                                                       &framefab::FrameFabPlanner::setRobotHomePose, &framefab_planner);
   // spin
   ros::AsyncSpinner spinner(1);
   spinner.start();
 
-  /* This sleep is ONLY to allow Rviz to come up */
-  sleep(10.0);
-
-  ptr_framefab_planner->setRobotHomePose();
+  // This sleep is ONLY to allow Rviz to come up
+  sleep(5);
 
   ros::spin();
 
