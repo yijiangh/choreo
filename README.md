@@ -1,4 +1,5 @@
-## Framefab Motion Planning Platform
+[![MIT Digital Structure Logo](http://digitalstructures.mit.edu/theme/digistruct/images/digital-structures-logo-gray.svg)](hhttp://digitalstructures.mit.edu/) Framefab Motion Planning Platform
+===
 
 - Author: 	Yijiang Huang (MIT), Thomas Cook (MIT)
 - Email: 	  yijiangh@mit.edu
@@ -6,6 +7,8 @@
 - Devel Status:	Tested on ROS-indigo (indigo-devel for depended package as well).
 
 Development mainly on *kuka_kr6r900sixx robot* for now.
+
+:warning: Under construction
 
 **Catkin Dependencies:**
 
@@ -18,8 +21,7 @@ Development mainly on *kuka_kr6r900sixx robot* for now.
 
 ### Reference
 
-
-[kuka-experimental]: https://github.com/ros-industrial/kuka_experimental
-[kuka-experimental/kuka_kr10_support]: https://github.com/ros-industrial/kuka_experimental/tree/indigo-devel/kuka_kr10_support
-[ROS-Industrial]: http://wiki.ros.org/Industrial
-[ROS wiki-kuka-experimental]: http://wiki.ros.org/kuka_experimental
+[kuka-experimental](https://github.com/ros-industrial/kuka_experimental)
+[kuka-experimental/kuka_kr10_support](https://github.com/ros-industrial/kuka_experimental/tree/indigo-devel/kuka_kr10_support)
+[ROS-Industrial](http://wiki.ros.org/Industrial)
+[ROS wiki-kuka-experimental](http://wiki.ros.org/kuka_experimental)
