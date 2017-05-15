@@ -16,19 +16,29 @@
 #include <ros/ros.h>
 #include <geometry_msgs/Pose.h>
 
+// Moveit
+#include <moveit/planning_scene_interface/planning_scene_interface.h>
+#include <moveit/move_group_interface/move_group.h>
+
+#include <moveit_visual_tools/moveit_visual_tools.h>
+
+// framefab
+#include <wire_frame/wire_frame_collision_objects.h>
+
+// framefab msgs
+#include <framefab_msgs/AdvanceRobot.h>
 
 namespace framefab
 {
 
-/*! @class FrameFab
- *  @brief The framefab main container class.
+/*! @class FrameFabPlanner
+ *  @brief The framefab main container class. ros service client.
  *
- *  The framefab main container class. Coordinates the ROS interface
- *  and the data handling between the other classes.
+ * service client, listening service from FrameFabRenderWidget Rviz
+ * service node (from user's clicking buttons etc)
 */
 class FrameFabPlanner
 {
-
   /* public functions */
  public:
 
@@ -46,7 +56,10 @@ class FrameFabPlanner
   /*
    * function for development, experiment goes here.
    */
-  void debug();
+  bool testCartPlanning();
+  bool testDescartesPlanning();
+  bool setRobotHomePose(framefab_msgs::AdvanceRobot::Request& req,
+                        framefab_msgs::AdvanceRobot::Response& res);
 
   /* private functions */
  private:
@@ -54,7 +67,7 @@ class FrameFabPlanner
    * Reads and verifies the ROS parameters.
    * @return true if successful
    */
-  bool readParameters();
+  void readParameters();
 
   /*!
   * Performs the initialization procedure.
@@ -70,11 +83,13 @@ class FrameFabPlanner
   //! ROS nodehandle.
   ros::NodeHandle &node_handle_;
 
-  //! ROS subscribers.
+  moveit::planning_interface::PlanningSceneInterfacePtr ptr_planning_scene_interface_;
+  move_group_interface::MoveGroupPtr              ptr_move_group_;
+  wire_frame::WireFrameCollisionObjectsPtr        ptr_wire_frame_collision_objects_;
 
-  //! ROS topics for subscriptions.
-
+  moveit_visual_tools::MoveItVisualToolsPtr ptr_moveit_visual_tools;
 };
+
 typedef boost::shared_ptr<FrameFabPlanner>        FrameFabPlannerPtr;
 typedef boost::shared_ptr<const FrameFabPlanner>  FrameFabPlannerConstaPtr;
 

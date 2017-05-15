@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <include file="$(find kuka_kr6r900_with_hotend)/launch/load_kr6r900sixx _with_hotend.launch" />
+  <include file="$(find kr6r900sixx_with_hotend)/launch/load_kr6r900sixx_with_hotend.launch" />
   <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
     <param name="use_gui" value="true" />
   </node>

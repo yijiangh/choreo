@@ -6,21 +6,25 @@ project(framefab_mpp)
 
 add_definitions("-std=c++11")
 
-## Find catkin macros and libraries
+## Find catkin macros and libraries (build-depend)
 find_package(catkin REQUIRED COMPONENTS
         rviz
         moveit_core
         moveit_ros_planning
         moveit_ros_planning_interface
-        #  pluginlib
-        #cmake_modules
-        #  geometric_shapes
+        moveit_visual_tools
+        framefab_msgs
         )
-find_package(PkgConfig)
-pkg_search_module(Eigen3 REQUIRED eigen3)
+
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
+
 ## System dependencies are found with CMake's conventions
 find_package(Boost REQUIRED)
-#find_package(Eigen REQUIRED)
+find_package(Eigen REQUIRED)
+
+## Message/Service/Action Generators
+
+## Invoke Message/Service/Action Generation
 
 ###################################
 ## catkin specific configuration ##
@@ -32,20 +36,19 @@ find_package(Boost REQUIRED)
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-        INCLUDE_DIRS include ${catkin_INCLUE_DIRS}
+        INCLUDE_DIRS 
+        include
         CATKIN_DEPENDS
-        # rviz_visual_tools
         tf_conversions
         eigen_conversions
-        # interactive_markers
         moveit_core
         moveit_ros_planning
         moveit_ros_planning_interface
-        #moveit_ros_robot_interaction
         moveit_msgs
-        #    graph_msgs
-        std_msgs
-        DEPENDS boost
+        moveit_visual_tools
+        framefab_msgs
+        DEPENDS
+        boost
 )
 
 include_directories(
@@ -54,6 +57,7 @@ include_directories(
 )
 
 include_directories(SYSTEM ${Boost_INCLUDE_DIR} ${EIGEN_INCLUDE_DIRS})
+include_directories(include ${catkin_INCLUDE_DIRS})
 
 ## This setting causes Qt's "MOC" generation to happen automatically.
 set(CMAKE_AUTOMOC ON)
@@ -82,9 +86,9 @@ add_definitions(-DQT_NO_KEYWORDS)
 ### ------------------ declare cpp library ------------------ ###
 
 ## The generated MOC files are included automatically as headers.
-## header and source files should be added to library at the same time
-## otherwise AUTO_MOC cannot find header file successfully even you
-## include the directory.
+## **header and source files should be added to library at the same time**
+## otherwise AUTO_MOC cannot find header file successfully even you include
+## the directory.
 
 set(HEADER_FILES
         include/framefab_rviz_panel.h
@@ -105,17 +109,16 @@ target_link_libraries(
         ${PROJECT_NAME} ${QT_LIBRARIES} ${catkin_LIBRARIES}
 )
 
-link_directories(${catkin_LIBRARY_DIRS})
-
 ### ------------------ end library ------------------ ###
 
-### ------------------ declare a cpp executable ------------------ ###
-#add_executable(
-#        ${PROJECT_NAME}_node
-#        src/framefab_node.cpp
-#)
-#
-#target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+## ------------------ declare a cpp executable ------------------ ###
+add_executable(
+        ${PROJECT_NAME}_node
+        src/framefab_mpp_node.cpp
+        src/framefab_planner.cpp
+)
+
+target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 ### ------------------ end executable ------------------ ###
 
@@ -127,13 +130,13 @@ link_directories(${catkin_LIBRARY_DIRS})
 ## In other words, if you want to be able to do a "make install" of your code, you need to specify where targets should
 ## end up.
 
-#install(TARGETS
-#        ${PROJECT_NAME}
-#        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-#        )
-#
+install(TARGETS
+        ${PROJECT_NAME}
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+        )
+
 #install(FILES
 #        framefab_rviz_panel_package_description.xml
 #        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})

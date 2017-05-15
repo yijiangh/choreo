@@ -204,7 +204,7 @@
   <joint name="hotend_to_tip" type="fixed">
     <parent link="hotend"/>
     <child link="tool_tip"/>
-    <origin rpy="0 0.78526059641 0" xyz="0.15098 0.000655 0.115553"/>
+    <origin rpy="0 1.5708 0" xyz="0.15098 0.000655 0.115553"/>
   </joint>
 </robot>
 

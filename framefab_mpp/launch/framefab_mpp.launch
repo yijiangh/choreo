@@ -1,0 +1,63 @@
+<launch>
+  <!-- By default, we are not in debug mode -->
+  <arg name="debug" default="false" />
+
+	<!--	framefab params	-->
+  <rosparam command="load" file="$(find framefab_mpp)/config/framefab_mpp/framefab_mpp_topic_names.yaml" />
+  <rosparam command="load" file="$(find framefab_mpp)/config/framefab_mpp/framefab_mpp_rviz_property.yaml" />
+  <rosparam command="load" file="$(find framefab_mpp)/config/framefab_mpp/framefab_mpp_collision_property.yaml" />
+  <rosparam command="load" file="$(find framefab_mpp)/config/framefab_mpp/framefab_mpp_unit_conversion.yaml" />
+
+	<!-- The planning and execution components of MoveIt! configured to run -->
+  <!-- using the ROS-Industrial interface. -->
+ 
+  <!-- Non-standard joint names:
+       - Create a file [robot_moveit_config]/config/joint_names.yaml
+           controller_joint_names: [joint_1, joint_2, ... joint_N] 
+       - Update with joint names for your robot (in order expected by rbt controller)
+       - and uncomment the following line: -->
+  <rosparam command="load" file="$(find kr6r900sixx_with_hotend_moveit_config)/config/joint_names_kr6r900sixx_with_hotend.yaml" />
+
+  <!-- the "sim" argument controls whether we connect to a Simulated or Real robot -->
+  <!--  - if sim=false, a robot_ip argument is required -->
+  <arg name="sim" default="true" />
+  <arg name="robot_ip" unless="$(arg sim)" />
+
+  <!-- load the robot_description parameter before launching ROS-I nodes -->
+  <include file="$(find kr6r900sixx_with_hotend_moveit_config)/launch/planning_context.launch">
+    <arg name="load_robot_description" value="true"/>
+  </include>
+
+  <!-- run the robot simulator and action interface nodes -->
+  <group if="$(arg sim)">
+  <include file="$(find industrial_robot_simulator)/launch/robot_interface_simulator.launch" />
+    <rosparam param="initial_joint_state">[0, 0, 0, 0, 0, 0]</rosparam>
+  </group>
+<!--[0.08, -1.57, 1.74, 0.08, 0.17, -0.08]-->
+
+  <!-- We do not have a robot connected, so publish fake joint states -->
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+    <param name="/use_gui" value="false"/>
+    <rosparam param="/source_list">[/move_group/fake_controller_joint_states]</rosparam>
+  </node>
+
+	<!-- publish the robot state (tf transforms) -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
+
+	<!-- Run the main MoveIt executable without trajectory execution (we do not have controllers configured by default) -->
+  <include file="$(find kr6r900sixx_with_hotend_moveit_config)/launch/move_group.launch">
+		<arg name="publish_monitored_planning_scene" value="true" />
+    <arg name="allow_trajectory_execution" value="true"/>
+    <arg name="fake_execution" value="true"/>
+    <arg name="info" value="true"/>
+  </include>
+
+  <node name="framefab_mpp_node" pkg="framefab_mpp" type="framefab_mpp_node" required="true" output="screen"/>
+
+  <!-- Run Rviz and load the default config to see the state of the move_group node -->
+  <include file="$(find kr6r900sixx_with_hotend_moveit_config)/launch/moveit_rviz.launch">
+    <arg name="config" value="true"/>
+    <arg name="debug" value="$(arg debug)"/>
+  </include>
+
+</launch>

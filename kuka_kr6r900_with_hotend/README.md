@@ -1,4 +1,4 @@
-##kuka_kr6r900sixx_with_hotend
+## kuka_kr6r900sixx_with_hotend
 
 - Author: 		Yijiang Huang (MIT)
 - Email: 			yijiangh@mit.edu
