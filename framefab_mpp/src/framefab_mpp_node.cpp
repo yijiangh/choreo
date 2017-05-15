@@ -34,7 +34,7 @@ int main(int argc, char **argv)
   spinner.start();
 
   // This sleep is ONLY to allow Rviz to come up
-  sleep(5);
+  // sleep(5);
 
   ros::spin();
 

@@ -54,7 +54,7 @@ FrameFabRenderWidget::FrameFabRenderWidget( QWidget* parent )
 
   ptr_move_group_ = boost::make_shared<move_group_interface::MoveGroup>("manipulator");
 
-  ros::ServiceClient adv_robot_srv_client_ = node_handle_.serviceClient<framefab_msgs::AdvanceRobot>(
+  adv_robot_srv_client_ = node_handle_.serviceClient<framefab_msgs::AdvanceRobot>(
       "/framefab_mpp_node/advance_robot");
 }
 
@@ -109,10 +109,14 @@ void FrameFabRenderWidget::advanceRobot()
 //    ROS_INFO("[ff_render_widget] home_pose: %s, %f", it->first.c_str(), it->second);
 //  }
 
-
   framefab_msgs::AdvanceRobot adv_robot_srv;
 
   adv_robot_srv.request.is_advance = true;
+
+  if(!adv_robot_srv_client_)
+  {
+    ROS_ERROR("[FF_RenderWidget] service connection FAILED");
+  }
 
   if(adv_robot_srv_client_.call(adv_robot_srv))
   {

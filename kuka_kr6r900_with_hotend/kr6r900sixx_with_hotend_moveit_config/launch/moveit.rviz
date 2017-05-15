@@ -1,16 +1,24 @@
 Panels:
   - Class: rviz/Displays
-    Help Height: 78
+    Help Height: 0
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /Global Options1
+        - /Status1
         - /MotionPlanning1
-        - /MotionPlanning1/Scene Geometry1
-        - /MotionPlanning1/Planning Request1
-      Splitter Ratio: 0.74256
-    Tree Height: 402
-  - Class: rviz/Help
-    Name: Help
+        - /MotionPlanning1/Scene Robot1
+        - /MotionPlanning1/Planned Path1
+        - /TF1/Frames1
+        - /RobotModel1
+      Splitter Ratio: 0.5
+    Tree Height: 234
+  - Class: rviz/Selection
+    Name: Selection
+  - Class: rviz/Tool Properties
+    Expanded: ~
+    Name: Tool Properties
+    Splitter Ratio: 0.588679
   - Class: rviz/Views
     Expanded:
       - /Current View1
@@ -142,7 +150,7 @@ Visualization Manager:
         Joint Violation Color: 255; 0; 255
         Planning Group: manipulator
         Query Goal State: true
-        Query Start State: true
+        Query Start State: false
         Show Workspace: false
         Start State Alpha: 1
         Start State Color: 0; 255; 0
@@ -217,13 +225,43 @@ Visualization Manager:
             Show Trail: false
         Robot Alpha: 0.5
         Show Robot Collision: false
-        Show Robot Visual: true
+        Show Robot Visual: false
       Value: true
+    - Class: rviz/TF
+      Enabled: false
+      Frame Timeout: 15
+      Frames:
+        All Enabled: false
+      Marker Scale: 0.5
+      Name: TF
+      Show Arrows: false
+      Show Axes: true
+      Show Names: false
+      Tree:
+        {}
+      Update Interval: 0
+      Value: false
+    - Alpha: 1
+      Class: rviz/RobotModel
+      Collision Enabled: false
+      Enabled: false
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+      Name: RobotModel
+      Robot Description: robot_description
+      TF Prefix: ""
+      Update Interval: 0
+      Value: false
+      Visual Enabled: true
   Enabled: true
   Global Options:
-    Background Color: 48; 48; 48
+    Background Color: 35; 35; 35
     Fixed Frame: arm_base_link
-    Frame Rate: 30
+    Frame Rate: 60
   Name: root
   Tools:
     - Class: rviz/Interact
@@ -234,7 +272,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 3.58902
+      Distance: 3.73849
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
@@ -246,10 +284,10 @@ Visualization Manager:
         Z: 2.23518e-07
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.0547972
+      Pitch: 0.104797
       Target Frame: arm_base_link
       Value: XYOrbit (rviz)
-      Yaw: 5.44494
+      Yaw: 5.62495
     Saved: ~
 Window Geometry:
   Displays:
@@ -257,13 +295,15 @@ Window Geometry:
   FrameFabRvizPanel:
     collapsed: false
   Height: 1176
-  Help:
-    collapsed: false
   Hide Left Dock: false
   Hide Right Dock: false
   Motion Planning:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000100000000000002b100000452fc0200000006fb000000100044006900730070006c006100790073010000002800000221000000dd00fffffffb0000000800480065006c00700000000342000000bb0000007600fffffffb0000000a0056006900650077007300000003b0000000b0000000b000fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e006700000001c100000347000001cc00fffffffb00000022004600720061006d0065004600610062005200760069007a00500061006e0065006c010000024f0000022b0000022b00ffffff000004a20000045200000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000100000000000002b100000452fc0200000008fb000000100044006900730070006c00610079007301000000280000012b000000dd00fffffffb0000000800480065006c00700000000342000000bb0000000000000000fb0000000a0056006900650077007300000003b0000000b0000000b000fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e006700000001c100000347000001cc00fffffffb00000022004600720061006d0065004600610062005200760069007a00500061006e0065006c0100000159000003210000022b00fffffffb0000001200530065006c0065006300740069006f006e00000003bb000000bf0000006400fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007300000003d8000000a20000006400ffffff000004a20000045200000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  Selection:
+    collapsed: false
+  Tool Properties:
+    collapsed: false
   Views:
     collapsed: false
   Width: 1881
