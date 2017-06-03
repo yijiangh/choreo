@@ -27,8 +27,9 @@ int main(int argc, char **argv)
   // init framefab_planner
   framefab::FrameFabPlanner framefab_planner(node_handle);
 
-  ros::ServiceServer ss = node_handle.advertiseService("advance_robot",
-                                                       &framefab::FrameFabPlanner::setRobotHomePose, &framefab_planner);
+  ros::ServiceServer ss =
+      node_handle.advertiseService("advance_robot",
+                                   &framefab::FrameFabPlanner::testCartPlanning, &framefab_planner);
   // spin
   ros::AsyncSpinner spinner(1);
   spinner.start();
