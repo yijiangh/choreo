@@ -2,6 +2,8 @@
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QtGui>
+#include <QFuture>
+#include <QtConcurrentRun>
 
 // framefab
 #include <util/global_functions.h>
@@ -15,7 +17,7 @@ namespace framefab
 FrameFabRvizPanel::FrameFabRvizPanel( QWidget* parent )
     : rviz::Panel( parent )
 {
-  ROS_INFO_NAMED("framefan_mpp", "FrameFabPlanner Rviz Panel started.");
+  ROS_INFO("FrameFabPlanner Rviz Panel started.");
 
   ptr_ff_render_widget_ = new FrameFabRenderWidget(this);
 
@@ -85,7 +87,9 @@ void FrameFabRvizPanel::createPushButtons()
           ptr_ff_render_widget_, SLOT(setRefPoint(double, double, double)));
 
   pushbutton_advancerobot_ = new QPushButton("Advance Robot");
-  connect(pushbutton_advancerobot_, SIGNAL(clicked()), ptr_ff_render_widget_, SLOT(advanceRobot()));
+  connect(pushbutton_advancerobot_, SIGNAL(clicked()), this, SLOT(advanceRobotButtonHandler()));
+
+  connect(this, SIGNAL(enablePanel(bool)), this, SLOT(enablePanelHandler(bool)));
 }
 
 void FrameFabRvizPanel::createPathSlider()
@@ -173,15 +177,39 @@ void FrameFabRvizPanel::getUpdatedRefPoint()
                       spinbox_offset_z_->value()));
 }
 
+void FrameFabRvizPanel::enablePanelHandler(bool status)
+{
+  // enable or disable panel
+  this->setEnabled(status);
+}
+
+void FrameFabRvizPanel::advanceRobotButtonHandler()
+{
+  // Start advance robot in another thread
+  QFuture<void> future = QtConcurrent::run(this, &FrameFabRvizPanel::advanceRobot);
+}
+
+void FrameFabRvizPanel::advanceRobot()
+{
+  // Disable UI
+  Q_EMIT(enablePanel(false));
+
+  // let widget call the service
+  ptr_ff_render_widget_->advanceRobot();
+
+  // Re-enable UI
+  Q_EMIT(enablePanel(true)); // Enable UI
+}
+
 void FrameFabRvizPanel::save( rviz::Config config ) const
 {
-  rviz::Panel::save( config );
+  rviz::Panel::save(config);
 }
 
 // Load all configuration data for this panel from the given Config object.
 void FrameFabRvizPanel::load( const rviz::Config& config )
 {
-  rviz::Panel::load( config );
+  rviz::Panel::load(config);
 }
 
 } /* namespace */
