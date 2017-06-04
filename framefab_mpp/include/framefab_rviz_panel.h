@@ -78,12 +78,20 @@ class FrameFabRvizPanel: public rviz::Panel
   void sendRefPoint(double, double, double);
   void updateRefPoint(double, double, double);
 
+  void enablePanel(bool);
+
  public Q_SLOTS:
   void getScaleFactor();
   void getUpdatedScaleFactor();
 
   void getRefPoint();
   void getUpdatedRefPoint();
+
+  void advanceRobot();
+
+  protected Q_SLOTS:
+  void enablePanelHandler(bool status);
+  void advanceRobotButtonHandler();
 
  protected:
   // TODO: replace raw pointers with shared_ptr

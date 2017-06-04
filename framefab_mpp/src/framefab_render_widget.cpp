@@ -38,7 +38,7 @@ FrameFabRenderWidget::FrameFabRenderWidget( QWidget* parent )
       unit_conversion_scale_factor_(1),
       ref_pt_x_(0), ref_pt_y_(0), ref_pt_z_(0)
 {
-  ROS_INFO_NAMED("framefab_mpp", "[ff_render_widget] FrameFabPlanner Render Widget started.");
+  ROS_INFO("[ff_render_widget] FrameFabPlanner Render Widget started.");
 
   node_handle_ = ros::NodeHandle("framefab_render_widget");
   rate_ = new ros::Rate(10.0);
@@ -47,7 +47,7 @@ FrameFabRenderWidget::FrameFabRenderWidget( QWidget* parent )
   readParameters();
 
   // init collision objects
-  ROS_INFO_NAMED("framefab_mpp", "[ff_render_widget] init ptr_wf_collision");
+  ROS_INFO("[ff_render_widget] init ptr_wf_collision");
   ptr_wire_frame_collision_objects_ = boost::make_shared<wire_frame::WireFrameCollisionObjects>();
 
   ptr_planning_scene_interface_ = boost::make_shared<moveit::planning_interface::PlanningSceneInterface>();
@@ -90,24 +90,7 @@ bool FrameFabRenderWidget::readParameters()
 void FrameFabRenderWidget::advanceRobot()
 {
   // init main computation class - FrameFabPlanner here
-  ROS_INFO_NAMED("framefab_mpp", "[FF_RenderWidget] advance robot called");
-
-//  ptr_framefab_planner_ = boost::make_shared<FrameFabPlanner>(node_handle_);
-//
-//  ptr_framefab_planner_->setRobotHomePose();
-
-//  moveit::planning_interface::MoveGroup::Plan my_plan;
-//  const std::map<std::string, double> home_state = ptr_move_group_->getNamedTargetValues("home_pose");
-//
-//  std::vector<double> group_variable_values;
-//  ptr_move_group_->getCurrentState()->copyJointGroupPositions(
-//      ptr_move_group_->getCurrentState()->getRobotModel()->getJointModelGroup(ptr_move_group_->getName()),
-//      group_variable_values);
-//
-//  for(std::map<std::string, double>::const_iterator it = home_state.begin(); it!=home_state.end(); ++it)
-//  {
-//    ROS_INFO("[ff_render_widget] home_pose: %s, %f", it->first.c_str(), it->second);
-//  }
+  ROS_INFO("[FF_RenderWidget] advance robot called");
 
   framefab_msgs::AdvanceRobot adv_robot_srv;
 
