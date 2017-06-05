@@ -104,23 +104,76 @@ bool FrameFabPlanner::testDescartesPlanning(
   // Get parameters from the message and print them
   ROS_WARN_STREAM("testDescartes request:" << std::endl << req);
 
-  // 1. Define sequence of points
-  TrajectoryVec points;
-  for (unsigned int i = 0; i < 10; ++i)
+  // Get current robot pose
+  tf::TransformListener listener;
+  listener.waitForTransform("/arm_base_link", "/tool_tip", ros::Time::now(), ros::Duration(1.0));
+  tf::StampedTransform transform_stamp;
+  Eigen::Affine3d current_pose;
+
+  try
   {
-    Eigen::Affine3d pose;
-    pose = Eigen::Translation3d(0.0, 0.0, 1.0 + 0.05 * i);
-    descartes_core::TrajectoryPtPtr pt = makeTolerancedCartesianPoint(pose);
+    listener.lookupTransform("/arm_base_link", "/tool_tip", ros::Time(0), transform_stamp);
+    transformTFToEigen(transform_stamp, current_pose);
+  }
+  catch (tf::TransformException &ex)
+  {
+    res.success = false;
+    ROS_ERROR("[testDescartesPlanning] tf error.");
+    return false;
+  }
+
+  // 1. Define sequence of points
+  double x, y, z, rx, ry, rz;
+  x = 2.0 - 0.025;
+  y = 0.0;
+  z = 0.008 + 0.025;
+  rx = 0.0;
+  ry = (M_PI / 2) + M_PI / 4;
+  rz = 0.0;
+  TrajectoryVec points;
+  int N_points = 9;
+
+  framefab_process_path::ProcessPathGenerator  path_generator;
+  framefab_process_path::ProcessPathVisualizer path_visualizer;
+
+  std::vector<Eigen::Affine3d> poses;
+  Eigen::Affine3d startPose;
+  Eigen::Affine3d endPose;
+  startPose = descartes_core::utils::toFrame(x, y, z, rx, ry, rz, descartes_core::utils::EulerConventions::XYZ);
+  endPose = descartes_core::utils::toFrame(x, y + 0.4, z, rx, ry, rz, descartes_core::utils::EulerConventions::XYZ);
+  poses = path_generator.addLinePathPts(startPose, endPose, N_points);
+
+  for (unsigned int i = 0; i < N_points; ++i)
+  {
+    descartes_core::TrajectoryPtPtr pt = makeTolerancedCartesianPoint(poses[i], 0.0, 0.4, M_PI);
     points.push_back(pt);
   }
 
-  for (unsigned int i = 0; i < 5; ++i)
-  {
-    Eigen::Affine3d pose;
-    pose = Eigen::Translation3d(0.0, 0.04 * i, 1.3);
-    descartes_core::TrajectoryPtPtr pt = makeTolerancedCartesianPoint(pose);
-    points.push_back(pt);
-  }
+  // Visualize the trajectory points in RViz
+  // Transform the generated poses into a markerArray message that can be visualized by RViz
+  visualization_msgs::MarkerArray ma;
+  ma = path_visualizer.createMarkerArray(poses);
+  // Start the publisher for the Rviz Markers
+  ros::Publisher vis_pub = node_handle_.advertise<visualization_msgs::MarkerArray>("visualization_marker_array", 1);
+  vis_pub.publish(ma);
+
+//  // 1. Define sequence of points
+//  TrajectoryVec points;
+//  for (unsigned int i = 0; i < 4; ++i)
+//  {
+//    Eigen::Affine3d pose = current_pose.translate(Eigen::Vector3d(0, 0, 0.005*i));
+//    //pose = Eigen::Translation3d(0.05*i, 0.0, 0.0);
+//    descartes_core::TrajectoryPtPtr pt = makeTolerancedCartesianPoint(pose);
+//    points.push_back(pt);
+//  }
+
+//  for (unsigned int i = 0; i < 4; ++i)
+//  {
+//    Eigen::Affine3d pose;
+//    pose = Eigen::Translation3d(0.0, 0.04 * i, 0.05);
+//    descartes_core::TrajectoryPtPtr pt = makeTolerancedCartesianPoint(pose);
+//    points.push_back(pt);
+//  }
 
   // TODO: move model construction in constructor
   // 2. Create a robot model and initialize it
@@ -202,6 +255,26 @@ descartes_core::TrajectoryPtPtr FrameFabPlanner::makeTolerancedCartesianPoint(co
   return TrajectoryPtPtr( new AxialSymmetricPt(pose, M_PI/2.0-0.0001, AxialSymmetricPt::Z_AXIS) );
 }
 
+descartes_core::TrajectoryPtPtr FrameFabPlanner::makeTolerancedCartesianPoint(Eigen::Affine3d pose,
+                                                             double rxTolerance, double ryTolerance, double rzTolerance)
+{
+  using namespace descartes_core;
+  using namespace descartes_trajectory;
+
+  double rotStepSize = 0.1; //M_PI/180;
+
+  Eigen::Vector3d translations;
+  translations = pose.translation();
+  Eigen::Vector3d eulerXYZ;
+  eulerXYZ = pose.rotation().eulerAngles(0, 1, 2);
+
+  PositionTolerance p;
+  p = ToleranceBase::zeroTolerance<PositionTolerance>(translations(0), translations(1), translations(2));
+  OrientationTolerance o;
+  o = ToleranceBase::createSymmetric<OrientationTolerance>(eulerXYZ(0), eulerXYZ(1), eulerXYZ(2), rxTolerance, ryTolerance, rzTolerance);
+  return TrajectoryPtPtr(new CartTrajectoryPt(TolerancedFrame(pose, p, o), 0.0, rotStepSize));
+}
+
 trajectory_msgs::JointTrajectory FrameFabPlanner::toROSJointTrajectory(const TrajectoryVec& trajectory,
                      const descartes_core::RobotModel& model,
                      const std::vector<std::string>& joint_names,
@@ -211,7 +284,7 @@ trajectory_msgs::JointTrajectory FrameFabPlanner::toROSJointTrajectory(const Tra
   // Fill out information about our trajectory
   trajectory_msgs::JointTrajectory result;
   result.header.stamp = ros::Time::now();
-  result.header.frame_id = "world_frame";
+  result.header.frame_id = ptr_move_group_->getPlanningFrame();
   result.joint_names = joint_names;
 
   // For keeping track of time-so-far in the trajectory

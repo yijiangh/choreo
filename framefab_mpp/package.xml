@@ -13,6 +13,8 @@
     <buildtool_depend>catkin</buildtool_depend>
     <test_depend>roslaunch</test_depend>
 
+    <build_depend>eigen_conversions</build_depend>
+    <build_depend>tf_conversions</build_depend>
     <build_depend>moveit_core</build_depend>
     <build_depend>moveit_ros_planning_interface</build_depend>
     <build_depend>moveit_ros_planning</build_depend>
@@ -27,6 +29,8 @@
     <build_depend>moveit_visual_tools</build_depend>
 
     <build_depend>framefab_msgs</build_depend>
+    <build_depend>framefab_process_path_generation</build_depend>
+
     <build_depend>message_generation</build_depend>
 
 
@@ -50,6 +54,7 @@
     <run_depend>trajectory_msgs</run_depend>
 
     <run_depend>framefab_msgs</run_depend>
+    <run_depend>framefab_process_path_generation</run_depend>
 
     <!-- for visual debug-->
     <run_depend>moveit_visual_tools</run_depend>

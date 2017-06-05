@@ -15,8 +15,6 @@
 // framefab_mpp
 #include <framefab_planner.h>
 
-#include <framefab_msgs/AdvanceRobot.h>
-
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "framefab_mpp_node");

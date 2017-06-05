@@ -34,6 +34,8 @@
 
 // framefab
 #include <wire_frame/wire_frame_collision_objects.h>
+#include <framefab_process_path_generation/process_path_generator.h>
+#include <framefab_process_path_generation/process_path_visualizer.h>
 
 // framefab msgs
 #include <framefab_msgs/AdvanceRobot.h>
@@ -100,6 +102,8 @@ class FrameFabPlanner
   * Generates a cartesian point with free rotation about the Z axis of the EFF frame
   */
   descartes_core::TrajectoryPtPtr makeTolerancedCartesianPoint(const Eigen::Affine3d& pose);
+  descartes_core::TrajectoryPtPtr makeTolerancedCartesianPoint(
+      Eigen::Affine3d pose, double rxTolerance, double ryTolerance, double rzTolerance);
 
   /*!
   * Translates a descartes trajectory to a ROS joint trajectory
@@ -126,6 +130,9 @@ class FrameFabPlanner
   wire_frame::WireFrameCollisionObjectsPtr        ptr_wire_frame_collision_objects_;
 
   moveit_visual_tools::MoveItVisualToolsPtr ptr_moveit_visual_tools;
+
+//  framefab_process_path::ProcessPathGenerator  path_generator_;
+//  framefab_process_path::ProcessPathVisualizer path_visualizer_;
 };
 
 typedef boost::shared_ptr<FrameFabPlanner>        FrameFabPlannerPtr;

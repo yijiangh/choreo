@@ -20,6 +20,7 @@ find_package(catkin REQUIRED COMPONENTS
         trajectory_msgs
         framefab_msgs
         moveit_ros_planning_interface
+        framefab_process_path_generation
         )
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
@@ -53,6 +54,7 @@ catkin_package(
         moveit_msgs
         moveit_visual_tools
         framefab_msgs
+        framefab_process_path_generation
         DEPENDS
         boost
 )

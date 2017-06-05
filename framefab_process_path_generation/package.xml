@@ -1,0 +1,28 @@
+<package>
+    <name>framefab_process_path_generation</name>
+    <version>0.1.0</version>
+    <description>
+    The framefab_path_generation package creates high-level process path (waypoints).
+    </description>
+    <author email="yijiangh@mit.edu">Yijiang Huang (MIT)</author>
+    <maintainer email="yijiangh@mit.edu">Yijiang Huang (MIT)</maintainer>
+    <license>BSD</license>
+
+    <buildtool_depend>catkin</buildtool_depend>
+    <test_depend>roslaunch</test_depend>
+
+	<build_depend>descartes_core</build_depend>
+  	<build_depend>descartes_trajectory</build_depend>
+  	<build_depend>trajectory_msgs</build_depend>
+  	<build_depend>moveit_ros_planning_interface</build_depend>
+  	<build_depend>std_msgs</build_depend>
+  	<build_depend>moveit_msgs</build_depend>
+
+  	<run_depend>descartes_core</run_depend>
+  	<run_depend>descartes_trajectory</run_depend>
+  	<run_depend>trajectory_msgs</run_depend>
+  	<run_depend>moveit_ros_planning_interface</run_depend>
+  	<run_depend>std_msgs</run_depend>
+  	<run_depend>moveit_msgs</run_depend>
+
+</package>
