@@ -1,15 +1,20 @@
-
+// boost smart ptr
 #include <boost/shared_ptr.hpp>
 
+// tf
 #include <tf/transform_listener.h>
 #include <tf_conversions/tf_eigen.h>
 #include <eigen_conversions/eigen_msg.h>
 
+// moveit
 #include <moveit_msgs/ExecuteKnownTrajectory.h>
 #include <moveit_msgs/DisplayTrajectory.h>
 
-#include <framefab_msgs/AdvanceRobot.h>
+// descartes
 
+
+// framefab
+#include <framefab_msgs/AdvanceRobot.h>
 #include <framefab_planner.h>
 
 namespace framefab
@@ -65,6 +70,7 @@ bool FrameFabPlanner::testCartPlanning(
     return true;
   }
 
+  // TODO: make the x, y, z into service
   // Apply the offset on the given axis of the current pose
    current_pose.translate(Eigen::Vector3d(0.05 , 0, 0));
 
@@ -95,48 +101,6 @@ bool FrameFabPlanner::testCartPlanning(
 bool FrameFabPlanner::testDescartesPlanning()
 {
 
-}
-
-bool FrameFabPlanner::setRobotHomePose(
-    framefab_msgs::AdvanceRobot::Request& req,
-    framefab_msgs::AdvanceRobot::Response& res)
-{
-  if(req.is_advance)
-  {
-    moveit::planning_interface::MoveGroup::Plan my_plan;
-    const std::map<std::string, double> home_state = ptr_move_group_->getNamedTargetValues("home_pose");
-
-    std::vector<double> group_variable_values;
-    ptr_move_group_->getCurrentState()->copyJointGroupPositions(
-        ptr_move_group_->getCurrentState()->getRobotModel()->getJointModelGroup(ptr_move_group_->getName()),
-        group_variable_values);
-
-//  group_variable_values[0] = -1.0;
-//  ptr_move_group_->setJointValueTarget(group_variable_values);
-//  bool success = ptr_move_group_->plan(my_plan);
-
-    for (std::map<std::string, double>::const_iterator it = home_state.begin(); it != home_state.end(); ++it)
-    {
-      ROS_INFO("[ff_planner] home_pose: %s, %f", it->first.c_str(), it->second);
-    }
-
-    ptr_move_group_->setJointValueTarget(home_state);
-    bool success = ptr_move_group_->plan(my_plan);
-
-    ROS_INFO_NAMED("framefab_mpp", "[ff_planner] Returning Home Pose %s", success ? "" : "FAILED");
-
-    /* Sleep to give Rviz time to visualize the plan. */
-    sleep(5.0);
-
-    res.success = success;
-
-    return success;
-  }
-  else
-  {
-    res.success = false;
-    return false;
-  }
 }
 
 }// namespace frammefab

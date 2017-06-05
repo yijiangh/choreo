@@ -59,8 +59,6 @@ class FrameFabPlanner
   bool testCartPlanning(framefab_msgs::AdvanceRobot::Request &req,
                         framefab_msgs::AdvanceRobot::Response &res);
   bool testDescartesPlanning();
-  bool setRobotHomePose(framefab_msgs::AdvanceRobot::Request& req,
-                        framefab_msgs::AdvanceRobot::Response& res);
 
   /* private functions */
  private:

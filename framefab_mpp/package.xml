@@ -18,11 +18,19 @@
     <build_depend>moveit_ros_planning</build_depend>
     <build_depend>qtbase5-dev</build_depend>
     <build_depend>rviz</build_depend>
+    <build_depend>descartes_core</build_depend>
+    <build_depend>descartes_moveit</build_depend>
+    <build_depend>descartes_planner</build_depend>
+    <build_depend>descartes_trajectory</build_depend>
+    <build_depend>trajectory_msgs</build_depend>
     <!--for visual debug-->
     <build_depend>moveit_visual_tools</build_depend>
 
     <build_depend>framefab_msgs</build_depend>
     <build_depend>message_generation</build_depend>
+
+
+    <!--TODO: should add run_depend for kr6r900_with_hotend package-->
 
     <run_depend>eigen_conversions</run_depend>
     <run_depend>tf_conversions</run_depend>
@@ -34,9 +42,14 @@
     <run_depend>moveit_ros_planning_interface</run_depend>
     <run_depend>moveit_ros_planning</run_depend>
     <run_depend>moveit_msgs</run_depend>
+    <run_depend>industrial_robot_simulator</run_depend>
+    <run_depend>descartes_core</run_depend>
+    <run_depend>descartes_moveit</run_depend>
+    <run_depend>descartes_planner</run_depend>
+    <run_depend>descartes_trajectory</run_depend>
+    <run_depend>trajectory_msgs</run_depend>
+
     <run_depend>framefab_msgs</run_depend>
-    
-		<!--<run_depend>std_msgs</run_depend>-->
 
     <!-- for visual debug-->
     <run_depend>moveit_visual_tools</run_depend>

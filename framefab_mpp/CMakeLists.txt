@@ -13,7 +13,13 @@ find_package(catkin REQUIRED COMPONENTS
         moveit_ros_planning
         moveit_ros_planning_interface
         moveit_visual_tools
+        descartes_core
+        descartes_moveit
+        descartes_trajectory
+        descartes_planner REQUIRED
+        trajectory_msgs
         framefab_msgs
+        moveit_ros_planning_interface
         )
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
