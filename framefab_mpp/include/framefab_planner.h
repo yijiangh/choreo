@@ -16,11 +16,21 @@
 #include <ros/ros.h>
 #include <geometry_msgs/Pose.h>
 
+// msgs & actions
+#include <control_msgs/FollowJointTrajectoryAction.h>
+#include <actionlib/client/simple_action_client.h>
+
 // Moveit
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit/move_group_interface/move_group.h>
 
 #include <moveit_visual_tools/moveit_visual_tools.h>
+
+// descartes
+#include <descartes_moveit/moveit_state_adapter.h>
+#include <descartes_trajectory/axial_symmetric_pt.h>
+#include <descartes_trajectory/cart_trajectory_pt.h>
+#include <descartes_planner/dense_planner.h>
 
 // framefab
 #include <wire_frame/wire_frame_collision_objects.h>
@@ -39,6 +49,9 @@ namespace framefab
 */
 class FrameFabPlanner
 {
+  typedef std::vector<descartes_core::TrajectoryPtPtr> TrajectoryVec;
+  typedef TrajectoryVec::const_iterator TrajectoryIter;
+
   /* public functions */
  public:
 
@@ -74,7 +87,30 @@ class FrameFabPlanner
   */
   bool initialize() {}
 
-  void makePlan(const std::vector<geometry_msgs::Pose> &way_points){}
+  // descartes
+  /*!
+  * Generates an completely defined (zero-tolerance) cartesian point from a pose
+  */
+  descartes_core::TrajectoryPtPtr makeCartesianPoint(const Eigen::Affine3d& pose);
+
+  /*!
+  * Generates a cartesian point with free rotation about the Z axis of the EFF frame
+  */
+  descartes_core::TrajectoryPtPtr makeTolerancedCartesianPoint(const Eigen::Affine3d& pose);
+
+  /*!
+  * Translates a descartes trajectory to a ROS joint trajectory
+  */
+  trajectory_msgs::JointTrajectory
+  toROSJointTrajectory(const TrajectoryVec& trajectory,
+                       const descartes_core::RobotModel& model,
+                       const std::vector<std::string>& joint_names,
+                       double time_delay);
+
+  /*!
+  * Sends a ROS trajectory to the robot controller
+  */
+  bool executeTrajectory(const trajectory_msgs::JointTrajectory& trajectory);
 
   /* private data */
  private:
