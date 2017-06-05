@@ -9,6 +9,8 @@
 #include <visualization_msgs/Marker.h>
 #include <std_msgs/Bool.h>
 #include <geometry_msgs/PoseArray.h>
+#include <framefab_msgs/AdvanceRobot.h>
+#include <framefab_msgs/TestDescartes.h>
 
 //MoveIt
 #include <moveit/robot_model_loader/robot_model_loader.h>
@@ -27,8 +29,6 @@
 // framefab
 #include <framefab_rviz_panel.h>
 #include <framefab_render_widget.h>
-
-#include <framefab_msgs/AdvanceRobot.h>
 
 namespace framefab
 {
@@ -56,6 +56,9 @@ FrameFabRenderWidget::FrameFabRenderWidget( QWidget* parent )
 
   adv_robot_srv_client_ = node_handle_.serviceClient<framefab_msgs::AdvanceRobot>(
       "/framefab_mpp_node/advance_robot");
+
+  test_descartes_srv_client_ = node_handle_.serviceClient<framefab_msgs::TestDescartes>(
+      "/framefab_mpp_node/test_descartes");
 }
 
 FrameFabRenderWidget::~FrameFabRenderWidget()
@@ -98,16 +101,42 @@ void FrameFabRenderWidget::advanceRobot()
 
   if(!adv_robot_srv_client_)
   {
-    ROS_ERROR("[FF_RenderWidget] service connection FAILED");
+    ROS_ERROR("[FF_RenderWidget] advance robot service connection FAILED");
   }
 
   if(adv_robot_srv_client_.call(adv_robot_srv))
   {
-    ROS_INFO("[FF_RenderWidget] service result %d", adv_robot_srv.response.success);
+    ROS_INFO("[FF_RenderWidget] advance robot service result %d", adv_robot_srv.response.success);
   }
   else
   {
     ROS_ERROR("[FF_RenderWidget] failed to call service advance_robot");
+  }
+
+  rate_->sleep();
+}
+
+void FrameFabRenderWidget::testDescartes()
+{
+  // init main computation class - FrameFabPlanner here
+  ROS_INFO("[FF_RenderWidget] test descartes called");
+
+  framefab_msgs::TestDescartes test_descartes_srv;
+
+  test_descartes_srv.request.is_test = true;
+
+  if(!test_descartes_srv_client_)
+  {
+    ROS_ERROR("[FF_RenderWidget] test descartes service connection FAILED");
+  }
+
+  if(test_descartes_srv_client_.call(test_descartes_srv))
+  {
+    ROS_INFO("[FF_RenderWidget] test descartes service result %d", test_descartes_srv.response.success);
+  }
+  else
+  {
+    ROS_ERROR("[FF_RenderWidget] failed to call service test_descartes");
   }
 
   rate_->sleep();

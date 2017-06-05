@@ -77,6 +77,7 @@ class FrameFabRenderWidget : public QWidget
    * Current a descartes planning testbed.
    */
   void advanceRobot();
+  void testDescartes();
 
   /**
    *
@@ -114,6 +115,7 @@ class FrameFabRenderWidget : public QWidget
 
   //! MoveIt! interfaces
   ros::ServiceClient adv_robot_srv_client_;
+  ros::ServiceClient test_descartes_srv_client_;
 
   moveit::planning_interface::PlanningSceneInterfacePtr ptr_planning_scene_interface_;
   move_group_interface::MoveGroupPtr ptr_move_group_;

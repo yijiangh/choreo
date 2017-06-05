@@ -37,6 +37,7 @@
 
 // framefab msgs
 #include <framefab_msgs/AdvanceRobot.h>
+#include <framefab_msgs/TestDescartes.h>
 
 namespace framefab
 {
@@ -71,7 +72,9 @@ class FrameFabPlanner
    */
   bool testCartPlanning(framefab_msgs::AdvanceRobot::Request &req,
                         framefab_msgs::AdvanceRobot::Response &res);
-  bool testDescartesPlanning();
+
+  bool testDescartesPlanning(framefab_msgs::TestDescartes::Request &req,
+                             framefab_msgs::TestDescartes::Response &res);
 
   /* private functions */
  private:

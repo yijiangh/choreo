@@ -88,10 +88,12 @@ class FrameFabRvizPanel: public rviz::Panel
   void getUpdatedRefPoint();
 
   void advanceRobot();
+  void testDescartes();
 
   protected Q_SLOTS:
   void enablePanelHandler(bool status);
   void advanceRobotButtonHandler();
+  void testDescartesButtonHandler();
 
  protected:
   // TODO: replace raw pointers with shared_ptr
@@ -109,7 +111,8 @@ class FrameFabRvizPanel: public rviz::Panel
   QPushButton* pushbutton_readfile_;
   QPushButton* pushbutton_update_ref_pt_;
   QPushButton* pushbutton_update_unit_scale_;
-  QPushButton* pushbutton_advancerobot_;
+  QPushButton* pushbutton_advance_robot_;
+  QPushButton* pushbutton_test_descartes_;
 
   //! Qt Spinbox
   QDoubleSpinBox* spinbox_offset_x_;

@@ -8,6 +8,7 @@
 
 // actions & msgs
 #include <framefab_msgs/AdvanceRobot.h>
+#include <framefab_msgs/TestDescartes.h>
 
 // moveit
 #include <moveit_msgs/ExecuteKnownTrajectory.h>
@@ -30,9 +31,9 @@ FrameFabPlanner::FrameFabPlanner(ros::NodeHandle &node_handle)
 
   ptr_move_group_ = boost::make_shared<move_group_interface::MoveGroup>("manipulator");
 
-  ptr_moveit_visual_tools = boost::make_shared<moveit_visual_tools::MoveItVisualTools>(
-      ptr_move_group_->getPlanningFrame());
-  ptr_moveit_visual_tools->deleteAllMarkers();
+//  ptr_moveit_visual_tools = boost::make_shared<moveit_visual_tools::MoveItVisualTools>(
+//      ptr_move_group_->getPlanningFrame());
+//  ptr_moveit_visual_tools->deleteAllMarkers();
 }
 
 FrameFabPlanner::~FrameFabPlanner()
@@ -49,7 +50,7 @@ bool FrameFabPlanner::testCartPlanning(
     framefab_msgs::AdvanceRobot::Request &req, framefab_msgs::AdvanceRobot::Response &res)
 {
   // Get parameters from the message and print them
-  ROS_WARN_STREAM("moveRobot request:" << std::endl << req);
+  ROS_WARN_STREAM("advanceRobot request:" << std::endl << req);
 
   // Get current robot pose
   tf::TransformListener listener;
@@ -66,7 +67,7 @@ bool FrameFabPlanner::testCartPlanning(
   {
     res.success = false;
     ROS_ERROR("[testCartPlanning] tf error.");
-    return true;
+    return false;
   }
 
   // TODO: make the x, y, z into service
@@ -97,8 +98,12 @@ bool FrameFabPlanner::testCartPlanning(
   return true;
 }
 
-bool FrameFabPlanner::testDescartesPlanning()
+bool FrameFabPlanner::testDescartesPlanning(
+     framefab_msgs::TestDescartes::Request &req, framefab_msgs::TestDescartes::Response &res)
 {
+  // Get parameters from the message and print them
+  ROS_WARN_STREAM("testDescartes request:" << std::endl << req);
+
   // 1. Define sequence of points
   TrajectoryVec points;
   for (unsigned int i = 0; i < 10; ++i)
@@ -117,6 +122,7 @@ bool FrameFabPlanner::testDescartesPlanning()
     points.push_back(pt);
   }
 
+  // TODO: move model construction in constructor
   // 2. Create a robot model and initialize it
   descartes_core::RobotModelPtr model (new descartes_moveit::MoveitStateAdapter);
 
@@ -126,18 +132,17 @@ bool FrameFabPlanner::testDescartesPlanning()
   // name of the kinematic group you defined when running MoveitSetupAssistant
   const std::string group_name = "manipulator";
 
-  // TODO: change here!
-
   // Name of frame in which you are expressing poses. Typically "world_frame" or "base_link".
-  const std::string world_frame = "base_link";
+  const std::string world_frame = ptr_move_group_->getPlanningFrame();
 
   // tool center point frame (name of link associated with tool)
-  const std::string tcp_frame = "tool0";
+  const std::string tcp_frame = "tool_tip";
 
   if (!model->initialize(robot_description, group_name, world_frame, tcp_frame))
   {
     ROS_INFO("Could not initialize robot model");
-    return -1;
+    res.success = false;
+    return false;
   }
 
   // 3. Create a planner and initialize it with our robot model
@@ -148,18 +153,18 @@ bool FrameFabPlanner::testDescartesPlanning()
   if (!planner.planPath(points))
   {
     ROS_ERROR("Could not solve for a valid path");
-    return -2;
+    res.success = false;
+    return false;
   }
 
   TrajectoryVec result;
   if (!planner.getPath(result))
   {
     ROS_ERROR("Could not retrieve path");
-    return -3;
+    res.success = false;
+    return false;
   }
 
-
-  // TODO: check do we have this parameter?
   // 5. Translate the result into a type that ROS understands
   // Get Joint Names
   std::vector<std::string> names;
@@ -172,11 +177,14 @@ bool FrameFabPlanner::testDescartesPlanning()
   if (!executeTrajectory(joint_solution))
   {
     ROS_ERROR("Could not execute trajectory!");
-    return -4;
+    res.success = false;
+    return false;
   }
 
   // Wait till user kills the process (Control-C)
-  ROS_INFO("Done!");
+  ROS_INFO("test Descartes Done!");
+  res.success = true;
+  return true;
 }
 
 descartes_core::TrajectoryPtPtr FrameFabPlanner::makeCartesianPoint(const Eigen::Affine3d& pose)

@@ -38,7 +38,8 @@ FrameFabRvizPanel::FrameFabRvizPanel( QWidget* parent )
   layout->addLayout(topic_layout);
   layout->addWidget(textedit_log_);
   layout->addWidget(groupbox_model_param_);
-  layout->addWidget(pushbutton_advancerobot_);
+  layout->addWidget(pushbutton_advance_robot_);
+  layout->addWidget(pushbutton_test_descartes_);
   layout->addWidget(path_slider_);
   setLayout(layout);
 }
@@ -86,8 +87,11 @@ void FrameFabRvizPanel::createPushButtons()
   connect(this, SIGNAL(updateRefPoint(double, double, double)),
           ptr_ff_render_widget_, SLOT(setRefPoint(double, double, double)));
 
-  pushbutton_advancerobot_ = new QPushButton("Advance Robot");
-  connect(pushbutton_advancerobot_, SIGNAL(clicked()), this, SLOT(advanceRobotButtonHandler()));
+  pushbutton_advance_robot_ = new QPushButton("Advance Robot");
+  connect(pushbutton_advance_robot_, SIGNAL(clicked()), this, SLOT(advanceRobotButtonHandler()));
+
+  pushbutton_test_descartes_ = new QPushButton("Test Descartes");
+  connect(pushbutton_test_descartes_, SIGNAL(clicked()), this, SLOT(testDescartesButtonHandler()));
 
   connect(this, SIGNAL(enablePanel(bool)), this, SLOT(enablePanelHandler(bool)));
 }
@@ -189,6 +193,12 @@ void FrameFabRvizPanel::advanceRobotButtonHandler()
   QFuture<void> future = QtConcurrent::run(this, &FrameFabRvizPanel::advanceRobot);
 }
 
+void FrameFabRvizPanel::testDescartesButtonHandler()
+{
+  // Start test in another thread
+  QFuture<void> future = QtConcurrent::run(this, &FrameFabRvizPanel::testDescartes);
+}
+
 void FrameFabRvizPanel::advanceRobot()
 {
   // Disable UI
@@ -196,6 +206,18 @@ void FrameFabRvizPanel::advanceRobot()
 
   // let widget call the service
   ptr_ff_render_widget_->advanceRobot();
+
+  // Re-enable UI
+  Q_EMIT(enablePanel(true)); // Enable UI
+}
+
+void FrameFabRvizPanel::testDescartes()
+{
+  // Disable UI
+  Q_EMIT(enablePanel(false));
+
+  // let widget call the service
+  ptr_ff_render_widget_->testDescartes();
 
   // Re-enable UI
   Q_EMIT(enablePanel(true)); // Enable UI

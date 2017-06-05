@@ -18,6 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
 add_service_files(
 FILES 
 AdvanceRobot.srv
+TestDescartes.srv
 )
 
 ## Generate added messages and services with any dependencies listed here
