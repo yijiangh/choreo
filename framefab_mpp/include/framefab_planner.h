@@ -31,6 +31,7 @@
 #include <descartes_trajectory/axial_symmetric_pt.h>
 #include <descartes_trajectory/cart_trajectory_pt.h>
 #include <descartes_planner/dense_planner.h>
+#include <descartes_planner/sparse_planner.h>
 
 // framefab
 #include <wire_frame/wire_frame_collision_objects.h>

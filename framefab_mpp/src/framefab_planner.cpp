@@ -124,14 +124,14 @@ bool FrameFabPlanner::testDescartesPlanning(
 
   // 1. Define sequence of points
   double x, y, z, rx, ry, rz;
-  x = 2.0 - 0.025;
-  y = 0.0;
-  z = 0.008 + 0.025;
+  x = 0.57734;
+  y = 0;
+  z = 0.6;
   rx = 0.0;
-  ry = (M_PI / 2) + M_PI / 4;
+  ry = -M_PI/2;
   rz = 0.0;
   TrajectoryVec points;
-  int N_points = 9;
+  int N_points = 3;
 
   framefab_process_path::ProcessPathGenerator  path_generator;
   framefab_process_path::ProcessPathVisualizer path_visualizer;
@@ -140,7 +140,7 @@ bool FrameFabPlanner::testDescartesPlanning(
   Eigen::Affine3d startPose;
   Eigen::Affine3d endPose;
   startPose = descartes_core::utils::toFrame(x, y, z, rx, ry, rz, descartes_core::utils::EulerConventions::XYZ);
-  endPose = descartes_core::utils::toFrame(x, y + 0.4, z, rx, ry, rz, descartes_core::utils::EulerConventions::XYZ);
+  endPose = descartes_core::utils::toFrame(x, y + 0.05, z, rx, ry, rz, descartes_core::utils::EulerConventions::XYZ);
   poses = path_generator.addLinePathPts(startPose, endPose, N_points);
 
   for (unsigned int i = 0; i < N_points; ++i)
@@ -199,7 +199,7 @@ bool FrameFabPlanner::testDescartesPlanning(
   }
 
   // 3. Create a planner and initialize it with our robot model
-  descartes_planner::DensePlanner planner;
+  descartes_planner::SparsePlanner planner;
   planner.initialize(model);
 
   // 4. Feed the trajectory to the planner
