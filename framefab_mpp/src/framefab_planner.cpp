@@ -101,152 +101,152 @@ bool FrameFabPlanner::testCartPlanning(
 bool FrameFabPlanner::testDescartesPlanning(
      framefab_msgs::TestDescartes::Request &req, framefab_msgs::TestDescartes::Response &res)
 {
-  // Get parameters from the message and print them
-  ROS_WARN_STREAM("testDescartes request:" << std::endl << req);
-
-  // Get current robot pose
-  tf::TransformListener listener;
-  listener.waitForTransform("/arm_base_link", "/tool_tip", ros::Time::now(), ros::Duration(1.0));
-  tf::StampedTransform transform_stamp;
-  Eigen::Affine3d current_pose;
-
-  try
-  {
-    listener.lookupTransform("/arm_base_link", "/tool_tip", ros::Time(0), transform_stamp);
-    transformTFToEigen(transform_stamp, current_pose);
-  }
-  catch (tf::TransformException &ex)
-  {
-    res.success = false;
-    ROS_ERROR("[testDescartesPlanning] tf error.");
-    return false;
-  }
-
-  ros::Rate loop_rate(10);
-
-  // 1. Define sequence of points
-  double x, y, z, rx, ry, rz;
-  x = 0.67734;
-  y = 0;
-  z = 0.5;
-  rx = 0.0;
-  ry = M_PI;
-  rz = 0.0;
-  TrajectoryVec points;
-  int N_points = 10;
-
-  framefab_process_path::ProcessPathGenerator  path_generator;
-  framefab_process_path::ProcessPathVisualizer path_visualizer;
-
-  std::vector<Eigen::Affine3d> poses;
-  Eigen::Affine3d startPose;
-  Eigen::Affine3d endPose;
-  startPose = descartes_core::utils::toFrame(x, y, z, rx, ry, rz, descartes_core::utils::EulerConventions::XYZ);
-  endPose = descartes_core::utils::toFrame(x, y + 0.5, z, rx, ry, rz, descartes_core::utils::EulerConventions::XYZ);
-  poses = path_generator.addLinePathPts(startPose, endPose, N_points);
-
-
-  for (unsigned int i = 0; i < N_points; ++i)
-  {
-//    descartes_core::TrajectoryPtPtr pt = makeTolerancedCartesianPoint(poses[i], 0.0, 0.4, M_PI);
-    descartes_core::TrajectoryPtPtr pt = makeTolerancedCartesianPoint(poses[i]);
-    points.push_back(pt);
-  }
-
-  // Visualize the trajectory points in RViz
-  // Transform the generated poses into a markerArray message that can be visualized by RViz
-  visualization_msgs::MarkerArray ma;
-  ma = path_visualizer.createMarkerArray(poses);
-
-  ros::Publisher vis_pub = node_handle_.advertise<visualization_msgs::MarkerArray>("/visualization_marker_array", 1);
-  if(waitForSubscribers(vis_pub, ros::Duration(0.5)))
-  {
-    vis_pub.publish(ma);
-    loop_rate.sleep();
-  }
-
-
+//  // Get parameters from the message and print them
+//  ROS_WARN_STREAM("testDescartes request:" << std::endl << req);
+//
+//  // Get current robot pose
+//  tf::TransformListener listener;
+//  listener.waitForTransform("/arm_base_link", "/tool_tip", ros::Time::now(), ros::Duration(1.0));
+//  tf::StampedTransform transform_stamp;
+//  Eigen::Affine3d current_pose;
+//
+//  try
+//  {
+//    listener.lookupTransform("/arm_base_link", "/tool_tip", ros::Time(0), transform_stamp);
+//    transformTFToEigen(transform_stamp, current_pose);
+//  }
+//  catch (tf::TransformException &ex)
+//  {
+//    res.success = false;
+//    ROS_ERROR("[testDescartesPlanning] tf error.");
+//    return false;
+//  }
+//
+//  ros::Rate loop_rate(10);
+//
 //  // 1. Define sequence of points
+//  double x, y, z, rx, ry, rz;
+//  x = 0.67734;
+//  y = 0;
+//  z = 0.5;
+//  rx = 0.0;
+//  ry = M_PI;
+//  rz = 0.0;
 //  TrajectoryVec points;
-//  for (unsigned int i = 0; i < 4; ++i)
+//  int N_points = 10;
+//
+//  framefab_process_path::ProcessPathGenerator  path_generator;
+//  framefab_process_path::ProcessPathVisualizer path_visualizer;
+//
+//  std::vector<Eigen::Affine3d> poses;
+//  Eigen::Affine3d startPose;
+//  Eigen::Affine3d endPose;
+//  startPose = descartes_core::utils::toFrame(x, y, z, rx, ry, rz, descartes_core::utils::EulerConventions::XYZ);
+//  endPose = descartes_core::utils::toFrame(x, y + 0.5, z, rx, ry, rz, descartes_core::utils::EulerConventions::XYZ);
+//  poses = path_generator.addLinePathPts(startPose, endPose, N_points);
+//
+//
+//  for (unsigned int i = 0; i < N_points; ++i)
 //  {
-//    Eigen::Affine3d pose = current_pose.translate(Eigen::Vector3d(0, 0, 0.005*i));
-//    //pose = Eigen::Translation3d(0.05*i, 0.0, 0.0);
-//    descartes_core::TrajectoryPtPtr pt = makeTolerancedCartesianPoint(pose);
+////    descartes_core::TrajectoryPtPtr pt = makeTolerancedCartesianPoint(poses[i], 0.0, 0.4, M_PI);
+//    descartes_core::TrajectoryPtPtr pt = makeTolerancedCartesianPoint(poses[i]);
 //    points.push_back(pt);
 //  }
-
-//  for (unsigned int i = 0; i < 4; ++i)
+//
+//  // Visualize the trajectory points in RViz
+//  // Transform the generated poses into a markerArray message that can be visualized by RViz
+//  visualization_msgs::MarkerArray ma;
+//  ma = path_visualizer.createMarkerArray(poses);
+//
+//  ros::Publisher vis_pub = node_handle_.advertise<visualization_msgs::MarkerArray>("/visualization_marker_array", 1);
+//  if(waitForSubscribers(vis_pub, ros::Duration(0.5)))
 //  {
-//    Eigen::Affine3d pose;
-//    pose = Eigen::Translation3d(0.0, 0.04 * i, 0.05);
-//    descartes_core::TrajectoryPtPtr pt = makeTolerancedCartesianPoint(pose);
-//    points.push_back(pt);
+//    vis_pub.publish(ma);
+//    loop_rate.sleep();
 //  }
-
-  // TODO: move model construction in constructor
-  // 2. Create a robot model and initialize it
-  descartes_core::RobotModelPtr model (new descartes_moveit::MoveitStateAdapter);
-
-  // Name of description on parameter server. Typically just "robot_description".
-  const std::string robot_description = "robot_description";
-
-  // name of the kinematic group you defined when running MoveitSetupAssistant
-  const std::string group_name = "manipulator";
-
-  // Name of frame in which you are expressing poses. Typically "world_frame" or "base_link".
-  const std::string world_frame = ptr_move_group_->getPlanningFrame();
-
-  // tool center point frame (name of link associated with tool)
-  const std::string tcp_frame = "tool_tip";
-
-  if (!model->initialize(robot_description, group_name, world_frame, tcp_frame))
-  {
-    ROS_INFO("Could not initialize robot model");
-    res.success = false;
-    return false;
-  }
-
-  // 3. Create a planner and initialize it with our robot model
-  descartes_planner::DensePlanner planner;
-  planner.initialize(model);
-
-  // 4. Feed the trajectory to the planner
-  if (!planner.planPath(points))
-  {
-    ROS_ERROR("Could not solve for a valid path");
-    res.success = false;
-    return false;
-  }
-
-  TrajectoryVec result;
-  if (!planner.getPath(result))
-  {
-    ROS_ERROR("Could not retrieve path");
-    res.success = false;
-    return false;
-  }
-
-  // 5. Translate the result into a type that ROS understands
-  // Get Joint Names
-  std::vector<std::string> names;
-  node_handle_.getParam("controller_joint_names", names);
-  // Generate a ROS joint trajectory with the result path, robot model, given joint names,
-  // a certain time delta between each trajectory point
-  trajectory_msgs::JointTrajectory joint_solution = toROSJointTrajectory(result, *model, names, 1.0);
-
-  // 6. Send the ROS trajectory to the robot for execution
-  if (!executeTrajectory(joint_solution))
-  {
-    ROS_ERROR("Could not execute trajectory!");
-    res.success = false;
-    return false;
-  }
-
-  // Wait till user kills the process (Control-C)
-  ROS_INFO("test Descartes Done!");
-  res.success = true;
-  return true;
+//
+//
+////  // 1. Define sequence of points
+////  TrajectoryVec points;
+////  for (unsigned int i = 0; i < 4; ++i)
+////  {
+////    Eigen::Affine3d pose = current_pose.translate(Eigen::Vector3d(0, 0, 0.005*i));
+////    //pose = Eigen::Translation3d(0.05*i, 0.0, 0.0);
+////    descartes_core::TrajectoryPtPtr pt = makeTolerancedCartesianPoint(pose);
+////    points.push_back(pt);
+////  }
+//
+////  for (unsigned int i = 0; i < 4; ++i)
+////  {
+////    Eigen::Affine3d pose;
+////    pose = Eigen::Translation3d(0.0, 0.04 * i, 0.05);
+////    descartes_core::TrajectoryPtPtr pt = makeTolerancedCartesianPoint(pose);
+////    points.push_back(pt);
+////  }
+//
+//  // TODO: move model construction in constructor
+//  // 2. Create a robot model and initialize it
+//  descartes_core::RobotModelPtr model (new descartes_moveit::MoveitStateAdapter);
+//
+//  // Name of description on parameter server. Typically just "robot_description".
+//  const std::string robot_description = "robot_description";
+//
+//  // name of the kinematic group you defined when running MoveitSetupAssistant
+//  const std::string group_name = "manipulator";
+//
+//  // Name of frame in which you are expressing poses. Typically "world_frame" or "base_link".
+//  const std::string world_frame = ptr_move_group_->getPlanningFrame();
+//
+//  // tool center point frame (name of link associated with tool)
+//  const std::string tcp_frame = "tool_tip";
+//
+//  if (!model->initialize(robot_description, group_name, world_frame, tcp_frame))
+//  {
+//    ROS_INFO("Could not initialize robot model");
+//    res.success = false;
+//    return false;
+//  }
+//
+//  // 3. Create a planner and initialize it with our robot model
+//  descartes_planner::DensePlanner planner;
+//  planner.initialize(model);
+//
+//  // 4. Feed the trajectory to the planner
+//  if (!planner.planPath(points))
+//  {
+//    ROS_ERROR("Could not solve for a valid path");
+//    res.success = false;
+//    return false;
+//  }
+//
+//  TrajectoryVec result;
+//  if (!planner.getPath(result))
+//  {
+//    ROS_ERROR("Could not retrieve path");
+//    res.success = false;
+//    return false;
+//  }
+//
+//  // 5. Translate the result into a type that ROS understands
+//  // Get Joint Names
+//  std::vector<std::string> names;
+//  node_handle_.getParam("controller_joint_names", names);
+//  // Generate a ROS joint trajectory with the result path, robot model, given joint names,
+//  // a certain time delta between each trajectory point
+//  trajectory_msgs::JointTrajectory joint_solution = toROSJointTrajectory(result, *model, names, 1.0);
+//
+//  // 6. Send the ROS trajectory to the robot for execution
+//  if (!executeTrajectory(joint_solution))
+//  {
+//    ROS_ERROR("Could not execute trajectory!");
+//    res.success = false;
+//    return false;
+//  }
+//
+//  // Wait till user kills the process (Control-C)
+//  ROS_INFO("test Descartes Done!");
+//  res.success = true;
+//  return true;
 }
 
 descartes_core::TrajectoryPtPtr FrameFabPlanner::makeCartesianPoint(const Eigen::Affine3d& pose)
