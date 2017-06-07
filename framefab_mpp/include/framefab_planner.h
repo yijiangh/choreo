@@ -120,6 +120,11 @@ class FrameFabPlanner
   */
   bool executeTrajectory(const trajectory_msgs::JointTrajectory& trajectory);
 
+  // debug util
+  bool waitForSubscribers(ros::Publisher &pub, ros::Duration timeout);
+
+  std::vector<double> getCurrentJointState(const std::string& topic);
+
   /* private data */
  private:
 

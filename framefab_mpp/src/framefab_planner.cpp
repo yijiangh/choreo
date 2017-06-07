@@ -122,16 +122,18 @@ bool FrameFabPlanner::testDescartesPlanning(
     return false;
   }
 
+  ros::Rate loop_rate(10);
+
   // 1. Define sequence of points
   double x, y, z, rx, ry, rz;
-  x = 0.57734;
+  x = 0.67734;
   y = 0;
-  z = 0.6;
+  z = 0.5;
   rx = 0.0;
-  ry = -M_PI/2;
+  ry = M_PI;
   rz = 0.0;
   TrajectoryVec points;
-  int N_points = 3;
+  int N_points = 10;
 
   framefab_process_path::ProcessPathGenerator  path_generator;
   framefab_process_path::ProcessPathVisualizer path_visualizer;
@@ -140,12 +142,14 @@ bool FrameFabPlanner::testDescartesPlanning(
   Eigen::Affine3d startPose;
   Eigen::Affine3d endPose;
   startPose = descartes_core::utils::toFrame(x, y, z, rx, ry, rz, descartes_core::utils::EulerConventions::XYZ);
-  endPose = descartes_core::utils::toFrame(x, y + 0.05, z, rx, ry, rz, descartes_core::utils::EulerConventions::XYZ);
+  endPose = descartes_core::utils::toFrame(x, y + 0.5, z, rx, ry, rz, descartes_core::utils::EulerConventions::XYZ);
   poses = path_generator.addLinePathPts(startPose, endPose, N_points);
+
 
   for (unsigned int i = 0; i < N_points; ++i)
   {
-    descartes_core::TrajectoryPtPtr pt = makeTolerancedCartesianPoint(poses[i], 0.0, 0.4, M_PI);
+//    descartes_core::TrajectoryPtPtr pt = makeTolerancedCartesianPoint(poses[i], 0.0, 0.4, M_PI);
+    descartes_core::TrajectoryPtPtr pt = makeTolerancedCartesianPoint(poses[i]);
     points.push_back(pt);
   }
 
@@ -153,9 +157,14 @@ bool FrameFabPlanner::testDescartesPlanning(
   // Transform the generated poses into a markerArray message that can be visualized by RViz
   visualization_msgs::MarkerArray ma;
   ma = path_visualizer.createMarkerArray(poses);
-  // Start the publisher for the Rviz Markers
-  ros::Publisher vis_pub = node_handle_.advertise<visualization_msgs::MarkerArray>("visualization_marker_array", 1);
-  vis_pub.publish(ma);
+
+  ros::Publisher vis_pub = node_handle_.advertise<visualization_msgs::MarkerArray>("/visualization_marker_array", 1);
+  if(waitForSubscribers(vis_pub, ros::Duration(0.5)))
+  {
+    vis_pub.publish(ma);
+    loop_rate.sleep();
+  }
+
 
 //  // 1. Define sequence of points
 //  TrajectoryVec points;
@@ -199,7 +208,7 @@ bool FrameFabPlanner::testDescartesPlanning(
   }
 
   // 3. Create a planner and initialize it with our robot model
-  descartes_planner::SparsePlanner planner;
+  descartes_planner::DensePlanner planner;
   planner.initialize(model);
 
   // 4. Feed the trajectory to the planner
@@ -341,6 +350,34 @@ bool FrameFabPlanner::executeTrajectory(const trajectory_msgs::JointTrajectory& 
     ROS_WARN("Action server could not execute trajectory");
     return false;
   }
+}
+
+bool FrameFabPlanner::waitForSubscribers(ros::Publisher &pub, ros::Duration timeout)
+{
+  if (pub.getNumSubscribers() > 0)
+    return true;
+  ros::Time start = ros::Time::now();
+  ros::Rate waitTime(0.5);
+  while (ros::Time::now() - start < timeout)
+  {
+    waitTime.sleep();
+    if (pub.getNumSubscribers() > 0)
+      break;
+  }
+  return pub.getNumSubscribers() > 0;
+}
+
+std::vector<double> getCurrentJointState(const std::string& topic)
+{
+  sensor_msgs::JointStateConstPtr state =
+      ros::topic::waitForMessage<sensor_msgs::JointState>(topic, ros::Duration(0.0));
+
+  if (!state)
+  {
+    throw std::runtime_error("Joint state message capture failed");
+  }
+
+  return state->position;
 }
 
 }// namespace frammefab

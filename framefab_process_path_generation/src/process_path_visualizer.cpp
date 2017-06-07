@@ -28,9 +28,9 @@ visualization_msgs::Marker ProcessPathVisualizer::createMarker(double transX, do
 {
   static int count;
   visualization_msgs::Marker marker;
-  marker.header.frame_id = "base_link";
+  marker.header.frame_id = "arm_base_link";
   marker.header.stamp = ros::Time();
-  marker.ns = "my_namespace";
+  marker.ns = "";
   marker.id = count;
   marker.type = visualization_msgs::Marker::ARROW;
   marker.action = visualization_msgs::Marker::ADD;
