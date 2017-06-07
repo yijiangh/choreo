@@ -36,7 +36,8 @@ namespace framefab
 FrameFabRenderWidget::FrameFabRenderWidget( QWidget* parent )
     : parent_(parent),
       unit_conversion_scale_factor_(1),
-      ref_pt_x_(0), ref_pt_y_(0), ref_pt_z_(0)
+      ref_pt_x_(0), ref_pt_y_(0), ref_pt_z_(0),
+      move_offset_x_(0), move_offset_y_(0), move_offset_z_(0)
 {
   ROS_INFO("[ff_render_widget] FrameFabPlanner Render Widget started.");
 
@@ -99,6 +100,13 @@ void FrameFabRenderWidget::advanceRobot()
 
   adv_robot_srv.request.is_advance = true;
 
+  adv_robot_srv.request.offset_x = scaleData(move_offset_x_);
+  adv_robot_srv.request.offset_y = scaleData(move_offset_y_);
+  adv_robot_srv.request.offset_z = scaleData(move_offset_z_);
+
+  ROS_INFO_STREAM("scale - " << unit_conversion_scale_factor_);
+  ROS_INFO_STREAM("input move_x - " << move_offset_x_);
+
   if(!adv_robot_srv_client_)
   {
     ROS_ERROR("[FF_RenderWidget] advance robot service connection FAILED");
@@ -142,15 +150,10 @@ void FrameFabRenderWidget::testDescartes()
   rate_->sleep();
 }
 
-void FrameFabRenderWidget::setValue(int i)
-{
-
-}
-
 void FrameFabRenderWidget::setScaleFactor(QString unit_info)
 {
-  Q_EMIT(sendLogInfo(QString("-----------MODEL UNIT-----------")));
-  Q_EMIT(sendLogInfo(unit_info));
+//  Q_EMIT(sendLogInfo(QString("-----------MODEL UNIT-----------")));
+//  Q_EMIT(sendLogInfo(unit_info));
 
   if(QString("millimeter") == unit_info)
   {
@@ -172,7 +175,7 @@ void FrameFabRenderWidget::setScaleFactor(QString unit_info)
     node_handle_.param("/framefab_mpp/unit_conversion_foot_to_meter", unit_conversion_scale_factor_, float(1));
   }
 
-  Q_EMIT(sendLogInfo(QString("Convert to meter - scale factor %1").arg(unit_conversion_scale_factor_)));
+//  Q_EMIT(sendLogInfo(QString("Convert to meter - scale factor %1").arg(unit_conversion_scale_factor_)));
 
   // if collision objects exists, rebuild
   if(0 != ptr_wire_frame_collision_objects_->sizeOfCollisionObjectsList())
@@ -199,6 +202,15 @@ void FrameFabRenderWidget::setRefPoint(double ref_pt_x, double ref_pt_y, double 
     Q_EMIT(sendLogInfo(QString("Model rebuilt for update on Ref Point.")));
     this->constructCollisionObjects();
   }
+}
+
+void FrameFabRenderWidget::setCartPlanningOffsetPoint(double move_x, double move_y, double move_z)
+{
+  Q_EMIT(sendLogInfo(QString("-----------ROBOT RELATIVE MOVE-----------")));
+
+  move_offset_x_ = move_x;
+  move_offset_y_ = move_y;
+  move_offset_z_ = move_z;
 }
 
 void FrameFabRenderWidget::constructCollisionObjects()

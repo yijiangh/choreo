@@ -29,6 +29,10 @@
 
 #include <framefab_planner.h>
 
+// framefab_mgs
+#include <framefab_msgs/AdvanceRobot.h>
+#include <framefab_msgs/TestDescartes.h>
+
 namespace framefab
 {
 
@@ -79,16 +83,14 @@ class FrameFabRenderWidget : public QWidget
   void advanceRobot();
   void testDescartes();
 
-  /**
-   *
-   * @brief sets value of slider
-   */
-  void setValue(int i);
-
   void setScaleFactor(QString unit_info);
   void setRefPoint(double ref_pt_x, double ref_pt_y, double ref_pt_z);
+  void setCartPlanningOffsetPoint(double move_x, double move_y, double move_z);
 
   void constructCollisionObjects();
+
+ private:
+  double scaleData(double l) { return l * (double)unit_conversion_scale_factor_; }
 
  private:
   //! Model constants
@@ -98,6 +100,10 @@ class FrameFabRenderWidget : public QWidget
   double ref_pt_x_;
   double ref_pt_y_;
   double ref_pt_z_;
+
+  double move_offset_x_;
+  double move_offset_y_;
+  double move_offset_z_;
 
   //! Model rendering constants
   std_msgs::ColorRGBA start_color_;

@@ -98,7 +98,12 @@ void FrameFabRvizPanel::createPushButtons()
           ptr_ff_render_widget_, SLOT(setRefPoint(double, double, double)));
 
   pushbutton_advance_robot_ = new QPushButton("Advance Robot");
-//  pushbutton_advance_robot_->setFixedWidth(140);
+  connect(pushbutton_advance_robot_, SIGNAL(clicked()), this, SLOT(getScaleFactor()));
+  connect(this, SIGNAL(sendScaleFactor(QString)), ptr_ff_render_widget_, SLOT(setScaleFactor(QString)));
+
+  connect(this, SIGNAL(sendCartPlanningOffsetPoint(double, double, double)),
+          ptr_ff_render_widget_, SLOT(setCartPlanningOffsetPoint(double, double, double)));
+
   connect(pushbutton_advance_robot_, SIGNAL(clicked()), this, SLOT(advanceRobotButtonHandler()));
 
   pushbutton_test_descartes_ = new QPushButton("Test Descartes");
@@ -235,6 +240,11 @@ void FrameFabRvizPanel::enablePanelHandler(bool status)
 void FrameFabRvizPanel::advanceRobotButtonHandler()
 {
   // Start advance robot in another thread
+  Q_EMIT(sendCartPlanningOffsetPoint(
+      spinbox_cart_planning_offset_x_->value(),
+      spinbox_cart_planning_offset_y_->value(),
+      spinbox_cart_planning_offset_z_->value()));
+
   QFuture<void> future = QtConcurrent::run(this, &FrameFabRvizPanel::advanceRobot);
 }
 

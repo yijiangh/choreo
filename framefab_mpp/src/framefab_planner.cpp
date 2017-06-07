@@ -72,7 +72,7 @@ bool FrameFabPlanner::testCartPlanning(
 
   // TODO: make the x, y, z into service
   // Apply the offset on the given axis of the current pose
-   current_pose.translate(Eigen::Vector3d(0.05 , 0, 0));
+   current_pose.translate(Eigen::Vector3d(req.offset_x , req.offset_y, req.offset_z));
 
   // Try to move to new pose
   std::vector<geometry_msgs::Pose> way_points_msg(1);

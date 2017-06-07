@@ -78,6 +78,8 @@ class FrameFabRvizPanel: public rviz::Panel
   void sendRefPoint(double, double, double);
   void updateRefPoint(double, double, double);
 
+  void sendCartPlanningOffsetPoint(double, double, double);
+
   void enablePanel(bool);
 
  public Q_SLOTS:
@@ -96,7 +98,6 @@ class FrameFabRvizPanel: public rviz::Panel
   void testDescartesButtonHandler();
 
  protected:
-  // TODO: replace raw pointers with shared_ptr
 
   //! Qt TextEdit - Point display
   QTextEdit* textedit_log_;
