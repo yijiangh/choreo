@@ -1,4 +1,7 @@
 bool is_advance
+float32 offset_x
+float32 offset_y
+float32 offset_z
 
 ---
 

@@ -106,6 +106,9 @@ class FrameFabRvizPanel: public rviz::Panel
   QLabel* label_offset_x_;
   QLabel* label_offset_y_;
   QLabel* label_offset_z_;
+  QLabel* label_cart_planning_offset_x_;
+  QLabel* label_cart_planning_offset_y_;
+  QLabel* label_cart_planning_offset_z_;
 
   //! Qt Pushbuttons
   QPushButton* pushbutton_readfile_;
@@ -118,6 +121,9 @@ class FrameFabRvizPanel: public rviz::Panel
   QDoubleSpinBox* spinbox_offset_x_;
   QDoubleSpinBox* spinbox_offset_y_;
   QDoubleSpinBox* spinbox_offset_z_;
+  QDoubleSpinBox* spinbox_cart_planning_offset_x_;
+  QDoubleSpinBox* spinbox_cart_planning_offset_y_;
+  QDoubleSpinBox* spinbox_cart_planning_offset_z_;
 
   //! Qt ComboBox
   QComboBox* combobox_scale_;
@@ -127,6 +133,7 @@ class FrameFabRvizPanel: public rviz::Panel
 
   //! Qt Groupboxes
   QGroupBox* groupbox_model_param_;
+  QGroupBox* groupbox_cart_planning_offset_param_;
 
   //! FrameFab widget - function level
   FrameFabRenderWidget* ptr_ff_render_widget_;
