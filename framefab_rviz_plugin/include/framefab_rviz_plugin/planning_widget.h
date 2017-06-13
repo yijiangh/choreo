@@ -2,38 +2,24 @@
 // Created by yijiangh on 4/13/17.
 //
 
-#ifndef FRAMEFABRENDERWIDGET_H
-#define FRAMEFABRENDERWIDGET_H
+#ifndef PLANNING_WIDGET_H
+#define PLANNING_WIDGET_H
 
 // Qt
 #include <QObject>
 #include <QWidget>
-#include <QSlider>
 #include <QString>
 
 // ROS
 #include <ros/ros.h>
-#include <std_msgs/ColorRGBA.h>
 
-// MoveIt
-#include <moveit/robot_model_loader/robot_model_loader.h>
-#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-#include <moveit/move_group_interface/move_group.h>
-#include <moveit/planning_scene_interface/planning_scene_interface.h>
-#include <moveit_msgs/CollisionObject.h>
+#include <actionlib/client/simple_action_client.h>
+//#include <framefab_msgs/PathPlanningParameters.h>
+#include <framefab_msgs/ProcessPlanningAction.h>
 
-// framefab - wireframe
-#include <wire_frame/Vec.h>
-#include <wire_frame/wire_frame_line_graph.h>
-#include <wire_frame/wire_frame_collision_objects.h>
+const static std::string PROCESS_PLANNING_ACTION_SERVER_NAME = "process_planning_as";
 
-#include <framefab_planner.h>
-
-// framefab_mgs
-#include <framefab_msgs/AdvanceRobot.h>
-#include <framefab_msgs/TestDescartes.h>
-
-namespace framefab
+namespace framefab_rviz_plugin
 {
 
 // TODO: this class should be an interface class, share the function of
@@ -134,4 +120,4 @@ class FrameFabRenderWidget : public QWidget
 };
 }/* namespace */
 
-#endif //FRAMEFABRENDERWIDGET_H
+#endif //PLANNING_WIDGET_H

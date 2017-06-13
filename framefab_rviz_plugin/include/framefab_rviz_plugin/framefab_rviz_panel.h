@@ -27,9 +27,9 @@
 #include <ros/ros.h>
 
 // framefab
-#include <framefab_render_widget.h>
+#include "planning_widget.h"
 
-namespace framefab
+namespace framefab_rviz_plugin
 {
 
 //! @class FrameFabRvizPanel

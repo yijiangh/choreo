@@ -3,7 +3,7 @@
           type="framefab::FrameFabRvizPanel"
           base_class_type="rviz::Panel">
     <description>
-			The panel for opening sequence files
+			A panel widget that can be used in an rviz instance for surface blending path generation
     </description>
   </class>
 </library>
