@@ -33,8 +33,8 @@ set(framefab_rviz_plugin_SRCS
 )
 
 set(framefab_rviz_plugin_HDRS
-  include/framefab_rviz_plugin/blending_panel.h
-  include/framefab_rviz_plugin/blending_widget.h
+	include/framefab_gui/blending_panel.h
+	include/framefab_gui/blending_widget.h
 )
 
 set(framefab_rviz_plugin_UIS
