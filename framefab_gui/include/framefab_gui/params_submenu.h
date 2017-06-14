@@ -41,12 +41,12 @@ class ParamsSubmenu : public QWidget
 
  private:
   // Display layout
-  Ui::ParamsSubmenu* ui_;
+//  Ui::ParamsSubmenu* ui_;
   // Configuration components
-  RobotScanConfigWidget* robot_scan_;
-  SurfaceDetectionConfigWidget* surface_detection_;
-  PathPlanningConfigWidget* path_planning_params_;
-  ScanPlanConfigWidget* scan_params_;
+//  RobotScanConfigWidget* robot_scan_;
+//  SurfaceDetectionConfigWidget* surface_detection_;
+//  PathPlanningConfigWidget* path_planning_params_;
+//  ScanPlanConfigWidget* scan_params_;
 };
 
 } // end namespace framefab_gui

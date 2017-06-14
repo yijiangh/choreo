@@ -1,7 +1,7 @@
 #ifndef FRAMEFAB_PANEL_H
 #define FRAMEFAB_PANEL_H
 
-#include "rviz/panel.h"
+#include <rviz/panel.h>
 
 namespace framefab_gui
 {
@@ -20,7 +20,7 @@ class FrameFabPanel : public rviz::Panel
   virtual void onInitialize();
 
  protected:
-  FrameFabWidget* framefab_widget_;
+  FrameFabWidget* widget_;
 };
 }
 

@@ -1,22 +1,20 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(framefab_rviz_plugin)
+project(framefab_gui)
 
 add_definitions(-std=c++11)
 
 find_package(catkin REQUIRED COMPONENTS
-  framefab_msgs
-  roscpp
-  rviz
-)
+	framefab_msgs
+	roscpp
+	rviz
+	)
 
-find_package(Qt5Widgets REQUIRED)
-find_package(Qt5Core REQUIRED)
-find_package(Qt5Gui REQUIRED)
-
-add_definitions(-DQT_NO_KEYWORDS)
+message(STATUS "Using Qt4 based on the rviz_QT_VERSION: ${rviz_QT_VERSION}")
+find_package(Qt4 ${rviz_QT_VERSION} EXACT REQUIRED QtCore QtGui)
+include(${QT_USE_FILE})
 
 catkin_package(
-  CATKIN_DEPENDS framefab_msgs roscpp rviz
+	CATKIN_DEPENDS framefab_msgs roscpp rviz
 )
 
 ###########
@@ -26,48 +24,54 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 
-set(framefab_rviz_plugin_SRCS
-# core
- src/blending_panel.cpp
- src/blending_widget.cpp
-)
+set(framefab_gui_SRCS
+	# core
+	src/framefab_panel.cpp
+	src/framefab_widget.cpp
+	# state
+	src/states/model_input_state.cpp
+	)
 
-set(framefab_rviz_plugin_HDRS
-	include/framefab_gui/blending_panel.h
-	include/framefab_gui/blending_widget.h
-)
+set(framefab_gui_HDRS
+	include/framefab_gui/framefab_panel.h
+	include/framefab_gui/framefab_widget.h
+	#states
+	include/framefab_gui/gui_state.h
+	include/framefab_gui/states/model_input_state.h
+	#params
+	#	include/framefab_gui/params_submenu.h
+	)
 
-set(framefab_rviz_plugin_UIS
- src/uis/blending_widget.ui
-)
+set(framefab_gui_UIS
+	src/uis/framefab_widget.ui
+	)
 
-set(framefab_rviz_plugin_INCLUDE_DIRECTORIES
-  include
-  ${CMAKE_CURRENT_BINARY_DIR}
-)
+set(framefab_gui_INCLUDE_DIRECTORIES
+	include
+	${CMAKE_CURRENT_BINARY_DIR}
+	)
 
 add_definitions(-DQT_NO_KEYWORDS)
-qt5_wrap_cpp(framefab_rviz_plugin_MOCS ${framefab_rviz_plugin_HDRS})
-qt5_wrap_ui(framefab_rviz_plugin_UIS_H ${framefab_rviz_plugin_UIS})
+qt4_wrap_cpp(framefab_gui_MOCS ${framefab_gui_HDRS})
+qt4_wrap_ui(framefab_gui_UIS_H ${framefab_gui_UIS})
 
 include_directories(include)
 include_directories(
-  ${catkin_INCLUDE_DIRS}
-  ${framefab_rviz_plugin_INCLUDE_DIRECTORIES}
+	${catkin_INCLUDE_DIRS}
+	${framefab_gui_INCLUDE_DIRECTORIES}
 )
 
 ## Declare a cpp library
 add_library(${PROJECT_NAME}
-  ${framefab_rviz_plugin_UIS_H}
-  ${framefab_rviz_plugin_MOCS}
-  ${framefab_rviz_plugin_SRCS}
-)
+	${framefab_gui_UIS_H}
+	${framefab_gui_MOCS}
+	${framefab_gui_SRCS}
+	)
 
-target_link_libraries(${PROJECT_NAME} 
-                      ${catkin_LIBRARIES}
-                      Qt5::Widgets
-                      Qt5::Gui 
-                      )
+target_link_libraries(${PROJECT_NAME}
+	${catkin_LIBRARIES}
+	${QT_LIBRARIES} ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY}
+	)
 
 add_dependencies(${PROJECT_NAME} framefab_msgs_generate_messages_cpp)
 
@@ -76,10 +80,10 @@ class_loader_hide_library_symbols(${PROJECT_NAME})
 
 # Install
 install(TARGETS ${PROJECT_NAME}
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION})
+	ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+	LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+	RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION})
 
 install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-)
+	DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+	)

@@ -11,7 +11,7 @@ framefab_gui::FrameFabPanel::FrameFabPanel(QWidget* parent) : rviz::Panel(parent
 
   QVBoxLayout* layout = new QVBoxLayout(this);
   widget_ = new FrameFabWidget();
-  layout->addWidget(framefab_widget_);
+  layout->addWidget(widget_);
   setLayout(layout);
 }
 

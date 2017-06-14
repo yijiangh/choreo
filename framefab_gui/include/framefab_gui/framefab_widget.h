@@ -4,13 +4,13 @@
 #include <QWidget>
 
 #include <ros/ros.h>
-#include "actionlib/client/simple_action_client.h"
+#include <actionlib/client/simple_action_client.h>
 
-#include "framefab_gui/gui_state.h"
-#include "framefab_gui/options_submenu.h"
+#include <framefab_gui/gui_state.h>
+//#include "framefab_gui/options_submenu.h"
 
-//#include "framefab_msgs/SelectMotionPlanAction.h"
-//#include "framefab_msgs/SelectMotionPlanActionGoal.h"
+#include "framefab_msgs/SimulateMotionPlanAction.h"
+#include "framefab_msgs/SimulateMotionPlanActionGoal.h"
 
 namespace Ui
 {
@@ -40,8 +40,8 @@ class FrameFabWidget : public QWidget
   void setButtonsEnabled(bool enabled);
   void showStatusWindow();
   void setLabelText(const std::string& txt);
-  void sendGoal(const godel_msgs::SelectMotionPlanActionGoal& goal);
-  void sendGoalAndWait(const godel_msgs::SelectMotionPlanActionGoal& goal);
+  void sendGoal(const framefab_msgs::SimulateMotionPlanActionGoal& goal);
+  void sendGoalAndWait(const framefab_msgs::SimulateMotionPlanActionGoal& goal);
 
   ros::NodeHandle& nodeHandle() { return nh_; }
 
@@ -54,7 +54,7 @@ class FrameFabWidget : public QWidget
   void onBackButton();
   void onResetButton();
 
-  void onOptionsSave();
+  void onParamsSave();
 
   // State Change
   void changeState(GuiState* new_state);
@@ -62,15 +62,17 @@ class FrameFabWidget : public QWidget
  protected:
   // UI
   Ui::FrameFabWidget* ui_;
-  ParamsSubmenu* params_;
+//  ParamsSubmenu* params_;
 
   // ROS specific stuff
   ros::NodeHandle nh_;
 
   // Current state
   GuiState* active_state_;
+
+  // Params Save
   ros::ServiceClient surface_framefab_parameters_client_;
-//  actionlib::SimpleActionClient<framefab_msgs::SimulateMotionPlanAction> simulate_motion_plan_action_client_;
+  actionlib::SimpleActionClient<framefab_msgs::SimulateMotionPlanAction> simulate_motion_plan_action_client_;
 };
 }
 
