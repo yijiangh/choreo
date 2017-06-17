@@ -30,6 +30,7 @@ set(framefab_gui_SRCS
 	src/framefab_widget.cpp
 	# state
 	src/states/model_input_state.cpp
+	src/states/system_init_state.cpp
 	)
 
 set(framefab_gui_HDRS
@@ -38,6 +39,7 @@ set(framefab_gui_HDRS
 	#states
 	include/framefab_gui/gui_state.h
 	include/framefab_gui/states/model_input_state.h
+	include/framefab_gui/states/system_init_state.h
 	#params
 	#	include/framefab_gui/params_submenu.h
 	)

@@ -6,8 +6,7 @@
 
 void framefab_gui::ModelInputState::onStart(FrameFabWidget& gui)
 {
-  gui.setText("System Ready for Input model. Click 'Next' to continue.");
-  gui.showStatusWindow();
+  gui.setText("Input model. Click 'Next' to continue after finished.");
 }
 
 void framefab_gui::ModelInputState::onExit(FrameFabWidget& gui) {}

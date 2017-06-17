@@ -3,7 +3,7 @@
 //#include "framefab_msgs/SurfaceBlendingParameters.h"
 
 #include <framefab_gui/framefab_widget.h>
-#include <framefab_gui/states/model_input_state.h>
+#include <framefab_gui/states/system_init_state.h>
 
 #include <ui_framefab_widget.h>
 
@@ -22,7 +22,7 @@ framefab_gui::FrameFabWidget::FrameFabWidget(QWidget* parent)
 //  params_ = new ParamsSubmenu();
 
   // Starts in scan teach state
-//  changeState(new ModelInputState());
+  changeState(new SystemInitState());
 
   // Wire in buttons
   connect(ui_->pushButtonNext, SIGNAL(clicked()), this, SLOT(onNextButton()));
@@ -41,7 +41,7 @@ framefab_gui::FrameFabWidget::FrameFabWidget(QWidget* parent)
 
 framefab_gui::FrameFabWidget::~FrameFabWidget()
 {
-//  delete active_state_;
+  delete active_state_;
 }
 
 void framefab_gui::FrameFabWidget::setText(const std::string& txt)
@@ -58,17 +58,17 @@ void framefab_gui::FrameFabWidget::appendText(const std::string& txt)
 
 void framefab_gui::FrameFabWidget::onNextButton()
 {
-  //active_state_->onNext(*this);
+  active_state_->onNext(*this);
 }
 
 void framefab_gui::FrameFabWidget::onBackButton()
 {
-//  active_state_->onBack(*this);
+  active_state_->onBack(*this);
 }
 
 void framefab_gui::FrameFabWidget::onResetButton()
 {
-//  active_state_->onReset(*this);
+  active_state_->onReset(*this);
 }
 
 //void framefab_gui::FrameFabWidget::onOptionsSave()
@@ -88,19 +88,19 @@ void framefab_gui::FrameFabWidget::onResetButton()
 void framefab_gui::FrameFabWidget::changeState(GuiState* new_state)
 {
   // Don't transition to a null new state
-//  if (!new_state)
-//    return;
-//
-//  if (active_state_)
-//  {
-//    active_state_->onExit(*this);
-//    delete active_state_;
-//  }
-//
-//  active_state_ = new_state;
-//  connect(new_state, SIGNAL(newStateAvailable(GuiState*)), this, SLOT(changeState(GuiState*)));
-//
-//  new_state->onStart(*this);
+  if (!new_state)
+    return;
+
+  if (active_state_)
+  {
+    active_state_->onExit(*this);
+    delete active_state_;
+  }
+
+  active_state_ = new_state;
+  connect(new_state, SIGNAL(newStateAvailable(GuiState*)), this, SLOT(changeState(GuiState*)));
+
+  new_state->onStart(*this);
 }
 
 void framefab_gui::FrameFabWidget::setButtonsEnabled(bool enabled)
