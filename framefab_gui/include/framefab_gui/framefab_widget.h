@@ -7,7 +7,7 @@
 #include <actionlib/client/simple_action_client.h>
 
 #include <framefab_gui/gui_state.h>
-//#include "framefab_gui/options_submenu.h"
+#include "framefab_gui/params_submenu.h"
 
 #include "framefab_msgs/SimulateMotionPlanAction.h"
 #include "framefab_msgs/SimulateMotionPlanActionGoal.h"
@@ -53,6 +53,7 @@ class FrameFabWidget : public QWidget
   void onNextButton();
   void onBackButton();
   void onResetButton();
+  void onParamsButton();
 
   void onParamsSave();
 
@@ -62,7 +63,7 @@ class FrameFabWidget : public QWidget
  protected:
   // UI
   Ui::FrameFabWidget* ui_;
-//  ParamsSubmenu* params_;
+  ParamsSubmenu* params_;
 
   // ROS specific stuff
   ros::NodeHandle nh_;

@@ -31,6 +31,10 @@ set(framefab_gui_SRCS
 	# state
 	src/states/model_input_state.cpp
 	src/states/system_init_state.cpp
+	# params
+	src/params_submenu.cpp
+	src/parameter_window_base.cpp
+	src/params/model_input_config_widget.cpp
 	)
 
 set(framefab_gui_HDRS
@@ -41,11 +45,15 @@ set(framefab_gui_HDRS
 	include/framefab_gui/states/model_input_state.h
 	include/framefab_gui/states/system_init_state.h
 	#params
-	#	include/framefab_gui/params_submenu.h
+	include/framefab_gui/params_submenu.h
+	include/framefab_gui/parameter_window_base.h
+	include/framefab_gui/params/model_input_config_widget.h
 	)
 
 set(framefab_gui_UIS
 	src/uis/framefab_widget.ui
+	src/uis/params_submenu.ui
+	src/uis/model_input_config.ui
 	)
 
 set(framefab_gui_INCLUDE_DIRECTORIES

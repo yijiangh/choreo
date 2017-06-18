@@ -3,10 +3,10 @@
 
 #include <QWidget>
 
-#include "framefab_gui/options/robot_scan_configuration.h"
-#include "framefab_gui/options/surface_detection_configuration.h"
-#include "framefab_gui/options/scan_tool_configuration.h"
-#include "framefab_gui/options/path_planning_configuration.h"
+#include "framefab_gui/params/model_input_config_widget.h"
+//#include "framefab_gui/options/test_process_config.h"
+//#include "framefab_gui/options/scan_tool_configuration.h"
+//#include "framefab_gui/options/path_planning_configuration.h"
 
 namespace Ui
 {
@@ -24,27 +24,25 @@ class ParamsSubmenu : public QWidget
   ParamsSubmenu(QWidget* parent = 0);
 
   // For every submenu / set of parameters, we have getters/setters
-  const godel_msgs::RobotScanParameters& robotScanParams() const;
-  void setRobotScanParams(const godel_msgs::RobotScanParameters& params);
+  const framefab_msgs::ModelInputParameters& ModelInputParams() const;
+  void  setModelInputParams(const framefab_msgs::ModelInputParameters& params);
 
-  const godel_msgs::SurfaceDetectionParameters& surfaceDetectionParams() const;
-  void setSurfaceDetectionParams(const godel_msgs::SurfaceDetectionParameters& params);
+//  const framefab_msgs::TestProcessParameters& TestProcessParams() const;
+//  void setTestProcessParams(const framefab_msgs::TestProcessParameters& params);
 
-  const godel_msgs::PathPlanningParameters& pathPlanningParams() const;
-  void setPathPlanningParams(const godel_msgs::PathPlanningParameters& params);
-
-  const godel_msgs::ScanPlanParameters& scanParams() const;
-  void setScanParams(const godel_msgs::ScanPlanParameters& params);
+//  const framefab_msgs::PathPlanningParameters& pathPlanningParams() const;
+//  void setPathPlanningParams(const framefab_msgs::PathPlanningParameters& params);
 
   Q_SIGNALS:
   void saveRequested();
 
  private:
   // Display layout
-//  Ui::ParamsSubmenu* ui_;
+  Ui::ParamsSubmenu* ui_;
+
   // Configuration components
-//  RobotScanConfigWidget* robot_scan_;
-//  SurfaceDetectionConfigWidget* surface_detection_;
+  ModelInputConfigWidget*   model_input_widget_;
+//  TestProcessConfigWidget*  test_process_widget_;
 //  PathPlanningConfigWidget* path_planning_params_;
 //  ScanPlanConfigWidget* scan_params_;
 };

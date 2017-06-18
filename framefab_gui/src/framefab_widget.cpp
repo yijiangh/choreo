@@ -19,15 +19,17 @@ framefab_gui::FrameFabWidget::FrameFabWidget(QWidget* parent)
   ui_ = new Ui::FrameFabWidget;
   ui_->setupUi(this);
 
-//  params_ = new ParamsSubmenu();
+  params_ = new ParamsSubmenu();
+  params_->hide();
 
   // Starts in scan teach state
   changeState(new SystemInitState());
 
   // Wire in buttons
-  connect(ui_->pushButtonNext, SIGNAL(clicked()), this, SLOT(onNextButton()));
-  connect(ui_->pushButtonBack, SIGNAL(clicked()), this, SLOT(onBackButton()));
-  connect(ui_->pushButtonReset, SIGNAL(clicked()), this, SLOT(onResetButton()));
+  connect(ui_->pushbutton_next, SIGNAL(clicked()), this, SLOT(onNextButton()));
+  connect(ui_->pushbutton_back, SIGNAL(clicked()), this, SLOT(onBackButton()));
+  connect(ui_->pushbutton_reset, SIGNAL(clicked()), this, SLOT(onResetButton()));
+  connect(ui_->pushbutton_params, SIGNAL(clicked()), this, SLOT(onParamsButton()));
 
   // Connect to ROS services
   loadParameters();
@@ -42,18 +44,19 @@ framefab_gui::FrameFabWidget::FrameFabWidget(QWidget* parent)
 framefab_gui::FrameFabWidget::~FrameFabWidget()
 {
   delete active_state_;
+  delete params_;
 }
 
 void framefab_gui::FrameFabWidget::setText(const std::string& txt)
 {
-  ui_->textEditStatus->setPlainText(QString::fromStdString(txt));
+  ui_->textedit_status->setPlainText(QString::fromStdString(txt));
 }
 
 void framefab_gui::FrameFabWidget::appendText(const std::string& txt)
 {
-  ui_->textEditStatus->moveCursor(QTextCursor::End);
-  ui_->textEditStatus->insertPlainText(QString::fromStdString(txt));
-  ui_->textEditStatus->moveCursor(QTextCursor::End);
+  ui_->textedit_status->moveCursor(QTextCursor::End);
+  ui_->textedit_status->insertPlainText(QString::fromStdString(txt));
+  ui_->textedit_status->moveCursor(QTextCursor::End);
 }
 
 void framefab_gui::FrameFabWidget::onNextButton()
@@ -69,6 +72,11 @@ void framefab_gui::FrameFabWidget::onBackButton()
 void framefab_gui::FrameFabWidget::onResetButton()
 {
   active_state_->onReset(*this);
+}
+
+void framefab_gui::FrameFabWidget::onParamsButton()
+{
+  params_->show();
 }
 
 //void framefab_gui::FrameFabWidget::onOptionsSave()
@@ -105,9 +113,10 @@ void framefab_gui::FrameFabWidget::changeState(GuiState* new_state)
 
 void framefab_gui::FrameFabWidget::setButtonsEnabled(bool enabled)
 {
-  ui_->pushButtonNext->setEnabled(enabled);
-  ui_->pushButtonBack->setEnabled(enabled);
-  ui_->pushButtonReset->setEnabled(enabled);
+  ui_->pushbutton_next->setEnabled(enabled);
+  ui_->pushbutton_back->setEnabled(enabled);
+  ui_->pushbutton_reset->setEnabled(enabled);
+  ui_->pushbutton_params->setEnabled(enabled);
 }
 
 void framefab_gui::FrameFabWidget::loadParameters()
@@ -137,7 +146,7 @@ void framefab_gui::FrameFabWidget::loadParameters()
 
 void framefab_gui::FrameFabWidget::setLabelText(const std::string& txt)
 {
-  ui_->statusLabel->setText( QString::fromStdString(txt));
+  ui_->label_status->setText( QString::fromStdString(txt));
 }
 
 void framefab_gui::FrameFabWidget::sendGoal(const framefab_msgs::SimulateMotionPlanActionGoal& goal)

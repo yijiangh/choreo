@@ -1,76 +1,76 @@
-#include "framefab_gui/params_submenu.h"
+#include <framefab_gui/params_submenu.h>
 
-//#include "ui_options_select_menu.h"
+#include <ui_params_submenu.h>
 
-//#include "godel_simple_gui/options/robot_scan_configuration.h"
+//#include "framefab_gui/options/robot_scan_configuration.h"
 
-godel_simple_gui::OptionsSubmenu::OptionsSubmenu(QWidget* parent) : QWidget(parent)
+framefab_gui::ParamsSubmenu::ParamsSubmenu(QWidget* parent) : QWidget(parent)
 {
-//  ui_ = new Ui::OptionsSubmenu();
-//  ui_->setupUi(this);
-//  // Set up option menus
-//  //// Robot Scan
-//  robot_scan_ = new RobotScanConfigWidget(godel_msgs::RobotScanParameters());
-//  connect(ui_->pushButtonScanOptions, SIGNAL(clicked()), robot_scan_, SLOT(show()));
-//  //// Surface Detection
-//  surface_detection_ = new SurfaceDetectionConfigWidget(godel_msgs::SurfaceDetectionParameters());
-//  connect(ui_->pushButtonSurfaceOptions, SIGNAL(clicked()), surface_detection_, SLOT(show()));
-//  //// Path Planning
-//  path_planning_params_ = new PathPlanningConfigWidget(godel_msgs::PathPlanningParameters());
-//  connect(ui_->pushButtonPathPlanningOptions, SIGNAL(clicked()), path_planning_params_, SLOT(show()));
+  ui_ = new Ui::ParamsSubmenu();
+  ui_->setupUi(this);
+  // Set up option menus
+  //// Robot Scan
+  model_input_widget_ = new ModelInputConfigWidget(framefab_msgs::ModelInputParameters());
+  connect(ui_->pushbutton_model_input, SIGNAL(clicked()), model_input_widget_, SLOT(show()));
+  //// Surface Detection
+  test_process_widget_ = new TestProcessConfigWidget(framefab_msgs::TestProcessParameters());
+  connect(ui_->pushbutton_test_process, SIGNAL(clicked()), test_process_widget_, SLOT(show()));
+  // Path Planning
+//  path_planning_params_ = new PathPlanningConfigWidget(framefab_msgs::PathPlanningParameters());
+//  connect(ui_->pushButtonPathPlanningParams, SIGNAL(clicked()), path_planning_params_, SLOT(show()));
 //  //// Scan (QA) params
-//  scan_params_ = new ScanPlanConfigWidget(godel_msgs::ScanPlanParameters());
-//  connect(ui_->pushButtonQAOptions, SIGNAL(clicked()), scan_params_, SLOT(show()));
+//  scan_params_ = new ScanPlanConfigWidget(framefab_msgs::ScanPlanParameters());
+//  connect(ui_->pushButtonQAParams, SIGNAL(clicked()), scan_params_, SLOT(show()));
 //
-//  connect(robot_scan_, SIGNAL(parameters_save_requested()), this, SIGNAL(saveRequested()));
-//  connect(surface_detection_, SIGNAL(parameters_save_requested()), this, SIGNAL(saveRequested()));
+  connect(model_input_widget_, SIGNAL(parameters_save_requested()), this, SIGNAL(saveRequested()));
+  //connect(test_process_widget_, SIGNAL(parameters_save_requested()), this, SIGNAL(saveRequested()));
 //  connect(path_planning_params_, SIGNAL(parameters_save_requested()), this, SIGNAL(saveRequested()));
 //  connect(scan_params_, SIGNAL(parameters_save_requested()), this, SIGNAL(saveRequested()));
 }
 
-const godel_msgs::RobotScanParameters& godel_simple_gui::OptionsSubmenu::robotScanParams() const
+const framefab_msgs::ModelInputParameters& framefab_gui::ParamsSubmenu::ModelInputParams() const
 {
-  return robot_scan_->params();
+  return model_input_widget_->params();
 }
 
-void godel_simple_gui::OptionsSubmenu::setRobotScanParams(
-    const godel_msgs::RobotScanParameters& params)
+void framefab_gui::ParamsSubmenu::setModelInputParams(
+    const framefab_msgs::ModelInputParameters& params)
 {
-  robot_scan_->params() = params;
-  robot_scan_->update_display_fields();
+  model_input_widget_->params() = params;
+  model_input_widget_->update_display_fields();
 }
 
-const godel_msgs::SurfaceDetectionParameters&
-godel_simple_gui::OptionsSubmenu::surfaceDetectionParams() const
-{
-  return surface_detection_->params();
-}
+//const framefab_msgs::TestProcessParameters&
+//framefab_gui::ParamsSubmenu::TestProcessParams() const
+//{
+//  return test_process_widget_->params();
+//}
+//
+//void framefab_gui::ParamsSubmenu::setTestProcessParams(
+//    const framefab_msgs::TestProcessParameters& params)
+//{
+////  test_process_->params() = params;
+////  test_process_->update_display_fields();
+//}
 
-void godel_simple_gui::OptionsSubmenu::setSurfaceDetectionParams(
-    const godel_msgs::SurfaceDetectionParameters& params)
-{
-  surface_detection_->params() = params;
-  surface_detection_->update_display_fields();
-}
+//const framefab_msgs::PathPlanningParameters& framefab_gui::ParamsSubmenu::pathPlanningParams() const
+//{
+//  return path_planning_params_->params();
+//}
 
-const godel_msgs::PathPlanningParameters& godel_simple_gui::OptionsSubmenu::pathPlanningParams() const
-{
-  return path_planning_params_->params();
-}
+//void framefab_gui::ParamsSubmenu::setPathPlanningParams(const framefab_msgs::PathPlanningParameters& params)
+//{
+//  path_planning_params_->params() = params;
+//  path_planning_params_->update_display_fields();
+//}
 
-void godel_simple_gui::OptionsSubmenu::setPathPlanningParams(const godel_msgs::PathPlanningParameters& params)
-{
-  path_planning_params_->params() = params;
-  path_planning_params_->update_display_fields();
-}
-
-const godel_msgs::ScanPlanParameters& godel_simple_gui::OptionsSubmenu::scanParams() const
-{
-  return scan_params_->params();
-}
-
-void godel_simple_gui::OptionsSubmenu::setScanParams(const godel_msgs::ScanPlanParameters& params)
-{
-  scan_params_->params() = params;
-  scan_params_->update_display_fields();
-}
+//const framefab_msgs::ScanPlanParameters& framefab_gui::ParamsSubmenu::scanParams() const
+//{
+//  return scan_params_->params();
+//}
+//
+//void framefab_gui::ParamsSubmenu::setScanParams(const framefab_msgs::ScanPlanParameters& params)
+//{
+//  scan_params_->params() = params;
+//  scan_params_->update_display_fields();
+//}

@@ -29,7 +29,12 @@ add_action_files(
 
 ## Generate messages in the 'msg' folder
 
-#add_message_files(DIRECTORY msg FILES ${MSG_FILES})
+add_message_files(
+		DIRECTORY 
+		msg 
+		FILES 
+		ModelInputParameters.msg
+)
 
 ## Generate services in the 'srv' folder
 add_service_files(
