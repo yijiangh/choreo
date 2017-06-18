@@ -24,7 +24,7 @@
    </property>
    <layout class="QGridLayout" name="gridLayout">
     <item row="2" column="2">
-     <widget class="QLineEdit" name="lineedit_ref_pt_y_2"/>
+     <widget class="QLineEdit" name="lineedit_start_pt_z"/>
     </item>
     <item row="3" column="0">
      <widget class="QLabel" name="labelOverlap_4">
@@ -34,7 +34,7 @@
      </widget>
     </item>
     <item row="0" column="2">
-     <widget class="QLineEdit" name="lineedit_ref_pt_x"/>
+     <widget class="QLineEdit" name="lineedit_start_pt_x"/>
     </item>
     <item row="0" column="0">
      <widget class="QLabel" name="labelScanWidth_2">
@@ -58,7 +58,7 @@
      </widget>
     </item>
     <item row="1" column="2">
-     <widget class="QLineEdit" name="lineedit_ref_pt_y"/>
+     <widget class="QLineEdit" name="lineedit_start_pt_y"/>
     </item>
     <item row="1" column="0">
      <widget class="QLabel" name="labelOverlap_2">
@@ -68,7 +68,7 @@
      </widget>
     </item>
     <item row="3" column="2">
-     <widget class="QLineEdit" name="lineedit_ref_pt_y_3"/>
+     <widget class="QLineEdit" name="lineedit_end_pt_x"/>
     </item>
     <item row="5" column="0">
      <widget class="QLabel" name="labelOverlap_6">
@@ -78,10 +78,10 @@
      </widget>
     </item>
     <item row="4" column="2">
-     <widget class="QLineEdit" name="lineedit_ref_pt_y_4"/>
+     <widget class="QLineEdit" name="lineedit_end_pt_y"/>
     </item>
     <item row="5" column="2">
-     <widget class="QLineEdit" name="lineedit_ref_pt_y_5"/>
+     <widget class="QLineEdit" name="lineedit_end_pt_z"/>
     </item>
    </layout>
   </widget>

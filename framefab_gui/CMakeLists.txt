@@ -35,7 +35,8 @@ set(framefab_gui_SRCS
 	src/params_submenu.cpp
 	src/parameter_window_base.cpp
 	src/params/model_input_config_widget.cpp
-	)
+
+	include/framefab_gui/params/test_process_config_widget.h)
 
 set(framefab_gui_HDRS
 	include/framefab_gui/framefab_panel.h

@@ -12,8 +12,8 @@ bool wait_for_execution
 bool simulate
 
 # Process parameters
-# godel_msgs/BlendingPlanParameters blend_params
-# godel_msgs/ScanPlanParameters scan_params
+godel_msgs/BlendingPlanParameters blend_params
+godel_msgs/ScanPlanParameters scan_params
 
 ---
 # Result

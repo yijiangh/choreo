@@ -4,7 +4,7 @@
 #include <QWidget>
 
 #include "framefab_gui/params/model_input_config_widget.h"
-//#include "framefab_gui/options/test_process_config.h"
+#include "framefab_gui/options/test_process_config.h"
 //#include "framefab_gui/options/scan_tool_configuration.h"
 //#include "framefab_gui/options/path_planning_configuration.h"
 
