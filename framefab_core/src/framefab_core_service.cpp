@@ -88,70 +88,33 @@ bool SurfaceBlendingService::init()
   if (!this->load_blend_parameters(param_cache_prefix_ + BLEND_PARAMS_FILE))
     ROS_WARN("Unable to load blending process parameters.");
 
-  if (!this->load_scan_parameters(param_cache_prefix_ + SCAN_PARAMS_FILE))
-    ROS_WARN("Unable to load scan process parameters.");
-
-  if (!robot_scan_.load_parameters(param_cache_prefix_ + ROBOT_SCAN_PARAMS_FILE))
-    ROS_WARN("Unable to load robot macro scan parameters.");
-
-  if (!surface_detection_.load_parameters(param_cache_prefix_ + SURFACE_DETECTION_PARAMS_FILE))
-    ROS_WARN("Unable to load surface detection parameters.");
-
-  // load plugins for meshing and tool planning
-  if (!ph.hasParam(MESHING_PLUGIN_PARAM))
-  {
-    ROS_FATAL("SurfaceBlendinService::init(): Expected private parameter '%s' not found. Aborting",
-              MESHING_PLUGIN_PARAM.c_str());
-    return false;
-  }
-
-  if (!ph.hasParam(BLEND_TOOL_PLUGIN_PARAM))
-  {
-    ROS_FATAL("SurfaceBlendinService::init(): Expected private parameter '%s' not found. Aborting",
-              MESHING_PLUGIN_PARAM.c_str());
-    return false;
-  }
-
-  if (!ph.hasParam(SCAN_TOOL_PLUGIN_PARAM))
-  {
-    ROS_FATAL("SurfaceBlendinService::init(): Expected private parameter '%s' not found. Aborting",
-              SCAN_TOOL_PLUGIN_PARAM.c_str());
-    return false;
-  }
+  //TODO: make sure action (sequence) planning component is loaded
 
   // save default parameters
-  default_robot_scan_params__ = robot_scan_.params_;
   default_surf_detection_params_ = surface_detection_.params_;
   default_blending_plan_params_ = blending_plan_params_;
-  default_scan_params_ = scan_plan_params_;
 
-  if (surface_detection_.init() && robot_scan_.init() &&
-      surface_server_.init() && data_coordinator_.init())
-  {
-    // adding callbacks
-    scan::RobotScan::ScanCallback cb =
-        boost::bind(&detection::SurfaceDetection::add_cloud, &surface_detection_, _1);
-    robot_scan_.add_scan_callback(cb);
-    ROS_INFO_STREAM("Surface detection service initialization succeeded");
-  }
-  else
-  {
-    ROS_ERROR_STREAM("Surface detection service had an initialization error");
-  }
+//  if (surface_server_.init() && data_coordinator_.init())
+//  {
+//    // adding callbacks
+//    ROS_INFO_STREAM("Surface detection service initialization succeeded");
+//  }
+//  else
+//  {
+//    ROS_ERROR_STREAM("Surface detection service had an initialization error");
+//  }
 
   // start server
-  interactive::InteractiveSurfaceServer::SelectionCallback f =
-      boost::bind(&SurfaceBlendingService::publish_selected_surfaces_changed, this);
-  surface_server_.add_selection_callback(f);
+//  interactive::InteractiveSurfaceServer::SelectionCallback f =
+//      boost::bind(&SurfaceBlendingService::publish_selected_surfaces_changed, this);
+//  surface_server_.add_selection_callback(f);
 
   // service clients
   process_path_client_ = nh_.serviceClient<godel_msgs::PathPlanning>(PATH_GENERATION_SERVICE);
 
   // Process Execution Parameters
   blend_planning_client_ = nh_.serviceClient<godel_msgs::BlendProcessPlanning>(BLEND_PROCESS_PLANNING_SERVICE);
-  keyence_planning_client_ = nh_.serviceClient<godel_msgs::KeyenceProcessPlanning>(SCAN_PROCESS_PLANNING_SERVICE);
 
-  // service servers
   surf_blend_parameters_server_ =
       nh_.advertiseService(SURFACE_BLENDING_PARAMETERS_SERVICE,
                           &SurfaceBlendingService::surface_blend_parameters_server_callback, this);
@@ -278,274 +241,6 @@ bool SurfaceBlendingService::load_scan_parameters(const std::string& filename)
          loadParam(nh, "window_width", scan_plan_params_.window_width);
 }
 
-void SurfaceBlendingService::save_scan_parameters(const std::string& filename)
-{
-  if (!godel_param_helpers::toFile(filename, scan_plan_params_))
-  {
-    ROS_WARN_STREAM("Unable to save scan-plan parameters to: " << filename);
-  }
-}
-
-void SurfaceBlendingService::publish_selected_surfaces_changed()
-{
-  godel_msgs::SelectedSurfacesChanged msg;
-  msg.selected_surfaces.clear();
-  surface_server_.get_selected_list(msg.selected_surfaces);
-  selected_surf_changed_pub_.publish(msg);
-}
-
-bool SurfaceBlendingService::run_robot_scan(visualization_msgs::MarkerArray& surfaces)
-{
-  bool succeeded = true;
-
-  // publishing scan path preview
-  robot_scan_.publish_scan_poses(ROBOT_SCAN_PATH_PREVIEW_TOPIC);
-
-  // clear all results
-  surface_detection_.clear_results();
-
-  // saving parameters used
-  int scans_completed = robot_scan_.scan(false);
-  if (scans_completed > 0)
-  {
-    ensenso::EnsensoGuard guard;
-    succeeded = find_surfaces(surfaces);
-  }
-  else
-  {
-    succeeded = false;
-    ROS_ERROR_STREAM("Scan failed");
-  }
-  return succeeded;
-}
-
-bool SurfaceBlendingService::find_surfaces(visualization_msgs::MarkerArray& surfaces)
-{
-  bool succeeded = true;
-  if (surface_detection_.find_surfaces())
-  {
-    // clear current surfaces
-    surface_server_.remove_all_surfaces();
-
-    // adding meshes to server
-    std::vector<pcl::PolygonMesh> meshes;
-    std::vector<godel_surface_detection::detection::CloudRGB::Ptr> surface_clouds;
-    godel_surface_detection::detection::CloudRGB input_cloud;
-    godel_surface_detection::detection::CloudRGB process_cloud;
-    surface_detection_.get_meshes(meshes);
-    surface_detection_.get_full_cloud(input_cloud);
-    surface_detection_.get_surface_clouds(surface_clouds);
-    surface_detection_.get_process_cloud(process_cloud);
-    data_coordinator_.setProcessCloud(process_cloud);
-
-
-    // Meshes and Surface Clouds should be organized identically (e.g. Mesh0 corresponds to Surface0)
-    ROS_ASSERT(meshes.size() == surface_clouds.size());
-    for (std::size_t i = 0; i < meshes.size(); i++)
-    {
-      pcl::PolygonMesh surface_mesh = meshes[i];
-      int id = data_coordinator_.addRecord(input_cloud, *(surface_clouds[i]));
-      ROS_INFO_STREAM("Created record with id: " << id);
-      std::string name = surface_server_.add_surface(id, surface_mesh);
-      data_coordinator_.setSurfaceMesh(id, surface_mesh);
-      data_coordinator_.setSurfaceName(id, name);
-    }
-
-    // Save the Data Coordinator's Records
-    if(save_data_) data_coordinator_.asyncSaveRecord(save_location_);
-
-    // copying surface markers to output argument
-    visualization_msgs::MarkerArray markers_msg = surface_detection_.get_surface_markers();
-    surfaces.markers.insert(surfaces.markers.begin(), markers_msg.markers.begin(),
-                            markers_msg.markers.end());
-
-    // saving latest successful results
-    latest_surface_detection_results_.surface_detection = surface_detection_.params_;
-    latest_surface_detection_results_.surfaces_found = true;
-    latest_surface_detection_results_.surfaces = surfaces;
-    robot_scan_.get_latest_scan_poses(latest_surface_detection_results_.robot_scan_poses);
-
-    // saving region colored point cloud
-    region_cloud_msg_ = sensor_msgs::PointCloud2();
-    surface_detection_.get_region_colored_cloud(region_cloud_msg_);
-  }
-  else
-  {
-    succeeded = false;
-    region_cloud_msg_ = sensor_msgs::PointCloud2();
-  }
-
-  return succeeded;
-}
-
-void SurfaceBlendingService::clear_visualizations()
-{
-  // Remove line-strips
-  visualization_msgs::Marker marker;
-  visualization_msgs::MarkerArray marker_array;
-  marker.header.frame_id = "world_frame";
-  marker.header.stamp = ros::Time::now();
-  marker.action = marker.DELETEALL;
-  marker_array.markers.push_back(marker);
-  tool_path_markers_pub_.publish(marker_array);
-
-  // Remove poses
-  geometry_msgs::PoseArray empty_poses;
-  empty_poses.header.frame_id = "world_frame";
-  empty_poses.header.stamp = ros::Time::now();
-  edge_visualization_pub_.publish(empty_poses);
-  blend_visualization_pub_.publish(empty_poses);
-  scan_visualization_pub_.publish(empty_poses);
-}
-
-static bool isBlendPath(const std::string& s)
-{
-  const static std::string prefix = "_blend";
-  return s.find(prefix, s.size() - prefix.size()) != std::string::npos;
-}
-
-bool SurfaceBlendingService::surface_detection_server_callback(
-    godel_msgs::SurfaceDetection::Request& req, godel_msgs::SurfaceDetection::Response& res)
-{
-  switch (req.action)
-  {
-    case godel_msgs::SurfaceDetection::Request::INITIALIZE_SPACE:
-    {
-      SurfaceBlendingService::clear_visualizations();
-      data_coordinator_.init();
-      res.surfaces_found = false;
-      res.surfaces = visualization_msgs::MarkerArray();
-      break;
-    }
-
-    case godel_msgs::SurfaceDetection::Request::PUBLISH_SCAN_PATH:
-    {
-      if (req.use_default_parameters)
-      {
-        robot_scan_.params_ = default_robot_scan_params__;
-      }
-      else
-      {
-        robot_scan_.params_ = req.robot_scan;
-      }
-
-      robot_scan_.publish_scan_poses(ROBOT_SCAN_PATH_PREVIEW_TOPIC);
-      break;
-    }
-
-    case godel_msgs::SurfaceDetection::Request::SCAN_AND_FIND_ONLY:
-    {
-      res.surfaces_found = false;
-      res.surfaces = visualization_msgs::MarkerArray();
-      SurfaceBlendingService::clear_visualizations();
-      data_coordinator_.init();
-
-      if (req.use_default_parameters)
-      {
-        robot_scan_.params_ = default_robot_scan_params__;
-        surface_detection_.params_ = default_surf_detection_params_;
-      }
-      else
-      {
-        robot_scan_.params_ = req.robot_scan;
-        surface_detection_.params_ = req.surface_detection;
-      }
-
-      res.surfaces_found = run_robot_scan(res.surfaces);
-      res.surfaces.markers.clear();
-      break;
-    }
-
-    case godel_msgs::SurfaceDetection::Request::SCAN_FIND_AND_RETURN:
-    {
-      res.surfaces_found = false;
-      res.surfaces = visualization_msgs::MarkerArray();
-      SurfaceBlendingService::clear_visualizations();
-      data_coordinator_.init();
-
-      if (req.use_default_parameters)
-      {
-        robot_scan_.params_ = default_robot_scan_params__;
-        surface_detection_.params_ = default_surf_detection_params_;
-      }
-      else
-      {
-        robot_scan_.params_ = req.robot_scan;
-        surface_detection_.params_ = req.surface_detection;
-      }
-
-      res.surfaces_found = run_robot_scan(res.surfaces);
-      break;
-    }
-
-    case godel_msgs::SurfaceDetection::Request::FIND_ONLY:
-    {
-      res.surfaces_found = false;
-      res.surfaces = visualization_msgs::MarkerArray();
-      SurfaceBlendingService::clear_visualizations();
-      data_coordinator_.init();
-
-      if (req.use_default_parameters)
-      {
-        surface_detection_.params_ = default_surf_detection_params_;
-      }
-      else
-      {
-        surface_detection_.params_ = req.surface_detection;
-      }
-
-      res.surfaces_found = find_surfaces(res.surfaces);
-      res.surfaces.markers.clear();
-      break;
-    }
-
-    case godel_msgs::SurfaceDetection::Request::FIND_AND_RETURN:
-    {
-      res.surfaces_found = false;
-      res.surfaces = visualization_msgs::MarkerArray();
-      SurfaceBlendingService::clear_visualizations();
-      data_coordinator_.init();
-
-      if (req.use_default_parameters)
-      {
-        surface_detection_.params_ = default_surf_detection_params_;
-      }
-      else
-      {
-        surface_detection_.params_ = req.surface_detection;
-      }
-
-      res.surfaces_found = find_surfaces(res.surfaces);
-      break;
-    }
-
-    case godel_msgs::SurfaceDetection::Request::RETURN_LATEST_RESULTS:
-    {
-      res = latest_surface_detection_results_;
-      break;
-    }
-
-    case godel_msgs::SurfaceDetection::Request::VISUALIZATION_REQUEST:
-    {
-      // Currently only selective edge visualization is implemented. This request may be expanded in the future
-      geometry_msgs::PoseArray edge;
-      data_coordinator_.getEdgePosesByName(req.name, edge);
-      if(edge.poses.size() > 0)
-      {
-        edge.header.stamp = ros::Time::now();
-        edge.header.frame_id = "world_frame";
-        edge_visualization_pub_.publish(edge);
-      }
-      break;
-    }
-
-    default:
-      ROS_ERROR_STREAM("Unrecognized surface detection request");
-  }
-
-  return true;
-}
-
 void SurfaceBlendingService::processPlanningActionCallback(const godel_msgs::ProcessPlanningGoalConstPtr &goal_in)
 {
   switch (goal_in->action)
@@ -578,54 +273,7 @@ void SurfaceBlendingService::processPlanningActionCallback(const godel_msgs::Pro
   }
 
   process_planning_result_.succeeded = false;
-
 }
-
-
-bool SurfaceBlendingService::select_surface_server_callback(godel_msgs::SelectSurface::Request& req,
-                                                            godel_msgs::SelectSurface::Response&)
-{
-  switch (req.action)
-  {
-  case godel_msgs::SelectSurface::Request::SELECT:
-
-    for (std::size_t i = 0; req.select_surfaces.size(); i++)
-    {
-      surface_server_.set_selection_flag(std::stoi(req.select_surfaces[i]), true);
-    }
-    break;
-
-  case godel_msgs::SelectSurface::Request::DESELECT:
-
-    for (std::size_t i = 0; req.select_surfaces.size(); i++)
-    {
-      surface_server_.set_selection_flag(std::stoi(req.select_surfaces[i]), false);
-    }
-    break;
-
-  case godel_msgs::SelectSurface::Request::SELECT_ALL:
-
-    surface_server_.select_all(true);
-    break;
-
-  case godel_msgs::SelectSurface::Request::DESELECT_ALL:
-
-    surface_server_.select_all(false);
-    break;
-
-  case godel_msgs::SelectSurface::Request::HIDE_ALL:
-
-    surface_server_.show_all(false);
-    break;
-
-  case godel_msgs::SelectSurface::Request::SHOW_ALL:
-    surface_server_.show_all(true);
-    break;
-  }
-
-  return true;
-}
-
 
 bool SurfaceBlendingService::surface_blend_parameters_server_callback(
     godel_msgs::SurfaceBlendingParameters::Request& req,
@@ -714,54 +362,6 @@ void SurfaceBlendingService::selectMotionPlansActionCallback(const godel_msgs::S
     res.code=godel_msgs::SelectMotionPlanResult::TIMEOUT;
     select_motion_plan_server_.setAborted(res);
   }
-}
-
-
-bool SurfaceBlendingService::getMotionPlansCallback(
-    godel_msgs::GetAvailableMotionPlans::Request&,
-    godel_msgs::GetAvailableMotionPlans::Response& res)
-{
-  typedef godel_surface_detection::TrajectoryLibrary::TrajectoryMap::const_iterator MapIter;
-  for (MapIter it = trajectory_library_.get().begin(); it != trajectory_library_.get().end(); ++it)
-  {
-    res.names.push_back(it->first);
-  }
-  return true;
-}
-
-
-bool SurfaceBlendingService::loadSaveMotionPlanCallback(
-    godel_msgs::LoadSaveMotionPlan::Request& req, godel_msgs::LoadSaveMotionPlan::Response& res)
-{
-  switch (req.mode)
-  {
-  case godel_msgs::LoadSaveMotionPlan::Request::MODE_LOAD:
-    trajectory_library_.load(req.path);
-    break;
-
-  case godel_msgs::LoadSaveMotionPlan::Request::MODE_SAVE:
-    trajectory_library_.save(req.path);
-    break;
-  }
-
-  res.code = godel_msgs::LoadSaveMotionPlan::Response::SUCCESS;
-  return true;
-}
-
-bool SurfaceBlendingService::renameSurfaceCallback(godel_msgs::RenameSurface::Request& req,
-                                                   godel_msgs::RenameSurface::Response& res)
-{
-  int id;
-  if (surface_server_.getIdFromName(req.old_name, id))
-  {
-    if (surface_server_.rename_surface(id, req.new_name))
-    {
-      return true;
-    }
-  }
-
-  ROS_WARN_STREAM("Surface rename failed");
-  return false;
 }
 
 void SurfaceBlendingService::visualizePaths()

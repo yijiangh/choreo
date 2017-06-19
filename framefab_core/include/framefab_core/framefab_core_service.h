@@ -77,8 +77,6 @@ class FrameFabCoreService
   void save_blend_parameters(const std::string &filename);
   bool load_path_planning_parameters(const std::string &filename);
   void save_path_planning_parameters(const std::string &filename);
-  bool load_scan_parameters(const std::string &filename);
-  void save_scan_parameters(const std::string &filename);
 
   /**
    * The following path generation and planning methods are defined in
@@ -118,10 +116,6 @@ class FrameFabCoreService
                          const pcl::PolygonMesh &mesh,
                          std::vector <geometry_msgs::PoseArray> &result);
 
-  bool generateScanPath(const framefab_msgs::PathPlanningParameters &params,
-                        const pcl::PolygonMesh &mesh,
-                        std::vector <geometry_msgs::PoseArray> &result);
-
   bool generateEdgePath(framefab_surface_detection::detection::CloudRGB::Ptr surface,
                         std::vector <geometry_msgs::PoseArray> &result);
 
@@ -129,15 +123,6 @@ class FrameFabCoreService
                                         const std::vector <geometry_msgs::PoseArray> &path,
                                         const framefab_msgs::BlendingPlanParameters &params,
                                         const framefab_msgs::ScanPlanParameters &scan_params);
-
-  bool getMotionPlansCallback(framefab_msgs::GetAvailableMotionPlans::Request &req,
-                              framefab_msgs::GetAvailableMotionPlans::Response &res);
-
-  bool loadSaveMotionPlanCallback(framefab_msgs::LoadSaveMotionPlan::Request &req,
-                                  framefab_msgs::LoadSaveMotionPlan::Response &res);
-
-  bool renameSurfaceCallback(framefab_msgs::RenameSurface::Request &req,
-                             framefab_msgs::RenameSurface::Response &res);
 
   void visualizePaths();
 
@@ -174,7 +159,6 @@ class FrameFabCoreService
 
   // Actions subscribed to by this class
   actionlib::SimpleActionClient <framefab_msgs::ProcessExecutionAction> blend_exe_client_;
-  actionlib::SimpleActionClient <framefab_msgs::ProcessExecutionAction> scan_exe_client_;
 
   // Current state publishers
   ros::Publisher selected_surf_changed_pub_;
@@ -187,30 +171,23 @@ class FrameFabCoreService
   // Timers
   bool stop_tool_animation_;
 
-  // robot scan instance
-  framefab_surface_detection::scan::RobotScan robot_scan_;
-  // surface detection instance
-  framefab_surface_detection::detection::SurfaceDetection surface_detection_;
-  // marker server instance
-  framefab_surface_detection::interactive::InteractiveSurfaceServer surface_server_;
+//  // marker server instance
+//  framefab_surface_detection::interactive::InteractiveSurfaceServer surface_server_;
   // data coordinator
-  framefab_surface_detection::data::DataCoordinator data_coordinator_;
+//  framefab_surface_detection::data::DataCoordinator data_coordinator_;
 
   // parameters
-  framefab_msgs::RobotScanParameters default_robot_scan_params__;
-  framefab_msgs::SurfaceDetectionParameters default_surf_detection_params_;
   framefab_msgs::BlendingPlanParameters default_blending_plan_params_;
   framefab_msgs::ScanPlanParameters default_scan_params_;
   framefab_msgs::PathPlanningParameters default_path_planning_params_;
-  framefab_msgs::ScanPlanParameters scan_plan_params_;
   framefab_msgs::BlendingPlanParameters blending_plan_params_;
   framefab_msgs::PathPlanningParameters path_planning_params_;
 
   // results
   ProcessPathDetails process_path_results_;
   std::vector <ProcessPlanResult::value_type> process_poses_;
-  std::vector <std::vector<ros::Duration>>
-      duration_results_; // returned by visualize plan service, needed by trajectory planner
+  std::vector <std::vector<ros::Duration>>    duration_results_;
+  // returned by visualize plan service, needed by trajectory planner
 
   // parameters
   bool save_data_;
@@ -218,12 +195,11 @@ class FrameFabCoreService
 
   // msgs
 
-  framefab_surface_detection::TrajectoryLibrary trajectory_library_;
   int marker_counter_;
 
   // Parameter loading and saving
   std::string param_cache_prefix_;
 };
-}; // namespace
+} // namespace
 
 #endif
