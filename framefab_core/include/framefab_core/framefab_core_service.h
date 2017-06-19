@@ -13,23 +13,27 @@
 #ifndef FRAMEFAB_CORE_SERVICE_H
 #define FRAMEFAB_CORE_SERVICE_H
 
+// service
 #include <framefab_msgs/ProcessPlan.h>
 
 #include <framefab_msgs/BlendProcessPlanning.h>
 #include <framefab_msgs/PathPlanning.h>
-#include <framefab_msgs/PathPlanningParameters.h>
 
+// msgs
+#include <framefab_msgs/PathPlanningParameters.h>
+#include <framefab_msgs/ModelInputParameters.h>
+
+// actions
 #include <framefab_msgs/ProcessExecutionAction.h>
 #include <framefab_msgs/ProcessPlanningAction.h>
 #include <framefab_msgs/SelectMotionPlanAction.h>
+
 #include <actionlib/server/simple_action_server.h>
 #include <actionlib/client/simple_action_client.h>
 
-#include <framefab_process_path_generation/VisualizeBlendingPlan.h>
-#include <framefab_process_path_generation/utils.h>
-#include <framefab_process_path_generation/polygon_utils.h>
+//#include <framefab_process_path_generation/VisualizeBlendingPlan.h>
+//#include <framefab_process_path_generation/utils.h>
 
-#include <services/trajectory_library.h>
 /*#include <coordination/data_coordinator.h>*/
 
 //  marker namespaces
@@ -41,7 +45,7 @@ namespace framfab_core
 struct ProcessPathDetails
 {
   std::vector <std::vector<geometry_msgs::PoseArray>> blend_poses_;
-  std::vector <geometry_msgs::PoseArray> edge_poses_;
+  std::vector <geometry_msgs::PoseArray>              edge_poses_;
   std::vector <std::vector<geometry_msgs::PoseArray>> scan_poses_;
 };
 
@@ -94,7 +98,7 @@ class FrameFabCoreService
   void simulateMotionPlansActionCallback(const framefab_msgs::SimulateMotionPlanGoalConstPtr &goal_in);
 
   bool
-  surface_blend_parameters_server_callback(framefab_msgs::FrameFabCoreParameters::Request &req,
+  framefab_parameters_server_callback(framefab_msgs::FrameFabCoreParameters::Request &req,
                                            framefab_msgs::FrameFabCoreParameters::Response &res);
 
   // Reads from the surface selection server and generates blend/scan paths for each
@@ -132,6 +136,7 @@ class FrameFabCoreService
   std::string getScanToolPlanningPluginName() const;
 
   // Services offered by this class
+  ros::ServiceServer framefab_parameters_server_;
 
   // Services subscribed to by this class
   ros::ServiceClient process_path_client_;
@@ -141,17 +146,16 @@ class FrameFabCoreService
 
   // Actions offered by this class
   ros::NodeHandle nh_;
-  actionlib::SimpleActionServer <framefab_msgs::ProcessPlanningAction> process_planning_server_;
-  actionlib::SimpleActionServer <framefab_msgs::SelectMotionPlanAction> simulate_motion_plan_server_;
-  framefab_msgs::ProcessPlanningFeedback process_planning_feedback_;
-  framefab_msgs::ProcessPlanningResult process_planning_result_;
+  actionlib::SimpleActionServer <framefab_msgs::ProcessPlanningAction>    process_planning_server_;
+  actionlib::SimpleActionServer <framefab_msgs::SimulateMotionPlanAction> simulate_motion_plan_server_;
+  framefab_msgs::ProcessPlanningFeedback  process_planning_feedback_;
+  framefab_msgs::ProcessPlanningResult    process_planning_result_;
 
   // Actions subscribed to by this class
   actionlib::SimpleActionClient <framefab_msgs::ProcessExecutionAction> process_exe_client_;
 
   // Current state publishers
   ros::Publisher selected_surf_changed_pub_;
-  ros::Publisher point_cloud_pub_;
   ros::Publisher tool_path_markers_pub_;
   ros::Publisher blend_visualization_pub_;
   ros::Publisher edge_visualization_pub_;
@@ -166,10 +170,11 @@ class FrameFabCoreService
 //  framefab_surface_detection::data::DataCoordinator data_coordinator_;
 
   // parameters
-  framefab_msgs::ModelInputParameters default_model_input_plan_params_;
-  framefab_msgs::PathPlanningParameters default_path_planning_params_;
-  framefab_msgs::ModelInputParameters model_input_plan_params_;
-  framefab_msgs::PathPlanningParameters path_planning_params_;
+  framefab_msgs::ModelInputParameters       default_model_input_plan_params_;
+  framefab_msgs::ProcessPlanningParameters  default_process_planning_params_;
+
+  framefab_msgs::ModelInputParameters       model_input_plan_params_;
+  framefab_msgs::ProcessPlanningParameters  process_planning_params_;
 
   // results
   ProcessPathDetails process_path_results_;
@@ -180,8 +185,6 @@ class FrameFabCoreService
   // parameters
   bool save_data_;
   std::string save_location_;
-
-  // msgs
 
   int marker_counter_;
 

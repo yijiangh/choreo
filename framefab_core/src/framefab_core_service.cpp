@@ -12,8 +12,7 @@
 const static std::string SAVE_DATA_BOOL_PARAM = "save_data";
 const static std::string SAVE_LOCATION_PARAM = "save_location";
 const static std::string TRAJECTORY_PLANNING_SERVICE = "trajectory_planner";
-const static std::string SURFACE_DETECTION_SERVICE = "surface_detection";
-const static std::string SURFACE_BLENDING_PARAMETERS_SERVICE = "surface_blending_parameters";
+const static std::string FRAMEFAB_PARAMETERS_SERVICE = "framefab_parameters";
 const static std::string PROCESS_PATH_SERVICE = "process_path";
 const static std::string PATH_GENERATION_SERVICE = "process_path_generator";
 const static std::string VISUALIZE_BLENDING_PATH_SERVICE = "visualize_path_generator";
@@ -38,7 +37,7 @@ const static std::string EDGE_IDENTIFIER = "_edge_";
 
 // Default filepaths and namespaces for caching stored parameters
 const static std::string MODEL_INPUT_PARAMS_FILE = "framefab_model_input_parameters.msg";
-const static std::string PATH_PLANNING_PARAMS_FILE = "framefab_path_planning_parameters.msg";
+//const static std::string PATH_PLANNING_PARAMS_FILE = "framefab_path_planning_parameters.msg";
 const static std::string PROCESS_PLANNING_PARAMS_FILE = "framefab_process_planning_parameters.msg";
 
 // action server name
@@ -66,10 +65,10 @@ bool FrameFabCoreService::init()
   // Load the 'prefix' that will be combined with parameters msg base names to save to disk
   ph.param<std::string>("param_cache_prefix", param_cache_prefix_, "");
 
-  if (!this->load_path_planning_parameters(param_cache_prefix_ + PATH_PLANNING_PARAMS_FILE))
+  if (!this->load_process_planning_parameters(param_cache_prefix_ + PROCESS_PLANNING_PARAMS_FILE))
     ROS_WARN("Unable to load framefab process parameters.");
 
-  if (!this->load_blend_parameters(param_cache_prefix_ + BLEND_PARAMS_FILE))
+  if (!this->load_model_input_parameters(param_cache_prefix_ + MODEL_INPUT_PARAMS_FILE))
     ROS_WARN("Unable to load framefab process parameters.");
 
   //TODO: make sure action (sequence) planning component is loaded
@@ -93,17 +92,14 @@ bool FrameFabCoreService::init()
 //  surface_server_.add_selection_callback(f);
 
   // service clients
-  process_path_client_ = nh_.serviceClient<godel_msgs::PathPlanning>(PATH_GENERATION_SERVICE);
+//  process_path_client_ = nh_.serviceClient<godel_msgs::PathPlanning>(PATH_GENERATION_SERVICE);
 
   // Process Execution Parameters
   blend_planning_client_ = nh_.serviceClient<godel_msgs::BlendProcessPlanning>(PROCESS_PLANNING_SERVICE);
 
   surf_blend_parameters_server_ =
-      nh_.advertiseService(SURFACE_BLENDING_PARAMETERS_SERVICE,
-                          &FrameFabCoreService::surface_blend_parameters_server_callback, this);
-
-//  select_surface_server_ = nh_.advertiseService(
-//      SELECT_SURFACE_SERVICE, &FrameFabCoreService::select_surface_server_callback, this);
+      nh_.advertiseService(FRAMEFAB_PARAMETERS_SERVICE,
+                          &FrameFabCoreService::framefab_parameters_server_callback, this);
 
   get_motion_plans_server_ = nh_.advertiseService(
       SIMULATE_MOTION_PLANS_SERVICE, &FrameFabCoreService::simulateMotionPlansCallback, this);
@@ -161,7 +157,7 @@ void FrameFabCoreService::save_model_input_parameters(const std::string& filenam
 }
 
 
-bool FrameFabCoreService::load_path_planning_parameters(const std::string & filename)
+bool FrameFabCoreService::load_process_planning_parameters(const std::string & filename)
 {
   if(framefab_param_helpers::fromFile(filename, path_planning_params_))
   {
@@ -171,38 +167,12 @@ bool FrameFabCoreService::load_path_planning_parameters(const std::string & file
 }
 
 
-void FrameFabCoreService::save_path_planning_parameters(const std::string & filename)
+void FrameFabCoreService::save_process_planning_parameters(const std::string & filename)
 {
   if(!framefab_param_helpers::toFile(filename, path_planning_params_))
   {
     ROS_WARN_STREAM("Unable to save path-planning parameters to: " << filename);
   }
-}
-
-
-// Profilimeter parameters
-bool FrameFabCoreService::load_scan_parameters(const std::string& filename)
-{
-  using framefab_param_helpers::loadParam;
-  using framefab_param_helpers::loadBoolParam;
-
-  if (framefab_param_helpers::fromFile(filename, scan_plan_params_))
-  {
-    return true;
-  }
-
-  // otherwise we load default parameters from the param server
-  ros::NodeHandle nh("~/scan_plan");
-  return loadParam(nh, "traverse_speed", scan_plan_params_.traverse_spd) &&
-      loadParam(nh, "traverse_speed", scan_plan_params_.traverse_spd) &&
-      loadParam(nh, "traverse_speed", scan_plan_params_.traverse_spd) &&
-         loadParam(nh, "margin", scan_plan_params_.margin) &&
-         loadParam(nh, "overlap", scan_plan_params_.overlap) &&
-         loadParam(nh, "scan_width", scan_plan_params_.scan_width) &&
-         loadParam(nh, "min_qa_value", scan_plan_params_.min_qa_value) &&
-         loadParam(nh, "max_qa_value", scan_plan_params_.max_qa_value) &&
-         loadParam(nh, "approach_distance", scan_plan_params_.approach_distance) &&
-         loadParam(nh, "window_width", scan_plan_params_.window_width);
 }
 
 void FrameFabCoreService::processPlanningActionCallback(const framefab_msgs::ProcessPlanningGoalConstPtr &goal_in)
@@ -211,10 +181,8 @@ void FrameFabCoreService::processPlanningActionCallback(const framefab_msgs::Pro
   {
     case framefab_msgs::ProcessPlanningGoal::GENERATE_MOTION_PLAN_AND_PREVIEW:
     {
-      ensenso::EnsensoGuard guard; // turns off ensenso for planning and turns it on when this goes out of scope
       process_planning_feedback_.last_completed = "Recieved request to generate motion plan";
       process_planning_server_.publishFeedback(process_planning_feedback_);
-      trajectory_library_ = generateMotionLibrary(goal_in->params);
       process_planning_feedback_.last_completed = "Finished planning. Visualizing...";
       process_planning_server_.publishFeedback(process_planning_feedback_);
       visualizePaths();
@@ -228,7 +196,6 @@ void FrameFabCoreService::processPlanningActionCallback(const framefab_msgs::Pro
       process_planning_server_.publishFeedback(process_planning_feedback_);
       break;
     }
-
     default:
     {
       ROS_ERROR_STREAM("Unknown action code '" << goal_in->action << "' request");
@@ -239,7 +206,7 @@ void FrameFabCoreService::processPlanningActionCallback(const framefab_msgs::Pro
   process_planning_result_.succeeded = false;
 }
 
-bool FrameFabCoreService::surface_blend_parameters_server_callback(
+bool FrameFabCoreService::framefab_parameters_server_callback(
     framefab_msgs::FrameFabCoreParameters::Request& req,
     framefab_msgs::FrameFabCoreParameters::Response& res)
 {
@@ -247,45 +214,32 @@ bool FrameFabCoreService::surface_blend_parameters_server_callback(
   {
   case framefab_msgs::FrameFabCoreParameters::Request::GET_CURRENT_PARAMETERS:
 
-    res.surface_detection = surface_detection_.params_;
-    res.robot_scan = robot_scan_.params_;
-    res.blending_plan = blending_plan_params_;
-    res.scan_plan = scan_plan_params_;
-    res.path_params = path_planning_params_;
+    res.model_input_params  = model_input_params_;
+    res.process_plan_params = process_plan_params_;
     break;
 
   case framefab_msgs::FrameFabCoreParameters::Request::GET_DEFAULT_PARAMETERS:
 
-    res.surface_detection = default_surf_detection_params_;
-    res.robot_scan = default_robot_scan_params__;
-    res.blending_plan = default_blending_plan_params_;
-    res.scan_plan = default_scan_params_;
-    res.path_params = default_path_planning_params_;
+    res.model_input_params  = default_model_input_params_;
+    res.process_plan_params = default_process_plan_params_;
     break;
 
   // Update the current parameters in this service
   case framefab_msgs::FrameFabCoreParameters::Request::SET_PARAMETERS:
   case framefab_msgs::FrameFabCoreParameters::Request::SAVE_PARAMETERS:
-    surface_detection_.params_ = req.surface_detection;
-    robot_scan_.params_ = req.robot_scan;
-    blending_plan_params_ = req.blending_plan;
-    scan_plan_params_ = req.scan_plan;
-    path_planning_params_ = req.path_params;
+    model_input_params_       = req.model_input_params_;
+    process_planning_params_  = req.process_plan_params;
 
     if (req.action == framefab_msgs::FrameFabCoreParameters::Request::SAVE_PARAMETERS)
     {
-      this->save_blend_parameters(param_cache_prefix_ + BLEND_PARAMS_FILE);
-      this->save_scan_parameters(param_cache_prefix_ + SCAN_PARAMS_FILE);
-      this->save_path_planning_parameters(param_cache_prefix_ + PATH_PLANNING_PARAMS_FILE);
-      robot_scan_.save_parameters(param_cache_prefix_ + ROBOT_SCAN_PARAMS_FILE);
-      surface_detection_.save_parameters(param_cache_prefix_ + SURFACE_DETECTION_PARAMS_FILE);
+      this->save_model_input_parameters(param_cache_prefix_ + MODEL_INPUT_PARAMS_FILE);
+      this->save_process_planning_parameters(param_cache_prefix_ + PROCESS_PLANNING_PARAMS_FILE);
     }
     break;
   }
 
   return true;
 }
-
 
 void FrameFabCoreService::selectMotionPlansActionCallback(const framefab_msgs::SelectMotionPlanGoalConstPtr& goal_in)
 {

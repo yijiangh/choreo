@@ -34,13 +34,13 @@ add_message_files(
 		msg 
 		FILES 
 		ModelInputParameters.msg
+		ProcessPlanningParameters.msg
 )
 
 ## Generate services in the 'srv' folder
 add_service_files(
 FILES 
-AdvanceRobot.srv
-TestDescartes.srv
+FrameFabParameters.srv
 )
 
 ## Generate added messages and services with any dependencies listed here
