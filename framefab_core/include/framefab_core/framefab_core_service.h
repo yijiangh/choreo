@@ -89,12 +89,9 @@ class FrameFabCoreService
   bool surface_detection_server_callback(framefab_msgs::SurfaceDetection::Request &req,
                                          framefab_msgs::SurfaceDetection::Response &res);
 
-  bool select_surface_server_callback(framefab_msgs::SelectSurface::Request &req,
-                                      framefab_msgs::SelectSurface::Response &res);
-
   void processPlanningActionCallback(const framefab_msgs::ProcessPlanningGoalConstPtr &goal);
 
-  void selectMotionPlansActionCallback(const framefab_msgs::SelectMotionPlanGoalConstPtr &goal_in);
+  void simulateMotionPlansActionCallback(const framefab_msgs::SimulateMotionPlanGoalConstPtr &goal_in);
 
   bool
   surface_blend_parameters_server_callback(framefab_msgs::FrameFabCoreParameters::Request &req,
@@ -135,30 +132,22 @@ class FrameFabCoreService
   std::string getScanToolPlanningPluginName() const;
 
   // Services offered by this class
-  ros::ServiceServer surface_detect_server_;
-  ros::ServiceServer select_surface_server_;
-  ros::ServiceServer surf_blend_parameters_server_;
-
-  ros::ServiceServer get_motion_plans_server_;
-  ros::ServiceServer load_save_motion_plan_server_;
-  ros::ServiceServer rename_suface_server_;
 
   // Services subscribed to by this class
   ros::ServiceClient process_path_client_;
   ros::ServiceClient trajectory_planner_client_;
 
   ros::ServiceClient blend_planning_client_;
-  ros::ServiceClient keyence_planning_client_;
 
   // Actions offered by this class
   ros::NodeHandle nh_;
   actionlib::SimpleActionServer <framefab_msgs::ProcessPlanningAction> process_planning_server_;
-  actionlib::SimpleActionServer <framefab_msgs::SelectMotionPlanAction> select_motion_plan_server_;
+  actionlib::SimpleActionServer <framefab_msgs::SelectMotionPlanAction> simulate_motion_plan_server_;
   framefab_msgs::ProcessPlanningFeedback process_planning_feedback_;
   framefab_msgs::ProcessPlanningResult process_planning_result_;
 
   // Actions subscribed to by this class
-  actionlib::SimpleActionClient <framefab_msgs::ProcessExecutionAction> blend_exe_client_;
+  actionlib::SimpleActionClient <framefab_msgs::ProcessExecutionAction> process_exe_client_;
 
   // Current state publishers
   ros::Publisher selected_surf_changed_pub_;
@@ -177,10 +166,9 @@ class FrameFabCoreService
 //  framefab_surface_detection::data::DataCoordinator data_coordinator_;
 
   // parameters
-  framefab_msgs::BlendingPlanParameters default_blending_plan_params_;
-  framefab_msgs::ScanPlanParameters default_scan_params_;
+  framefab_msgs::ModelInputParameters default_model_input_plan_params_;
   framefab_msgs::PathPlanningParameters default_path_planning_params_;
-  framefab_msgs::BlendingPlanParameters blending_plan_params_;
+  framefab_msgs::ModelInputParameters model_input_plan_params_;
   framefab_msgs::PathPlanningParameters path_planning_params_;
 
   // results
