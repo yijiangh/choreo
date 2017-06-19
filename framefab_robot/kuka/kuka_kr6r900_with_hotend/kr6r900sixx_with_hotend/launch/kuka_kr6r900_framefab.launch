@@ -13,9 +13,9 @@
  <!--  <node name="path_execution_service" pkg="godel_path_execution" type="path_execution_service_node"/> -->
 
   <!-- Launches the blend/scan process planners: requires descartes plugin for the robot model -->
-<!--   <include file="$(find godel_process_planning)/launch/process_planning.launch">
+   <include file="$(find godel_process_planning)/launch/process_planning.launch">
     <arg name="robot_model_plugin" value="$(arg robot_model_plugin)"/>
-  </include> -->
+  </include>
 
   <!-- Process execution nodes: These monitor the state of robot's execution of the planned path. They can be, and in this case are, robot or vendor specific -->
   <group>
@@ -26,7 +26,7 @@
       <node name="blend_process_execution" pkg="godel_process_execution" type="blend_process_service_node"/>
     </group>
     <group unless="$(arg sim_robot)">
-    <!--       This requires real hardware testing -->
+    <!-- generating Test file  -->
       <node name="blend_process_execution" pkg="godel_process_execution" type="kuka_framefab_process_service_node"/>
     </group>
 
@@ -34,7 +34,7 @@
        Allows for previewing paths generated before execution. -->
   <include file="$(find industrial_robot_simulator_service)/launch/start_simulation_server.launch"/>
 
-  <!-- Brings up the core blending service: this includes the tool path planners
+  <!-- Brings up the core blending service: this includes the tool process planners
        for both the blender and the laser scanner. -->
   <include file="$(find godel_surface_detection)/launch/godel_core.launch">
     <arg name="config_path" value="$(find godel_irb2400_support)/config"/>

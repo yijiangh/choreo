@@ -13,8 +13,8 @@ framefab_gui::ParamsSubmenu::ParamsSubmenu(QWidget* parent) : QWidget(parent)
   model_input_widget_ = new ModelInputConfigWidget(framefab_msgs::ModelInputParameters());
   connect(ui_->pushbutton_model_input, SIGNAL(clicked()), model_input_widget_, SLOT(show()));
   //// Surface Detection
-  test_process_widget_ = new TestProcessConfigWidget(framefab_msgs::TestProcessParameters());
-  connect(ui_->pushbutton_test_process, SIGNAL(clicked()), test_process_widget_, SLOT(show()));
+//  test_process_widget_ = new TestProcessConfigWidget(framefab_msgs::TestProcessParameters());
+//  connect(ui_->pushbutton_test_process, SIGNAL(clicked()), test_process_widget_, SLOT(show()));
   // Path Planning
 //  path_planning_params_ = new PathPlanningConfigWidget(framefab_msgs::PathPlanningParameters());
 //  connect(ui_->pushButtonPathPlanningParams, SIGNAL(clicked()), path_planning_params_, SLOT(show()));
