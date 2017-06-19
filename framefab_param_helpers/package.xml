@@ -7,7 +7,7 @@
     existence of user parameters.
   </description>
 
-  <maintainer email="Yijiang Huang">Yijiang Huang</maintainer>
+  <maintainer email="yijiangh@mit.edu">Yijiang Huang</maintainer>
   <license>Apache 2.0</license>
 
   <buildtool_depend>catkin</buildtool_depend>

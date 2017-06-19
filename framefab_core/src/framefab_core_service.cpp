@@ -1,12 +1,14 @@
-#include <services/surface_blending_service.h>
-#include <godel_msgs/TrajectoryExecution.h>
+#include <framefab_core/framefab_core_service.h>
+
+// srv
+#include <framefab_msgs/TrajectoryExecution.h>
 
 // Process Planning
-#include <godel_msgs/BlendProcessPlanning.h>
-#include <godel_msgs/KeyenceProcessPlanning.h>
-#include <godel_msgs/PathPlanning.h>
+#include <framefab_msgs/BlendProcessPlanning.h>
+#include <framefab_msgs/KeyenceProcessPlanning.h>
+#include <framefab_msgs/PathPlanning.h>
 
-#include <godel_param_helpers/godel_param_helpers.h>
+#include <framefab_param_helpers/framefab_param_helpers.h>
 
 // topics and services
 const static std::string SAVE_DATA_BOOL_PARAM = "save_data";
@@ -92,10 +94,10 @@ bool FrameFabCoreService::init()
 //  surface_server_.add_selection_callback(f);
 
   // service clients
-//  process_path_client_ = nh_.serviceClient<godel_msgs::PathPlanning>(PATH_GENERATION_SERVICE);
+//  process_path_client_ = nh_.serviceClient<framefab_msgs::PathPlanning>(PATH_GENERATION_SERVICE);
 
   // Process Execution Parameters
-  blend_planning_client_ = nh_.serviceClient<godel_msgs::BlendProcessPlanning>(PROCESS_PLANNING_SERVICE);
+  blend_planning_client_ = nh_.serviceClient<framefab_msgs::BlendProcessPlanning>(PROCESS_PLANNING_SERVICE);
 
   surf_blend_parameters_server_ =
       nh_.advertiseService(FRAMEFAB_PARAMETERS_SERVICE,
@@ -241,18 +243,18 @@ bool FrameFabCoreService::framefab_parameters_server_callback(
   return true;
 }
 
-void FrameFabCoreService::selectMotionPlansActionCallback(const framefab_msgs::SelectMotionPlanGoalConstPtr& goal_in)
+void FrameFabCoreService::simulateMotionPlansActionCallback(const framefab_msgs::SimulateMotionPlanGoalConstPtr& goal_in)
 {
-  framefab_msgs::SelectMotionPlanResult res;
+  framefab_msgs::SimulateMotionPlanResult res;
 
-  // If plan does not exist, abort and return
-  if (trajectory_library_.get().find(goal_in->name) == trajectory_library_.get().end())
-  {
-    ROS_WARN_STREAM("Motion plan " << goal_in->name << " does not exist. Cannot execute.");
-    res.code = framefab_msgs::SelectMotionPlanResponse::NO_SUCH_NAME;
-    select_motion_plan_server_.setAborted(res);
-    return;
-  }
+//  // If plan does not exist, abort and return
+//  if (trajectory_library_.get().find(goal_in->name) == trajectory_library_.get().end())
+//  {
+//    ROS_WARN_STREAM("Motion plan " << goal_in->name << " does not exist. Cannot execute.");
+//    res.code = framefab_msgs::SimulateMotionPlanResponse::NO_SUCH_NAME;
+//    simulate_motion_plan_server_.setAborted(res);
+//    return;
+//  }
 
   bool is_blend = trajectory_library_.get()[goal_in->name].type == framefab_msgs::ProcessPlan::BLEND_TYPE;
 
@@ -264,21 +266,20 @@ void FrameFabCoreService::selectMotionPlansActionCallback(const framefab_msgs::S
   goal.goal.wait_for_execution = goal_in->wait_for_execution;
   goal.goal.simulate = goal_in->simulate;
 
-  actionlib::SimpleActionClient<framefab_msgs::ProcessExecutionAction> *exe_client =
-      (is_blend ? &blend_exe_client_ : &scan_exe_client_);
+  actionlib::SimpleActionClient<framefab_msgs::ProcessExecutionAction> *exe_client = process_exe_client_;
   exe_client->sendGoal(goal.goal);
 
   ros::Duration process_time(goal.goal.trajectory_depart.points.back().time_from_start);
   ros::Duration buffer_time(PROCESS_EXE_BUFFER);
   if(exe_client->waitForResult(process_time + buffer_time))
   {
-    res.code = framefab_msgs::SelectMotionPlanResult::SUCCESS;
-    select_motion_plan_server_.setSucceeded(res);
+    res.code = framefab_msgs::SimulateMotionPlanResult::SUCCESS;
+    simulate_motion_plan_server_.setSucceeded(res);
   }
   else
   {
-    res.code=framefab_msgs::SelectMotionPlanResult::TIMEOUT;
-    select_motion_plan_server_.setAborted(res);
+    res.code=framefab_msgs::simulateMotionPlanResult::TIMEOUT;
+    simulate_motion_plan_server_.setAborted(res);
   }
 }
 

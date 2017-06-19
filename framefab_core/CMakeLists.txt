@@ -52,7 +52,7 @@ include_directories(
 
 ## Declare a cpp library
 add_library(${PROJECT_NAME} 
-  src/services/trajectory_library.cpp
+  src/framefab_core_service.cpp
 )
 
 target_compile_options(${PROJECT_NAME} PRIVATE ${OpenMP_FLAGS})
@@ -61,7 +61,7 @@ target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} yaml-cpp)
 add_dependencies(${PROJECT_NAME} framefab_msgs_generate_messages_cpp)
 
 ## surface detection service
-add_executable(framefab_core_service  src/services/framefab_core_service.cpp)
+add_executable(framefab_core_service  src/framefab_core_service.cpp)
 #                                      src/services/blending_service_path_generation.cpp)
 target_link_libraries(framefab_core_service ${PROJECT_NAME})
 add_dependencies(framefab_core_service framefab_msgs_generate_messages_cpp)

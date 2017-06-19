@@ -14,19 +14,18 @@
 #define FRAMEFAB_CORE_SERVICE_H
 
 // service
-#include <framefab_msgs/ProcessPlan.h>
+#include <framefab_msgs/ProcessPlanning.h>
 
-#include <framefab_msgs/BlendProcessPlanning.h>
-#include <framefab_msgs/PathPlanning.h>
+//#include <framefab_msgs/PathPlanning.h>
 
 // msgs
-#include <framefab_msgs/PathPlanningParameters.h>
+#include <framefab_msgs/ProcessPlanningParameters.h>
 #include <framefab_msgs/ModelInputParameters.h>
 
 // actions
 #include <framefab_msgs/ProcessExecutionAction.h>
 #include <framefab_msgs/ProcessPlanningAction.h>
-#include <framefab_msgs/SelectMotionPlanAction.h>
+#include <framefab_msgs/SimulateMotionPlanAction.h>
 
 #include <actionlib/server/simple_action_server.h>
 #include <actionlib/client/simple_action_client.h>

@@ -26,8 +26,8 @@ add_action_files(
     ProcessPlanning.action
     SimulateMotionPlan.action
 )
-
 ## Generate messages in the 'msg' folder
+
 
 add_message_files(
 		DIRECTORY 
@@ -35,12 +35,15 @@ add_message_files(
 		FILES 
 		ModelInputParameters.msg
 		ProcessPlanningParameters.msg
+		ProcessPath.msg
 )
 
 ## Generate services in the 'srv' folder
 add_service_files(
-FILES 
+FILES
+ProcessPlanning.srv
 FrameFabParameters.srv
+FrameFabProcessPlanning.srv
 )
 
 ## Generate added messages and services with any dependencies listed here

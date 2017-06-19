@@ -1,0 +1,10 @@
+
+# process parameters
+framefab_msgs/ProcessPlanningParameters params
+
+# The actual path the tool will follow
+framefab_msgs/ProcessPath path
+
+---
+
+framefab_msgs/ProcessPlan plan
