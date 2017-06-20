@@ -9,9 +9,9 @@ find_package(catkin REQUIRED COMPONENTS
 	rviz
 	)
 
-message(STATUS "Using Qt4 based on the rviz_QT_VERSION: ${rviz_QT_VERSION}")
-find_package(Qt4 ${rviz_QT_VERSION} EXACT REQUIRED QtCore QtGui)
-include(${QT_USE_FILE})
+find_package(Qt5Widgets REQUIRED)
+find_package(Qt5Core REQUIRED)
+find_package(Qt5Gui REQUIRED)
 
 catkin_package(
 	CATKIN_DEPENDS framefab_msgs roscpp rviz
@@ -29,7 +29,7 @@ set(framefab_gui_SRCS
 	src/framefab_panel.cpp
 	src/framefab_widget.cpp
 	# state
-	src/states/model_input_state.cpp
+	src/states/path_planning_state.cpp
 	src/states/system_init_state.cpp
 	# params
 	src/params_submenu.cpp
@@ -43,7 +43,7 @@ set(framefab_gui_HDRS
 	include/framefab_gui/framefab_widget.h
 	#states
 	include/framefab_gui/gui_state.h
-	include/framefab_gui/states/model_input_state.h
+	include/framefab_gui/states/path_planning_state.h
 	include/framefab_gui/states/system_init_state.h
 	#params
 	include/framefab_gui/params_submenu.h
@@ -63,8 +63,8 @@ set(framefab_gui_INCLUDE_DIRECTORIES
 	)
 
 add_definitions(-DQT_NO_KEYWORDS)
-qt4_wrap_cpp(framefab_gui_MOCS ${framefab_gui_HDRS})
-qt4_wrap_ui(framefab_gui_UIS_H ${framefab_gui_UIS})
+qt5_wrap_cpp(framefab_gui_MOCS ${framefab_gui_HDRS})
+qt5_wrap_ui(framefab_gui_UIS_H ${framefab_gui_UIS})
 
 include_directories(include)
 include_directories(
@@ -81,7 +81,8 @@ add_library(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
 	${catkin_LIBRARIES}
-	${QT_LIBRARIES} ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY}
+	Qt5::Widgets
+        Qt5::Gui 
 	)
 
 add_dependencies(${PROJECT_NAME} framefab_msgs_generate_messages_cpp)
