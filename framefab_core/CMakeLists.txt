@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   tf_conversions
 #  framefab_process_path_generation
+	framefab_param_helpers
   framefab_msgs
 )
 
@@ -36,6 +37,7 @@ catkin_package(
     tf
     tf_conversions
 #    framefab_process_path_generation
+		framefab_param_helpers
     framefab_msgs
 )
 

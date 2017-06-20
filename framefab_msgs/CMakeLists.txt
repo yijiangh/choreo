@@ -36,6 +36,7 @@ add_message_files(
 		ModelInputParameters.msg
 		ProcessPlanningParameters.msg
 		ProcessPath.msg
+		ProcessPlan.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -44,6 +45,7 @@ FILES
 ProcessPlanning.srv
 FrameFabParameters.srv
 FrameFabProcessPlanning.srv
+TrajectoryExecution.srv
 )
 
 ## Generate added messages and services with any dependencies listed here

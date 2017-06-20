@@ -3,10 +3,9 @@
 // srv
 #include <framefab_msgs/TrajectoryExecution.h>
 
-// Process Planning
-#include <framefab_msgs/BlendProcessPlanning.h>
-#include <framefab_msgs/KeyenceProcessPlanning.h>
-#include <framefab_msgs/PathPlanning.h>
+// Process Planning Srv
+#include <framefab_msgs/FrameFabProcessPlanning.h>
+//#include <framefab_msgs/ProcessPlanning.h>
 
 #include <framefab_param_helpers/framefab_param_helpers.h>
 
