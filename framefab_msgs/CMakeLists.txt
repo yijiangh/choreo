@@ -46,6 +46,7 @@ ProcessPlanning.srv
 FrameFabParameters.srv
 FrameFabProcessPlanning.srv
 TrajectoryExecution.srv
+ModelInputGui.srv
 )
 
 ## Generate added messages and services with any dependencies listed here

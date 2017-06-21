@@ -59,11 +59,11 @@
 
 #include <GL/glut.h>
 
-#include "framefab_gui/input_ui/mainwindow.h"
-#include "framefab_gui/input_ui/ArcBall.h"
+#include "framefab_input_gui/mainwindow.h"
+#include "framefab_input_gui/ArcBall.h"
 //#include "framefab_input_gui/globalFunctions.h"
 //#include "framefab_input_gui/FiberPrintPlugIn.h"
-#include "framefab_gui/input_ui/WireFrame.h"
+#include "framefab_input_gui/WireFrame.h"
 
 enum OperationMode
 {

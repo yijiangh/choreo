@@ -1,6 +1,7 @@
 #include <ros/console.h>
 
 //#include "framefab_msgs/SurfaceBlendingParameters.h"
+#include <GL/glut.h>
 
 #include <framefab_gui/framefab_widget.h>
 #include <framefab_gui/states/system_init_state.h>
@@ -19,12 +20,11 @@ framefab_gui::FrameFabWidget::FrameFabWidget(QWidget* parent)
   ui_ = new Ui::FrameFabWidget;
   ui_->setupUi(this);
 
+  int i = 0;
+  glutInit(&i, NULL);
+
   params_ = new ParamsSubmenu();
   params_->hide();
-
-//  ptr_input_mainwindow_ = new MainWindow();
-//  ptr_input_mainwindow_->setWindowFlags(Qt::Widget);
-//  ptr_input_mainwindow_->hide();
 
   // Starts in scan teach state
   changeState(new SystemInitState());

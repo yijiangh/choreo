@@ -1,4 +1,4 @@
-#include <framefab_gui/input_ui/WireFrame.h>
+#include <framefab_input_gui/WireFrame.h>
 
 WireFrame::WireFrame()
 	:delta_tol_(1e-1), unify_size_(2.0), layer_size_(0)
