@@ -25,9 +25,6 @@ class PathPlanningState : public GuiState
   virtual void onNext(FrameFabWidget& gui);
   virtual void onBack(FrameFabWidget& gui);
   virtual void onReset(FrameFabWidget& gui);
-
- private:
-  MainWindow* ptr_input_mainwindow_;
 };
 }
 

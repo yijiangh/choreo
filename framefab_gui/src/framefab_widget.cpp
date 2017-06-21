@@ -22,6 +22,10 @@ framefab_gui::FrameFabWidget::FrameFabWidget(QWidget* parent)
   params_ = new ParamsSubmenu();
   params_->hide();
 
+//  ptr_input_mainwindow_ = new MainWindow();
+//  ptr_input_mainwindow_->setWindowFlags(Qt::Widget);
+//  ptr_input_mainwindow_->hide();
+
   // Starts in scan teach state
   changeState(new SystemInitState());
 
@@ -105,6 +109,8 @@ void framefab_gui::FrameFabWidget::changeState(GuiState* new_state)
     delete active_state_;
   }
 
+  ptr_input_mainwindow_ = NULL;
+
   active_state_ = new_state;
   connect(new_state, SIGNAL(newStateAvailable(GuiState*)), this, SLOT(changeState(GuiState*)));
 
@@ -117,6 +123,29 @@ void framefab_gui::FrameFabWidget::setButtonsEnabled(bool enabled)
   ui_->pushbutton_back->setEnabled(enabled);
   ui_->pushbutton_reset->setEnabled(enabled);
   ui_->pushbutton_params->setEnabled(enabled);
+}
+
+void framefab_gui::FrameFabWidget::showInputUI(bool enabled)
+{
+  if(enabled)
+  {
+    if(NULL == ptr_input_mainwindow_)
+    {
+      ptr_input_mainwindow_ = new MainWindow();
+    }
+    else
+    {
+      delete ptr_input_mainwindow_;
+      ptr_input_mainwindow_ = new MainWindow();
+    }
+    ptr_input_mainwindow_->show();
+  }
+  else
+  {
+    ptr_input_mainwindow_->hide();
+    delete ptr_input_mainwindow_;
+    ptr_input_mainwindow_ = NULL;
+  }
 }
 
 void framefab_gui::FrameFabWidget::loadParameters()

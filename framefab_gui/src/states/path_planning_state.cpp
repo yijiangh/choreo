@@ -6,33 +6,27 @@
 //#include <QtWidgets/QApplication>
 
 framefab_gui::PathPlanningState::PathPlanningState()
-    : ptr_input_mainwindow_(NULL)
 {
   ROS_INFO_STREAM("PathPlanningState Init.");
 }
 
 framefab_gui::PathPlanningState::~PathPlanningState()
 {
-//  if(!ptr_input_mainwindow_)
-//  {
-//    delete ptr_input_mainwindow_;
-//  }
 }
 
 void framefab_gui::PathPlanningState::onStart(FrameFabWidget& gui)
 {
   gui.setText("Input model. Click 'Next' to continue after finished.");
-  gui.setButtonsEnabled(false);
+//  gui.setButtonsEnabled(false);
 
-  ptr_input_mainwindow_ = new MainWindow;
-  ptr_input_mainwindow_->setWindowFlags(Qt::Widget);
-  ptr_input_mainwindow_->show();
+  gui.showInputUI(true);
 }
 
 void framefab_gui::PathPlanningState::onExit(FrameFabWidget& gui) {}
 
 void framefab_gui::PathPlanningState::onNext(FrameFabWidget& gui)
 {
+  gui.showInputUI(false);
 //  Q_EMIT newStateAvailable(new ScanningState());
 }
 

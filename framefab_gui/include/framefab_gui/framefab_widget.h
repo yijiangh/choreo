@@ -8,6 +8,7 @@
 
 #include <framefab_gui/gui_state.h>
 #include "framefab_gui/params_submenu.h"
+#include <framefab_gui/input_ui/mainwindow.h>
 
 #include "framefab_msgs/SimulateMotionPlanAction.h"
 #include "framefab_msgs/SimulateMotionPlanActionGoal.h"
@@ -43,6 +44,8 @@ class FrameFabWidget : public QWidget
   void sendGoal(const framefab_msgs::SimulateMotionPlanActionGoal& goal);
   void sendGoalAndWait(const framefab_msgs::SimulateMotionPlanActionGoal& goal);
 
+  void showInputUI(bool enabled);
+
   ros::NodeHandle& nodeHandle() { return nh_; }
 
  protected:
@@ -64,6 +67,7 @@ class FrameFabWidget : public QWidget
   // UI
   Ui::FrameFabWidget* ui_;
   ParamsSubmenu* params_;
+  MainWindow* ptr_input_mainwindow_;
 
   // ROS specific stuff
   ros::NodeHandle nh_;

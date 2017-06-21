@@ -68,6 +68,7 @@ set(framefab_gui_HDRS
 	include/framefab_gui/input_ui/renderingwidget.h
 	include/framefab_gui/input_ui/Vec.h
 	include/framefab_gui/input_ui/ArcBall.h
+	include/framefab_gui/input_ui/WireFrame.h
 	)
 
 set(framefab_gui_UIS
@@ -125,6 +126,7 @@ target_link_libraries(${PROJECT_NAME}
 	Qt5::Widgets
 	Qt5::Gui
 	Qt5::OpenGL
+	${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} ${GLUT_LIBRARIES}
 	)
 
 add_dependencies(${PROJECT_NAME} framefab_msgs_generate_messages_cpp)

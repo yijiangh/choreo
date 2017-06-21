@@ -1,5 +1,4 @@
 ﻿#include <framefab_gui/input_ui/renderingwidget.h>
-#include <ros/console.h>
 
 RenderingWidget::RenderingWidget(QWidget *parent, MainWindow* mainwindow)
 : QGLWidget(parent), ptr_mainwindow_(mainwindow), eye_distance_(10.0),
@@ -13,8 +12,8 @@ is_draw_axes_(false), op_mode_(NORMAL), scale_(1.0)
 	eye_direction_[0] = eye_direction_[1] = 0.0;
 	eye_direction_[2] = 1.0;
 
-	last_file_dir_ = "$HOME/Documents";
-	last_result_dir_ = "$HOME/Documents";
+	last_file_dir_ = "/home";
+	last_result_dir_ = "/home";
 
 	setFocusPolicy(Qt::StrongFocus);
 }
@@ -1345,7 +1344,7 @@ void RenderingWidget::DeformationAnalysis(double Wl, double Wp, double Wa)
 	QByteArray bydirname = dirname.toLocal8Bit();
 
 
-//	FiberPrintPARM *ptr_parm = new FiberPrintPARM(Wl, Wp, Wa);
+	FiberPrintPARM *ptr_parm = new FiberPrintPARM(Wl, Wp, Wa);
 
 //	delete ptr_fiberprint_;
 //	ptr_fiberprint_ = new FiberPrintPlugIn(ptr_frame_, ptr_parm, bydirname.data(), false, true);
