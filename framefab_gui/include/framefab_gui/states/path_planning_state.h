@@ -4,12 +4,18 @@
 #include <ros/ros.h>
 #include <framefab_gui/gui_state.h>
 
+#include <framefab_gui/input_ui/mainwindow.h>
+
 namespace framefab_gui
 {
 
-class ModelInputState : public GuiState
+class PathPlanningState : public GuiState
 {
   Q_OBJECT
+ public:
+  PathPlanningState();
+  ~PathPlanningState();
+
  public:
   // Entry and exit classes
   virtual void onStart(FrameFabWidget& gui);
@@ -19,6 +25,9 @@ class ModelInputState : public GuiState
   virtual void onNext(FrameFabWidget& gui);
   virtual void onBack(FrameFabWidget& gui);
   virtual void onReset(FrameFabWidget& gui);
+
+ private:
+  MainWindow* ptr_input_mainwindow_;
 };
 }
 
