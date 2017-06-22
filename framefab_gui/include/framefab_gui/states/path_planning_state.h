@@ -33,8 +33,7 @@ class PathPlanningState : public GuiState
 
  private:
   void makeRequest(framefab_msgs::ModelInputParameters model_params,
-                   framefab_msgs::PathInputParameters path_params,
-                   FrameFabWidget& gui);
+                   framefab_msgs::PathInputParameters path_params);
 
  private:
   ros::ServiceClient path_client_;

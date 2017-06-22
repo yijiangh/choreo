@@ -40,8 +40,7 @@ void framefab_gui::ParamsSubmenu::setModelInputParams(
   model_input_widget_->update_display_fields();
 }
 
-const framefab_msgs::pathInputParameters&
-framefab_gui::ParamsSubmenu::PathInputParams() const
+const framefab_msgs::PathInputParameters& framefab_gui::ParamsSubmenu::pathInputParams() const
 {
   return path_input_widget_->params();
 }

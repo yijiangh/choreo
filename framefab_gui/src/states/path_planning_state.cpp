@@ -32,7 +32,7 @@ void framefab_gui::PathPlanningState::onStart(FrameFabWidget& gui)
       gui.nodeHandle().serviceClient<framefab_msgs::PathPlanning>(PATH_PLANNING_SERVICE);
 
   QtConcurrent::run(this, &PathPlanningState::makeRequest, gui.params().modelInputParams(),
-                    gui.params().pathInputParams(), gui);
+                    gui.params().pathInputParams());
 }
 
 void framefab_gui::PathPlanningState::onExit(FrameFabWidget& gui) { gui.setButtonsEnabled(true); }
@@ -48,8 +48,7 @@ void framefab_gui::PathPlanningState::onReset(FrameFabWidget& gui) {}
 
 void framefab_gui::PathPlanningState::makeRequest(
     framefab_msgs::ModelInputParameters model_params,
-    framefab_msgs::PathInputParameters path_params,
-    FrameFabWidget& gui)
+    framefab_msgs::PathInputParameters path_params)
 {
   framefab_msgs::PathPlanning srv;
   srv.request.action = srv.request.FIND_ONLY;
@@ -66,12 +65,10 @@ void framefab_gui::PathPlanningState::makeRequest(
   {
     if(srv.response.model_found && srv.response.paths_found)
     {
-        gui.setText("model & path found successfully.");
 //      Q_EMIT newStateAvailable(new SurfaceSelectState());
     }
     else
     {
-      gui.setText("Model or Paths not found!");
       Q_EMIT newStateAvailable(new SystemInitState());
     }
   }
