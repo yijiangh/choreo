@@ -7,6 +7,7 @@
 void framefab_gui::SystemInitState::onStart(FrameFabWidget& gui)
 {
   gui.setText("System Ready. Click 'Next' to input model.");
+  gui.showParams();
 }
 
 void framefab_gui::SystemInitState::onExit(FrameFabWidget& gui) {}

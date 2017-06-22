@@ -48,7 +48,7 @@ class FrameFabWidget : public QWidget
   void sendGoal(const framefab_msgs::SimulateMotionPlanActionGoal& goal);
   void sendGoalAndWait(const framefab_msgs::SimulateMotionPlanActionGoal& goal);
 
-  void showInputUI(bool enabled);
+  void showParams() { params_->show(); }
 
   ros::NodeHandle& nodeHandle() { return nh_; }
   ParamsSubmenu& params() { return *params_; }
@@ -80,7 +80,7 @@ class FrameFabWidget : public QWidget
   GuiState* active_state_;
 
   // Params Save
-  ros::ServiceClient surface_framefab_parameters_client_;
+  ros::ServiceClient framefab_parameters_client_;
 
   actionlib::SimpleActionClient<framefab_msgs::SimulateMotionPlanAction>  simulate_motion_plan_action_client_;
 };

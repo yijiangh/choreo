@@ -1,12 +1,12 @@
 #include <ros/console.h>
-//#include "framefab_msgs/SurfaceBlendingParameters.h"
+#include "framefab_msgs/FrameFabParameters.h"
 
 #include <framefab_gui/framefab_widget.h>
 #include <framefab_gui/states/system_init_state.h>
 
 #include <ui_framefab_widget.h>
 
-//const std::string SURFACE_BLENDING_PARAMETERS_SERVICE = "surface_blending_parameters";
+//const std::string _BLENDING_PARAMETERS_SERVICE = "_blending_parameters";
 const static std::string SIMULATE_MOTION_PLAN_ACTION_SERVER_NAME = "simulate_motion_plan_as";
 
 framefab_gui::FrameFabWidget::FrameFabWidget(QWidget* parent)
@@ -78,14 +78,14 @@ void framefab_gui::FrameFabWidget::onParamsButton()
 //void framefab_gui::FrameFabWidget::onOptionsSave()
 //{
 //  ROS_INFO_STREAM("Save Options Called");
-////  godel_msgs::SurfaceBlendingParameters msg;
-////  msg.request.action = godel_msgs::SurfaceBlendingParameters::Request::SAVE_PARAMETERS;
-////  msg.request.surface_detection = options_->surfaceDetectionParams();
+////  godel_msgs::BlendingParameters msg;
+////  msg.request.action = godel_msgs::BlendingParameters::Request::SAVE_PARAMETERS;
+////  msg.request._detection = options_->DetectionParams();
 ////  msg.request.path_params = options_->pathPlanningParams();
 ////  msg.request.robot_scan = options_->robotScanParams();
 ////  msg.request.scan_plan = options_->scanParams();
 ////
-////  if (!surface_blending_parameters_client_.call(msg.request, msg.response))
+////  if (!_blending_parameters_client_.call(msg.request, msg.response))
 ////    ROS_WARN_STREAM("Could not complete service call to save parameters!");
 //}
 
@@ -117,27 +117,26 @@ void framefab_gui::FrameFabWidget::setButtonsEnabled(bool enabled)
 
 void framefab_gui::FrameFabWidget::loadParameters()
 {
-//  framefab_msgs::SurfaceFrameFabParameters srv;
-//  srv.request.action = srv.request.GET_CURRENT_PARAMETERS;
-//  ros::ServiceClient param_client =
-//      nodeHandle().serviceClient<framefab_msgs::SurfaceFrameFabParameters>(
-//          "surface_framefab_parameters");
-//
-//  setButtonsEnabled(false);
-//  param_client.waitForExistence();
-//
-//  if (param_client.call(srv))
-//  {
-//    this->options().setRobotScanParams(srv.response.robot_scan);
-//    this->options().setSurfaceDetectionParams(srv.response.surface_detection);
-//    this->options().setPathPlanningParams(srv.response.path_params);
-//    this->options().setScanParams(srv.response.scan_plan);
-//  }
-//  else
-//  {
-//    ROS_WARN_STREAM("Unable to fetch framefab parameters");
-//  }
-//  setButtonsEnabled(true);
+  framefab_msgs::FrameFabParameters srv;
+  srv.request.action = srv.request.GET_CURRENT_PARAMETERS;
+  ros::ServiceClient param_client =
+      nodeHandle().serviceClient<framefab_msgs::FrameFabParameters>("framefab_parameters");
+
+  setButtonsEnabled(false);
+  param_client.waitForExistence();
+
+  if (param_client.call(srv))
+  {
+    this->params().setModelInputParams(srv.response.model_params);
+    this->params().setPathInputParams(srv.response.path_params);
+//    this->params().setPathPlanningParams(srv.response.path_params);
+//    this->params().setScanParams(srv.response.scan_plan);
+  }
+  else
+  {
+    ROS_WARN_STREAM("Unable to fetch framefab parameters");
+  }
+  setButtonsEnabled(true);
 }
 
 void framefab_gui::FrameFabWidget::setLabelText(const std::string& txt)

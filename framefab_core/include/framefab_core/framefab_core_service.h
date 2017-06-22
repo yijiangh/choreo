@@ -1,25 +1,10 @@
-/*
-  Copyright May 7, 2014 Southwest Research Institute
-  Licensed under the Apache License, Version 2.0 (the "License");
-  you may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
-    http://www.apache.org/licenses/LICENSE-2.0
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
-*/
 #ifndef FRAMEFAB_CORE_SERVICE_H
 #define FRAMEFAB_CORE_SERVICE_H
 
 // service
-#include <framefab_msgs/ProcessPlanning.h>
-
-//#include <framefab_msgs/PathPlanning.h>
+#include <framefab_msgs/PathPlanning.h>
 
 // msgs
-#include <framefab_msgs/ProcessPlanningParameters.h>
 #include <framefab_msgs/ModelInputParameters.h>
 
 // actions
@@ -30,15 +15,6 @@
 #include <actionlib/server/simple_action_server.h>
 #include <actionlib/client/simple_action_client.h>
 
-//#include <framefab_process_path_generation/VisualizeBlendingPlan.h>
-//#include <framefab_process_path_generation/utils.h>
-
-/*#include <coordination/data_coordinator.h>*/
-
-//  marker namespaces
-/*const static std::string BOUNDARY_NAMESPACE = "process_boundary";*/
-/*const static std::string PATH_NAMESPACE = "process_path";*/
-/*const static std::string TOOL_NAMESPACE = "process_tool";*/
 namespace framfab_core
 {
 struct ProcessPathDetails
