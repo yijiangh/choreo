@@ -13,8 +13,8 @@ is_draw_axes_(false), op_mode_(NORMAL), scale_(1.0)
 	eye_direction_[0] = eye_direction_[1] = 0.0;
 	eye_direction_[2] = 1.0;
 
-	last_file_dir_ = "$HOME/Documents";
-	last_result_dir_ = "$HOME/Documents";
+	last_file_dir_ = "$HOME/Documents/";
+	last_result_dir_ = "$HOME/Documents/";
 
 	setFocusPolicy(Qt::StrongFocus);
 }

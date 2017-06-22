@@ -22,11 +22,14 @@ framefab_gui::FrameFabWidget::FrameFabWidget(QWidget* parent)
   ui_ = new Ui::FrameFabWidget;
   ui_->setupUi(this);
 
-//  int i = 0;
-//  glutInit(&i, NULL);
+  int i = 0;
+  glutInit(&i, NULL);
 
   params_ = new ParamsSubmenu();
   params_->hide();
+
+  ptr_input_mainwindow_ = new MainWindow();
+  ptr_input_mainwindow_->hide();
 
   // Starts in scan teach state
   changeState(new SystemInitState());
@@ -80,6 +83,7 @@ void framefab_gui::FrameFabWidget::onResetButton()
 void framefab_gui::FrameFabWidget::onParamsButton()
 {
   params_->show();
+//  ptr_input_mainwindow_->show();
 }
 
 //void framefab_gui::FrameFabWidget::onOptionsSave()
@@ -129,26 +133,27 @@ void framefab_gui::FrameFabWidget::setButtonsEnabled(bool enabled)
 
 void framefab_gui::FrameFabWidget::showInputUI(bool enabled)
 {
-//  if(enabled)
-//  {
-//    if(NULL == ptr_input_mainwindow_)
-//    {
-//      ptr_input_mainwindow_ = new MainWindow();
-//    }
-//    else
-//    {
-//      delete ptr_input_mainwindow_;
-//      ptr_input_mainwindow_ = new MainWindow();
-//    }
-//    ptr_input_mainwindow_->show();
-//  }
-//  else
-//  {
-//    ptr_input_mainwindow_->hide();
-//    delete ptr_input_mainwindow_;
-//    ptr_input_mainwindow_ = NULL;
-//  }
-  sendGoal(enabled);
+  if(enabled)
+  {
+    if(NULL == ptr_input_mainwindow_)
+    {
+      ptr_input_mainwindow_ = new MainWindow(this);
+    }
+    else
+    {
+      delete ptr_input_mainwindow_;
+      ptr_input_mainwindow_ = NULL;
+      ptr_input_mainwindow_ = new MainWindow(this);
+    }
+    ptr_input_mainwindow_->show();
+  }
+  else
+  {
+    ptr_input_mainwindow_->close();
+    delete ptr_input_mainwindow_;
+    ptr_input_mainwindow_ = NULL;
+  }
+//  sendGoal(enabled);
 }
 
 void framefab_gui::FrameFabWidget::loadParameters()

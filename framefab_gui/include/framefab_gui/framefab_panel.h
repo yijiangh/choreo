@@ -6,7 +6,6 @@
 namespace framefab_gui
 {
 
-// Forward declare blend widget
 class FrameFabWidget;
 
 class FrameFabPanel : public rviz::Panel
