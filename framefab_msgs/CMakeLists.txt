@@ -25,6 +25,7 @@ add_action_files(
     ProcessExecution.action
     ProcessPlanning.action
     SimulateMotionPlan.action
+    ModelInputGui.action
 )
 ## Generate messages in the 'msg' folder
 

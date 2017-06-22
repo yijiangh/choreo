@@ -43,7 +43,7 @@ set(framefab_input_gui_HDRS
 )
 
 set(framefab_input_gui_UIS
-	src/uis/mainwindow.ui
+	src/uis/framefab_mainwindow.ui
 )
 
 set(framefab_input_gui_INCLUDE_DIRECTORIES
