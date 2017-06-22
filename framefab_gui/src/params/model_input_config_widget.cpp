@@ -1,4 +1,4 @@
-//
+//i_path_input_c
 // Created by yijiangh on 6/17/17.
 //
 
@@ -67,4 +67,7 @@ void framefab_gui::ModelInputConfigWidget::get_file_path_handler()
       tr("Open File"),
       "$HOME/Documents",
       tr("pwf Files (*.pwf)"));
+
+  params_.file_name = filename.toLocal8Bit().constData();
+  update_display_fields();
 }

@@ -4,7 +4,7 @@
 #include <QWidget>
 
 #include "framefab_gui/params/model_input_config_widget.h"
-//#include "framefab_gui/options/test_process_config.h"
+#include "framefab_gui/params/path_input_config_widget.h"
 
 namespace Ui
 {
@@ -22,11 +22,11 @@ class ParamsSubmenu : public QWidget
   ParamsSubmenu(QWidget* parent = 0);
 
   // For every submenu / set of parameters, we have getters/setters
-  const framefab_msgs::ModelInputParameters& ModelInputParams() const;
+  const framefab_msgs::ModelInputParameters& modelInputParams() const;
   void  setModelInputParams(const framefab_msgs::ModelInputParameters& params);
 
-//  const framefab_msgs::TestProcessParameters& TestProcessParams() const;
-//  void setTestProcessParams(const framefab_msgs::TestProcessParameters& params);
+  const framefab_msgs::PathInputParameters& pathInputParams() const;
+  void setPathInputParams(const framefab_msgs::PathInputParameters& params);
 
 //  const framefab_msgs::PathPlanningParameters& pathPlanningParams() const;
 //  void setPathPlanningParams(const framefab_msgs::PathPlanningParameters& params);
@@ -40,7 +40,8 @@ class ParamsSubmenu : public QWidget
 
   // Configuration components
   ModelInputConfigWidget*   model_input_widget_;
-//  TestProcessConfigWidget*  test_process_widget_;
+  PathInputConfigWidget*    path_input_widget_;
+
 //  PathPlanningConfigWidget* path_planning_params_;
 //  ScanPlanConfigWidget* scan_params_;
 };

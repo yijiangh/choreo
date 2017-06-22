@@ -35,6 +35,7 @@ add_message_files(
 		msg 
 		FILES 
 		ModelInputParameters.msg
+		PathInputParameters.msg
 		ProcessPlanningParameters.msg
 		ProcessPath.msg
 		ProcessPlan.msg
@@ -44,6 +45,7 @@ add_message_files(
 add_service_files(
 FILES
 ProcessPlanning.srv
+PathPlanning.srv
 FrameFabParameters.srv
 FrameFabProcessPlanning.srv
 TrajectoryExecution.srv

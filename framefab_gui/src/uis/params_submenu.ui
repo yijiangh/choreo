@@ -33,7 +33,7 @@
         </font>
        </property>
        <property name="text">
-        <string>XX Options</string>
+        <string>XX Params</string>
        </property>
       </widget>
      </item>
@@ -54,12 +54,12 @@
         </font>
        </property>
        <property name="text">
-        <string>Path Options</string>
+        <string>XX Params</string>
        </property>
       </widget>
      </item>
      <item row="0" column="1">
-      <widget class="QPushButton" name="pushbutton_test_process">
+      <widget class="QPushButton" name="pushbutton_path_input">
        <property name="minimumSize">
         <size>
          <width>0</width>
@@ -72,7 +72,7 @@
         </font>
        </property>
        <property name="text">
-        <string>Test Process</string>
+        <string>Path Input</string>
        </property>
       </widget>
      </item>

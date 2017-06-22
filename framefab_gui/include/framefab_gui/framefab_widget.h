@@ -8,14 +8,11 @@
 
 #include <framefab_gui/gui_state.h>
 #include "framefab_gui/params_submenu.h"
-#include <framefab_gui/input_ui/mainwindow.h>
 
 #include "actionlib/client/simple_action_client.h"
 
 #include "framefab_msgs/SimulateMotionPlanAction.h"
 #include "framefab_msgs/SimulateMotionPlanActionGoal.h"
-#include "framefab_msgs/ModelInputGuiAction.h"
-#include "framefab_msgs/ModelInputGuiActionGoal.h"
 
 namespace Ui
 {
@@ -26,10 +23,13 @@ namespace framefab_gui
 {
 /**
  * @brief The FrameFabWidget class works in states:
- * 1. Model Input State
- * 2. Path Planning State
- * 3. Process Planning State
- * 4. PostProcessing State (output to Grasshopper for fine-tuned motion compensation)
+ * 1. System Init State
+ * 2. Path Planning State           (req Model Info)
+ * 3. Select Path State             (user select path for process planning)
+ * 4. Process Planning State        (motion planning)
+ * 5. Select Process Plan State     (User selects plans)
+ * 6. Simulating State              (simulated robot execution motion)
+ * 7. PostProcessing State          (output results to Grasshopper for fine-tuned motion compensation)
  */
 class FrameFabWidget : public QWidget
 {
@@ -45,12 +45,13 @@ class FrameFabWidget : public QWidget
   void setButtonsEnabled(bool enabled);
   void showStatusWindow();
   void setLabelText(const std::string& txt);
-  void sendGoal(const bool enabled);
-//  void sendGoalAndWait(const framefab_msgs::SimulateMotionPlanActionGoal& goal);
+  void sendGoal(const framefab_msgs::SimulateMotionPlanActionGoal& goal);
+  void sendGoalAndWait(const framefab_msgs::SimulateMotionPlanActionGoal& goal);
 
   void showInputUI(bool enabled);
 
   ros::NodeHandle& nodeHandle() { return nh_; }
+  ParamsSubmenu& params() { return *params_; }
 
  protected:
   void loadParameters();
@@ -71,7 +72,6 @@ class FrameFabWidget : public QWidget
   // UI
   Ui::FrameFabWidget* ui_;
   ParamsSubmenu* params_;
-  MainWindow* ptr_input_mainwindow_;
 
   // ROS specific stuff
   ros::NodeHandle nh_;
@@ -83,7 +83,6 @@ class FrameFabWidget : public QWidget
   ros::ServiceClient surface_framefab_parameters_client_;
 
   actionlib::SimpleActionClient<framefab_msgs::SimulateMotionPlanAction>  simulate_motion_plan_action_client_;
-  actionlib::SimpleActionClient<framefab_msgs::ModelInputGuiAction>       input_ui_client_;
 };
 }
 

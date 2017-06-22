@@ -8,12 +8,10 @@
 
 //const std::string SURFACE_BLENDING_PARAMETERS_SERVICE = "surface_blending_parameters";
 const static std::string SIMULATE_MOTION_PLAN_ACTION_SERVER_NAME = "simulate_motion_plan_as";
-const static std::string MODEL_INPUT_GUI_ACTION_SERVER_NAME = "model_input_gui_as";
 
 framefab_gui::FrameFabWidget::FrameFabWidget(QWidget* parent)
     : QWidget(parent),
       active_state_(NULL),
-      input_ui_client_(MODEL_INPUT_GUI_ACTION_SERVER_NAME, true),
       simulate_motion_plan_action_client_(SIMULATE_MOTION_PLAN_ACTION_SERVER_NAME, true)
 {
   // UI setup
@@ -32,7 +30,7 @@ framefab_gui::FrameFabWidget::FrameFabWidget(QWidget* parent)
   connect(ui_->pushbutton_reset, SIGNAL(clicked()), this, SLOT(onResetButton()));
   connect(ui_->pushbutton_params, SIGNAL(clicked()), this, SLOT(onParamsButton()));
 
-  // Connect to ROS services
+  // Connect to ROS save params services
   loadParameters();
 
   // Start Service Client
@@ -103,11 +101,6 @@ void framefab_gui::FrameFabWidget::changeState(GuiState* new_state)
     delete active_state_;
   }
 
-//  ptr_input_mainwindow_ = NULL;
-
-//  real_client_ =
-//      gui.nodeHandle().serviceClient<godel_msgs::SelectMotionPlan>(SELECT_MOTION_PLAN_SERVICE);
-
   active_state_ = new_state;
   connect(new_state, SIGNAL(newStateAvailable(GuiState*)), this, SLOT(changeState(GuiState*)));
 
@@ -152,16 +145,13 @@ void framefab_gui::FrameFabWidget::setLabelText(const std::string& txt)
   ui_->label_status->setText( QString::fromStdString(txt));
 }
 
-void framefab_gui::FrameFabWidget::sendGoal(const bool enabled)
+void framefab_gui::FrameFabWidget::sendGoal(const framefab_msgs::SimulateMotionPlanActionGoal& goal)
 {
-  framefab_msgs::ModelInputGuiActionGoal goal;
-  goal.goal.enable_ui = enabled;
-
-  input_ui_client_.sendGoal(goal.goal);
+  simulate_motion_plan_action_client_.sendGoal(goal.goal);
 }
 
-//void framefab_gui::FrameFabWidget::sendGoalAndWait(const framefab_msgs::ModelInputGuiActionGoal& goal)
-//{
-//  ros::Duration timeout = ros::Duration(60);
-//  simulate_motion_plan_action_client_.sendGoalAndWait(goal.goal, timeout, timeout);
-//}
+void framefab_gui::FrameFabWidget::sendGoalAndWait(const framefab_msgs::SimulateMotionPlanActionGoal& goal)
+{
+  ros::Duration timeout = ros::Duration(60);
+  simulate_motion_plan_action_client_.sendGoalAndWait(goal.goal, timeout, timeout);
+}
