@@ -10,8 +10,12 @@
 #include "framefab_gui/params_submenu.h"
 #include <framefab_gui/input_ui/mainwindow.h>
 
+#include "actionlib/client/simple_action_client.h"
+
 #include "framefab_msgs/SimulateMotionPlanAction.h"
 #include "framefab_msgs/SimulateMotionPlanActionGoal.h"
+#include "framefab_msgs/ModelInputGuiAction.h"
+#include "framefab_msgs/ModelInputGuiActionGoal.h"
 
 namespace Ui
 {
@@ -41,8 +45,8 @@ class FrameFabWidget : public QWidget
   void setButtonsEnabled(bool enabled);
   void showStatusWindow();
   void setLabelText(const std::string& txt);
-  void sendGoal(const framefab_msgs::SimulateMotionPlanActionGoal& goal);
-  void sendGoalAndWait(const framefab_msgs::SimulateMotionPlanActionGoal& goal);
+  void sendGoal(const bool enabled);
+//  void sendGoalAndWait(const framefab_msgs::SimulateMotionPlanActionGoal& goal);
 
   void showInputUI(bool enabled);
 
@@ -77,7 +81,9 @@ class FrameFabWidget : public QWidget
 
   // Params Save
   ros::ServiceClient surface_framefab_parameters_client_;
-  actionlib::SimpleActionClient<framefab_msgs::SimulateMotionPlanAction> simulate_motion_plan_action_client_;
+
+  actionlib::SimpleActionClient<framefab_msgs::SimulateMotionPlanAction>  simulate_motion_plan_action_client_;
+  actionlib::SimpleActionClient<framefab_msgs::ModelInputGuiAction>       input_ui_client_;
 };
 }
 

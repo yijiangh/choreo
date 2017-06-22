@@ -1,6 +1,6 @@
 <launch>
 
-  <node name="framefab_input_gui" pkg="framefab_input_gui" type="framefab_input_gui_node" respawn="false">
+  <node name="framefab_input_gui" pkg="framefab_input_gui" type="framefab_input_gui_node" respawn="true">
   </node>
 
 </launch>

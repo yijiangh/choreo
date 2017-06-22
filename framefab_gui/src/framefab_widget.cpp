@@ -10,18 +10,20 @@
 
 //const std::string SURFACE_BLENDING_PARAMETERS_SERVICE = "surface_blending_parameters";
 const static std::string SIMULATE_MOTION_PLAN_ACTION_SERVER_NAME = "simulate_motion_plan_as";
+const static std::string MODEL_INPUT_GUI_ACTION_SERVER_NAME = "model_input_gui_as";
 
 framefab_gui::FrameFabWidget::FrameFabWidget(QWidget* parent)
     : QWidget(parent),
       active_state_(NULL),
+      input_ui_client_(MODEL_INPUT_GUI_ACTION_SERVER_NAME, true),
       simulate_motion_plan_action_client_(SIMULATE_MOTION_PLAN_ACTION_SERVER_NAME, true)
 {
   // UI setup
   ui_ = new Ui::FrameFabWidget;
   ui_->setupUi(this);
 
-  int i = 0;
-  glutInit(&i, NULL);
+//  int i = 0;
+//  glutInit(&i, NULL);
 
   params_ = new ParamsSubmenu();
   params_->hide();
@@ -40,9 +42,6 @@ framefab_gui::FrameFabWidget::FrameFabWidget(QWidget* parent)
 
   // Start Service Client
   ros::NodeHandle nh;
-
-//  surface_blending_parameters_client_ =
-//      nh.serviceClient<framefab_msgs::SurfaceBlendingParameters>(SURFACE_BLENDING_PARAMETERS_SERVICE);
 }
 
 framefab_gui::FrameFabWidget::~FrameFabWidget()
@@ -111,6 +110,9 @@ void framefab_gui::FrameFabWidget::changeState(GuiState* new_state)
 
   ptr_input_mainwindow_ = NULL;
 
+//  real_client_ =
+//      gui.nodeHandle().serviceClient<godel_msgs::SelectMotionPlan>(SELECT_MOTION_PLAN_SERVICE);
+
   active_state_ = new_state;
   connect(new_state, SIGNAL(newStateAvailable(GuiState*)), this, SLOT(changeState(GuiState*)));
 
@@ -127,25 +129,26 @@ void framefab_gui::FrameFabWidget::setButtonsEnabled(bool enabled)
 
 void framefab_gui::FrameFabWidget::showInputUI(bool enabled)
 {
-  if(enabled)
-  {
-    if(NULL == ptr_input_mainwindow_)
-    {
-      ptr_input_mainwindow_ = new MainWindow();
-    }
-    else
-    {
-      delete ptr_input_mainwindow_;
-      ptr_input_mainwindow_ = new MainWindow();
-    }
-    ptr_input_mainwindow_->show();
-  }
-  else
-  {
-    ptr_input_mainwindow_->hide();
-    delete ptr_input_mainwindow_;
-    ptr_input_mainwindow_ = NULL;
-  }
+//  if(enabled)
+//  {
+//    if(NULL == ptr_input_mainwindow_)
+//    {
+//      ptr_input_mainwindow_ = new MainWindow();
+//    }
+//    else
+//    {
+//      delete ptr_input_mainwindow_;
+//      ptr_input_mainwindow_ = new MainWindow();
+//    }
+//    ptr_input_mainwindow_->show();
+//  }
+//  else
+//  {
+//    ptr_input_mainwindow_->hide();
+//    delete ptr_input_mainwindow_;
+//    ptr_input_mainwindow_ = NULL;
+//  }
+  sendGoal(enabled);
 }
 
 void framefab_gui::FrameFabWidget::loadParameters()
@@ -178,13 +181,16 @@ void framefab_gui::FrameFabWidget::setLabelText(const std::string& txt)
   ui_->label_status->setText( QString::fromStdString(txt));
 }
 
-void framefab_gui::FrameFabWidget::sendGoal(const framefab_msgs::SimulateMotionPlanActionGoal& goal)
+void framefab_gui::FrameFabWidget::sendGoal(const bool enabled)
 {
-  simulate_motion_plan_action_client_.sendGoal(goal.goal);
+  framefab_msgs::ModelInputGuiActionGoal goal;
+  goal.goal.enable_ui = enabled;
+
+  input_ui_client_.sendGoalAndWait(goal.goal);
 }
 
-void framefab_gui::FrameFabWidget::sendGoalAndWait(const framefab_msgs::SimulateMotionPlanActionGoal& goal)
-{
-  ros::Duration timeout = ros::Duration(60);
-  simulate_motion_plan_action_client_.sendGoalAndWait(goal.goal, timeout, timeout);
-}
+//void framefab_gui::FrameFabWidget::sendGoalAndWait(const framefab_msgs::ModelInputGuiActionGoal& goal)
+//{
+//  ros::Duration timeout = ros::Duration(60);
+//  simulate_motion_plan_action_client_.sendGoalAndWait(goal.goal, timeout, timeout);
+//}
