@@ -44,7 +44,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 	QHBoxLayout *layout_main = new QHBoxLayout;
 	layout_main->addLayout(layout_left);
-//	layout_main->addWidget(renderingwidget_);
+	layout_main->addWidget(renderingwidget_);
 	layout_main->setStretch(1, 1);
 	layout_main->addLayout(layout_right);
 	this->centralWidget()->setLayout(layout_main);

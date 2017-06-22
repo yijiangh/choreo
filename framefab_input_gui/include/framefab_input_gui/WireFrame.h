@@ -44,7 +44,7 @@
 #include <cmath>
 #include <string.h>
 
-#include "framefab_gui/input_ui/Vec.h"
+#include "framefab_input_gui/Vec.h"
 
 using namespace std;
 using trimesh::vec;

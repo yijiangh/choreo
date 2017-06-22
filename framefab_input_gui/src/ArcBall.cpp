@@ -1,7 +1,7 @@
 // ArcBall.cpp: implementation of the CArcBall class.
 //
 //////////////////////////////////////////////////////////////////////
-#include "framefab_gui/input_ui/ArcBall.h"
+#include "framefab_input_gui/ArcBall.h"
 
 #include <math.h>
 

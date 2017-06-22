@@ -1,4 +1,4 @@
-﻿#include <framefab_gui/input_ui/renderingwidget.h>
+﻿#include <framefab_input_gui/renderingwidget.h>
 
 RenderingWidget::RenderingWidget(QWidget *parent, MainWindow* mainwindow)
 : QGLWidget(parent), ptr_mainwindow_(mainwindow), eye_distance_(10.0),
@@ -1344,7 +1344,7 @@ void RenderingWidget::DeformationAnalysis(double Wl, double Wp, double Wa)
 	QByteArray bydirname = dirname.toLocal8Bit();
 
 
-	FiberPrintPARM *ptr_parm = new FiberPrintPARM(Wl, Wp, Wa);
+//	FiberPrintPARM *ptr_parm = new FiberPrintPARM(Wl, Wp, Wa);
 
 //	delete ptr_fiberprint_;
 //	ptr_fiberprint_ = new FiberPrintPlugIn(ptr_frame_, ptr_parm, bydirname.data(), false, true);

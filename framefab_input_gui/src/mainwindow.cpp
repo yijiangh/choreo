@@ -1,4 +1,4 @@
-#include <framefab_gui/input_ui/mainwindow.h>
+#include <framefab_input_gui/mainwindow.h>
 
 
 MainWindow::MainWindow(QWidget *parent)

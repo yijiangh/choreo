@@ -60,7 +60,7 @@
 #include <QInputDialog>
 #include <QLineEdit>
 
-#include <framefab_gui/input_ui/renderingwidget.h>
+#include <framefab_input_gui/renderingwidget.h>
 #include <ui_framefab_mainwindow.h>
 
 enum EdgeRenderMode
