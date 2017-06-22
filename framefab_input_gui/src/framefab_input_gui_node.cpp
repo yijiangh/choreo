@@ -16,25 +16,22 @@ void spinThread()
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "framefab_input_gui");
-//  ros::AsyncSpinner spinner(4);
   boost::thread spin_thread(&spinThread);
 
   // Load local parameters
 //  ros::NodeHandle nh, pnh("~");
 //  glutInit( & argc, argv );
+
   int i=0;
   glutInit(&i, NULL);
   QApplication a(argc, argv);
-  MainWindow w;
-  w.show();
-  a.exec();
 
 //  using framefab_input_gui::FrameFabInputGui;
 
-//  FrameFabInputGui input_gui(nh, &w);
+  framefab_input_gui::FrameFabInputGui input_gui;
+  input_gui.setApp(&a);
 
+  input_gui.init();
 
-//  ros::waitForShutdown();
-
-  return 0;
+  return a.exec();
 }

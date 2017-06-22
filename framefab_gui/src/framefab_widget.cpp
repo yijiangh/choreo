@@ -186,7 +186,7 @@ void framefab_gui::FrameFabWidget::sendGoal(const bool enabled)
   framefab_msgs::ModelInputGuiActionGoal goal;
   goal.goal.enable_ui = enabled;
 
-  input_ui_client_.sendGoalAndWait(goal.goal);
+  input_ui_client_.sendGoal(goal.goal);
 }
 
 //void framefab_gui::FrameFabWidget::sendGoalAndWait(const framefab_msgs::ModelInputGuiActionGoal& goal)
