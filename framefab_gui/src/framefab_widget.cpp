@@ -112,7 +112,7 @@ void framefab_gui::FrameFabWidget::changeState(GuiState* new_state)
     delete active_state_;
   }
 
-  ptr_input_mainwindow_ = NULL;
+//  ptr_input_mainwindow_ = NULL;
 
 //  real_client_ =
 //      gui.nodeHandle().serviceClient<godel_msgs::SelectMotionPlan>(SELECT_MOTION_PLAN_SERVICE);
@@ -135,23 +135,23 @@ void framefab_gui::FrameFabWidget::showInputUI(bool enabled)
 {
   if(enabled)
   {
-    if(NULL == ptr_input_mainwindow_)
-    {
-      ptr_input_mainwindow_ = new MainWindow(this);
-    }
-    else
-    {
-      delete ptr_input_mainwindow_;
-      ptr_input_mainwindow_ = NULL;
-      ptr_input_mainwindow_ = new MainWindow(this);
-    }
+//    if(NULL == ptr_input_mainwindow_)
+//    {
+//      ptr_input_mainwindow_ = new MainWindow();
+//    }
+//    else
+//    {
+//      delete ptr_input_mainwindow_;
+//      ptr_input_mainwindow_ = NULL;
+//      ptr_input_mainwindow_ = new MainWindow();
+//    }
     ptr_input_mainwindow_->show();
   }
   else
   {
     ptr_input_mainwindow_->close();
-    delete ptr_input_mainwindow_;
-    ptr_input_mainwindow_ = NULL;
+//    delete ptr_input_mainwindow_;
+//    ptr_input_mainwindow_ = NULL;
   }
 //  sendGoal(enabled);
 }

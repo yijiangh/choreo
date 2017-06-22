@@ -75,7 +75,7 @@ set(framefab_gui_UIS
 	src/uis/framefab_widget.ui
 	src/uis/params_submenu.ui
 	src/uis/model_input_config.ui
-	src/uis/framefab_mainwindow.ui
+	src/uis/input_widget.ui
 	)
 
 set(framefab_gui_INCLUDE_DIRECTORIES

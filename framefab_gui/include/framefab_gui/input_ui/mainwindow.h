@@ -45,7 +45,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QMainWindow>
+//#include <QMainWindow>
 #include <QLabel>
 #include <QLayout>
 #include <QPushButton>
@@ -59,9 +59,12 @@
 #include <QSlider>
 #include <QInputDialog>
 #include <QLineEdit>
+#include <QMenuBar>
+#include <QMenu>
+#include <QStatusBar>
 
 #include <framefab_gui/input_ui/renderingwidget.h>
-#include <ui_framefab_mainwindow.h>
+#include <ui_input_widget.h>
 
 enum EdgeRenderMode
 {
@@ -73,12 +76,12 @@ enum EdgeRenderMode
 
 namespace Ui
 {
-class FrameFabMainWindow;
+class InputWidget;
 }
 
 class RenderingWidget;
 
-class MainWindow : public QMainWindow
+class MainWindow : public QWidget
 {
   Q_OBJECT
 
@@ -170,10 +173,11 @@ public Q_SLOTS:
 	void	Reset();
 
  protected:
-	Ui::FrameFabMainWindow ui;
+	Ui::InputWidget ui;
 
  private:
 	// Basic
+  	QMenuBar			*menu_bar_;
 	QMenu				*menu_file_;
 	QMenu				*menu_display_;
 	//QMenu				*menu_help_;
@@ -194,6 +198,8 @@ public Q_SLOTS:
 	QAction				*action_file_;
 
 	// Labels
+	QStatusBar			*status_bar_;
+
 	QLabel				*label_meshinfo_;
 	QLabel				*label_operatorinfo_;
 	QLabel				*label_modeinfo_;

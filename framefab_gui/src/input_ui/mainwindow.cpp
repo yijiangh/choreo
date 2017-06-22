@@ -1,14 +1,13 @@
 #include <framefab_gui/input_ui/mainwindow.h>
 
-
 MainWindow::MainWindow(QWidget *parent)
-	: QMainWindow(parent)
+		: QWidget(parent)
 {
 	ui.setupUi(this);
 //	ui.mainToolBar->setVisible(false);
-	this->setWindowTitle("FrameFab");
+//	this->setWindowTitle("FrameFab");
 	setGeometry(200, 150, 1000, 700);
-	
+
 	renderingwidget_ = new RenderingWidget(this);
 	connect(renderingwidget_, SIGNAL(Error(QString)), this, SLOT(ShowError(QString)));
 	connect(renderingwidget_, SIGNAL(Reset()), this, SLOT(Reset()));
@@ -25,7 +24,7 @@ MainWindow::MainWindow(QWidget *parent)
 	CreateToolButtons();
 	CreateGroups();
 	CreateDialogs();
-	
+
 	QVBoxLayout *layout_left = new QVBoxLayout;
 	layout_left->addWidget(groupbox_render_);
 	layout_left->addWidget(groupbox_edge_);
@@ -47,8 +46,10 @@ MainWindow::MainWindow(QWidget *parent)
 	layout_main->addWidget(renderingwidget_);
 	layout_main->setStretch(1, 1);
 	layout_main->addLayout(layout_right);
-	this->centralWidget()->setLayout(layout_main);
-	
+	layout_main->addWidget(status_bar_);
+	this->setLayout(layout_main);
+//	this->layout()->setMenuBar(menu_bar_);
+
 	Reset();
 }
 
@@ -104,7 +105,9 @@ void MainWindow::CreateActions()
 
 void MainWindow::CreateMenus()
 {
-	menu_file_ = menuBar()->addMenu(tr("&File"));
+	menu_bar_ = new QMenuBar(this);
+
+	menu_file_ = menu_bar_->addMenu(tr("&File"));
 	menu_file_->setStatusTip(tr("File menu"));
 	menu_file_->addAction(action_new_);
 	menu_file_->addAction(action_open_);
@@ -115,11 +118,11 @@ void MainWindow::CreateMenus()
 	menu_file_->addAction(action_export_);
 	//menu_file_->addAction(action_exportrender_);
 
-	menu_display_ = menuBar()->addMenu(tr("&Display"));
+	menu_display_ = menu_bar_->addMenu(tr("&Display"));
 	menu_display_->setStatusTip(tr("Display settings"));
 	menu_display_->addAction(action_background_);
 
-	menu_debug_ = menuBar()->addMenu(tr("&Debug"));
+	menu_debug_ = menu_bar_->addMenu(tr("&Debug"));
 	menu_debug_->setStatusTip(tr("Debug"));
 	menu_debug_->addAction(action_terminal_);
 	menu_debug_->addAction(action_file_);
@@ -134,27 +137,29 @@ void MainWindow::CreateLabels()
 
 	label_operatorinfo_ = new QLabel(QString("Scale: 1.0"), this);
 	label_operatorinfo_->setAlignment(Qt::AlignVCenter);
-	
+
 	label_modeinfo_ = new QLabel(this);
 
 	label_capture_ = new QLabel(this);
 
 	label_layer_ = new QLabel(this);
 
-	statusBar()->addWidget(label_meshinfo_);
+	status_bar_ = new QStatusBar(this);
+
+	status_bar_->addWidget(label_meshinfo_);
 	connect(renderingwidget_, SIGNAL(meshInfo(int, int)), this, SLOT(ShowMeshInfo(int, int)));
 
-	statusBar()->addWidget(label_modeinfo_);
+	status_bar_->addWidget(label_modeinfo_);
 	connect(renderingwidget_, SIGNAL(modeInfo(QString)), label_modeinfo_, SLOT(setText(QString)));
 
-	statusBar()->addWidget(label_capture_);
+	status_bar_->addWidget(label_capture_);
 	connect(renderingwidget_, SIGNAL(CapturedVert(int, int)), this, SLOT(ShowCapturedVert(int, int)));
 	connect(renderingwidget_, SIGNAL(CapturedEdge(int, double)), this, SLOT(ShowCapturedEdge(int, double)));
 
-	statusBar()->addWidget(label_layer_);
+	status_bar_->addWidget(label_layer_);
 	connect(renderingwidget_, SIGNAL(layerInfo(int, int)), this, SLOT(ShowLayerInfo(int, int)));
 
-	statusBar()->addWidget(label_operatorinfo_);
+	status_bar_->addWidget(label_operatorinfo_);
 	connect(renderingwidget_, SIGNAL(operatorInfo(QString)), label_operatorinfo_, SLOT(setText(QString)));
 
 	label_wp_		= new QLabel(QString("Seq Wp: "), this);
@@ -335,18 +340,18 @@ void MainWindow::CreatePushButtons()
 	pushbutton_framefabprint_ = new QPushButton(tr("FrameFab Print"), this);
 	pushbutton_framefabprint_->setFixedSize(140, 35);
 	connect(pushbutton_framefabprint_, SIGNAL(clicked()), this, SLOT(GetFrameFabParas()));
-	connect(this, 
-		SIGNAL(SendFrameFabParas(double, double, double, bool, bool)),
-		renderingwidget_, 
-		SLOT(FrameFabAnalysis(double, double, double, bool, bool)));
+	connect(this,
+			SIGNAL(SendFrameFabParas(double, double, double, bool, bool)),
+			renderingwidget_,
+			SLOT(FrameFabAnalysis(double, double, double, bool, bool)));
 
 	pushbutton_framefabcut_ = new QPushButton(tr("FrameFab Cut"), this);
 	pushbutton_framefabcut_->setFixedSize(140, 35);
 	connect(pushbutton_framefabcut_, SIGNAL(clicked()), this, SLOT(GetFrameFabCutParas()));
 	connect(this,
-		SIGNAL(SendFrameFabCutParas(double, double, double, bool, bool)),
-		renderingwidget_,
-		SLOT(CutAnalysis(double, double, double, bool, bool)));
+			SIGNAL(SendFrameFabCutParas(double, double, double, bool, bool)),
+			renderingwidget_,
+			SLOT(CutAnalysis(double, double, double, bool, bool)));
 
 	//pushbutton_deformation_ = new QPushButton(tr("Deformation"), this);
 	//pushbutton_deformation_->setFixedSize(140, 35);
@@ -360,7 +365,7 @@ void MainWindow::CreatePushButtons()
 	pushbutton_project_->setFixedSize(140, 35);
 	connect(pushbutton_project_, SIGNAL(clicked()), this, SLOT(GetProjectionParas()));
 	connect(this, SIGNAL(SendProjectionParas(double)), renderingwidget_, SLOT(ProjectBound(double)));
-	
+
 	//pushbutton_rightarrow_ = new QPushButton(tr(">>"), this);
 	//pushbutton_rightarrow_->setFlat(true);
 	//pushbutton_rightarrow_->setFixedSize(20, 20);
@@ -373,15 +378,15 @@ void MainWindow::CreatePushButtons()
 
 	pushbutton_save_ = new QPushButton(tr("Save"), this);
 	connect(pushbutton_save_, SIGNAL(clicked()), this, SLOT(GetSaveParas()));
-	connect(this, SIGNAL(SendSaveOBJParas(QString)), 
-		renderingwidget_, SLOT(WriteFrame(QString)));
+	connect(this, SIGNAL(SendSaveOBJParas(QString)),
+			renderingwidget_, SLOT(WriteFrame(QString)));
 	connect(this, SIGNAL(SendSavePWFParas(bool, bool, bool, bool, bool, int, int, QString)),
-		renderingwidget_, SLOT(WriteFrame(bool, bool, bool, bool, bool, int, int, QString)));
+			renderingwidget_, SLOT(WriteFrame(bool, bool, bool, bool, bool, int, int, QString)));
 
 	pushbutton_export_ = new QPushButton(tr("Export"), this);
 	connect(pushbutton_export_, SIGNAL(clicked()), this, SLOT(GetExportParas()));
 	connect(this, SIGNAL(SendExportParas(int, int, QString, QString, QString)),
-		renderingwidget_, SLOT(Export(int, int, QString, QString, QString)));
+			renderingwidget_, SLOT(Export(int, int, QString, QString, QString)));
 
 	pushbutton_exportvert_ = new QPushButton(tr("..."), this);
 	pushbutton_exportvert_->setFixedWidth(30);
@@ -624,39 +629,39 @@ void MainWindow::ChooseSubGClicked(bool down)
 void MainWindow::GetFrameFabParas()
 {
 	Q_EMIT(SendFrameFabParas(
-		spinbox_wp_->value(),
-		spinbox_wa_->value(),
-		spinbox_wi_->value(),
-		action_terminal_->isChecked(),
-		action_file_->isChecked()
-		));
+			spinbox_wp_->value(),
+			spinbox_wa_->value(),
+			spinbox_wi_->value(),
+			action_terminal_->isChecked(),
+			action_file_->isChecked()
+	));
 }
 
 void MainWindow::GetFrameFabCutParas()
 {
 	Q_EMIT(SendFrameFabCutParas(
-		spinbox_wp_->value(),
-		spinbox_wa_->value(),
-		spinbox_wi_->value(),
-		action_terminal_->isChecked(),
-		action_file_->isChecked()
-		));
+			spinbox_wp_->value(),
+			spinbox_wa_->value(),
+			spinbox_wi_->value(),
+			action_terminal_->isChecked(),
+			action_file_->isChecked()
+	));
 }
 
 void MainWindow::GetOneLayerSearchParas()
 {
 	Q_EMIT(SendOneLayerSearchParas(
-		spinbox_wp_->value(),
-		spinbox_wa_->value(),
-		spinbox_wi_->value()));
+			spinbox_wp_->value(),
+			spinbox_wa_->value(),
+			spinbox_wi_->value()));
 }
 
 void MainWindow::GetDeformParas()
 {
 	Q_EMIT(SendDeformParas(
-		spinbox_wp_->value(),
-		spinbox_wa_->value(),
-		spinbox_wi_->value()));
+			spinbox_wp_->value(),
+			spinbox_wa_->value(),
+			spinbox_wi_->value()));
 }
 
 
@@ -670,25 +675,25 @@ void MainWindow::GetSaveParas()
 {
 	dialog_save_->close();
 	Q_EMIT(SendSavePWFParas(
-		checkbox_savevert_->isChecked(),
-		checkbox_saveline_->isChecked(),
-		checkbox_savepillar_->isChecked(),
-		checkbox_saveceiling_->isChecked(),
-		checkbox_savecut_->isChecked(),
-		spinbox_minlayer1_->value(),
-		spinbox_maxlayer1_->value(),
-		lineedit_pwfpath_->text()));
+			checkbox_savevert_->isChecked(),
+			checkbox_saveline_->isChecked(),
+			checkbox_savepillar_->isChecked(),
+			checkbox_saveceiling_->isChecked(),
+			checkbox_savecut_->isChecked(),
+			spinbox_minlayer1_->value(),
+			spinbox_maxlayer1_->value(),
+			lineedit_pwfpath_->text()));
 }
 
 
 void MainWindow::GetExportParas()
 {
 	Q_EMIT(SendExportParas(
-		spinbox_minlayer2_->value(),
-		spinbox_maxlayer2_->value(),
-		lineedit_vertpath_->text(),
-		lineedit_linepath_->text(),
-		lineedit_renderpath_->text())
+			spinbox_minlayer2_->value(),
+			spinbox_maxlayer2_->value(),
+			lineedit_vertpath_->text(),
+			lineedit_linepath_->text(),
+			lineedit_renderpath_->text())
 	);
 }
 
@@ -698,8 +703,8 @@ void MainWindow::GetPath()
 	if (sender() == pushbutton_exportvert_)
 	{
 		QString filename = QFileDialog::
-			getSaveFileName(this, tr("Export Vertex"),
-			"..", tr("Frame Vertex(*.txt)"));
+		getSaveFileName(this, tr("Export Vertex"),
+						"..", tr("Frame Vertex(*.txt)"));
 
 		if (filename.isEmpty())
 		{
@@ -712,8 +717,8 @@ void MainWindow::GetPath()
 	if (sender() == pushbutton_exportline_)
 	{
 		QString filename = QFileDialog::
-			getSaveFileName(this, tr("Export Line"),
-			"..", tr("Frame Line(*.txt)"));
+		getSaveFileName(this, tr("Export Line"),
+						"..", tr("Frame Line(*.txt)"));
 
 		if (filename.isEmpty())
 		{
@@ -725,11 +730,11 @@ void MainWindow::GetPath()
 	else
 	{
 		QString dirname = QFileDialog::
-			getExistingDirectory(this,
-			tr("Export Directory"),
-			"/home",
-			QFileDialog::ShowDirsOnly
-			| QFileDialog::DontResolveSymlinks);
+		getExistingDirectory(this,
+							 tr("Export Directory"),
+							 "/home",
+							 QFileDialog::ShowDirsOnly
+									 | QFileDialog::DontResolveSymlinks);
 
 		if (dirname.isEmpty())
 		{
@@ -844,12 +849,12 @@ void MainWindow::OpenSaveDialog()
 {
 	QString selected_filter;
 	QString filename = QFileDialog::getSaveFileName(
-		this, 
-		tr("Save Mesh"),
-		"..", 
-		tr("OBJ files(*.obj);;PWF files(*.pwf)"),
-		&selected_filter
-		);
+			this,
+			tr("Save Mesh"),
+			"..",
+			tr("OBJ files(*.obj);;PWF files(*.pwf)"),
+			&selected_filter
+	);
 
 	if (filename.isEmpty())
 	{
@@ -944,10 +949,10 @@ void MainWindow::ShowAbout()
 void MainWindow::ShowError(QString error_msg)
 {
 	QMessageBox::information(
-		this, 
-		"Error",
-		error_msg,
-		QMessageBox::Ok);
+			this,
+			"Error",
+			error_msg,
+			QMessageBox::Ok);
 }
 
 
