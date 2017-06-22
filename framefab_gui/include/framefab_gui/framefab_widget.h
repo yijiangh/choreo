@@ -27,9 +27,9 @@ namespace framefab_gui
 /**
  * @brief The FrameFabWidget class works in states:
  * 1. Model Input State
- * 2. Planning State
- * 3. (Motion Compensator State) (TODO)
- * 4. PostProcessing State
+ * 2. Path Planning State
+ * 3. Process Planning State
+ * 4. PostProcessing State (output to Grasshopper for fine-tuned motion compensation)
  */
 class FrameFabWidget : public QWidget
 {

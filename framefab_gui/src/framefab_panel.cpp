@@ -7,12 +7,10 @@
 
 framefab_gui::FrameFabPanel::FrameFabPanel(QWidget* parent) : rviz::Panel(parent)
 {
-  ROS_INFO("Loaded simple blending panel");
+  ROS_INFO("Loaded framefab rviz panel");
 
   QVBoxLayout* layout = new QVBoxLayout(this);
   widget_ = new FrameFabWidget();
-//  mainwindow_ = new MainWindow();
-//  mainwindow_->hide();
 
   layout->addWidget(widget_);
   setLayout(layout);

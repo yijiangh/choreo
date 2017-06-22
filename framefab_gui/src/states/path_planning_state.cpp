@@ -19,14 +19,12 @@ void framefab_gui::PathPlanningState::onStart(FrameFabWidget& gui)
   gui.setText("Input model. Click 'Next' to continue after finished.");
 //  gui.setButtonsEnabled(false);
 
-  gui.showInputUI(true);
 }
 
 void framefab_gui::PathPlanningState::onExit(FrameFabWidget& gui) {}
 
 void framefab_gui::PathPlanningState::onNext(FrameFabWidget& gui)
 {
-  gui.showInputUI(false);
 //  Q_EMIT newStateAvailable(new ScanningState());
 }
 
