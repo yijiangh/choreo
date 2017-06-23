@@ -15,17 +15,9 @@ framefab_gui::ParamsSubmenu::ParamsSubmenu(QWidget* parent) : QWidget(parent)
   path_input_widget_ = new PathInputConfigWidget(framefab_msgs::PathInputParameters());
   connect(ui_->pushbutton_path_input, SIGNAL(clicked()), path_input_widget_, SLOT(show()));
 
-  // Path Planning
-//  path_planning_params_ = new PathPlanningConfigWidget(framefab_msgs::PathPlanningParameters());
-//  connect(ui_->pushButtonPathPlanningParams, SIGNAL(clicked()), path_planning_params_, SLOT(show()));
-//  //// Scan (QA) params
-//  scan_params_ = new ScanPlanConfigWidget(framefab_msgs::ScanPlanParameters());
-//  connect(ui_->pushButtonQAParams, SIGNAL(clicked()), scan_params_, SLOT(show()));
-//
+  // Save Request Connection
   connect(model_input_widget_, SIGNAL(parameters_save_requested()), this, SIGNAL(saveRequested()));
   connect(path_input_widget_, SIGNAL(parameters_save_requested()), this, SIGNAL(saveRequested()));
-//  connect(path_planning_params_, SIGNAL(parameters_save_requested()), this, SIGNAL(saveRequested()));
-//  connect(scan_params_, SIGNAL(parameters_save_requested()), this, SIGNAL(saveRequested()));
 }
 
 const framefab_msgs::ModelInputParameters& framefab_gui::ParamsSubmenu::modelInputParams() const

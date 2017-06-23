@@ -1,2 +1,2 @@
 path_input:
- file_path: "$(env HOME)"
+ file_path: "$HOME"

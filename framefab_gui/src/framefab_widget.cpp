@@ -127,10 +127,9 @@ void framefab_gui::FrameFabWidget::loadParameters()
 
   if (param_client.call(srv))
   {
+    ROS_INFO_STREAM(srv.response.model_params);
     this->params().setModelInputParams(srv.response.model_params);
     this->params().setPathInputParams(srv.response.path_params);
-//    this->params().setPathPlanningParams(srv.response.path_params);
-//    this->params().setScanParams(srv.response.scan_plan);
   }
   else
   {
