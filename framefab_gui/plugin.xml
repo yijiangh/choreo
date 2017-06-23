@@ -1,0 +1,9 @@
+<library path="lib/libframefab_gui">
+  <class  name="framefab_gui/FrameFabPanel"
+          type="framefab_gui::FrameFabPanel"
+          base_class_type="rviz::Panel">
+    <description>
+			A panel widget that can be used in an rviz instance for framefab_mpp application
+    </description>
+  </class>
+</library>

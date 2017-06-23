@@ -1,9 +1,0 @@
-<library path="lib/libframefab_mpp">
-  <class  name="framefab_mpp/FrameFabRvizPanel"
-          type="framefab::FrameFabRvizPanel"
-          base_class_type="rviz::Panel">
-    <description>
-			The panel for opening sequence files
-    </description>
-  </class>
-</library>

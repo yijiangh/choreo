@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+
+<include file="$(find framefab_input_gui)/launch/framefab_input_gui.launch" />
+
+<node name="rviz" pkg="rviz" type="rviz" output="screen" launch-prefix="nice" required="true"/>
+
+</launch>

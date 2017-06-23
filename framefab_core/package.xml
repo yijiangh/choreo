@@ -1,20 +1,30 @@
-<package>
+<?xml version="1.0"?>
+<package format="2">
   <name>framefab_core</name>
   <version>0.1.0</version>
-  <description>The framefab core package</description>
-  <author email="yijiangh@mit.edu">Yijiang Huang (MIT)</author>
-	<author email="tomcook@mit.edu">Thomascook (MIT)</author>
-	<maintainer email="yijiangh@mit.edu">Yijiang Huang (MIT)</maintainer>
-	<maintainer email="tomcook@mit.edu">Thomascook (MIT)</maintainer>
-  <license>BSD</license>
+  
+  <description>
+    This package houses the primary framefab "server" that is responsible for
+    making the whole system go. It is actuated via service calls and farms out
+    jobs to the many planning and execution components of the framefab project. 
+  </description>
+
+  <maintainer email="yijiangh@mit.edu">Yijiang Huang</maintainer>
+  
+  <license>Apache 2.0</license>
 
   <buildtool_depend>catkin</buildtool_depend>
-<!--  <test_depend>roslaunch</test_depend>-->
+  
+  <depend>roscpp</depend>
+  <depend>sensor_msgs</depend>
+  <depend>interactive_markers</depend>
+  <depend>moveit_ros_planning_interface</depend>
+  <depend>tf</depend>
+  <depend>tf_conversions</depend>
+  <depend>framefab_msgs</depend>
+<!--  <depend>framefab_process_path_generation</depend>-->
+  <depend>framefab_param_helpers</depend>
 
-	<build_depend>cmake_modules</build_depend>
-	<build_depend>geometric_tools_engine</build_depend>
-
-	<run_depend>cmake_modules</run_depend>
-	<run_depend>geometric_tools_engine</run_depend>
+  <build_depend>moveit_ros_move_group</build_depend>
 
 </package>

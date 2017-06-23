@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>framefab_process_planning</name>
+  <version>0.1.0</version>
+  <description>
+    The process planning package handles joint trajectory planning for (at the
+    moment) two distinct processes: blending and laser line scanning. This package replaces the earlier 'godel_path_planning'.
+  </description>
+
+  <maintainer email="jmeyer@swri.org">Jonathan Meyer</maintainer>
+  <author email="jmeyer@swri.org">Jonathan Meyer</author>
+  <license>Apache 2.0</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>descartes_core</depend>
+  <depend>descartes_moveit</depend>
+  <depend>descartes_planner</depend>
+  <depend>descartes_trajectory</depend>
+  <depend>godel_msgs</depend>
+  <depend>moveit_ros_planning_interface</depend>
+  <depend>roscpp</depend>
+
+</package>

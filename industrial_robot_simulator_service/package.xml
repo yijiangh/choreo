@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>industrial_robot_simulator_service</name>
+  <version>0.1.0</version>
+  <description>
+    This package adds a 'simulated' robot in its own TF namespace. Backed by ROS-I's
+    industrial_robot_simulator, and is interacted with through a series of simple
+    service calls.
+  </description>
+
+  <maintainer email="jonathan.meyer@swri.org">Jonathan Meyer</maintainer>
+  <author email="jonathan.meyer@swri.org">Jonathan Meyer</author>
+  <license>Apache 2.0</license>
+  
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>actionlib</depend>
+  <depend>control_msgs</depend>
+  <depend>industrial_robot_simulator</depend>
+  <depend>roscpp</depend>
+  <depend>trajectory_msgs</depend>
+
+  <build_depend>message_generation</build_depend>
+
+  <exec_depend>message_runtime</exec_depend>
+
+</package>

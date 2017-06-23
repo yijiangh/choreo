@@ -2,30 +2,34 @@
 [<img src="http://digitalstructures.mit.edu/theme/digistruct/images/digital-structures-logo-gray.svg" width="200">](http://digitalstructures.mit.edu/) Framefab Motion Planning Platform
 ===
 
-- Author: 	Yijiang Huang (MIT), Thomas Cook (MIT)
-- Email: 	  <yijiangh@mit.edu>
-- Status:			Tested in Rviv env, plan to test on real robot June 2017.
-- Devel Status:	Tested on ROS-indigo (indigo-devel for depended package as well).
+- Author: 	Yijiang Huang
+- Email: 	<yijiangh@mit.edu>
+- Devel Status:	WIP ROS-Kinetic
+
+- UROP Alumnis: Thomas Cook (MIT)
 
 Development mainly on *kuka_kr6r900sixx robot* for now.
 
-:warning: Under construction
+## :construction: In Construction! :construction:
 
-**Catkin Dependencies:**
+## Installation
 
-- For kuka_kr6r900_withhotend
-  - [industrial_core](http://wiki.ros.org/industrial_core)
-  - [kuka-experiemental](http://wiki.ros.org/kuka_experimental)
+- Install [wstool](http://wiki.ros.org/wstool) in order manage the repos inside the workspace
+  ```
+  sudo apt install python-wstool
+  ```
 
-### launch
+- Cd into the 'src' directory of your catkin workspace and run the following:
+  ```
+  wstool init . 
+  wstool merge https://github.com/yijiangh/framefab_mpp/raw/kinetic-devel/framefab_mpp.rosinstall
+  wstool update
+  rosdep install --from-paths . --ignore-src
+  ```
 
+- Finally, to build:
+  ```
+  catkin build
+  ```
 
-### Reference
-
-[kuka-experimental](https://github.com/ros-industrial/kuka_experimental)
-
-[kuka-experimental/kuka_kr10_support](https://github.com/ros-industrial/kuka_experimental/tree/indigo-devel/kuka_kr10_support)
-
-[ROS-Industrial](http://wiki.ros.org/Industrial)
-
-[ROS wiki-kuka-experimental](http://wiki.ros.org/kuka_experimental)
+## Application
