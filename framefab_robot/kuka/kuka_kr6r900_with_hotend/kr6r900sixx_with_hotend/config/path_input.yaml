@@ -1,0 +1,3 @@
+path_input:
+
+	file_path: "$(env HOME)"
