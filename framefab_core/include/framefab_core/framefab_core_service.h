@@ -1,10 +1,13 @@
 #ifndef FRAMEFAB_CORE_SERVICE_H
 #define FRAMEFAB_CORE_SERVICE_H
 
+#include <ros/ros.h>
+
 // service
 #include <framefab_msgs/PathPlanning.h>
 
 // msgs
+#include <framefab_msgs/FrameFabParameters.h>
 #include <framefab_msgs/ModelInputParameters.h>
 #include <framefab_msgs/PathInputParameters.h>
 
@@ -34,6 +37,7 @@ class FrameFabCoreService
   // Services subscribed to by this class
 
   // Actions offered by this class
+  ros::NodeHandle nh_;
 
   // Actions subscribed to by this class
 
@@ -45,7 +49,10 @@ class FrameFabCoreService
 
   framefab_msgs::ModelInputParameters 	default_model_input_params_;
   framefab_msgs::PathInputParameters 	default_path_input_params_;
+
   // Parameter loading and saving
+  bool save_data_;
+  std::string save_location_;
   std::string param_cache_prefix_;
 };
 

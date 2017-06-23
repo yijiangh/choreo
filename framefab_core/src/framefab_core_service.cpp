@@ -87,7 +87,7 @@ void FrameFabCoreService::save_path_input_parameters(const std::string & filenam
   }
 }
 
-bool FrameFabService::framefab_parameters_server_callback(
+bool FrameFabCoreService::framefab_parameters_server_callback(
     framefab_msgs::FrameFabParameters::Request& req,
     framefab_msgs::FrameFabParameters::Response& res)
 {
@@ -107,7 +107,7 @@ bool FrameFabService::framefab_parameters_server_callback(
     case framefab_msgs::FrameFabParameters::Request::SET_PARAMETERS:
     case framefab_msgs::FrameFabParameters::Request::SAVE_PARAMETERS:
       model_input_params_ = req.model_params;
-      path_input_params_ = req.input_params;
+      path_input_params_ = req.path_params;
 
       if (req.action == framefab_msgs::FrameFabParameters::Request::SAVE_PARAMETERS)
       {

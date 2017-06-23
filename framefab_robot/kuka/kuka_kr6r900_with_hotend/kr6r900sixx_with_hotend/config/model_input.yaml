@@ -1,8 +1,8 @@
 model_input:
-	ref_pt_x: 500
-	ref_pt_y: 0
-	ref_pt_z: 0
+ ref_pt_x: 500
+ ref_pt_y: 0
+ ref_pt_z: 0
 
-	unit_type: 0
-	
-	file_name: "$(env HOME)"
+ unit_type: 0
+
+ file_name: "$(env HOME)"

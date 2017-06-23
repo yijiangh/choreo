@@ -9,7 +9,7 @@
 
   <!-- Brings up the core Framefab service - the central coordination -->
   <include file="$(find framefab_core)/launch/framefab_core.launch">
-    <arg name="config_path" value="$(find godel_irb2400_support)/config"/>
+    <arg name="config_path" value="$(find kr6r900sixx_with_hotend)/config"/>
     <arg name="debug" value="$(arg debug_core)"/>
     <arg name="save_data" value="$(arg save_data)" />
     <arg name="save_location" value="$(arg save_location)" />
