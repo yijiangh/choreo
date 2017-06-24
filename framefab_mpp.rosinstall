@@ -1,4 +1,4 @@
-- git: {local-name: framefab_mpp, uri: 'https://github.com/yijiangh/framefab_mpp.git', version: develop}
+- git: {local-name: framefab_mpp, uri: 'https://github.com/yijiangh/framefab_mpp.git', version: kinetic-devel}
 - git: {local-name: industrial_core, uri: 'https://github.com/ros-industrial/industrial_core.git', version: kinetic-devel}
 
 - git: {local-name: kuka_experimental, uri: 'https://github.com/ros-industrial/kuka_experimental.git', version: indigo-devel}
