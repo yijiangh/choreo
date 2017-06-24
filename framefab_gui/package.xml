@@ -11,7 +11,6 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>framefab_msgs</depend>
-  <depend>framefab_input_gui</depend>
   <depend>roscpp</depend>
   <depend>rviz</depend>
 
