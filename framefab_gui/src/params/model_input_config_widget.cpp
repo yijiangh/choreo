@@ -1,7 +1,7 @@
 //i_path_input_c
 // Created by yijiangh on 6/17/17.
 //
-
+#include <ros/console.h>
 #include <QString>
 #include <QFileDialog>
 
@@ -29,7 +29,7 @@ void framefab_gui::ModelInputConfigWidget::update_display_fields()
   ui_->lineedit_ref_pt_y->setText(QString::number(params_.ref_pt_y));
   ui_->lineedit_ref_pt_z->setText(QString::number(params_.ref_pt_z));
 
-  ui_->combobox_unit->setCurrentIndex(get_unit_combobox_value());
+  ui_->combobox_unit->setCurrentIndex(params_.unit_type);
 }
 
 void framefab_gui::ModelInputConfigWidget::update_internal_fields()
@@ -40,7 +40,7 @@ void framefab_gui::ModelInputConfigWidget::update_internal_fields()
   params_.ref_pt_y = ui_->lineedit_ref_pt_y->text().toDouble();
   params_.ref_pt_z = ui_->lineedit_ref_pt_z->text().toDouble();
 
-  params_.unit_type = get_unit_combobox_value();
+  params_.unit_type = ui_->combobox_unit->currentIndex();
 }
 
 int framefab_gui::ModelInputConfigWidget::get_unit_combobox_value()
