@@ -32,6 +32,7 @@ class FrameFabCoreService
                                       framefab_msgs::FrameFabParameters::Response& res);
 
   // Services offered by this class
+  ros::ServiceServer path_planning_server_;
   ros::ServiceServer framefab_parameters_server_;
 
   // Services subscribed to by this class

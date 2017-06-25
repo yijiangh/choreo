@@ -3,6 +3,7 @@
 ===
 
 - Author: 	Yijiang Huang
+- Advisor:	[Prof. Caitlin Mueller](http://www.caitlinmueller.com/)
 - Email: 	<yijiangh@mit.edu>
 - Devel Status:	WIP ROS-Kinetic
 

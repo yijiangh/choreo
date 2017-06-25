@@ -11,12 +11,13 @@ string name
 
 ---
 
-bool model_found
-bool paths_found
+# make sure that path_post_processor works normally
+bool model_built
+bool paths_built
 
 # visualization & PathCandidate
 # visualization_msgs/MarkerArray surfaces
 # geometry_msgs/PoseArray robot_scan_poses
 
-framefab_msgs/ModelInputParameters model_params # parameter values used in latests results
-framefab_msgs/PathInputParameters path_params # parameter values used in latests results
+# framefab_msgs/ModelInputParameters model_params # parameter values used in latests results
+# framefab_msgs/PathInputParameters path_params # parameter values used in latests results

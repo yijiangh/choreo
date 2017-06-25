@@ -12,7 +12,7 @@
 #include <framefab_msgs/PathInputParameters.h>
 
 // Class level constants
-const static std::string PATH_PLANNING_SERVICE = "surface_detection";
+const static std::string PATH_PLANNING_SERVICE = "path_planning";
 
 framefab_gui::PathPlanningState::PathPlanningState()
 {
@@ -65,7 +65,7 @@ void framefab_gui::PathPlanningState::makeRequest(
   {
     if(srv.response.model_found && srv.response.paths_found)
     {
-//      Q_EMIT newStateAvailable(new SurfaceSelectState());
+//      Q_EMIT newStateAvailable(new SelectPathState());
     }
     else
     {
