@@ -26,6 +26,7 @@ add_action_files(
     ProcessPlanning.action
     SimulateMotionPlan.action
     ProcessExecution.action
+    Fibonacci.action
 )
 ## Generate messages in the 'msg' folder
 

@@ -13,6 +13,7 @@
 
 // actions
 #include <framefab_msgs/PathPlanningAction.h>
+#include <framefab_msgs/FibonacciAction.h>
 #include <actionlib/server/simple_action_server.h>
 #include <actionlib/client/simple_action_client.h>
 
@@ -36,7 +37,10 @@ class FrameFabCoreService
                                            framefab_msgs::FrameFabParameters::Response& res);
 
   void pathPlanningActionCallback(const framefab_msgs::PathPlanningGoalConstPtr &goal);
+  
+  void FCallback(const framefab_msgs::FibonacciGoalConstPtr &goal);
 
+ private:
   // Services offered by this class
   ros::ServiceServer framefab_parameters_server_;
 
@@ -47,6 +51,10 @@ class FrameFabCoreService
   actionlib::SimpleActionServer<framefab_msgs::PathPlanningAction> path_planning_server_;
   framefab_msgs::PathPlanningFeedback path_planning_feedback_;
   framefab_msgs::PathPlanningResult path_planning_result_;
+
+  actionlib::SimpleActionServer<framefab_msgs::FibonacciAction> f_as_;
+  framefab_msgs::FibonacciFeedback f_feedback_;
+  framefab_msgs::FibonacciResult f_result_;
 
   // Actions subscribed to by this class
 
