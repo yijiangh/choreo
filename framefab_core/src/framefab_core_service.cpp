@@ -14,9 +14,12 @@ const static std::string MODEL_INPUT_PARAMS_FILE = "model_input_parameters.msg";
 const static std::string PATH_INPUT_PARAMS_FILE = "path_input_parameters.msg";
 
 // action server name
+const static std::string PATH_PLANNING_ACTION_SERVER_NAME = "path_planning_as";
 
 FrameFabCoreService::FrameFabCoreService()
-    : save_data_(false)
+    : save_data_(false),
+      path_planning_server_(nh_, PATH_PLANNING_ACTION_SERVER_NAME,
+                               boost::bind(&FrameFabCoreService::pathPlanningActionCallback, this, _1), false)
 {}
 
 bool FrameFabCoreService::init()
@@ -43,7 +46,8 @@ bool FrameFabCoreService::init()
 
   // publishers
 
-  // action servers
+  // start action servers
+  path_planning_server_.start();
 
   return true;
 }
@@ -139,6 +143,35 @@ bool FrameFabCoreService::framefab_parameters_server_callback(
   }
 
   return true;
+}
+
+void FrameFabCoreService::pathPlanningActionCallback(const framefab_msgs::PathPlanningGoalConstPtr &goal_in)
+{
+  switch (goal_in->action)
+  {
+    case framefab_msgs::PathPlanningGoal::FIND_AND_PROCESS:
+    {
+      path_planning_feedback_.last_completed = "Recieved request to post process plan";
+      path_planning_server_.publishFeedback(path_planning_feedback_);
+
+      ROS_INFO_STREAM("goal received");
+      // call path_post_processing srv
+
+      path_planning_feedback_.last_completed = "Finished planning. Visualizing...";
+      path_planning_server_.publishFeedback(path_planning_feedback_);
+//      visualizePaths();
+      path_planning_result_.succeeded = true;
+      path_planning_server_.setSucceeded();
+      break;
+    }
+    default:
+    {
+      // NOT SUPPORTING OTHER ACTION GOAL NOW
+      ROS_ERROR_STREAM("Unknown action code '" << goal_in->action << "' request");
+      break;
+    }
+  }
+  path_planning_result_.succeeded = false;
 }
 
 int main(int argc, char** argv)

@@ -12,6 +12,9 @@
 #include <framefab_msgs/PathInputParameters.h>
 
 // actions
+#include <framefab_msgs/PathPlanningAction.h>
+#include <actionlib/server/simple_action_server.h>
+#include <actionlib/client/simple_action_client.h>
 
 class FrameFabCoreService
 {
@@ -27,18 +30,23 @@ class FrameFabCoreService
   bool load_path_input_parameters(const std::string& filename);
   void save_path_input_parameters(const std::string& filename);
 
-  bool
-  framefab_parameters_server_callback(framefab_msgs::FrameFabParameters::Request& req,
-                                      framefab_msgs::FrameFabParameters::Response& res);
+  // Service callbacks, these components drive this class by signalling events
+  // from the user
+  bool framefab_parameters_server_callback(framefab_msgs::FrameFabParameters::Request& req,
+                                           framefab_msgs::FrameFabParameters::Response& res);
+
+  void pathPlanningActionCallback(const framefab_msgs::PathPlanningGoalConstPtr &goal);
 
   // Services offered by this class
-  ros::ServiceServer path_planning_server_;
   ros::ServiceServer framefab_parameters_server_;
 
   // Services subscribed to by this class
 
   // Actions offered by this class
   ros::NodeHandle nh_;
+  actionlib::SimpleActionServer<framefab_msgs::PathPlanningAction> path_planning_server_;
+  framefab_msgs::PathPlanningFeedback path_planning_feedback_;
+  framefab_msgs::PathPlanningResult path_planning_result_;
 
   // Actions subscribed to by this class
 

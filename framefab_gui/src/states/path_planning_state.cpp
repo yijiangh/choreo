@@ -11,9 +11,6 @@
 #include <framefab_msgs/ModelInputParameters.h>
 #include <framefab_msgs/PathInputParameters.h>
 
-// Class level constants
-const static std::string PATH_PLANNING_SERVICE = "path_planning";
-
 framefab_gui::PathPlanningState::PathPlanningState()
     : path_planning_action_client_(PATH_PLANNING_ACTION_SERVER_NAME, true)
 {
@@ -25,7 +22,7 @@ framefab_gui::PathPlanningState::~PathPlanningState()
 
 void framefab_gui::PathPlanningState::onStart(FrameFabWidget& gui)
 {
-  gui.setText("PathPlanning State.\n Please input data in parameter widget.\n Click 'Next' to continue after finished.");
+  gui.setText("PathPlanning State.\nPlease input data in parameter widget.\nClick 'Next' to continue after finished.");
 //  gui.setButtonsEnabled(false);
 
   gui_ptr_ = &gui;
@@ -50,11 +47,8 @@ void framefab_gui::PathPlanningState::makeRequest(
     framefab_msgs::ModelInputParameters model_params,
     framefab_msgs::PathInputParameters path_params)
 {
-  framefab_msgs::PathPlanning srv;
-  srv.request.action = srv.request.FIND_ONLY;
-
   framefab_msgs::PathPlanningGoal goal;
-  goal.action = framefab_msgs::PathPlanningGoal::FIND_ONLY;
+  goal.action = framefab_msgs::PathPlanningGoal::FIND_AND_PROCESS;
   goal.use_default_parameters = false;
   goal.model_params = model_params;
   goal.path_params  = path_params;
@@ -78,6 +72,7 @@ void framefab_gui::PathPlanningState::pathPlanningDoneCallback(
 {
   if(result->succeeded)
   {
+      ROS_INFO_STREAM("path planning action succeeded");
 //    Q_EMIT newStateAvailable(new SelectPlansState());
   }
   else
@@ -92,5 +87,5 @@ void framefab_gui::PathPlanningState::pathPlanningActiveCallback()
 void framefab_gui::PathPlanningState::pathPlanningFeedbackCallback(
     const framefab_msgs::PathPlanningFeedbackConstPtr& feedback)
 {
-//  Q_EMIT feedbackReceived(QString::fromStdString((feedback->last_completed).c_str()));
+  Q_EMIT feedbackReceived(QString::fromStdString((feedback->last_completed).c_str()));
 }
