@@ -1,0 +1,15 @@
+int32 PROCESS_PATH_AND_MARKER
+
+int32 action
+
+framefab_msgs/PathInputParameters params
+
+---
+
+#result
+
+bool succeeded
+
+# joint pose for reset position
+
+framefab_msgs/ElementCandidatePoses[] process
