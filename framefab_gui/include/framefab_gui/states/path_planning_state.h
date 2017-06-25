@@ -8,9 +8,9 @@
 #include <framefab_msgs/ModelInputParameters.h>
 #include <framefab_msgs/PathInputParameters.h>
 #include <framefab_msgs/PathPlanningAction.h>
-#include <framefab_msgs/FibonacciAction.h>
 
-const static std::string PATH_PLANNING_ACTION_SERVER_NAME = "path_planning_as";
+// note: this action client's name MUST be the same to server's name
+const static std::string PATH_PLANNING_ACTION_CLIENT_NAME = "path_planning_action";
 
 namespace framefab_gui
 {
@@ -38,11 +38,6 @@ class PathPlanningState : public GuiState
   void pathPlanningActiveCallback();
   void pathPlanningFeedbackCallback(const framefab_msgs::PathPlanningFeedbackConstPtr& feedback);
 
-  void fDoneCallback(const actionlib::SimpleClientGoalState& state,
-                     const framefab_msgs::FibonacciResultConstPtr& result);
-  void fActiveCallback();
-  void fFeedbackCallback(const framefab_msgs::FibonacciFeedbackConstPtr& feedback);
-
  private:
   void makeRequest(framefab_msgs::ModelInputParameters model_params,
                    framefab_msgs::PathInputParameters path_params);
@@ -56,9 +51,6 @@ class PathPlanningState : public GuiState
  private:
   ros::NodeHandle nh_;
   actionlib::SimpleActionClient<framefab_msgs::PathPlanningAction> path_planning_action_client_;
-
-  actionlib::SimpleActionClient<framefab_msgs::FibonacciAction> f_ac_;
-
   FrameFabWidget* gui_ptr_;
 };
 }

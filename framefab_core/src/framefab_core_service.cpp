@@ -13,16 +13,13 @@ const static std::string FRAMEFAB_PARAMETERS_SERVICE = "framefab_parameters";
 const static std::string MODEL_INPUT_PARAMS_FILE = "model_input_parameters.msg";
 const static std::string PATH_INPUT_PARAMS_FILE = "path_input_parameters.msg";
 
-// action server name
-const static std::string PATH_PLANNING_ACTION_SERVER_NAME = "path_planning_as";
-const static std::string F_NAME="f";
+// action server name - note: must be same to client's name
+const static std::string PATH_PLANNING_ACTION_SERVER_NAME = "path_planning_action";
 
 FrameFabCoreService::FrameFabCoreService()
     : save_data_(false),
       path_planning_server_(nh_, PATH_PLANNING_ACTION_SERVER_NAME,
-                               boost::bind(&FrameFabCoreService::pathPlanningActionCallback, this, _1), false),
-      f_as_(nh_, F_NAME,
-            boost::bind(&FrameFabCoreService::FCallback, this, _1), false)
+                               boost::bind(&FrameFabCoreService::pathPlanningActionCallback, this, _1), false)
 {}
 
 bool FrameFabCoreService::init()
@@ -51,7 +48,6 @@ bool FrameFabCoreService::init()
 
   // start action servers
   path_planning_server_.start();
-  f_as_.start();
 
   return true;
 }
@@ -155,13 +151,13 @@ void FrameFabCoreService::pathPlanningActionCallback(const framefab_msgs::PathPl
   {
     case framefab_msgs::PathPlanningGoal::FIND_AND_PROCESS:
     {
-      path_planning_feedback_.last_completed = "Recieved request to post process plan";
+      path_planning_feedback_.last_completed = "Recieved request to post process plan\n";
       path_planning_server_.publishFeedback(path_planning_feedback_);
 
 //      ROS_INFO_STREAM("goal received");
       // call path_post_processing srv
 
-      path_planning_feedback_.last_completed = "Finished planning. Visualizing...";
+      path_planning_feedback_.last_completed = "Finished planning. Visualizing...\n";
       path_planning_server_.publishFeedback(path_planning_feedback_);
 //      visualizePaths();
       path_planning_result_.succeeded = true;
@@ -176,49 +172,6 @@ void FrameFabCoreService::pathPlanningActionCallback(const framefab_msgs::PathPl
     }
   }
   path_planning_result_.succeeded = false;
-}
-
-void FrameFabCoreService::FCallback(const framefab_msgs::FibonacciGoalConstPtr &goal)
-{
-  // helper variables
-  ros::Rate r(1);
-  bool success = true;
-
-  // push_back the seeds for the fibonacci sequence
-  f_feedback_.sequence.clear();
-  f_feedback_.sequence.push_back(0);
-  f_feedback_.sequence.push_back(1);
-
-  // publish info to the console for the user
-  ROS_INFO("%s: Executing, creating fibonacci sequence of order %i with seeds %i, %i",
-           F_NAME, goal->order, f_feedback_.sequence[0], f_feedback_.sequence[1]);
-
-  // start executing the action
-  for(int i=1; i<=goal->order; i++)
-  {
-    // check that preempt has not been requested by the client
-    if (f_as_.isPreemptRequested() || !ros::ok())
-    {
-      ROS_INFO("%s: Preempted", F_NAME);
-      // set the action state to preempted
-      f_as_.setPreempted();
-      success = false;
-      break;
-    }
-    f_feedback_.sequence.push_back(f_feedback_.sequence[i] + f_feedback_.sequence[i-1]);
-    // publish the feedback
-    f_as_.publishFeedback(f_feedback_);
-    // this sleep is not necessary, the sequence is computed at 1 Hz for demonstration purposes
-    r.sleep();
-  }
-
-  if(success)
-  {
-    f_result_.sequence = f_feedback_.sequence;
-    ROS_INFO("%s: Succeeded", F_NAME);
-    // set the action state to succeeded
-    f_as_.setSucceeded(f_result_);
-  }
 }
 
 int main(int argc, char** argv)

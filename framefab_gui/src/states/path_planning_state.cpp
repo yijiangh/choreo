@@ -12,8 +12,7 @@
 #include <framefab_msgs/PathInputParameters.h>
 
 framefab_gui::PathPlanningState::PathPlanningState()
-    : path_planning_action_client_(PATH_PLANNING_ACTION_SERVER_NAME, true),
-      f_ac_("f", true)
+    : path_planning_action_client_(PATH_PLANNING_ACTION_CLIENT_NAME, true)
 {
 //  ROS_INFO_STREAM("PathPlanningState Init.");
 }
@@ -48,48 +47,29 @@ void framefab_gui::PathPlanningState::makeRequest(
     framefab_msgs::ModelInputParameters model_params,
     framefab_msgs::PathInputParameters path_params)
 {
-//  framefab_msgs::PathPlanningGoal goal;
-//  goal.action = framefab_msgs::PathPlanningGoal::FIND_AND_PROCESS;
-//  goal.use_default_parameters = false;
-//  goal.model_params = model_params;
-//  goal.path_params  = path_params;
-//
-//  if(path_planning_action_client_.isServerConnected())
-//{ ROS_INFO_STREAM("action server connected!");}
-//else
-//{ ROS_WARN_STREAM("action server not connected");}
-//
-//  path_planning_action_client_.sendGoal(
-//      goal,
-//      boost::bind(&framefab_gui::PathPlanningState::pathPlanningDoneCallback, this, _1, _2),
-//      boost::bind(&framefab_gui::PathPlanningState::pathPlanningActiveCallback, this),
-//      boost::bind(&framefab_gui::PathPlanningState::pathPlanningFeedbackCallback, this, _1));
-//  ROS_INFO_STREAM("Goal sent from path planning state");
-  ROS_INFO("Waiting for action server to start.");
-  // wait for the action server to start
-  f_ac_.waitForServer(); //will wait for infinite time
+  framefab_msgs::PathPlanningGoal goal;
+  goal.action = framefab_msgs::PathPlanningGoal::FIND_AND_PROCESS;
+  goal.use_default_parameters = false;
+  goal.model_params = model_params;
+  goal.path_params  = path_params;
 
-  ROS_INFO("Action server started, sending goal.");
-  // send a goal to the action
-  framefab_msgs::FibonacciGoal goal;
-  goal.order = 20;
-  f_ac_.sendGoal(goal,
-                 boost::bind(&framefab_gui::PathPlanningState::fDoneCallback, this, _1, _2),
-                 boost::bind(&framefab_gui::PathPlanningState::fActiveCallback, this),
-                 boost::bind(&framefab_gui::PathPlanningState::fFeedbackCallback, this, _1));
-
-  //wait for the action to return
-  bool finished_before_timeout = f_ac_.waitForResult(ros::Duration(30.0));
-
-  if (finished_before_timeout)
+  ROS_INFO("Waiting for path planning action server to start.");
+  path_planning_action_client_.waitForServer();
+  if(path_planning_action_client_.isServerConnected())
   {
-    actionlib::SimpleClientGoalState state = f_ac_.getState();
-    ROS_INFO("Action finished: %s", state.toString().c_str());
+    ROS_INFO_STREAM("path planning action server connected!");
   }
   else
   {
-    ROS_INFO("Action did not finish before the time out.");
+    ROS_WARN_STREAM("action path planning server not connected");
   }
+
+  path_planning_action_client_.sendGoal(
+      goal,
+      boost::bind(&framefab_gui::PathPlanningState::pathPlanningDoneCallback, this, _1, _2),
+      boost::bind(&framefab_gui::PathPlanningState::pathPlanningActiveCallback, this),
+      boost::bind(&framefab_gui::PathPlanningState::pathPlanningFeedbackCallback, this, _1));
+  ROS_INFO_STREAM("Goal sent from path planning state");
 }
 
 void framefab_gui::PathPlanningState::setFeedbackText(QString feedback)
@@ -122,24 +102,4 @@ void framefab_gui::PathPlanningState::pathPlanningFeedbackCallback(
     const framefab_msgs::PathPlanningFeedbackConstPtr& feedback)
 {
   Q_EMIT feedbackReceived(QString::fromStdString((feedback->last_completed).c_str()));
-}
-
-// ----------------- Test Fibonacci
-
-void framefab_gui::PathPlanningState::fDoneCallback(
-    const actionlib::SimpleClientGoalState& state,
-    const framefab_msgs::FibonacciResultConstPtr& result)
-{
-  ROS_INFO_STREAM("F action done!");
-}
-
-void framefab_gui::PathPlanningState::fActiveCallback()
-{
-  ROS_INFO_STREAM("Path Planning Goal is active");
-}
-
-void framefab_gui::PathPlanningState::fFeedbackCallback(const framefab_msgs::FibonacciFeedbackConstPtr& feedback)
-{
-  Q_EMIT feedbackReceived(QString::number(feedback->sequence.back()));
-
 }
