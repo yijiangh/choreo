@@ -52,6 +52,12 @@ void framefab_gui::PathPlanningState::makeRequest(
   goal.use_default_parameters = false;
   goal.model_params = model_params;
   goal.path_params  = path_params;
+  
+  if(path_planning_action_client_.isServerConnected())
+{ ROS_INFO_STREAM("action server connected!");}
+else
+{ ROS_WARN_STREAM("action server not connected");}
+
   path_planning_action_client_.sendGoal(
       goal,
       boost::bind(&framefab_gui::PathPlanningState::pathPlanningDoneCallback, this, _1, _2),
@@ -76,7 +82,9 @@ void framefab_gui::PathPlanningState::pathPlanningDoneCallback(
 //    Q_EMIT newStateAvailable(new SelectPlansState());
   }
   else
+{
     Q_EMIT newStateAvailable(new SystemInitState());
+}
 }
 
 void framefab_gui::PathPlanningState::pathPlanningActiveCallback()

@@ -48,6 +48,7 @@ bool FrameFabCoreService::init()
 
   // start action servers
   path_planning_server_.start();
+  ROS_INFO_STREAM("path planning action server online");
 
   return true;
 }
@@ -154,14 +155,14 @@ void FrameFabCoreService::pathPlanningActionCallback(const framefab_msgs::PathPl
       path_planning_feedback_.last_completed = "Recieved request to post process plan";
       path_planning_server_.publishFeedback(path_planning_feedback_);
 
-      ROS_INFO_STREAM("goal received");
+//      ROS_INFO_STREAM("goal received");
       // call path_post_processing srv
 
       path_planning_feedback_.last_completed = "Finished planning. Visualizing...";
       path_planning_server_.publishFeedback(path_planning_feedback_);
 //      visualizePaths();
       path_planning_result_.succeeded = true;
-      path_planning_server_.setSucceeded();
+      path_planning_server_.setSucceeded(path_planning_result_);
       break;
     }
     default:
