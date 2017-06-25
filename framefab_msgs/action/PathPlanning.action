@@ -1,0 +1,21 @@
+# Goal
+int32 FIND_ONLY=0
+int32 COMPUTE_AND_FIND=1 #not supported now
+
+# action specification, see enumeration above
+int32 action
+
+bool use_default_parameters
+framefab_msgs/ModelInputParameters model_params
+framefab_msgs/PathInputParameters path_params
+
+---
+
+#Result
+
+# make sure that path_post_processor works normally
+bool succeeded
+
+---
+
+# Feedback

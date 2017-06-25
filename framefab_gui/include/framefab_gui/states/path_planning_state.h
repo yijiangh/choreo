@@ -4,16 +4,16 @@
 #include <ros/ros.h>
 #include <framefab_gui/gui_state.h>
 
+#include <actionlib/client/simple_action_client.h>
 #include <framefab_msgs/ModelInputParameters.h>
 #include <framefab_msgs/PathInputParameters.h>
+#include <framefab_msgs/PathPlanningAction.h>
+
+const static std::string PATH_PLANNING_ACTION_SERVER_NAME = "path_planning_as";
 
 namespace framefab_gui
 {
 
-/**
- * launch model input params widget
- * Model Input, computed results input (parse into framefab_msgs::PathCandidate)
- */
 class PathPlanningState : public GuiState
 {
   Q_OBJECT
@@ -32,11 +32,25 @@ class PathPlanningState : public GuiState
   virtual void onReset(FrameFabWidget& gui);
 
  private:
+  void pathPlanningDoneCallback(const actionlib::SimpleClientGoalState& state,
+                                const framefab_msgs::PathPlanningResultConstPtr& result);
+  void pathPlanningActiveCallback();
+  void pathPlanningFeedbackCallback(const framefab_msgs::PathPlanningFeedbackConstPtr& feedback);
+
+ private:
   void makeRequest(framefab_msgs::ModelInputParameters model_params,
                    framefab_msgs::PathInputParameters path_params);
 
+  Q_SIGNALS:
+  void feedbackReceived(QString feedback);
+
+ protected Q_SLOTS:
+  void setFeedbackText(QString feedback);
+
  private:
-  ros::ServiceClient path_client_;
+  ros::NodeHandle nh_;
+  actionlib::SimpleActionClient<framefab_msgs::PathPlanningAction> path_planning_action_client_;
+  FrameFabWidget* gui_ptr_;
 };
 }
 

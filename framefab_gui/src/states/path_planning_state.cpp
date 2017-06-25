@@ -15,22 +15,22 @@
 const static std::string PATH_PLANNING_SERVICE = "path_planning";
 
 framefab_gui::PathPlanningState::PathPlanningState()
+    : path_planning_action_client_(PATH_PLANNING_ACTION_SERVER_NAME, true)
 {
-  ROS_INFO_STREAM("PathPlanningState Init.");
+//  ROS_INFO_STREAM("PathPlanningState Init.");
 }
 
 framefab_gui::PathPlanningState::~PathPlanningState()
-{
-}
+{}
 
 void framefab_gui::PathPlanningState::onStart(FrameFabWidget& gui)
 {
   gui.setText("PathPlanning State.\n Please input data in parameter widget.\n Click 'Next' to continue after finished.");
 //  gui.setButtonsEnabled(false);
 
-  path_client_ =
-      gui.nodeHandle().serviceClient<framefab_msgs::PathPlanning>(PATH_PLANNING_SERVICE);
+  gui_ptr_ = &gui;
 
+  QObject::connect(this, SIGNAL(feedbackReceived(QString)), this, SLOT(setFeedbackText(QString)));
   QtConcurrent::run(this, &PathPlanningState::makeRequest, gui.params().modelInputParams(),
                     gui.params().pathInputParams());
 }
@@ -52,24 +52,45 @@ void framefab_gui::PathPlanningState::makeRequest(
 {
   framefab_msgs::PathPlanning srv;
   srv.request.action = srv.request.FIND_ONLY;
-  srv.request.use_default_parameters = false;
-  srv.request.model_params = model_params;
-  srv.request.path_params  = path_params;
 
-  if (!path_client_.call(srv))
+  framefab_msgs::PathPlanningGoal goal;
+  goal.action = framefab_msgs::PathPlanningGoal::FIND_ONLY;
+  goal.use_default_parameters = false;
+  goal.model_params = model_params;
+  goal.path_params  = path_params;
+  path_planning_action_client_.sendGoal(
+      goal,
+      boost::bind(&framefab_gui::PathPlanningState::pathPlanningDoneCallback, this, _1, _2),
+      boost::bind(&framefab_gui::PathPlanningState::pathPlanningActiveCallback, this),
+      boost::bind(&framefab_gui::PathPlanningState::pathPlanningFeedbackCallback, this, _1));
+  ROS_INFO_STREAM("Goal sent from path planning state");
+}
+
+void framefab_gui::PathPlanningState::setFeedbackText(QString feedback)
+{
+  gui_ptr_->appendText("\n" + feedback.toStdString());
+}
+
+// Action Callbacks
+void framefab_gui::PathPlanningState::pathPlanningDoneCallback(
+    const actionlib::SimpleClientGoalState& state,
+    const framefab_msgs::PathPlanningResultConstPtr& result)
+{
+  if(result->succeeded)
   {
-    ROS_WARN_STREAM("Unable to call path planning service");
-    Q_EMIT newStateAvailable(new SystemInitState());
+//    Q_EMIT newStateAvailable(new SelectPlansState());
   }
   else
-  {
-    if(srv.response.model_found && srv.response.paths_found)
-    {
-//      Q_EMIT newStateAvailable(new SelectPathState());
-    }
-    else
-    {
-      Q_EMIT newStateAvailable(new SystemInitState());
-    }
-  }
+    Q_EMIT newStateAvailable(new SystemInitState());
+}
+
+void framefab_gui::PathPlanningState::pathPlanningActiveCallback()
+{
+  ROS_INFO_STREAM("Path Planning Goal is active");
+}
+
+void framefab_gui::PathPlanningState::pathPlanningFeedbackCallback(
+    const framefab_msgs::PathPlanningFeedbackConstPtr& feedback)
+{
+//  Q_EMIT feedbackReceived(QString::fromStdString((feedback->last_completed).c_str()));
 }
