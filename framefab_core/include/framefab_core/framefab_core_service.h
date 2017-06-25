@@ -4,7 +4,6 @@
 #include <ros/ros.h>
 
 // service
-#include <framefab_msgs/PathPlanning.h>
 
 // msgs
 #include <framefab_msgs/FrameFabParameters.h>
