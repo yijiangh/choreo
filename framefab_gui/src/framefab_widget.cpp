@@ -6,7 +6,7 @@
 
 #include <ui_framefab_widget.h>
 
-//const std::string _BLENDING_PARAMETERS_SERVICE = "_blending_parameters";
+const std::string FRAMEFAB_PARAMETERS_SERVICE = "framefab_parameters";
 const static std::string SIMULATE_MOTION_PLAN_ACTION_SERVER_NAME = "simulate_motion_plan_as";
 
 framefab_gui::FrameFabWidget::FrameFabWidget(QWidget* parent)
@@ -30,11 +30,16 @@ framefab_gui::FrameFabWidget::FrameFabWidget(QWidget* parent)
   connect(ui_->pushbutton_reset, SIGNAL(clicked()), this, SLOT(onResetButton()));
   connect(ui_->pushbutton_params, SIGNAL(clicked()), this, SLOT(onParamsButton()));
 
+  // Wire in Option signals
+  connect(params_, SIGNAL(saveRequested()), this, SLOT(onParamsSave()));
+
   // Connect to ROS save params services
   loadParameters();
 
   // Start Service Client
   ros::NodeHandle nh;
+  framefab_parameters_client_ =
+      nh.serviceClient<framefab_msgs::FrameFabParameters>(FRAMEFAB_PARAMETERS_SERVICE);
 }
 
 framefab_gui::FrameFabWidget::~FrameFabWidget()
@@ -75,19 +80,16 @@ void framefab_gui::FrameFabWidget::onParamsButton()
   params_->show();
 }
 
-//void framefab_gui::FrameFabWidget::onOptionsSave()
-//{
-//  ROS_INFO_STREAM("Save Options Called");
-////  godel_msgs::BlendingParameters msg;
-////  msg.request.action = godel_msgs::BlendingParameters::Request::SAVE_PARAMETERS;
-////  msg.request._detection = options_->DetectionParams();
-////  msg.request.path_params = options_->pathPlanningParams();
-////  msg.request.robot_scan = options_->robotScanParams();
-////  msg.request.scan_plan = options_->scanParams();
-////
-////  if (!_blending_parameters_client_.call(msg.request, msg.response))
-////    ROS_WARN_STREAM("Could not complete service call to save parameters!");
-//}
+void framefab_gui::FrameFabWidget::onParamsSave()
+{
+  framefab_msgs::FrameFabParameters msg;
+  msg.request.action = framefab_msgs::FrameFabParameters::Request::SAVE_PARAMETERS;
+  msg.request.model_params = params_->modelInputParams();
+  msg.request.path_params = params_->pathInputParams();
+
+  if (!framefab_parameters_client_.call(msg.request, msg.response))
+    ROS_WARN_STREAM("Could not complete service call to save parameters!");
+}
 
 void framefab_gui::FrameFabWidget::changeState(GuiState* new_state)
 {
@@ -120,14 +122,13 @@ void framefab_gui::FrameFabWidget::loadParameters()
   framefab_msgs::FrameFabParameters srv;
   srv.request.action = srv.request.GET_CURRENT_PARAMETERS;
   ros::ServiceClient param_client =
-      nodeHandle().serviceClient<framefab_msgs::FrameFabParameters>("framefab_parameters");
+      nodeHandle().serviceClient<framefab_msgs::FrameFabParameters>(FRAMEFAB_PARAMETERS_SERVICE);
 
   setButtonsEnabled(false);
   param_client.waitForExistence();
 
   if (param_client.call(srv))
   {
-    ROS_INFO_STREAM(srv.response.model_params);
     this->params().setModelInputParams(srv.response.model_params);
     this->params().setPathInputParams(srv.response.path_params);
   }
