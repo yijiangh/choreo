@@ -35,8 +35,7 @@ void framefab_gui::PathInputConfigWidget::get_file_path_handler()
   QString filename = QFileDialog::getOpenFileName(
       this,
       tr("Open File"),
-      "$HOME/Documents",
-      tr("pwf Files (*.pwf)"));
+      "$HOME/Documents");
 
   params_.file_path = filename.toLocal8Bit().constData();
   update_display_fields();

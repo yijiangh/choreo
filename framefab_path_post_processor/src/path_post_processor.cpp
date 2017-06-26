@@ -36,7 +36,7 @@ bool framefab_path_post_processing::PathPostProcessor::createCandidatePoses()
 //  static const char* kTypeNames[] = { "Null", "False", "True", "Object", "Array", "String", "Number" };
   for (Value::ConstMemberIterator itr = document.MemberBegin(); itr != document.MemberEnd(); ++itr)
   {
-    ROS_INFO_STREAM("Json member %s" << itr->name.GetString());
+    ROS_INFO_STREAM("Json member " << itr->name.GetString());
   }
 //    printf("Type of member %s is %s\n", itr->name.GetString(), kTypeNames[itr->value.GetType()]);
 

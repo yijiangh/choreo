@@ -183,8 +183,13 @@ void FrameFabCoreService::pathPlanningActionCallback(const framefab_msgs::PathPl
       if(!path_post_processing_client_.call(srv))
       {
         ROS_WARN_STREAM("Unable to call path post processing service");
+        path_planning_feedback_.last_completed = "Failed to call Path Post Processing Service!\n";
+        path_planning_server_.publishFeedback(path_planning_feedback_);
+        path_planning_result_.succeeded = false;
+        path_planning_server_.setAborted(path_planning_result_);
       }
-
+      else
+      {
       // take srv output, save it into visualize instance & local saving
 
       path_planning_feedback_.last_completed = "Finished planning. Visualizing...\n";
@@ -192,6 +197,7 @@ void FrameFabCoreService::pathPlanningActionCallback(const framefab_msgs::PathPl
 //      visualizePaths();
       path_planning_result_.succeeded = true;
       path_planning_server_.setSucceeded(path_planning_result_);
+      }
       break;
     }
     default:

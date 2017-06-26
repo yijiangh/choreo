@@ -14,6 +14,6 @@
     <param name="save_location" value="$(arg save_location)"/>
   </node>
 
-  <node name="framefab_path_post_processor_node" pkg="framefab_path_post_processor" type="framefab_path_post_processor_node"/>
+  <node name="path_post_processor_node" pkg="framefab_path_post_processor" type="path_post_processor_node" output="screen" required="true"/>
 
 </launch>
