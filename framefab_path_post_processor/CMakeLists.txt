@@ -6,13 +6,9 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
 	framefab_msgs
 	geometry_msgs
-	cmake_modules
 )
 
-find_package(RapidJSON REQUIRED)
-find_package(Eigen REQUIRED)
-
-generate_messages(DEPENDENCIES framefab_msgs geometry_msgs)
+find_package(Eigen3 REQUIRED)
 
 catkin_package(
   INCLUDE_DIRS 
@@ -27,20 +23,29 @@ catkin_package(
 
 include_directories(
   include
+	ext/rapidjson/include
   ${catkin_INCLUDE_DIRS}
 	${Eigen_INCLUDE_DIRS}
-	${RapidJSON_INCLUDE_DIRS}
 )
 
 ##_____________
 ## Libraries ##
 
 # PathPostProcessor library
-#add_library()
-#target_link_libraries()
+add_library(path_post_processor
+	src/path_post_processor.cpp
+	)
+target_link_libraries(path_post_processor
+	${catkin_LIBRARIES}
+	${Eigen_LIBRARIES}
+	)
 
-add_executable(framefab_path_post_processor_node
-	framefab_path_post_processor_node.cpp
+add_executable(path_post_processor_node
+	src/path_post_processor_node.cpp
 )
 
-add_dependencies(framefab_path_post_processor_node framefab_msgs_generate_messages_cpp)
+target_link_libraries(path_post_processor_node
+	path_post_processor
+	)
+
+add_dependencies(path_post_processor_node framefab_msgs_generate_messages_cpp)

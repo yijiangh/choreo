@@ -1,9 +1,12 @@
 #include <ros/ros.h>
+#include <ros/console.h>
 
-#include <framefab_msgs/PathPostprocessing.h>
+#include <boost/tuple/tuple.hpp>
+
+#include <framefab_msgs/PathPostProcessing.h>
 #include <framefab_path_post_processor/path_post_processor.h>
 
-bool processPath(framefab_msgs::PathPostProcessingRequest& req,
+bool processPathCallback(framefab_msgs::PathPostProcessingRequest& req,
              framefab_msgs::PathPostProcessingResponse& res)
 {
   framefab_path_post_processing::PathPostProcessor path_pprocessor;
@@ -25,13 +28,13 @@ bool processPath(framefab_msgs::PathPostProcessingRequest& req,
 
     default:
     {
-      ROS_ERROR_STREAM("Unrecognized path post processing request");
+      ROS_ERROR("Unrecognized path post processing request");
       res.succeeded = false;
       return false;
     }
   }
 
-  res.process = path_pprocessor.getCandidatePoses();
+//  res.process = path_pprocessor.getCandidatePoses();
   return true;
 }
 
@@ -42,10 +45,10 @@ int main(int argc, char** argv)
   ros::NodeHandle nh;
 
   ros::ServiceServer path_post_process_server =
-      nh.advertiseService<framefab_msgs::PathPostprocessingRequest, framefab_msgs::PathPostprocessingResponse>(
-          "path_post_process", boost::bind(processPath, _1, _2));
+      nh.advertiseService<framefab_msgs::PathPostProcessingRequest, framefab_msgs::PathPostProcessingResponse>(
+          "path_post_processing", boost::bind(processPathCallback, _1, _2));
 
-  ROS_INFO("%s ready to service requests.", path_generator_server.getService().c_str());
+//  ROS_INFO_STREAM(path_post_process_server.getService() << " ready to service requests.");
   ros::spin();
 
   return 0;

@@ -46,7 +46,7 @@ add_message_files(
 add_service_files(
 FILES
 FrameFabParameters.srv
-PathPostprocessing.srv
+PathPostProcessing.srv
 ProcessPlanning.srv
 TrajectoryExecution.srv
 )

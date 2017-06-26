@@ -41,6 +41,7 @@ class FrameFabCoreService
   ros::ServiceServer framefab_parameters_server_;
 
   // Services subscribed to by this class
+  ros::ServiceClient path_post_processing_client_;
 
   // Actions offered by this class
   ros::NodeHandle nh_;
