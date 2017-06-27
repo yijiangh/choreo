@@ -38,8 +38,14 @@ class UnitProcessPath
   framefab_msgs::ElementCandidatePoses asElementCandidatePoses();
 
  protected:
-  void createCollisionObject();
-  geometry_msgs::Pose computeCylinderPose() const;
+  moveit_msgs::CollisionObject createCollisionObject(
+      const int& id, const Eigen::Vector3d& st_pt, const Eigen::Vector3d& end_pt) const;
+
+  void createShrinkedEndPoint(Eigen::Vector3d& st_pt, Eigen::Vector3d& end_st,
+                              const double& shrink_length);
+
+  geometry_msgs::Pose computeCylinderPose(
+      const Eigen::Vector3d& st_pt, const Eigen::Vector3d& end_pt) const;
 
  private:
   int id_;
@@ -49,8 +55,7 @@ class UnitProcessPath
   std::string type_;
 
   // collision objects
-  double shrink_length_; // meters
-  moveit_msgs::CollisionObject collision_cylinder_;
+  double shrink_length_; // meter
 };
 }
 
