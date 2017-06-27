@@ -21,6 +21,9 @@ const static std::string PATH_POST_PROCESSING_SERVICE = "path_post_processing";
 const static std::string MODEL_INPUT_PARAMS_FILE = "model_input_parameters.msg";
 const static std::string PATH_INPUT_PARAMS_FILE = "path_input_parameters.msg";
 
+// Visualization Maker topics
+const static std::string PATH_VISUAL_TOPIC = "path_visualization";
+
 // action server name - note: must be same to client's name
 const static std::string PATH_PLANNING_ACTION_SERVER_NAME = "path_planning_action";
 
@@ -57,6 +60,7 @@ bool FrameFabCoreService::init()
                            &FrameFabCoreService::framefab_parameters_server_callback, this);
 
   // start local instances
+  visual_tool_.init("world_frame", PATH_VISUAL_TOPIC);
 
   // start server
 
@@ -191,11 +195,10 @@ void FrameFabCoreService::pathPlanningActionCallback(const framefab_msgs::PathPl
       }
       else
       {
-      // take srv output, save it into visualize instance & local saving
-
-      path_planning_feedback_.last_completed = "Finished planning. Visualizing...\n";
+      // take srv output, save them
+      path_planning_feedback_.last_completed = "Finished path post processing. Visualizing...\n";
       path_planning_server_.publishFeedback(path_planning_feedback_);
-//      visualizePaths();
+      visual_tool_->visualizeAllPaths();
       path_planning_result_.succeeded = true;
       path_planning_server_.setSucceeded(path_planning_result_);
       }

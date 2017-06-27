@@ -15,6 +15,9 @@
 #include <actionlib/server/simple_action_server.h>
 #include <actionlib/client/simple_action_client.h>
 
+// core service instances
+#include <framefab_core/visual_tools/framefab_visual_tools.h>
+
 class FrameFabCoreService
 {
  public:
@@ -52,6 +55,9 @@ class FrameFabCoreService
   // Actions subscribed to by this class
 
   // Current state publishers
+
+  // Core Service Instances
+  framefab_visual_tools::FrameFabVisualTool visual_tool_;
 
   // Parameters
   framefab_msgs::ModelInputParameters 	model_input_params_;
