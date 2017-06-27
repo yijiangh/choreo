@@ -10,7 +10,7 @@ bool processPathCallback(framefab_msgs::PathPostProcessingRequest& req,
              framefab_msgs::PathPostProcessingResponse& res)
 {
   framefab_path_post_processing::PathPostProcessor path_pprocessor;
-  path_pprocessor.setPathInputParams(req.params);
+  path_pprocessor.setParams(req.model_params, req.path_params);
 
   switch (req.action)
   {

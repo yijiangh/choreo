@@ -178,7 +178,8 @@ void FrameFabCoreService::pathPlanningActionCallback(const framefab_msgs::PathPl
       // call path_post_processing srv
       framefab_msgs::PathPostProcessing srv;
       srv.request.action = srv.request.PROCESS_PATH_AND_MARKER;
-      srv.request.params = path_input_params_;
+      srv.request.model_params = model_input_params_;
+      srv.request.path_params = path_input_params_;
 
       if(!path_post_processing_client_.call(srv))
       {

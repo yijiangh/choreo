@@ -49,9 +49,37 @@ bool framefab_path_post_processing::PathPostProcessor::createCandidatePoses()
     double end_y = element_path["end_pt"][1].GetDouble();
     double end_z = element_path["end_pt"][2].GetDouble();
 
+    // create UnitProcessPath
 
-//    ROS_INFO_STREAM("Node " << i << " - start pt (" << x << ", " << y << ", " << z << ")");
+    // Add UnitProcessPath into ProcessPath
   }
 
   return true;
+}
+
+void framefab_path_post_processing::PathPostProcessor::setUnitScale()
+{
+  switch (model_input_params_.unit_type)
+  {
+    case framefab_msgs::ModelInputParameters::MILLIMETER:
+    {
+      unit_scale_ = 0.001;
+    }
+    case framefab_msgs::ModelInputParameters::CENTIMETER:
+    {
+      unit_scale_ = 0.01;
+    }
+    case framefab_msgs::ModelInputParameters::INCH:
+    {
+      unit_scale_ = 0.0254;
+    }
+    case framefab_msgs::ModelInputParameters::FOOT:
+    {
+      unit_scale_ = 0.3048;
+    }
+    default:
+    {
+      ROS_ERROR("Unrecognized Unit type in Model Input Parameters!");
+    }
+  }
 }
