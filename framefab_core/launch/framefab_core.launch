@@ -13,4 +13,7 @@
     <param name="save_data" value="$(arg save_data)" />
     <param name="save_location" value="$(arg save_location)"/>
   </node>
+
+  <node name="path_post_processor_node" pkg="framefab_path_post_processor" type="path_post_processor_node" output="screen" required="true"/>
+
 </launch>

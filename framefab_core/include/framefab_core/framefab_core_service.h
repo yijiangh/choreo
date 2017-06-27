@@ -4,7 +4,6 @@
 #include <ros/ros.h>
 
 // service
-#include <framefab_msgs/PathPlanning.h>
 
 // msgs
 #include <framefab_msgs/FrameFabParameters.h>
@@ -42,6 +41,7 @@ class FrameFabCoreService
   ros::ServiceServer framefab_parameters_server_;
 
   // Services subscribed to by this class
+  ros::ServiceClient path_post_processing_client_;
 
   // Actions offered by this class
   ros::NodeHandle nh_;

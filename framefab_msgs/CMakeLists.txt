@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
              sensor_msgs
              trajectory_msgs
              visualization_msgs
+             moveit_msgs
 )
 
 #######################################
@@ -26,7 +27,6 @@ add_action_files(
     ProcessPlanning.action
     SimulateMotionPlan.action
     ProcessExecution.action
-    Fibonacci.action
 )
 ## Generate messages in the 'msg' folder
 
@@ -40,14 +40,15 @@ add_message_files(
 		ProcessPlanningParameters.msg
 		ProcessPath.msg
 		ProcessPlan.msg
+		ElementCandidatePoses.msg
 )
 
 ## Generate services in the 'srv' folder
 add_service_files(
 FILES
-ProcessPlanning.srv
 FrameFabParameters.srv
-FrameFabProcessPlanning.srv
+PathPostProcessing.srv
+ProcessPlanning.srv
 TrajectoryExecution.srv
 )
 
@@ -58,6 +59,7 @@ generate_messages(DEPENDENCIES
   sensor_msgs
   visualization_msgs
   trajectory_msgs
+  moveit_msgs
 )
 ###################################
 ## catkin specific configuration ##
@@ -75,5 +77,6 @@ catkin_package(
   message_runtime
   geometry_msgs
   sensor_msgs
+  moveit_msgs
   genmsg
 )

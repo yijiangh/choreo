@@ -3,27 +3,56 @@ project(framefab_path_post_processor)
 add_definitions(-std=c++11)
 
 find_package(catkin REQUIRED COMPONENTS
-  framefab_msgs
+  roscpp
+	geometry_msgs
+	moveit_msgs
+	framefab_msgs
+	tf_conversions
+	eigen_conversions
 )
+
+find_package(Eigen3 REQUIRED)
 
 catkin_package(
   INCLUDE_DIRS 
-    include
-  CATKIN_DEPENDS 
-    framefab_msgs
+	include
+  CATKIN_DEPENDS
+	geometry_msgs
+	moveit_msgs
+	framefab_msgs
+	tf_conversions
+	eigen_conversions
 )
+
+###########
+## Build ##
+###########
 
 include_directories(
   include
+	ext/rapidjson/include
   ${catkin_INCLUDE_DIRS}
+	${Eigen_INCLUDE_DIRS}
 )
 
-add_executable(kuka_framefab_process_service_node 
-  src/kuka_framefab_process_service_node.cpp 
-  src/kuka_framefab_process_service.cpp
-  src/process_utils.cpp
+##_____________
+## Libraries ##
+# PathPostProcessor library
+add_library(path_post_processor
+	src/path_post_processor.cpp
+	src/process_path.cpp
+	)
+target_link_libraries(path_post_processor
+	${catkin_LIBRARIES}
+	${Eigen_LIBRARIES}
+	)
+
+add_executable(path_post_processor_node
+	src/path_post_processor_node.cpp
 )
 
-add_dependencies(kuka_framefab_process_service_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(path_post_processor_node
+	path_post_processor
+	)
 
-add_dependencies(framefab_process_service_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(path_post_processor_node framefab_msgs_generate_messages_cpp)

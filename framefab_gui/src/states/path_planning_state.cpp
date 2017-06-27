@@ -7,7 +7,6 @@
 #include <QtConcurrent/QtConcurrentRun>
 
 // input params
-#include <framefab_msgs/PathPlanning.h>
 #include <framefab_msgs/ModelInputParameters.h>
 #include <framefab_msgs/PathInputParameters.h>
 

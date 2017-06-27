@@ -2,12 +2,20 @@
 
 #include <framefab_param_helpers/framefab_param_helpers.h>
 
+//services
+#include <framefab_msgs/PathPostProcessing.h>
+
 // Process Planning
 
 // topics and services
 const static std::string SAVE_DATA_BOOL_PARAM = "save_data";
 const static std::string SAVE_LOCATION_PARAM = "save_location";
+
+// provided services
 const static std::string FRAMEFAB_PARAMETERS_SERVICE = "framefab_parameters";
+
+// subscribed services
+const static std::string PATH_POST_PROCESSING_SERVICE = "path_post_processing";
 
 // Default filepaths and namespaces for caching stored parameters
 const static std::string MODEL_INPUT_PARAMS_FILE = "model_input_parameters.msg";
@@ -39,14 +47,27 @@ bool FrameFabCoreService::init()
   if (!this->load_path_input_parameters(param_cache_prefix_ + PATH_INPUT_PARAMS_FILE))
     ROS_WARN("Unable to load path input parameters.");
 
+  // load plugins (if-need-be)
+
+  // TODO: save default parameters
+
   // service servers
   framefab_parameters_server_ =
       nh_.advertiseService(FRAMEFAB_PARAMETERS_SERVICE,
                            &FrameFabCoreService::framefab_parameters_server_callback, this);
 
+  // start local instances
+
+  // start server
+
+  // service clients
+  path_post_processing_client_ = nh_.serviceClient<framefab_msgs::PathPostProcessing>(PATH_POST_PROCESSING_SERVICE);
+
+  // service servers
+
   // publishers
 
-  // start action servers
+  // action servers
   path_planning_server_.start();
 
   return true;
@@ -154,14 +175,30 @@ void FrameFabCoreService::pathPlanningActionCallback(const framefab_msgs::PathPl
       path_planning_feedback_.last_completed = "Recieved request to post process plan\n";
       path_planning_server_.publishFeedback(path_planning_feedback_);
 
-//      ROS_INFO_STREAM("goal received");
       // call path_post_processing srv
+      framefab_msgs::PathPostProcessing srv;
+      srv.request.action = srv.request.PROCESS_PATH_AND_MARKER;
+      srv.request.model_params = model_input_params_;
+      srv.request.path_params = path_input_params_;
+
+      if(!path_post_processing_client_.call(srv))
+      {
+        ROS_WARN_STREAM("Unable to call path post processing service");
+        path_planning_feedback_.last_completed = "Failed to call Path Post Processing Service!\n";
+        path_planning_server_.publishFeedback(path_planning_feedback_);
+        path_planning_result_.succeeded = false;
+        path_planning_server_.setAborted(path_planning_result_);
+      }
+      else
+      {
+      // take srv output, save it into visualize instance & local saving
 
       path_planning_feedback_.last_completed = "Finished planning. Visualizing...\n";
       path_planning_server_.publishFeedback(path_planning_feedback_);
 //      visualizePaths();
       path_planning_result_.succeeded = true;
       path_planning_server_.setSucceeded(path_planning_result_);
+      }
       break;
     }
     default:
