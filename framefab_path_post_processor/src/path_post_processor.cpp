@@ -10,14 +10,14 @@
 #include "rapidjson/filereadstream.h"
 
 
-Eigen::Vector3d transformPoint(const Eigen::Vector3d pt, double scale, Eigen::Vector3d ref_transf)
+Eigen::Vector3d transformPoint(const Eigen::Vector3d& pt, const double& scale, const Eigen::Vector3d& ref_transf)
 {
   return (pt * scale + ref_transf);
 }
 
-framefab_path_post_planning::PathPostProcessor()
+framefab_path_post_processing::PathPostProcessor::PathPostProcessor()
 {
-  unit_scale= 1;
+  unit_scale_ = 1;
   ref_pt_ = Eigen::Vector3d(0, 0, 0);
   transf_vec_ = Eigen::Vector3d(0, 0, 0);
 }
@@ -55,7 +55,7 @@ void framefab_path_post_processing::PathPostProcessor::setParams(
   }
 
   // set ref point
-  ref_pt = Eigen::Vector3d(model_input_params_.ref_pt_x, model_input_params_.ref_pt_y, model_input_params_.ref_pt_z);
+  ref_pt_ = Eigen::Vector3d(model_input_params_.ref_pt_x, model_input_params_.ref_pt_y, model_input_params_.ref_pt_z);
 }
 
 bool framefab_path_post_processing::PathPostProcessor::createCandidatePoses()
@@ -105,9 +105,20 @@ bool framefab_path_post_processing::PathPostProcessor::createCandidatePoses()
                            element_path["end_pt"][1].GetDouble(),
                            element_path["end_pt"][2].GetDouble());
 
-    // TODO: fetch the feasible orients
-    std::vector<Eigen::Vector3d> feasible_orients;
+    std::string type_str = element_path["type"].GetString();
 
+    // fetch the feasible orients
+    std::vector<Eigen::Vector3d> feasible_orients;
+    const Value& f_orients = element_path["feasible_orientation"];
+    assert(f_orients.IsArray());
+
+    for(SizeType j = 0; j < f_orients.Size(); j++)
+    {
+      Eigen::Vector3d f_vec(f_orients[i][0].GetDouble(),
+                            f_orients[i][1].GetDouble(),
+                            f_orients[i][2].GetDouble());
+      feasible_orients.push_back(f_vec);
+    }
 
     // create UnitProcessPath & Add UnitProcessPath into ProcessPath
     path_array_.push_back(createScaledUnitProcessPath(i, st_pt, end_pt, feasible_orients, type_str, 0.01));
@@ -128,5 +139,5 @@ framefab_utils::UnitProcessPath framefab_path_post_processing::PathPostProcessor
       transformPoint(end_pt, unit_scale_, transf_vec_),
       feasible_orients, type_str, shrink_length);
 
-  return
+  return upp;
 }

@@ -23,7 +23,7 @@ class PathPostProcessor
   virtual ~PathPostProcessor() {}
 
   bool createCandidatePoses();
-  const ElementCandidatePosesArray& getCandidatePoses() const { return path_array_; }
+  const std::vector<framefab_utils::UnitProcessPath>& getCandidatePoses() const { return path_array_; }
 
   // data setting
   void setParams(framefab_msgs::ModelInputParameters model_params,
@@ -40,7 +40,7 @@ class PathPostProcessor
                                                               double shrink_length = 0.01);
 
  protected:
-  void setTransfVec(Eigen::Vector3d& const ref_pt, Eigen::Vector3d& const base_center_pt, double& const scale)
+  void setTransfVec(const Eigen::Vector3d& ref_pt, const Eigen::Vector3d& base_center_pt, const double& scale)
   {
     transf_vec_ = (ref_pt - base_center_pt) * scale;
   }
