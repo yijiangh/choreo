@@ -66,14 +66,14 @@ moveit_msgs::CollisionObject framefab_utils::UnitProcessPath::createCollisionObj
   return collision_cylinder;
 }
 
-void framefab_utils::UnitProcessPath::createShrinkedEndPoint(Eigen::Vector3d& st_pt, Eigen::Vector3d& end_st,
+void framefab_utils::UnitProcessPath::createShrinkedEndPoint(Eigen::Vector3d& st_pt, Eigen::Vector3d& end_pt,
                     const double& shrink_length)
 {
   Eigen::Vector3d translation_vec = end_pt - st_pt;
   translation_vec.normalize();
 
   st_pt = st_pt + shrink_length * translation_vec;
-  end_pt = end_st - shrink_length * translation_vec;
+  end_pt = end_pt - shrink_length * translation_vec;
 }
 
 framefab_msgs::ElementCandidatePoses framefab_utils::UnitProcessPath::asElementCandidatePoses()
