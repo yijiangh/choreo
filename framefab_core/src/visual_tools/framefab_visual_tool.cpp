@@ -27,6 +27,8 @@ void framefab_visual_tools::FrameFabVisualTool::convertPathVisual(
     tf::pointMsgToEigen(path_array[i].end_pt, v_unit_path.end_pt);
     v_unit_path.type =
         static_cast<framefab_visual_tools::UNIT_PATH_TYPE>(path_array[i].type);
+
+    visual_path_array.push_back(v_unit_path);
   }
 }
 
@@ -38,8 +40,26 @@ void framefab_visual_tools::FrameFabVisualTool::visualizeAllPaths()
 
   for(int i=0; i < visual_path_array_.size(); i++)
   {
+    rviz_visual_tools::colors type_color;
+
+    if(framefab_visual_tools::UNIT_PATH_TYPE::SUPPORT ==  visual_path_array_[i].type)
+    {
+      type_color = rviz_visual_tools::BLUE;
+    }
+
+    if(framefab_visual_tools::UNIT_PATH_TYPE::CREATE ==  visual_path_array_[i].type)
+    {
+      type_color = rviz_visual_tools::YELLOW;
+    }
+
+    if(framefab_visual_tools::UNIT_PATH_TYPE::CONNECT ==  visual_path_array_[i].type)
+    {
+      type_color = rviz_visual_tools::RED;
+    }
+
     visual_tools_->publishCylinder(visual_path_array_[i].start_pt,
-                                   visual_path_array_[i].start_pt);
+                                   visual_path_array_[i].end_pt,
+                                   type_color, 0.0015, "Cylinder");
   }
 
   visual_tools_->trigger();
@@ -53,8 +73,19 @@ void framefab_visual_tools::FrameFabVisualTool::visualizePath(int i)
 
   assert(0 <= i && i < visual_path_array_.size());
 
+  if(0 != i)
+  {
+    for(int j=0; j < i; j++)
+    {
+      visual_tools_->publishCylinder(visual_path_array_[j].start_pt,
+                                     visual_path_array_[j].end_pt,
+                                     rviz_visual_tools::GREY, 0.0015, "Cylinder");
+    }
+  }
+
   visual_tools_->publishCylinder(visual_path_array_[i].start_pt,
-                                   visual_path_array_[i].start_pt);
+                                 visual_path_array_[i].end_pt,
+                                 rviz_visual_tools::TRANSLUCENT, 0.0015, "Cylinder");
 
   visual_tools_->trigger();
 }
