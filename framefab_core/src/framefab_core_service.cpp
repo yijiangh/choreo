@@ -5,6 +5,9 @@
 //services
 #include <framefab_msgs/PathPostProcessing.h>
 
+// For visualizing things in rviz
+#include <rviz_visual_tools/rviz_visual_tools.h>
+
 // Process Planning
 
 // topics and services
@@ -21,13 +24,16 @@ const static std::string PATH_POST_PROCESSING_SERVICE = "path_post_processing";
 const static std::string MODEL_INPUT_PARAMS_FILE = "model_input_parameters.msg";
 const static std::string PATH_INPUT_PARAMS_FILE = "path_input_parameters.msg";
 
+// Visualization Maker topics
+const static std::string PATH_VISUAL_TOPIC = "path_visualization";
+
 // action server name - note: must be same to client's name
 const static std::string PATH_PLANNING_ACTION_SERVER_NAME = "path_planning_action";
 
 FrameFabCoreService::FrameFabCoreService()
     : save_data_(false),
       path_planning_server_(nh_, PATH_PLANNING_ACTION_SERVER_NAME,
-                               boost::bind(&FrameFabCoreService::pathPlanningActionCallback, this, _1), false)
+                            boost::bind(&FrameFabCoreService::pathPlanningActionCallback, this, _1), false)
 {}
 
 bool FrameFabCoreService::init()
@@ -57,6 +63,7 @@ bool FrameFabCoreService::init()
                            &FrameFabCoreService::framefab_parameters_server_callback, this);
 
   // start local instances
+  visual_tool_.init("arm_base_link", PATH_VISUAL_TOPIC);
 
   // start server
 
@@ -191,13 +198,15 @@ void FrameFabCoreService::pathPlanningActionCallback(const framefab_msgs::PathPl
       }
       else
       {
-      // take srv output, save it into visualize instance & local saving
+        // take srv output, save them
+        path_planning_feedback_.last_completed = "Finished path post processing. Visualizing...\n";
+        path_planning_server_.publishFeedback(path_planning_feedback_);
 
-      path_planning_feedback_.last_completed = "Finished planning. Visualizing...\n";
-      path_planning_server_.publishFeedback(path_planning_feedback_);
-//      visualizePaths();
-      path_planning_result_.succeeded = true;
-      path_planning_server_.setSucceeded(path_planning_result_);
+        visual_tool_.setProcessPath(srv.response.process);
+        visual_tool_.visualizePath(4);
+
+        path_planning_result_.succeeded = true;
+        path_planning_server_.setSucceeded(path_planning_result_);
       }
       break;
     }

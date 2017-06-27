@@ -17,10 +17,17 @@
 
   <!-- rviz w/ specified configuration -->
   <group if="$(arg debug_rviz)">
-    <node name="rviz" pkg="rviz" type="rviz" output="screen" launch-prefix="xterm -e gdb --args" required="true"/>
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find kr6r900sixx_with_hotend)/rviz/kr6r900_framefab.rviz" output="screen" launch-prefix="xterm -e gdb --args" required="true"/>
   </group>
   <group unless="$(arg debug_rviz)">
-    <node name="rviz" pkg="rviz" type="rviz" output="screen" launch-prefix="nice" required="true"/>
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find kr6r900sixx_with_hotend)/rviz/kr6r900_framefab.rviz" output="screen" launch-prefix="nice" required="true"/>
   </group>
+
+  <!-- Bring up the MoveIt interface to the real or simulated robot -->
+  <include file="$(find kr6r900sixx_with_hotend_moveit_config)/launch/moveit_planning_execution.launch">
+    <arg name="rviz" value="false"/>
+    <arg name="sim" value="$(arg sim_robot)"/>
+    <arg name="robot_ip" value="$(arg robot_ip)" unless="$(arg sim_robot)"/>
+  </include>
 
 </launch>

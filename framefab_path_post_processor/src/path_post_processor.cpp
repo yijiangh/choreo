@@ -30,7 +30,6 @@ void framefab_path_post_processing::PathPostProcessor::setParams(
   model_input_params_ = model_params;
   path_input_params_ = path_params;
 
-  ROS_INFO_STREAM("model params unit type" << model_input_params_.unit_type);
   // set unit scale
   switch (model_input_params_.unit_type)
   {

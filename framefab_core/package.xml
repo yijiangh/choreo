@@ -22,8 +22,9 @@
   <depend>tf</depend>
   <depend>tf_conversions</depend>
   <depend>framefab_msgs</depend>
-<!--  <depend>framefab_process_path_generation</depend>-->
   <depend>framefab_param_helpers</depend>
+
+  <depend>rviz_visual_tools</depend>
 
   <build_depend>moveit_ros_move_group</build_depend>
 

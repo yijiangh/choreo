@@ -13,7 +13,7 @@ Panels:
         - /TF1/Frames1
         - /MarkerArray1
       Splitter Ratio: 0.63785398
-    Tree Height: 156
+    Tree Height: 437
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -25,25 +25,24 @@ Panels:
       - /Current View1
     Name: Views
     Splitter Ratio: 0.5
-  - Class: framefab_mpp/FrameFabRvizPanel
-    Name: FrameFabRvizPanel
+  - Class: framefab_gui/FrameFabPanel
+    Name: FrameFabPanel
   - Class: rviz/Displays
     Help Height: 78
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /Global Options1
         - /MarkerArray1
       Splitter Ratio: 0.5
-    Tree Height: 359
-  - Class: framefab_gui/FrameFabPanel
-    Name: FrameFabPanel
+    Tree Height: 169
 Visualization Manager:
   Class: ""
   Displays:
     - Alpha: 0.5
       Cell Size: 1
       Class: rviz/Grid
-      Color: 160; 160; 164
+      Color: 182; 179; 180
       Enabled: true
       Line Style:
         Line Width: 0.0299999993
@@ -135,53 +134,19 @@ Visualization Manager:
         Show Robot Visual: false
       Value: false
     - Class: rviz/TF
-      Enabled: true
+      Enabled: false
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        arm_base:
-          Value: true
-        arm_base_link:
-          Value: true
-        arm_link_1:
-          Value: true
-        arm_link_2:
-          Value: true
-        arm_link_3:
-          Value: true
-        arm_link_4:
-          Value: true
-        arm_link_5:
-          Value: true
-        arm_link_6:
-          Value: true
-        arm_tool0:
-          Value: true
-        hotend:
-          Value: true
-        tool_tip:
-          Value: true
       Marker Scale: 0.5
       Name: TF
       Show Arrows: false
       Show Axes: true
       Show Names: false
       Tree:
-        arm_base_link:
-          arm_base:
-            {}
-          arm_link_1:
-            arm_link_2:
-              arm_link_3:
-                arm_link_4:
-                  arm_link_5:
-                    arm_link_6:
-                      arm_tool0:
-                        hotend:
-                          tool_tip:
-                            {}
+        {}
       Update Interval: 0
-      Value: true
+      Value: false
     - Alpha: 1
       Class: rviz/RobotModel
       Collision Enabled: false
@@ -255,12 +220,12 @@ Visualization Manager:
       Marker Topic: /framefab_core_service/path_visualization
       Name: MarkerArray
       Namespaces:
-        {}
+        Cylinder: true
       Queue Size: 100
       Value: true
   Enabled: true
   Global Options:
-    Background Color: 35; 35; 35
+    Background Color: 140; 140; 140
     Fixed Frame: arm_base_link
     Frame Rate: 60
   Name: root
@@ -273,31 +238,29 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 6.03271008
+      Distance: 1.60480893
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.330819011
-        Y: 0.222342998
+        X: 0.521053195
+        Y: 0.0105080605
         Z: 9.98379051e-07
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: -0.0402029082
+      Pitch: -0.135203049
       Target Frame: arm_base_link
       Value: XYOrbit (rviz)
-      Yaw: 5.39495993
+      Yaw: 0.736755431
     Saved: ~
 Window Geometry:
   Displays:
     collapsed: false
   FrameFabPanel:
-    collapsed: false
-  FrameFabRvizPanel:
     collapsed: false
   Height: 1148
   Hide Left Dock: false
@@ -306,7 +269,7 @@ Window Geometry:
     collapsed: false
   MotionPlanning - Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000100000000000002b800000436fc020000000cfb000000100044006900730070006c0061007900730100000028000000dd000000dd00fffffffb0000000800480065006c00700000000342000000bb0000000000000000fb0000000a0056006900650077007300000003b0000000b0000000b000fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000028000002110000000000000000fb00000022004600720061006d0065004600610062005200760069007a00500061006e0065006c0000000028000002460000007600fffffffb0000001200530065006c0065006300740069006f006e00000003bb000000bf0000006400fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007300000003d8000000a20000006400fffffffb0000002e004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d00200053006c00690064006500720000000000ffffffff0000004a00fffffffb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e0067000000017a000001cc000001cc00fffffffb000000100044006900730070006c006100790073000000002800000436000000dd00fffffffb0000001a004600720061006d006500460061006200500061006e0065006c010000010b00000353000001ea00ffffff000004950000043600000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000100000000000002b800000436fc020000000cfb000000100044006900730070006c0061007900730000000028000000dd000000dd00fffffffb0000000800480065006c00700000000342000000bb0000000000000000fb0000000a0056006900650077007300000003b0000000b0000000b000fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000028000002110000000000000000fb00000022004600720061006d0065004600610062005200760069007a00500061006e0065006c0000000028000002180000000000000000fb0000001200530065006c0065006300740069006f006e00000003bb000000bf0000006400fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007300000003d8000000a20000006400fffffffb0000002e004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d00200053006c00690064006500720000000000ffffffff0000004a00fffffffb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e0067000000002800000436000001cc00fffffffb0000001a004600720061006d006500460061006200500061006e0065006c0100000028000002f8000001ea00fffffffb000000100044006900730070006c006100790073010000032600000138000000dd00ffffff000004950000043600000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Tool Properties:
