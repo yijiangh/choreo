@@ -7,6 +7,7 @@
 
 // C++
 #include <string>
+#include <vector>
 
 // ROS
 #include <ros/ros.h>
@@ -37,7 +38,7 @@ struct VisualUnitProcessPath
 class FrameFabVisualTool
 {
   typedef std::vector<framefab_msgs::ElementCandidatePoses> PathArray;
-  typedef std::vector<VisualUnitProcessPath> VisualPathArray;
+  typedef std::vector<framefab_visual_tools::VisualUnitProcessPath> VisualPathArray;
 
  public:
   FrameFabVisualTool(){}
@@ -55,7 +56,7 @@ class FrameFabVisualTool
   void visualizePath(int index);
 
  protected:
-  convertPathVisual(const PathArray& path_array, VisualPathArray& visual_path_array);
+  void convertPathVisual(const PathArray& path_array, VisualPathArray& visual_path_array);
 
  private:
   ros::NodeHandle nh_;

@@ -30,7 +30,7 @@ const static std::string PATH_PLANNING_ACTION_SERVER_NAME = "path_planning_actio
 FrameFabCoreService::FrameFabCoreService()
     : save_data_(false),
       path_planning_server_(nh_, PATH_PLANNING_ACTION_SERVER_NAME,
-                               boost::bind(&FrameFabCoreService::pathPlanningActionCallback, this, _1), false)
+                            boost::bind(&FrameFabCoreService::pathPlanningActionCallback, this, _1), false)
 {}
 
 bool FrameFabCoreService::init()
@@ -60,7 +60,7 @@ bool FrameFabCoreService::init()
                            &FrameFabCoreService::framefab_parameters_server_callback, this);
 
   // start local instances
-  visual_tool_.init("world_frame", PATH_VISUAL_TOPIC);
+  visual_tool_.init("arm_base_link", PATH_VISUAL_TOPIC);
 
   // start server
 
@@ -195,12 +195,15 @@ void FrameFabCoreService::pathPlanningActionCallback(const framefab_msgs::PathPl
       }
       else
       {
-      // take srv output, save them
-      path_planning_feedback_.last_completed = "Finished path post processing. Visualizing...\n";
-      path_planning_server_.publishFeedback(path_planning_feedback_);
-      visual_tool_->visualizeAllPaths();
-      path_planning_result_.succeeded = true;
-      path_planning_server_.setSucceeded(path_planning_result_);
+        // take srv output, save them
+        path_planning_feedback_.last_completed = "Finished path post processing. Visualizing...\n";
+        path_planning_server_.publishFeedback(path_planning_feedback_);
+
+        visual_tool_.setProcessPath(srv.response.process);
+        visual_tool_.visualizeAllPaths();
+
+        path_planning_result_.succeeded = true;
+        path_planning_server_.setSucceeded(path_planning_result_);
       }
       break;
     }

@@ -16,7 +16,7 @@
 #include <actionlib/client/simple_action_client.h>
 
 // core service instances
-#include <framefab_core/visual_tools/framefab_visual_tools.h>
+#include <framefab_core/visual_tools/framefab_visual_tool.h>
 
 class FrameFabCoreService
 {
