@@ -4,6 +4,7 @@
 #include <boost/tuple/tuple.hpp>
 
 #include <framefab_msgs/PathPostProcessing.h>
+#include <framefab_path_post_processor/process_path.h>
 #include <framefab_path_post_processor/path_post_processor.h>
 
 bool processPathCallback(framefab_msgs::PathPostProcessingRequest& req,
@@ -22,7 +23,6 @@ bool processPathCallback(framefab_msgs::PathPostProcessingRequest& req,
         res.succeeded = false;
         return false;
       }
-      res.succeeded = true;
       break;
     }
 
@@ -34,7 +34,15 @@ bool processPathCallback(framefab_msgs::PathPostProcessingRequest& req,
     }
   }
 
-//  res.process = path_pprocessor.getCandidatePoses();
+  std::vector<framefab_utils::UnitProcessPath> path_array =
+      path_pprocessor.getCandidatePoses();
+
+  for(int i = 0; i < path_array.size(); i++)
+  {
+    res.process.push_back(path_array[i].asElementCandidatePoses());
+  }
+
+  res.succeeded = true;
   return true;
 }
 

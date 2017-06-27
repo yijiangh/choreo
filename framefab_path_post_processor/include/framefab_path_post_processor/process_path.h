@@ -52,32 +52,6 @@ class UnitProcessPath
   double shrink_length_; // meters
   moveit_msgs::CollisionObject collision_cylinder_;
 };
-
-class ProcessPath
-{
-  typedef std::vector<framefab_msgs::ElementCandidatePoses> ElementCandidatePosesArray;
-
- public:
-  ProcessPath(){};
-  virtual ~ProcessPath(){};
-
-  void addUnitProcessPath(const UnitProcessPath& u_pth) { process_paths_.push_back(u_pth); }
-
-  std::vector<UnitProcessPath> data() const
-  {
-    return process_paths_;
-  }
-
-  void clear()
-  {
-    process_paths_.clear();
-  }
-
-  ElementCandidatePosesArray asElementCandidatePosesArray() const;
-
-private:
-  std::vector<UnitProcessPath> process_paths_;
-};
 }
 
 #endif //FRAMEFAB_PATH_POST_PROCESSOR_PROCESSPATH_H

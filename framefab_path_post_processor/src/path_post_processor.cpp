@@ -30,29 +30,39 @@ void framefab_path_post_processing::PathPostProcessor::setParams(
   model_input_params_ = model_params;
   path_input_params_ = path_params;
 
+  ROS_INFO_STREAM("model params unit type" << model_input_params_.unit_type);
   // set unit scale
   switch (model_input_params_.unit_type)
   {
     case framefab_msgs::ModelInputParameters::MILLIMETER:
     {
       unit_scale_ = 0.001;
+      break;
     }
     case framefab_msgs::ModelInputParameters::CENTIMETER:
     {
       unit_scale_ = 0.01;
+      break;
     }
     case framefab_msgs::ModelInputParameters::INCH:
     {
       unit_scale_ = 0.0254;
+      break;
     }
     case framefab_msgs::ModelInputParameters::FOOT:
     {
       unit_scale_ = 0.3048;
+      break;
     }
     default:
     {
       ROS_ERROR("Unrecognized Unit type in Model Input Parameters!");
     }
+  }
+
+  if(verbose_)
+  {
+    ROS_INFO_STREAM("unit type config succeeded! - unit_scale: " << unit_scale_);
   }
 
   // set ref point
