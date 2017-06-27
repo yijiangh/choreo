@@ -19,7 +19,7 @@ class PathPostProcessor
   typedef std::vector<framefab_msgs::ElementCandidatePoses> ElementCandidatePosesArray;
 
  public:
-  PathPostProcessor() {}
+  PathPostProcessor();
   virtual ~PathPostProcessor() {}
 
   bool createCandidatePoses();
@@ -27,20 +27,23 @@ class PathPostProcessor
 
   // data setting
   void setParams(framefab_msgs::ModelInputParameters model_params,
-                 framefab_msgs::PathInputParameters path_params)
-  {
-    model_input_params_ = model_params;
-    path_input_params_ = path_params;
+                 framefab_msgs::PathInputParameters path_params);
 
-    setUnitScale();
-  }
-
+  // getter
   double getUnitScale() { return unit_scale_; }
   Eigen::Vector3d getTransfVec() { return transf_vec_; }
 
+  framefab_utils::UnitProcessPath createScaledUnitProcessPath(int index,
+                                                              Eigen::Vector3d st_pt, Eigen::Vector3d end_pt,
+                                                              std::vector<Eigen::Vector3d> feasible_orients,
+                                                              std::string type_str,
+                                                              double shrink_length = 0.01);
+
  protected:
-  void setUnitScale();
-  void setTransfVec();
+  void setTransfVec(Eigen::Vector3d& const ref_pt, Eigen::Vector3d& const base_center_pt, double& const scale)
+  {
+    transf_vec_ = (ref_pt - base_center_pt) * scale;
+  }
 
   // add printing table
   // add printing table ref pt
@@ -50,9 +53,10 @@ class PathPostProcessor
   framefab_msgs::ModelInputParameters model_input_params_;
   framefab_msgs::PathInputParameters path_input_params_;
 
-  ElementCandidatePosesArray path_array_;
+  std::vector<framefab_utils::UnitProcessPath> path_array_;
 
   double unit_scale_;
+  Eigen::Vector3d ref_pt_;
   Eigen::Vector3d transf_vec_;
 };
 }

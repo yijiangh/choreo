@@ -19,7 +19,7 @@ class UnitProcessPath
                   Eigen::Vector3d st_pt, Eigen::Vector3d end_pt,
                   std::vector<Eigen::Vector3d> feasible_orients,
                   std::string type_str,
-                  double shrink_length = 0.01)
+                  double shrink_length)
   {
     id_ = index;
     st_pt_ = st_pt;
