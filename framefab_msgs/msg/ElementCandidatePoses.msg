@@ -11,5 +11,6 @@ geometry_msgs/Point start_pt
 geometry_msgs/Point end_pt
 
 # shrinked collision objects
+moveit_msgs/CollisionObject collision_cylinder
 
 geometry_msgs/Vector3[] feasible_orients

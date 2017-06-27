@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
              sensor_msgs
              trajectory_msgs
              visualization_msgs
+             moveit_msgs
 )
 
 #######################################
@@ -58,6 +59,7 @@ generate_messages(DEPENDENCIES
   sensor_msgs
   visualization_msgs
   trajectory_msgs
+  moveit_msgs
 )
 ###################################
 ## catkin specific configuration ##
@@ -75,5 +77,6 @@ catkin_package(
   message_runtime
   geometry_msgs
   sensor_msgs
+  moveit_msgs
   genmsg
 )

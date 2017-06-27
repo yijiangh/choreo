@@ -4,17 +4,24 @@ add_definitions(-std=c++11)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
-	framefab_msgs
 	geometry_msgs
+	moveit_msgs
+	framefab_msgs
+	tf_conversions
+	eigen_conversions
 )
 
 find_package(Eigen3 REQUIRED)
 
 catkin_package(
   INCLUDE_DIRS 
-    include
+	include
   CATKIN_DEPENDS
-    framefab_msgs
+	geometry_msgs
+	moveit_msgs
+	framefab_msgs
+	tf_conversions
+	eigen_conversions
 )
 
 ###########
@@ -30,10 +37,10 @@ include_directories(
 
 ##_____________
 ## Libraries ##
-
 # PathPostProcessor library
 add_library(path_post_processor
 	src/path_post_processor.cpp
+	src/process_path.cpp
 	)
 target_link_libraries(path_post_processor
 	${catkin_LIBRARIES}

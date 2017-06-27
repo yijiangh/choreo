@@ -1,6 +1,9 @@
 //
 // Created by yijiangh on 6/26/17.
 //
+#include <ros/ros.h>
+#include <ros/console.h>
+
 #include <framefab_path_post_processor/process_path.h>
 #include <tf_conversions/tf_eigen.h>
 #include <eigen_conversions/eigen_msg.h>
@@ -10,10 +13,10 @@ double dist(const Eigen::Vector3d& from, const Eigen::Vector3d& to)
   return (from - to).norm();
 }
 
-geometry_msgs::Pose framefab_util::UnitProcessPath::computeCylinderPose() const
+geometry_msgs::Pose framefab_utils::UnitProcessPath::computeCylinderPose() const
 {
   // rotation
-  Eigen::Vector3d axis = end_pt - st_pt_;
+  Eigen::Vector3d axis = end_pt_ - st_pt_;
   axis.normalize();
   Eigen::Vector3d z_vec(0.0,0.0,1.0);
   const Eigen::Vector3d& x_vec = axis.cross(z_vec);
@@ -31,14 +34,14 @@ geometry_msgs::Pose framefab_util::UnitProcessPath::computeCylinderPose() const
   //back to ros coords
   geometry_msgs::Pose cylinder_pose;
   tf::quaternionTFToMsg(tf_q, cylinder_pose.orientation);
-  cylinder_pose.position = (end_pt + st_pt_) * 0.5;
+  tf::pointEigenToMsg((end_pt_ + st_pt_) * 0.5, cylinder_pose.position);
 
   return cylinder_pose;
 }
 
 void framefab_utils::UnitProcessPath::createCollisionObject()
 {
-  std::string cylinder_id = "element_" + std::to_string(i);
+  std::string cylinder_id = "element_" + std::to_string(id_);
 
   // TODO: make frame_id as input parameter
   collision_cylinder_.id = cylinder_id;
@@ -47,20 +50,49 @@ void framefab_utils::UnitProcessPath::createCollisionObject()
 
   // TODO: turn cylinder radiuus as input parameter
   shape_msgs::SolidPrimitive cylinder_solid;
-  collision_cylinder_.type = shape_msgs::SolidPrimitive::CYLINDER;
-  collision_cylinder_.dimensions.resize(2);
-  collision_cylinder_.dimensions[0] = dist(st_pt_, end_pt_);
-  collision_cylinder_.dimensions[1] = 0.0015;
+  cylinder_solid.type = shape_msgs::SolidPrimitive::CYLINDER;
+  cylinder_solid.dimensions.resize(2);
+  cylinder_solid.dimensions[0] = dist(st_pt_, end_pt_);
+  cylinder_solid.dimensions[1] = 0.0015;
   collision_cylinder_.primitives.resize(1);
   collision_cylinder_.primitives.push_back(cylinder_solid);
 
-  geometry_msgs::Point cylinder_center_point = transformPoint(GetEdge(i)->CenterPos());
   collision_cylinder_.primitive_poses.resize(1);
   collision_cylinder_.primitive_poses.push_back(computeCylinderPose());
 }
 
-framefab_msgs::ElementCandidatePoses framefab_utils::UnitProcessPath::asElementCandidatePoses() const
+framefab_msgs::ElementCandidatePoses framefab_utils::UnitProcessPath::asElementCandidatePoses()
 {
+  framefab_msgs::ElementCandidatePoses msg;
 
+  msg.element_id = id_;
 
+  if("support" == type_)
+  {
+    msg.type = framefab_msgs::ElementCandidatePoses::SUPPORT;
+  }
+  if("create" == type_)
+  {
+    msg.type = framefab_msgs::ElementCandidatePoses::CREATE;
+  }
+  if("connect" == type_)
+  {
+    msg.type = framefab_msgs::ElementCandidatePoses::CONNECT;
+  }
+
+  tf::pointEigenToMsg(st_pt_, msg.start_pt);
+  tf::pointEigenToMsg(end_pt_, msg.end_pt);
+
+  createCollisionObject();
+  msg.collision_cylinder = collision_cylinder_;
+
+  for(int i=0; i < feasible_orients_.size(); i++)
+  {
+    geometry_msgs::Vector3 vec_msg;
+    tf::vectorEigenToMsg(feasible_orients_[i], vec_msg);
+
+    msg.feasible_orients.push_back(vec_msg);
+  }
+
+  return msg;
 }
