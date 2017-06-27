@@ -20,6 +20,7 @@ framefab_path_post_processing::PathPostProcessor::PathPostProcessor()
   unit_scale_ = 1;
   ref_pt_ = Eigen::Vector3d(0, 0, 0);
   transf_vec_ = Eigen::Vector3d(0, 0, 0);
+  verbose_ = false;
 }
 
 void framefab_path_post_processing::PathPostProcessor::setParams(
@@ -79,13 +80,17 @@ bool framefab_path_post_processing::PathPostProcessor::createCandidatePoses()
   }
 
   fclose(fp);
-  ROS_INFO_STREAM("path json Parsing succeeded.");
 
   int m = document["element_number"].GetInt();
-  ROS_INFO_STREAM("model element member: " << m);
 
   const Value& bcp = document["base_center_pt"];
   Eigen::Vector3d base_center_pt(bcp[0].GetDouble(), bcp[1].GetDouble(), bcp[2].GetDouble());
+
+  if(verbose_)
+  {
+    ROS_INFO_STREAM("model element member: " << m);
+    ROS_INFO_STREAM("base_center_pt: \n" << base_center_pt);
+  }
 
   setTransfVec(ref_pt_, base_center_pt, unit_scale_);
 
@@ -107,6 +112,14 @@ bool framefab_path_post_processing::PathPostProcessor::createCandidatePoses()
 
     std::string type_str = element_path["type"].GetString();
 
+    if(verbose_)
+    {
+      ROS_INFO_STREAM("element-" << i);
+      ROS_INFO_STREAM("start_pt:\n" << st_pt);
+      ROS_INFO_STREAM("end_pt:\n" << end_pt);
+      ROS_INFO_STREAM("element type - " << type_str);
+    }
+
     // fetch the feasible orients
     std::vector<Eigen::Vector3d> feasible_orients;
     const Value& f_orients = element_path["feasible_orientation"];
@@ -114,16 +127,22 @@ bool framefab_path_post_processing::PathPostProcessor::createCandidatePoses()
 
     for(SizeType j = 0; j < f_orients.Size(); j++)
     {
-      Eigen::Vector3d f_vec(f_orients[i][0].GetDouble(),
-                            f_orients[i][1].GetDouble(),
-                            f_orients[i][2].GetDouble());
+      Eigen::Vector3d f_vec(f_orients[j][0].GetDouble(),
+                            f_orients[j][1].GetDouble(),
+                            f_orients[j][2].GetDouble());
       feasible_orients.push_back(f_vec);
+
+      if (verbose_)
+      {
+        ROS_INFO_STREAM("feasible orient[" << j << "] =\n" << f_vec);
+      }
     }
 
     // create UnitProcessPath & Add UnitProcessPath into ProcessPath
     path_array_.push_back(createScaledUnitProcessPath(i, st_pt, end_pt, feasible_orients, type_str, 0.01));
   }
 
+  ROS_INFO_STREAM("path json Parsing succeeded.");
   return true;
 }
 

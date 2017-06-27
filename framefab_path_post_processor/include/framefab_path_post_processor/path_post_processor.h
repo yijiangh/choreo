@@ -58,6 +58,8 @@ class PathPostProcessor
   double unit_scale_;
   Eigen::Vector3d ref_pt_;
   Eigen::Vector3d transf_vec_;
+
+  bool verbose_;
 };
 }
 #endif //FRAMEFAB_PATH_POST_PROCESSOR_PATH_POST_PROCESSOR_H
