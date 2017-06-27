@@ -6,7 +6,7 @@
 #define FRAMEFAB_PATH_POST_PROCESSOR_PROCESSPATH_H
 
 #include <framefab_msgs/ElementCandidatePoses>
-#include <Eigen/Core>
+#include <moveit_msgs/CollisionObject.h>
 
 namespace framefab_utils
 {
@@ -34,21 +34,22 @@ class UnitProcessPath
   std::vector<Eigen::Vector3d>& getFeasibleOrients() const { return feasible_orients_; }
   std::string& getType() const { return type_; }
 
-  framefab_msgs::ElementCandidatePoses asElementCandidatePoses() const;
+  framefab_msgs::ElementCandidatePoses () const;
 
  protected:
   void createCollisionObject();
+  geometry_msgs::Pose computeCylinderPose() const;
 
  private:
   // st pt, end pt, feasible orients, type
   Eigen::Vector3d st_pt_;
-  Eigen::Vector3d st_pt_;
+  Eigen::Vector3d end_pt_;
   std::vector<Eigen::Vector3d> feasible_orients_;
   std::string type_;
 
   // collision objects
   double shrink_length_; // meters
-
+  moveit_msgs::CollisionObject collision_cylinder_;
 };
 
 class ProcessPath
