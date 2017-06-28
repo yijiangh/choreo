@@ -83,13 +83,13 @@ void framefab_gui::PathPlanningState::pathPlanningDoneCallback(
 {
   if(result->succeeded)
   {
-      ROS_INFO_STREAM("path planning action succeeded");
-//    Q_EMIT newStateAvailable(new SelectPlansState());
+    ROS_INFO_STREAM("path planning action succeeded");
+    Q_EMIT newStateAvailable(new SelectPathState());
   }
   else
-{
+  {
     Q_EMIT newStateAvailable(new SystemInitState());
-}
+  }
 }
 
 void framefab_gui::PathPlanningState::pathPlanningActiveCallback()

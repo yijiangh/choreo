@@ -1,0 +1,8 @@
+//
+// Created by yijiangh on 6/27/17.
+//
+
+#ifndef FRAMEFAB_GUI_SELECT_PATH_WIDGET_H
+#define FRAMEFAB_GUI_SELECT_PATH_WIDGET_H
+
+#endif //FRAMEFAB_GUI_SELECT_PATH_WIDGET_H

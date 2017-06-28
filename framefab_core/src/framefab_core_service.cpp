@@ -203,7 +203,7 @@ void FrameFabCoreService::pathPlanningActionCallback(const framefab_msgs::PathPl
         path_planning_server_.publishFeedback(path_planning_feedback_);
 
         visual_tool_.setProcessPath(srv.response.process);
-        visual_tool_.visualizePath(4);
+        visual_tool_.visualizeAllPaths();
 
         path_planning_result_.succeeded = true;
         path_planning_server_.setSucceeded(path_planning_result_);
