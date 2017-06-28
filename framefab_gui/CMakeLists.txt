@@ -28,17 +28,20 @@ catkin_package(
 ## Your package locations should be listed before other locations
 
 set(framefab_gui_SRCS
-	# core
+	#core
 	src/framefab_panel.cpp
 	src/framefab_widget.cpp
-	# state
-	src/states/path_planning_state.cpp
+	#state
 	src/states/system_init_state.cpp
-	# params
+	src/states/path_planning_state.cpp
+	src/states/select_path_state.cpp
+	#params
 	src/params_submenu.cpp
 	src/parameter_window_base.cpp
 	src/params/model_input_config_widget.cpp
 	src/params/path_input_config_widget.cpp
+	#selection
+	src/selection/select_path_widget.cpp
 	)
 
 set(framefab_gui_HDRS
@@ -46,13 +49,16 @@ set(framefab_gui_HDRS
 	include/framefab_gui/framefab_widget.h
 	#states
 	include/framefab_gui/gui_state.h
-	include/framefab_gui/states/path_planning_state.h
 	include/framefab_gui/states/system_init_state.h
+	include/framefab_gui/states/path_planning_state.h
+	include/framefab_gui/states/select_path_state.h
 	#params
 	include/framefab_gui/params_submenu.h
 	include/framefab_gui/parameter_window_base.h
 	include/framefab_gui/params/model_input_config_widget.h
 	include/framefab_gui/params/path_input_config_widget.h
+	#selection
+	include/framefab_gui/selection/select_path_widget.h
 	)
 
 set(framefab_gui_UIS
@@ -60,6 +66,7 @@ set(framefab_gui_UIS
 	src/uis/params_submenu.ui
 	src/uis/model_input_config.ui
 	src/uis/path_input_config.ui
+	src/uis/select_path_widget.ui
 	)
 
 set(framefab_gui_INCLUDE_DIRECTORIES

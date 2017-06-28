@@ -34,7 +34,8 @@ class PathPostProcessor
                                                               Eigen::Vector3d st_pt, Eigen::Vector3d end_pt,
                                                               std::vector<Eigen::Vector3d> feasible_orients,
                                                               std::string type_str,
-                                                              double shrink_length = 0.01);
+                                                              double element_diameter,
+                                                              double shrink_length);
 
   void setTransfVec(const Eigen::Vector3d& ref_pt, const Eigen::Vector3d& base_center_pt, const double& scale)
   {
@@ -52,6 +53,8 @@ class PathPostProcessor
   std::vector<framefab_utils::UnitProcessPath> path_array_;
 
   double unit_scale_;
+  double element_diameter_;
+  double shrink_length_;
   Eigen::Vector3d ref_pt_;
   Eigen::Vector3d transf_vec_;
 

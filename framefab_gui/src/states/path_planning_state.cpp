@@ -4,6 +4,7 @@
 #include <framefab_gui/framefab_widget.h>
 #include <framefab_gui/states/system_init_state.h>
 #include <framefab_gui/states/path_planning_state.h>
+#include <framefab_gui/states/select_path_state.h>
 #include <QtConcurrent/QtConcurrentRun>
 
 // input params
@@ -35,12 +36,20 @@ void framefab_gui::PathPlanningState::onExit(FrameFabWidget& gui) { gui.setButto
 
 void framefab_gui::PathPlanningState::onNext(FrameFabWidget& gui)
 {
-//  Q_EMIT newStateAvailable(new SelectPathState());
+  Q_EMIT newStateAvailable(new SelectPathState());
 }
 
-void framefab_gui::PathPlanningState::onBack(FrameFabWidget& gui) {}
+void framefab_gui::PathPlanningState::onBack(FrameFabWidget& gui)
+{
+  gui.select_path().cleanUpVisual();
+  Q_EMIT newStateAvailable(new SystemInitState());
+}
 
-void framefab_gui::PathPlanningState::onReset(FrameFabWidget& gui) {}
+void framefab_gui::PathPlanningState::onReset(FrameFabWidget& gui)
+{
+  gui.select_path().cleanUpVisual();
+  Q_EMIT newStateAvailable(new SystemInitState());
+}
 
 void framefab_gui::PathPlanningState::makeRequest(
     framefab_msgs::ModelInputParameters model_params,
@@ -83,13 +92,14 @@ void framefab_gui::PathPlanningState::pathPlanningDoneCallback(
 {
   if(result->succeeded)
   {
-      ROS_INFO_STREAM("path planning action succeeded");
-//    Q_EMIT newStateAvailable(new SelectPlansState());
+    ROS_INFO_STREAM("path planning action succeeded");
+//    Q_EMIT newStateAvailable(new SelectPathState());
+    gui_ptr_->setButtonsEnabled(true);
   }
   else
-{
+  {
     Q_EMIT newStateAvailable(new SystemInitState());
-}
+  }
 }
 
 void framefab_gui::PathPlanningState::pathPlanningActiveCallback()

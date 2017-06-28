@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>369</width>
-    <height>332</height>
+    <width>356</width>
+    <height>443</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>Model Input Configuration</string>
   </property>
   <widget class="QLabel" name="label_input_file_path">
    <property name="geometry">
@@ -31,7 +31,7 @@
     <rect>
      <x>0</x>
      <y>100</y>
-     <width>244</width>
+     <width>250</width>
      <height>222</height>
     </rect>
    </property>
@@ -113,6 +113,11 @@
       <item>
        <property name="text">
         <string>Foot</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Meter</string>
        </property>
       </item>
      </widget>
@@ -235,6 +240,65 @@
        <string>Cancel</string>
       </property>
      </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="formLayoutWidget_3">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>320</y>
+     <width>251</width>
+     <height>111</height>
+    </rect>
+   </property>
+   <layout class="QGridLayout" name="gridLayout_2">
+    <property name="sizeConstraint">
+     <enum>QLayout::SetNoConstraint</enum>
+    </property>
+    <property name="leftMargin">
+     <number>15</number>
+    </property>
+    <property name="topMargin">
+     <number>15</number>
+    </property>
+    <property name="rightMargin">
+     <number>10</number>
+    </property>
+    <property name="bottomMargin">
+     <number>10</number>
+    </property>
+    <property name="horizontalSpacing">
+     <number>10</number>
+    </property>
+    <property name="verticalSpacing">
+     <number>15</number>
+    </property>
+    <item row="0" column="1">
+     <widget class="QLineEdit" name="lineedit_element_diameter"/>
+    </item>
+    <item row="0" column="0">
+     <widget class="QLabel" name="labelMargin_3">
+      <property name="font">
+       <font>
+        <pointsize>11</pointsize>
+        <italic>true</italic>
+       </font>
+      </property>
+      <property name="text">
+       <string>Element Diameter</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QLabel" name="labelOverlap_3">
+      <property name="text">
+       <string>Shrink Length</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="1">
+     <widget class="QLineEdit" name="lineedit_shrink_length"/>
     </item>
    </layout>
   </widget>

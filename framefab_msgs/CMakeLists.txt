@@ -48,6 +48,8 @@ add_service_files(
 FILES
 FrameFabParameters.srv
 PathPostProcessing.srv
+ElementNumberRequest.srv
+VisualizeSelectedPath.srv
 ProcessPlanning.srv
 TrajectoryExecution.srv
 )

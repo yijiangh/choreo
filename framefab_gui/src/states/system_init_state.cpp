@@ -6,11 +6,11 @@
 
 void framefab_gui::SystemInitState::onStart(FrameFabWidget& gui)
 {
-  gui.setText("System Ready. Click 'Next' to input model.");
-//  gui.showParams();
+  gui.setText("System Init.\nClick <Params> to set model and path parameters.");
+  gui.setParamsButtonEnabled(true);
 }
 
-void framefab_gui::SystemInitState::onExit(FrameFabWidget& gui) {}
+void framefab_gui::SystemInitState::onExit(FrameFabWidget& gui) { gui.setParamsButtonEnabled(false); }
 
 void framefab_gui::SystemInitState::onNext(FrameFabWidget& gui)
 {

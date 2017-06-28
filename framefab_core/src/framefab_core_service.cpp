@@ -16,6 +16,8 @@ const static std::string SAVE_LOCATION_PARAM = "save_location";
 
 // provided services
 const static std::string FRAMEFAB_PARAMETERS_SERVICE = "framefab_parameters";
+const static std::string ELEMENT_NUMBER_REQUEST_SERVICE = "element_member_request";
+const static std::string VISUALIZE_SELECTED_PATH_SERVICE= "visualize_select_path";
 
 // subscribed services
 const static std::string PATH_POST_PROCESSING_SERVICE = "path_post_processing";
@@ -62,6 +64,14 @@ bool FrameFabCoreService::init()
       nh_.advertiseService(FRAMEFAB_PARAMETERS_SERVICE,
                            &FrameFabCoreService::framefab_parameters_server_callback, this);
 
+  element_number_sequest_server_ =
+      nh_.advertiseService(ELEMENT_NUMBER_REQUEST_SERVICE,
+                           &FrameFabCoreService::element_number_sequest_server_callback, this);
+
+  visualize_selected_path_server_ =
+      nh_.advertiseService(VISUALIZE_SELECTED_PATH_SERVICE,
+                           &FrameFabCoreService::visualize_selected_path_server_callback, this);
+
   // start local instances
   visual_tool_.init("arm_base_link", PATH_VISUAL_TOPIC);
 
@@ -69,8 +79,6 @@ bool FrameFabCoreService::init()
 
   // service clients
   path_post_processing_client_ = nh_.serviceClient<framefab_msgs::PathPostProcessing>(PATH_POST_PROCESSING_SERVICE);
-
-  // service servers
 
   // publishers
 
@@ -105,7 +113,9 @@ bool FrameFabCoreService::load_model_input_parameters(const std::string & filena
   return loadParam(nh, "ref_pt_x", model_input_params_.ref_pt_x) &&
       loadParam(nh, "ref_pt_y", model_input_params_.ref_pt_y) &&
       loadParam(nh, "ref_pt_z", model_input_params_.ref_pt_z) &&
-      loadParam(nh, "unit_type", model_input_params_.unit_type);
+      loadParam(nh, "unit_type", model_input_params_.unit_type) &&
+      loadParam(nh, "element_diameter", model_input_params_.element_diameter) &&
+      loadParam(nh, "shrink_length", model_input_params_.shrink_length);
 }
 
 
@@ -170,7 +180,31 @@ bool FrameFabCoreService::framefab_parameters_server_callback(
       break;
   }
 
+  res.succeeded = true;
   return true;
+}
+
+bool FrameFabCoreService::element_number_sequest_server_callback(
+    framefab_msgs::ElementNumberRequest::Request& req,
+    framefab_msgs::ElementNumberRequest::Response& res)
+{
+  res.element_number = visual_tool_.getPathArraySize();
+}
+
+bool FrameFabCoreService::visualize_selected_path_server_callback(
+    framefab_msgs::VisualizeSelectedPath::Request& req,
+    framefab_msgs::VisualizeSelectedPath::Response& res)
+{
+  if(req.index != -1)
+  {
+    visual_tool_.visualizePath(req.index);
+    res.succeeded = true;
+  }
+  else
+  {
+    visual_tool_.cleanUpAllPaths();
+    res.succeeded = true;
+  }
 }
 
 void FrameFabCoreService::pathPlanningActionCallback(const framefab_msgs::PathPlanningGoalConstPtr &goal_in)
@@ -203,7 +237,7 @@ void FrameFabCoreService::pathPlanningActionCallback(const framefab_msgs::PathPl
         path_planning_server_.publishFeedback(path_planning_feedback_);
 
         visual_tool_.setProcessPath(srv.response.process);
-        visual_tool_.visualizePath(4);
+        visual_tool_.visualizeAllPaths();
 
         path_planning_result_.succeeded = true;
         path_planning_server_.setSucceeded(path_planning_result_);

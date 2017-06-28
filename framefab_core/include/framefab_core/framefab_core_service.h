@@ -4,6 +4,8 @@
 #include <ros/ros.h>
 
 // service
+#include <framefab_msgs/ElementNumberRequest.h>
+#include <framefab_msgs/VisualizeSelectedPath.h>
 
 // msgs
 #include <framefab_msgs/FrameFabParameters.h>
@@ -32,16 +34,23 @@ class FrameFabCoreService
   bool load_path_input_parameters(const std::string& filename);
   void save_path_input_parameters(const std::string& filename);
 
-  // Service callbacks, these components drive this class by signalling events
-  // from the user
+  // Service callbacks
   bool framefab_parameters_server_callback(framefab_msgs::FrameFabParameters::Request& req,
                                            framefab_msgs::FrameFabParameters::Response& res);
+
+  bool element_number_sequest_server_callback(framefab_msgs::ElementNumberRequest::Request& req,
+                                              framefab_msgs::ElementNumberRequest::Response& res);
+
+  bool visualize_selected_path_server_callback(framefab_msgs::VisualizeSelectedPath::Request& req,
+                                               framefab_msgs::VisualizeSelectedPath::Response& res);
 
   void pathPlanningActionCallback(const framefab_msgs::PathPlanningGoalConstPtr &goal);
 
  private:
   // Services offered by this class
   ros::ServiceServer framefab_parameters_server_;
+  ros::ServiceServer element_number_sequest_server_;
+  ros::ServiceServer visualize_selected_path_server_;
 
   // Services subscribed to by this class
   ros::ServiceClient path_post_processing_client_;
