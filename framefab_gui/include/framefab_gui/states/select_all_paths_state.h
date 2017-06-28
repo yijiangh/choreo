@@ -1,8 +1,0 @@
-//
-// Created by yijiangh on 6/22/17.
-//
-
-#ifndef FRAMEFAB_GUI_SELECT_ALL_PATHS_STATE_H
-#define FRAMEFAB_GUI_SELECT_ALL_PATHS_STATE_H
-
-#endif //FRAMEFAB_GUI_SELECT_ALL_PATHS_STATE_H

@@ -7,7 +7,8 @@
 #include <actionlib/client/simple_action_client.h>
 
 #include <framefab_gui/gui_state.h>
-#include "framefab_gui/params_submenu.h"
+#include <framefab_gui/params_submenu.h>
+#include <framefab_gui/selection/select_path_widget.h>
 
 #include "actionlib/client/simple_action_client.h"
 
@@ -48,15 +49,14 @@ class FrameFabWidget : public QWidget
   void sendGoal(const framefab_msgs::SimulateMotionPlanActionGoal& goal);
   void sendGoalAndWait(const framefab_msgs::SimulateMotionPlanActionGoal& goal);
 
-  void showParams() { params_->show(); }
-
-  ros::NodeHandle& nodeHandle() { return nh_; }
-  ParamsSubmenu& params() { return *params_; }
+  ros::NodeHandle&  nodeHandle() { return nh_; }
+  ParamsSubmenu&    params() { return *params_; }
+  SelectPathWidget& select_path() { return *select_path_; }
 
  protected:
   void loadParameters();
 
- protected Q_SLOTS:
+ public: Q_SLOTS:
   // Button Handlers
   void onNextButton();
   void onBackButton();
@@ -72,6 +72,7 @@ class FrameFabWidget : public QWidget
   // UI
   Ui::FrameFabWidget* ui_;
   ParamsSubmenu* params_;
+  SelectPathWidget* select_path_;
 
   // ROS specific stuff
   ros::NodeHandle nh_;

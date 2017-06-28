@@ -24,6 +24,9 @@ class SelectPathState : public GuiState
   virtual void onBack(FrameFabWidget& gui);
   virtual void onReset(FrameFabWidget& gui);
 
+ protected:
+  void selectPath(FrameFabWidget& gui);
+
  private:
 
 };

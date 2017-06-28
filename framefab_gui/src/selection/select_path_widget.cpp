@@ -2,7 +2,7 @@
 // Created by yijiangh on 6/27/17.
 //
 
-#include <ui_select_path_widget.ui>
+#include <ui_select_path_widget.h>
 #include <framefab_gui/selection/select_path_widget.h>
 
 // service
@@ -12,11 +12,13 @@
 const static std::string ELEMENT_NUMBER_REQUEST_SERVICE = "element_member_request";
 const static std::string VISUALIZE_SELECTED_PATH = "visualize_select_path";
 
-framefab_gui::SelectPathWidget::SelectPathWidget()
+framefab_gui::SelectPathWidget::SelectPathWidget(FrameFabWidget& gui)
 {
   // UI setup
   ui_ = new Ui::SelectPathWidgetWindow;
   ui_->setupUi(this);
+
+  ptr_gui_ = &gui;
 
   // Wire in buttons
   connect(ui_->pushbutton_select_backward, SIGNAL(clicked()), this, SLOT(buttonBackwardUpdateOrderValue()));
@@ -27,10 +29,7 @@ framefab_gui::SelectPathWidget::SelectPathWidget()
   connect(ui_->slider_select_number, SIGNAL(valueChanged(int)), this, SLOT(sliderUpdateOrderValue(int)));
 
   // Wire in lineedit
-  connect(ui_lineedit_select_number, SIGNAL(textChanged(QString)), this, SLOT(lineeditUpdateOrderValue(QString)));
-
-  // Wire in Option signals
-  connect(params_, SIGNAL(saveRequested()), this, SLOT(onParamsSave()));
+  connect(ui_->lineedit_select_number, SIGNAL(textChanged(QString)), this, SLOT(lineeditUpdateOrderValue(QString)));
 
   // Start Service Client
   visualize_client_ =
@@ -73,13 +72,15 @@ void framefab_gui::SelectPathWidget::setMaxValue(int m)
 void framefab_gui::SelectPathWidget::orderValueChanged()
 {
   ui_->slider_select_number->setValue(print_order_);
-  ui_->lineedit_select_number->setText(QString::number(print_order));
+  ui_->lineedit_select_number->setText(QString::number(print_order_));
 
   // call visualization srv
+  framefab_msgs::VisualizeSelectedPath srv;
+  srv.request.index = print_order_;
+
   setInputEnabled(false);
 
   visualize_client_.waitForExistence();
-
   if (!visualize_client_.call(srv))
   {
     ROS_ERROR_STREAM("Unable to visualize selected path!!");
@@ -100,12 +101,13 @@ void framefab_gui::SelectPathWidget::setInputEnabled(bool enabled)
 
 void framefab_gui::SelectPathWidget::acceptButtonHandler()
 {
-  ROS_INFO_STREAM("accept button clicked!");
+//  ROS_INFO_STREAM("accept button clicked!");
+  ptr_gui_->onNextButton();
 }
 
 void framefab_gui::SelectPathWidget::buttonForwardUpdateOrderValue()
 {
-  if((print_order_+1) < max_value)
+  if((print_order_+1) < max_value_)
   {
     print_order_++;
     orderValueChanged();

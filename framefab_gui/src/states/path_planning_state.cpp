@@ -4,6 +4,7 @@
 #include <framefab_gui/framefab_widget.h>
 #include <framefab_gui/states/system_init_state.h>
 #include <framefab_gui/states/path_planning_state.h>
+#include <framefab_gui/states/select_path_state.h>
 #include <QtConcurrent/QtConcurrentRun>
 
 // input params
