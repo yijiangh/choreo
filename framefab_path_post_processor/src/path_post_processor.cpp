@@ -148,7 +148,7 @@ bool framefab_path_post_processing::PathPostProcessor::createCandidatePoses()
     }
 
     // create UnitProcessPath & Add UnitProcessPath into ProcessPath
-    path_array_.push_back(createScaledUnitProcessPath(i, st_pt, end_pt, feasible_orients, type_str, 0.01));
+    path_array_.push_back(createScaledUnitProcessPath(i, st_pt, end_pt, feasible_orients, type_str, 0.005));
   }
 
   ROS_INFO_STREAM("path json Parsing succeeded.");

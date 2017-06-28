@@ -98,12 +98,15 @@ framefab_msgs::ElementCandidatePoses framefab_utils::UnitProcessPath::asElementC
   tf::pointEigenToMsg(st_pt_, msg.start_pt);
   tf::pointEigenToMsg(end_pt_, msg.end_pt);
 
-  msg.shrinked_start_pt = msg.start_pt;
-  msg.shrinked_end_pt = msg.end_pt;
+  Eigen::Vector3d s_st_pt = st_pt_;
+  Eigen::Vector3d s_end_pt = end_pt_;
 
-  createShrinkedEndPoint(msg.shrinked_start_pt, msg.shrinked_end_pt, shrink_length_);
+  createShrinkedEndPoint(s_st_pt, s_end_pt, shrink_length_);
 
-  msg.collision_cylinder = createCollisionObject(id_, msg.shrinked_start_pt, msg.shrinked_end_pt);
+  tf::pointEigenToMsg(s_st_pt, msg.shrinked_start_pt);
+  tf::pointEigenToMsg(s_end_pt, msg.shrinked_end_pt);
+
+  msg.collision_cylinder = createCollisionObject(id_, s_st_pt, s_end_pt);
 
   for(int i=0; i < feasible_orients_.size(); i++)
   {

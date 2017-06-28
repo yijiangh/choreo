@@ -23,8 +23,8 @@ void framefab_visual_tools::FrameFabVisualTool::convertPathVisual(
   for(int i=0; i < path_array_.size(); i++)
   {
     VisualUnitProcessPath v_unit_path;
-    tf::pointMsgToEigen(path_array[i].start_pt, v_unit_path.start_pt);
-    tf::pointMsgToEigen(path_array[i].end_pt, v_unit_path.end_pt);
+    tf::pointMsgToEigen(path_array[i].shrinked_start_pt, v_unit_path.start_pt);
+    tf::pointMsgToEigen(path_array[i].shrinked_end_pt, v_unit_path.end_pt);
     v_unit_path.type =
         static_cast<framefab_visual_tools::UNIT_PATH_TYPE>(path_array[i].type);
 
