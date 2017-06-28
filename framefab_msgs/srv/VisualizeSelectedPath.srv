@@ -1,0 +1,7 @@
+# index of path requested to be visualize
+
+int32 index
+
+---
+
+bool succeeded

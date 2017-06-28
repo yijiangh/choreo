@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Form</class>
- <widget class="QWidget" name="Form">
+ <class>SelectPathWidgetWindow</class>
+ <widget class="QWidget" name="SelectPathWidgetWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <widget class="QSlider" name="slider_slect_number">
+  <widget class="QSlider" name="slider_select_number">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -52,7 +52,7 @@
     </item>
    </layout>
   </widget>
-  <widget class="QPushButton" name="pushbutton_selectall">
+  <widget class="QPushButton" name="pushbutton_select_all">
    <property name="enabled">
     <bool>false</bool>
    </property>
@@ -86,7 +86,7 @@
     <rect>
      <x>220</x>
      <y>20</y>
-     <width>122</width>
+     <width>139</width>
      <height>31</height>
     </rect>
    </property>
