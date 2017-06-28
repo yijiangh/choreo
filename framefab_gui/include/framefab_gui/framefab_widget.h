@@ -64,6 +64,7 @@ class FrameFabWidget : public QWidget
   void onParamsButton();
 
   void onParamsSave();
+  void onParamsAccept();
 
   // State Change
   void changeState(GuiState* new_state);

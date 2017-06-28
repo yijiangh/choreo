@@ -180,6 +180,7 @@ bool FrameFabCoreService::framefab_parameters_server_callback(
       break;
   }
 
+  res.succeeded = true;
   return true;
 }
 

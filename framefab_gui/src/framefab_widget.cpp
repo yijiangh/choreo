@@ -33,6 +33,7 @@ framefab_gui::FrameFabWidget::FrameFabWidget(QWidget* parent)
 
   // Wire in params signals
   connect(params_, SIGNAL(saveRequested()), this, SLOT(onParamsSave()));
+  connect(params_, SIGNAL(acceptRequested()), this, SLOT(onParamsAccept()));
 
   // Wire in selection signals
   connect(select_path_, SIGNAL(acceptSelection()), this, SLOT(onNextButton()));
@@ -93,6 +94,17 @@ void framefab_gui::FrameFabWidget::onParamsSave()
 
   if (!framefab_parameters_client_.call(msg.request, msg.response))
     ROS_WARN_STREAM("Could not complete service call to save parameters!");
+}
+
+void framefab_gui::FrameFabWidget::onParamsAccept()
+{
+  framefab_msgs::FrameFabParameters msg;
+  msg.request.action = framefab_msgs::FrameFabParameters::Request::SET_PARAMETERS;
+  msg.request.model_params = params_->modelInputParams();
+  msg.request.path_params = params_->pathInputParams();
+
+  if (!framefab_parameters_client_.call(msg.request, msg.response))
+    ROS_WARN_STREAM("Could not complete service call to set parameters!");
 }
 
 void framefab_gui::FrameFabWidget::changeState(GuiState* new_state)

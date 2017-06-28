@@ -18,6 +18,10 @@ framefab_gui::ParamsSubmenu::ParamsSubmenu(QWidget* parent) : QWidget(parent)
   // Save Request Connection
   connect(model_input_widget_, SIGNAL(parameters_save_requested()), this, SIGNAL(saveRequested()));
   connect(path_input_widget_, SIGNAL(parameters_save_requested()), this, SIGNAL(saveRequested()));
+
+  // Accept Request Connection
+  connect(model_input_widget_, SIGNAL(parameters_changed()), this, SIGNAL(acceptRequested()));
+  connect(path_input_widget_, SIGNAL(parameters_changed()), this, SIGNAL(acceptRequested()));
 }
 
 const framefab_msgs::ModelInputParameters& framefab_gui::ParamsSubmenu::modelInputParams() const

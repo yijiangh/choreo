@@ -33,6 +33,7 @@ class ParamsSubmenu : public QWidget
 
   Q_SIGNALS:
   void saveRequested();
+  void acceptRequested();
 
  private:
   // Display layout
