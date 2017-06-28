@@ -29,7 +29,7 @@ framefab_gui::SelectPathWidget::SelectPathWidget(QWidget* parent) : QWidget(pare
   connect(ui_->slider_select_number, SIGNAL(valueChanged(int)), this, SLOT(sliderUpdateOrderValue(int)));
 
   // Wire in lineedit
-  connect(ui_->lineedit_select_number, SIGNAL(textChanged(QString)), this, SLOT(lineeditUpdateOrderValue(QString)));
+  connect(ui_->lineedit_select_number, SIGNAL(returnPressed()), this, SLOT(lineeditUpdateOrderValue()));
 
   // Start Service Client
   visualize_client_ =
@@ -141,8 +141,8 @@ void framefab_gui::SelectPathWidget::sliderUpdateOrderValue(int value)
   orderValueChanged();
 }
 
-void framefab_gui::SelectPathWidget::lineeditUpdateOrderValue(QString value)
+void framefab_gui::SelectPathWidget::lineeditUpdateOrderValue()
 {
-  print_order_ = value.toInt();
+  print_order_ = ui_->lineedit_select_number->text().toInt();
   orderValueChanged();
 }

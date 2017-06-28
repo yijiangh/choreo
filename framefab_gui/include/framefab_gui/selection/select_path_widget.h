@@ -47,7 +47,7 @@ class SelectPathWidget : public QWidget
   void buttonForwardUpdateOrderValue();
   void buttonBackwardUpdateOrderValue();
   void sliderUpdateOrderValue(int value);
-  void lineeditUpdateOrderValue(QString value);
+  void lineeditUpdateOrderValue();
 
  private:
   ros::NodeHandle nh_;
