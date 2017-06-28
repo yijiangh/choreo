@@ -12,11 +12,13 @@
 const static std::string ELEMENT_NUMBER_REQUEST_SERVICE = "element_member_request";
 const static std::string VISUALIZE_SELECTED_PATH = "visualize_select_path";
 
-framefab_gui::SelectPathWidget::SelectPathWidget()
+framefab_gui::SelectPathWidget::SelectPathWidget(QWidget* parent) : QWidget(parent)
 {
   // UI setup
   ui_ = new Ui::SelectPathWidgetWindow;
   ui_->setupUi(this);
+
+  this->setWindowFlags(Qt::WindowStaysOnTopHint);
 
   // Wire in buttons
   connect(ui_->pushbutton_select_backward, SIGNAL(clicked()), this, SLOT(buttonBackwardUpdateOrderValue()));

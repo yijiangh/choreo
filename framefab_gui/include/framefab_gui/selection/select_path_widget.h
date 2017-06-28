@@ -22,7 +22,7 @@ class SelectPathWidget : public QWidget
 {
   Q_OBJECT
  public:
-  SelectPathWidget();
+  SelectPathWidget(QWidget* parent = 0);
 
   // service request on required parameters
   void loadParameters();
