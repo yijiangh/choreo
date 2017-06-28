@@ -29,6 +29,7 @@ void framefab_visual_tools::FrameFabVisualTool::convertPathVisual(
     tf::pointMsgToEigen(path_array[i].shrinked_end_pt, v_unit_path.end_pt);
     v_unit_path.type =
         static_cast<framefab_visual_tools::UNIT_PATH_TYPE>(path_array[i].type);
+    v_unit_path.diameter = path_array[i].element_diameter;
 
     visual_path_array.push_back(v_unit_path);
   }
@@ -61,7 +62,7 @@ void framefab_visual_tools::FrameFabVisualTool::visualizeAllPaths()
 
     visual_tools_->publishCylinder(visual_path_array_[i].start_pt,
                                    visual_path_array_[i].end_pt,
-                                   type_color, 0.0015, "Cylinder");
+                                   type_color, visual_path_array_[i].diameter, "Cylinder");
   }
 
   visual_tools_->trigger();
@@ -81,13 +82,13 @@ void framefab_visual_tools::FrameFabVisualTool::visualizePath(int i)
     {
       visual_tools_->publishCylinder(visual_path_array_[j].start_pt,
                                      visual_path_array_[j].end_pt,
-                                     rviz_visual_tools::GREY, 0.0015, "Cylinder");
+                                     rviz_visual_tools::GREY, visual_path_array_[i].diameter, "Cylinder");
     }
   }
 
   visual_tools_->publishCylinder(visual_path_array_[i].start_pt,
                                  visual_path_array_[i].end_pt,
-                                 rviz_visual_tools::TRANSLUCENT, 0.0015, "Cylinder");
+                                 rviz_visual_tools::TRANSLUCENT, visual_path_array_[i].diameter, "Cylinder");
 
   visual_tools_->trigger();
 }

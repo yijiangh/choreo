@@ -64,6 +64,10 @@ void framefab_path_post_processing::PathPostProcessor::setParams(
     ROS_INFO_STREAM("unit type config succeeded! - unit_scale: " << unit_scale_);
   }
 
+  // element diameter and shrink length (scaled)
+  element_diameter_ = model_input_params_.element_diameter * unit_scale_;
+  shrink_length_ = model_params.shrink_length * unit_scale_;
+
   // set ref point
   ref_pt_ = Eigen::Vector3d(model_input_params_.ref_pt_x, model_input_params_.ref_pt_y, model_input_params_.ref_pt_z);
 }
@@ -148,7 +152,8 @@ bool framefab_path_post_processing::PathPostProcessor::createCandidatePoses()
     }
 
     // create UnitProcessPath & Add UnitProcessPath into ProcessPath
-    path_array_.push_back(createScaledUnitProcessPath(i, st_pt, end_pt, feasible_orients, type_str, 0.005));
+    path_array_.push_back(createScaledUnitProcessPath(i, st_pt, end_pt, feasible_orients,
+                                                      type_str, element_diameter_, shrink_length_));
   }
 
   ROS_INFO_STREAM("path json Parsing succeeded.");
@@ -159,13 +164,14 @@ framefab_utils::UnitProcessPath framefab_path_post_processing::PathPostProcessor
     int index, Eigen::Vector3d st_pt, Eigen::Vector3d end_pt,
     std::vector<Eigen::Vector3d> feasible_orients,
     std::string type_str,
+    double element_diameter,
     double shrink_length)
 {
   framefab_utils::UnitProcessPath upp(
       index,
       transformPoint(st_pt, unit_scale_, transf_vec_),
       transformPoint(end_pt, unit_scale_, transf_vec_),
-      feasible_orients, type_str, shrink_length);
+      feasible_orients, type_str, element_diameter, shrink_length);
 
   return upp;
 }

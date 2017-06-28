@@ -19,6 +19,7 @@ class UnitProcessPath
                   Eigen::Vector3d st_pt, Eigen::Vector3d end_pt,
                   std::vector<Eigen::Vector3d> feasible_orients,
                   std::string type_str,
+                  double element_diameter,
                   double shrink_length)
   {
     id_ = index;
@@ -26,6 +27,7 @@ class UnitProcessPath
     end_pt_ = end_pt;
     feasible_orients_ = feasible_orients;
     type_ = type_str;
+    element_diameter_ = element_diameter;
     shrink_length_ = shrink_length;
   }
   virtual ~UnitProcessPath(){}
@@ -39,7 +41,8 @@ class UnitProcessPath
 
  protected:
   moveit_msgs::CollisionObject createCollisionObject(
-      const int& id, const Eigen::Vector3d& st_pt, const Eigen::Vector3d& end_pt) const;
+      const int& id, const Eigen::Vector3d& st_pt, const Eigen::Vector3d& end_pt,
+      const double& element_diameter) const;
 
   void createShrinkedEndPoint(Eigen::Vector3d& st_pt, Eigen::Vector3d& end_st,
                               const double& shrink_length);
@@ -55,7 +58,8 @@ class UnitProcessPath
   std::string type_;
 
   // collision objects
-  double shrink_length_; // meter
+  double element_diameter_;
+  double shrink_length_;
 };
 }
 

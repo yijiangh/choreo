@@ -19,6 +19,12 @@ framefab_gui::ModelInputConfigWidget::ModelInputConfigWidget(framefab_msgs::Mode
   connect(ui_->pushbutton_save, SIGNAL(clicked()), this, SLOT(save_changes_handler()));
 
   connect(ui_->pushbutton_readfile, SIGNAL(clicked()), this, SLOT(get_file_path_handler()));
+
+  ui_->lineedit_ref_pt_x->setValidator(new QDoubleValidator(this));
+  ui_->lineedit_ref_pt_y->setValidator(new QDoubleValidator(this));
+  ui_->lineedit_ref_pt_z->setValidator(new QDoubleValidator(this));
+  ui_->lineedit_element_diameter->setValidator(new QDoubleValidator(this));
+  ui_->lineedit_shrink_length->setValidator(new QDoubleValidator(this));
 }
 
 void framefab_gui::ModelInputConfigWidget::update_display_fields()
@@ -28,6 +34,9 @@ void framefab_gui::ModelInputConfigWidget::update_display_fields()
   ui_->lineedit_ref_pt_x->setText(QString::number(params_.ref_pt_x));
   ui_->lineedit_ref_pt_y->setText(QString::number(params_.ref_pt_y));
   ui_->lineedit_ref_pt_z->setText(QString::number(params_.ref_pt_z));
+
+  ui_->lineedit_element_diameter->setText(QString::number(params_.element_diameter));
+  ui_->lineedit_shrink_length->setText(QString::number(params_.shrink_length));
 
   ui_->combobox_unit->setCurrentIndex(params_.unit_type);
 }
@@ -39,6 +48,9 @@ void framefab_gui::ModelInputConfigWidget::update_internal_fields()
   params_.ref_pt_x = ui_->lineedit_ref_pt_x->text().toDouble();
   params_.ref_pt_y = ui_->lineedit_ref_pt_y->text().toDouble();
   params_.ref_pt_z = ui_->lineedit_ref_pt_z->text().toDouble();
+
+  params_.element_diameter = ui_->lineedit_element_diameter->text().toDouble();
+  params_.shrink_length = ui_->lineedit_shrink_length->text().toDouble();
 
   params_.unit_type = ui_->combobox_unit->currentIndex();
 }
@@ -55,6 +67,8 @@ int framefab_gui::ModelInputConfigWidget::get_unit_combobox_value()
       return 2;
     case framefab_msgs::ModelInputParameters::FOOT:
       return 3;
+    case framefab_msgs::ModelInputParameters::METER:
+      return 4;
     default:
       return -1;
   }

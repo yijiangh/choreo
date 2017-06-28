@@ -80,8 +80,6 @@ bool FrameFabCoreService::init()
   // service clients
   path_post_processing_client_ = nh_.serviceClient<framefab_msgs::PathPostProcessing>(PATH_POST_PROCESSING_SERVICE);
 
-  // service servers
-
   // publishers
 
   // action servers
@@ -115,7 +113,9 @@ bool FrameFabCoreService::load_model_input_parameters(const std::string & filena
   return loadParam(nh, "ref_pt_x", model_input_params_.ref_pt_x) &&
       loadParam(nh, "ref_pt_y", model_input_params_.ref_pt_y) &&
       loadParam(nh, "ref_pt_z", model_input_params_.ref_pt_z) &&
-      loadParam(nh, "unit_type", model_input_params_.unit_type);
+      loadParam(nh, "unit_type", model_input_params_.unit_type) &&
+      loadParam(nh, "element_diameter", model_input_params_.element_diameter) &&
+      loadParam(nh, "shrink_length", model_input_params_.shrink_length);
 }
 
 

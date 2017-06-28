@@ -33,6 +33,7 @@ struct VisualUnitProcessPath
   Eigen::Vector3d start_pt;
   Eigen::Vector3d end_pt;
   UNIT_PATH_TYPE type;
+  double diameter;
 };
 
 class FrameFabVisualTool

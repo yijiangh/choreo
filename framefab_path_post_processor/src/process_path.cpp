@@ -41,7 +41,8 @@ geometry_msgs::Pose framefab_utils::UnitProcessPath::computeCylinderPose(
 }
 
 moveit_msgs::CollisionObject framefab_utils::UnitProcessPath::createCollisionObject(
-    const int& id, const Eigen::Vector3d& st_pt, const Eigen::Vector3d& end_pt) const
+    const int& id, const Eigen::Vector3d& st_pt, const Eigen::Vector3d& end_pt,
+    const double& element_diameter) const
 {
   moveit_msgs::CollisionObject collision_cylinder;
   std::string cylinder_id = "element_" + std::to_string(id);
@@ -56,7 +57,7 @@ moveit_msgs::CollisionObject framefab_utils::UnitProcessPath::createCollisionObj
   cylinder_solid.type = shape_msgs::SolidPrimitive::CYLINDER;
   cylinder_solid.dimensions.resize(2);
   cylinder_solid.dimensions[0] = dist(st_pt, end_pt);
-  cylinder_solid.dimensions[1] = 0.0015;
+  cylinder_solid.dimensions[1] = element_diameter;
   collision_cylinder.primitives.resize(1);
   collision_cylinder.primitives.push_back(cylinder_solid);
 
@@ -98,6 +99,8 @@ framefab_msgs::ElementCandidatePoses framefab_utils::UnitProcessPath::asElementC
   tf::pointEigenToMsg(st_pt_, msg.start_pt);
   tf::pointEigenToMsg(end_pt_, msg.end_pt);
 
+  msg.element_diameter = element_diameter_;
+
   Eigen::Vector3d s_st_pt = st_pt_;
   Eigen::Vector3d s_end_pt = end_pt_;
 
@@ -106,7 +109,7 @@ framefab_msgs::ElementCandidatePoses framefab_utils::UnitProcessPath::asElementC
   tf::pointEigenToMsg(s_st_pt, msg.shrinked_start_pt);
   tf::pointEigenToMsg(s_end_pt, msg.shrinked_end_pt);
 
-  msg.collision_cylinder = createCollisionObject(id_, s_st_pt, s_end_pt);
+  msg.collision_cylinder = createCollisionObject(id_, s_st_pt, s_end_pt, element_diameter_);
 
   for(int i=0; i < feasible_orients_.size(); i++)
   {
