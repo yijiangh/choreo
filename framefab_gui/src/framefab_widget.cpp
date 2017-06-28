@@ -32,8 +32,11 @@ framefab_gui::FrameFabWidget::FrameFabWidget(QWidget* parent)
   connect(ui_->pushbutton_reset, SIGNAL(clicked()), this, SLOT(onResetButton()));
   connect(ui_->pushbutton_params, SIGNAL(clicked()), this, SLOT(onParamsButton()));
 
-  // Wire in Option signals
+  // Wire in params signals
   connect(params_, SIGNAL(saveRequested()), this, SLOT(onParamsSave()));
+
+  // Wire in selection signals
+  connect(select_path_, SIGNAL(acceptSelection()), this, SLOT(onNextButton()));
 
   // Connect to ROS save params services
   loadParameters();

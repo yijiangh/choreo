@@ -56,7 +56,7 @@ class FrameFabWidget : public QWidget
  protected:
   void loadParameters();
 
- public: Q_SLOTS:
+ protected Q_SLOTS:
   // Button Handlers
   void onNextButton();
   void onBackButton();

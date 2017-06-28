@@ -9,7 +9,6 @@
 #include <QWidget>
 
 #include <ros/ros.h>
-#include <frmaefab_gui/framefab_widget.h>
 
 namespace Ui
 {
@@ -23,7 +22,7 @@ class SelectPathWidget : public QWidget
 {
   Q_OBJECT
  public:
-  SelectPathWidget(FrameFabWidget& gui);
+  SelectPathWidget();
 
   // service request on required parameters
   void loadParameters();
@@ -36,9 +35,10 @@ class SelectPathWidget : public QWidget
 
   void setInputEnabled(bool enabled);
 
- protected Q_SLOTS:
-  void acceptButtonHandler();
+  Q_SIGNALS:
+  void acceptSelection();
 
+ protected Q_SLOTS:
   // different source that changes order_value
   void buttonForwardUpdateOrderValue();
   void buttonBackwardUpdateOrderValue();
@@ -51,8 +51,6 @@ class SelectPathWidget : public QWidget
   ros::ServiceClient visualize_client_;
 
   Ui::SelectPathWidgetWindow* ui_;
-
-  FrameFabWidget* ptr_gui_;
 
   int max_value_;
   int print_order_;

@@ -12,18 +12,16 @@
 const static std::string ELEMENT_NUMBER_REQUEST_SERVICE = "element_member_request";
 const static std::string VISUALIZE_SELECTED_PATH = "visualize_select_path";
 
-framefab_gui::SelectPathWidget::SelectPathWidget(FrameFabWidget& gui)
+framefab_gui::SelectPathWidget::SelectPathWidget()
 {
   // UI setup
   ui_ = new Ui::SelectPathWidgetWindow;
   ui_->setupUi(this);
 
-  ptr_gui_ = &gui;
-
   // Wire in buttons
   connect(ui_->pushbutton_select_backward, SIGNAL(clicked()), this, SLOT(buttonBackwardUpdateOrderValue()));
   connect(ui_->pushbutton_select_forward, SIGNAL(clicked()), this, SLOT(buttonForwardUpdateOrderValue()));
-  connect(ui_->pushbutton_accept, SIGNAL(clicked()), this, SLOT(acceptButtonHandler()));
+  connect(ui_->pushbutton_accept, SIGNAL(clicked()), this, SIGNAL(acceptSelection()));
 
   // Wire in slider
   connect(ui_->slider_select_number, SIGNAL(valueChanged(int)), this, SLOT(sliderUpdateOrderValue(int)));
@@ -97,12 +95,6 @@ void framefab_gui::SelectPathWidget::setInputEnabled(bool enabled)
 
   ui_->slider_select_number->setEnabled(enabled);
   ui_->lineedit_select_number->setEnabled(enabled);
-}
-
-void framefab_gui::SelectPathWidget::acceptButtonHandler()
-{
-//  ROS_INFO_STREAM("accept button clicked!");
-  ptr_gui_->onNextButton();
 }
 
 void framefab_gui::SelectPathWidget::buttonForwardUpdateOrderValue()

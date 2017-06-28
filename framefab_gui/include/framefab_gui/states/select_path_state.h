@@ -5,7 +5,8 @@
 #ifndef FRAMEFAB_GUI_SELECT_PATH_STATE_H
 #define FRAMEFAB_GUI_SELECT_PATH_STATE_H
 
-#include "framefab_gui/gui_state.h"
+#include <framefab_gui/gui_state.h>
+#include <framefab_gui/framefab_widget.h>
 #include <ros/ros.h>
 
 namespace framefab_gui
@@ -25,7 +26,7 @@ class SelectPathState : public GuiState
   virtual void onReset(FrameFabWidget& gui);
 
  protected:
-  void selectPath(FrameFabWidget& gui);
+  void selectPath(FrameFabWidget* ptr_gui);
 
  private:
 
