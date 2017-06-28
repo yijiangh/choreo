@@ -43,7 +43,10 @@ class FrameFabWidget : public QWidget
   // Interface for the states to interact with
   void setText(const std::string& txt);
   void appendText(const std::string& txt);
+
   void setButtonsEnabled(bool enabled);
+  void setParamsButtonEnabled(bool enabled);
+
   void showStatusWindow();
   void setLabelText(const std::string& txt);
   void sendGoal(const framefab_msgs::SimulateMotionPlanActionGoal& goal);

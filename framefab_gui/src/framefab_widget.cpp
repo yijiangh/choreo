@@ -130,6 +130,10 @@ void framefab_gui::FrameFabWidget::setButtonsEnabled(bool enabled)
   ui_->pushbutton_next->setEnabled(enabled);
   ui_->pushbutton_back->setEnabled(enabled);
   ui_->pushbutton_reset->setEnabled(enabled);
+}
+
+void framefab_gui::FrameFabWidget::setParamsButtonEnabled(bool enabled)
+{
   ui_->pushbutton_params->setEnabled(enabled);
 }
 
