@@ -57,6 +57,11 @@ void framefab_gui::SelectPathWidget::loadParameters()
     ROS_ERROR_STREAM("Unable to fetch model's element number!");
   }
 
+  // reset display value
+  print_order_ = 0;
+  ui_->slider_select_number->setValue(0);
+  ui_->lineedit_select_number->setText(QString::number(0));
+
   setInputEnabled(true);
 }
 
@@ -64,9 +69,9 @@ void framefab_gui::SelectPathWidget::setMaxValue(int m)
 {
   max_value_ = m;
 
-  ui_->slider_select_number->setMaximum(max_value_);
-  ui_->lineedit_select_number->setValidator(new QIntValidator(0, max_value_, this));
-  ui_->lineedit_max->setText(QString::number(max_value_));
+  ui_->slider_select_number->setMaximum(max_value_-1);
+  ui_->lineedit_select_number->setValidator(new QIntValidator(0, max_value_ - 1, this));
+  ui_->lineedit_max->setText(QString::number(max_value_-1));
 }
 
 void framefab_gui::SelectPathWidget::orderValueChanged()
@@ -87,6 +92,19 @@ void framefab_gui::SelectPathWidget::orderValueChanged()
   }
 
   setInputEnabled(true);
+}
+
+void framefab_gui::SelectPathWidget::cleanUpVisual()
+{
+ // call visualization srv
+  framefab_msgs::VisualizeSelectedPath srv;
+  srv.request.index = -1;
+
+  visualize_client_.waitForExistence();
+  if (!visualize_client_.call(srv))
+  {
+    ROS_ERROR_STREAM("Unable to clean up selected path!!");
+  }
 }
 
 void framefab_gui::SelectPathWidget::setInputEnabled(bool enabled)
@@ -110,7 +128,7 @@ void framefab_gui::SelectPathWidget::buttonForwardUpdateOrderValue()
 
 void framefab_gui::SelectPathWidget::buttonBackwardUpdateOrderValue()
 {
-  if((print_order_-1) > 0)
+  if((print_order_-1) >= 0)
   {
     print_order_--;
     orderValueChanged();

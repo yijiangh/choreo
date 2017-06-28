@@ -35,6 +35,10 @@ class SelectPathWidget : public QWidget
 
   void setInputEnabled(bool enabled);
 
+
+  // send srv to clean up visualization markers
+  void cleanUpVisual();
+
   Q_SIGNALS:
   void acceptSelection();
 

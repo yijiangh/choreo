@@ -20,6 +20,8 @@ void framefab_visual_tools::FrameFabVisualTool::init(std::string frame_name, std
 void framefab_visual_tools::FrameFabVisualTool::convertPathVisual(
     const PathArray& path_array, VisualPathArray& visual_path_array)
 {
+  visual_path_array.clear();
+
   for(int i=0; i < path_array_.size(); i++)
   {
     VisualUnitProcessPath v_unit_path;
@@ -36,7 +38,7 @@ void framefab_visual_tools::FrameFabVisualTool::visualizeAllPaths()
 {
   visual_tools_->deleteAllMarkers();
 
-  ROS_INFO_STREAM("publishing all paths...");
+//  ROS_INFO_STREAM("publishing all paths...");
 
   for(int i=0; i < visual_path_array_.size(); i++)
   {
@@ -69,7 +71,7 @@ void framefab_visual_tools::FrameFabVisualTool::visualizePath(int i)
 {
   visual_tools_->deleteAllMarkers();
 
-  ROS_INFO_STREAM("publishing path [" << i << "]...");
+//  ROS_INFO_STREAM("publishing path [" << i << "]...");
 
   assert(0 <= i && i < visual_path_array_.size());
 
@@ -87,5 +89,11 @@ void framefab_visual_tools::FrameFabVisualTool::visualizePath(int i)
                                  visual_path_array_[i].end_pt,
                                  rviz_visual_tools::TRANSLUCENT, 0.0015, "Cylinder");
 
+  visual_tools_->trigger();
+}
+
+void framefab_visual_tools::FrameFabVisualTool::cleanUpAllPaths()
+{
+  visual_tools_->deleteAllMarkers();
   visual_tools_->trigger();
 }

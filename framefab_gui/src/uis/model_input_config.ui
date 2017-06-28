@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>Model Input Configuration</string>
   </property>
   <widget class="QLabel" name="label_input_file_path">
    <property name="geometry">
@@ -31,7 +31,7 @@
     <rect>
      <x>0</x>
      <y>100</y>
-     <width>244</width>
+     <width>250</width>
      <height>222</height>
     </rect>
    </property>

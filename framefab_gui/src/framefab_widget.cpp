@@ -19,7 +19,6 @@ framefab_gui::FrameFabWidget::FrameFabWidget(QWidget* parent)
   ui_->setupUi(this);
 
   params_ = new ParamsSubmenu();
-//  params_->hide();
 
   select_path_ = new SelectPathWidget();
 

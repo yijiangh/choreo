@@ -52,8 +52,12 @@ class FrameFabVisualTool
     convertPathVisual(path_array_, visual_path_array_);
   }
 
+  int getPathArraySize() { return visual_path_array_.size(); }
+
   void visualizeAllPaths();
   void visualizePath(int index);
+
+  void cleanUpAllPaths();
 
  protected:
   void convertPathVisual(const PathArray& path_array, VisualPathArray& visual_path_array);

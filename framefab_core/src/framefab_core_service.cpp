@@ -16,6 +16,8 @@ const static std::string SAVE_LOCATION_PARAM = "save_location";
 
 // provided services
 const static std::string FRAMEFAB_PARAMETERS_SERVICE = "framefab_parameters";
+const static std::string ELEMENT_NUMBER_REQUEST_SERVICE = "element_member_request";
+const static std::string VISUALIZE_SELECTED_PATH_SERVICE= "visualize_select_path";
 
 // subscribed services
 const static std::string PATH_POST_PROCESSING_SERVICE = "path_post_processing";
@@ -61,6 +63,14 @@ bool FrameFabCoreService::init()
   framefab_parameters_server_ =
       nh_.advertiseService(FRAMEFAB_PARAMETERS_SERVICE,
                            &FrameFabCoreService::framefab_parameters_server_callback, this);
+
+  element_number_sequest_server_ =
+      nh_.advertiseService(ELEMENT_NUMBER_REQUEST_SERVICE,
+                           &FrameFabCoreService::element_number_sequest_server_callback, this);
+
+  visualize_selected_path_server_ =
+      nh_.advertiseService(VISUALIZE_SELECTED_PATH_SERVICE,
+                           &FrameFabCoreService::visualize_selected_path_server_callback, this);
 
   // start local instances
   visual_tool_.init("arm_base_link", PATH_VISUAL_TOPIC);
@@ -171,6 +181,29 @@ bool FrameFabCoreService::framefab_parameters_server_callback(
   }
 
   return true;
+}
+
+bool FrameFabCoreService::element_number_sequest_server_callback(
+    framefab_msgs::ElementNumberRequest::Request& req,
+    framefab_msgs::ElementNumberRequest::Response& res)
+{
+  res.element_number = visual_tool_.getPathArraySize();
+}
+
+bool FrameFabCoreService::visualize_selected_path_server_callback(
+    framefab_msgs::VisualizeSelectedPath::Request& req,
+    framefab_msgs::VisualizeSelectedPath::Response& res)
+{
+  if(req.index != -1)
+  {
+    visual_tool_.visualizePath(req.index);
+    res.succeeded = true;
+  }
+  else
+  {
+    visual_tool_.cleanUpAllPaths();
+    res.succeeded = true;
+  }
 }
 
 void FrameFabCoreService::pathPlanningActionCallback(const framefab_msgs::PathPlanningGoalConstPtr &goal_in)

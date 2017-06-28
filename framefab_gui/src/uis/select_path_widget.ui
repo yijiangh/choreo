@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>Path Selection</string>
   </property>
   <widget class="QSlider" name="slider_select_number">
    <property name="geometry">

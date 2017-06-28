@@ -27,9 +27,6 @@ class SelectPathState : public GuiState
 
  protected:
   void selectPath(FrameFabWidget* ptr_gui);
-
- private:
-
 };
 }
 
