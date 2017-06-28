@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>296</width>
+    <width>345</width>
     <height>137</height>
    </rect>
   </property>
@@ -52,16 +52,6 @@
     </item>
    </layout>
   </widget>
-  <widget class="QLineEdit" name="lineedit_select_number">
-   <property name="geometry">
-    <rect>
-     <x>230</x>
-     <y>20</y>
-     <width>51</width>
-     <height>27</height>
-    </rect>
-   </property>
-  </widget>
   <widget class="QPushButton" name="pushbutton_selectall">
    <property name="enabled">
     <bool>false</bool>
@@ -83,13 +73,55 @@
     <rect>
      <x>220</x>
      <y>60</y>
-     <width>61</width>
+     <width>111</width>
      <height>27</height>
     </rect>
    </property>
    <property name="text">
     <string>Accept</string>
    </property>
+  </widget>
+  <widget class="QWidget" name="horizontalLayoutWidget_2">
+   <property name="geometry">
+    <rect>
+     <x>220</x>
+     <y>20</y>
+     <width>122</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <item>
+     <widget class="QLineEdit" name="lineedit_select_number">
+      <property name="inputMask">
+       <string/>
+      </property>
+      <property name="clearButtonEnabled">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="label">
+      <property name="text">
+       <string>/</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLineEdit" name="lineedit_max">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="frame">
+       <bool>true</bool>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+   </layout>
   </widget>
  </widget>
  <resources/>
