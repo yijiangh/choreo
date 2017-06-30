@@ -14,7 +14,8 @@ void framefab_gui::SelectPathState::onStart(FrameFabWidget& gui)
   gui.setText("Select Path State.\nPlease select the desired path to be planned in selection window.\nClick <Accept> to continue. ");
   gui.setButtonsEnabled(false);
 
-  QtConcurrent::run(this, &SelectPathState::selectPath, &gui);
+  selectPath(gui);
+//  QtConcurrent::run(this, &SelectPathState::selectPath, boost::ref(gui));
 }
 
 void framefab_gui::SelectPathState::onExit(FrameFabWidget& gui) {}
@@ -40,10 +41,10 @@ void framefab_gui::SelectPathState::onReset(FrameFabWidget& gui)
   Q_EMIT newStateAvailable(new SystemInitState());
 }
 
-void framefab_gui::SelectPathState::selectPath(FrameFabWidget* ptr_gui)
+void framefab_gui::SelectPathState::selectPath(FrameFabWidget& gui)
 {
-  ptr_gui->select_path().show();
-  ptr_gui->select_path().loadParameters();
+  gui.select_path().show();
+  gui.select_path().loadParameters();
 }
 
 
