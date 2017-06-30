@@ -4,6 +4,8 @@
 
 #include <framefab_core/visual_tools/framefab_visual_tool.h>
 
+#include <math.h>
+
 #include <tf_conversions/tf_eigen.h>
 #include <eigen_conversions/eigen_msg.h>
 
@@ -25,11 +27,33 @@ void framefab_visual_tools::FrameFabVisualTool::convertPathVisual(
   for(int i=0; i < path_array_.size(); i++)
   {
     VisualUnitProcessPath v_unit_path;
-    tf::pointMsgToEigen(path_array[i].shrinked_start_pt, v_unit_path.start_pt);
-    tf::pointMsgToEigen(path_array[i].shrinked_end_pt, v_unit_path.end_pt);
+
+    // fill in element info
+    tf::pointMsgToEigen(path_array[i].start_pt, v_unit_path.start_pt);
+    tf::pointMsgToEigen(path_array[i].end_pt, v_unit_path.end_pt);
     v_unit_path.type =
         static_cast<framefab_visual_tools::UNIT_PATH_TYPE>(path_array[i].type);
     v_unit_path.diameter = path_array[i].element_diameter;
+
+    // fill in feasible orientations
+    v_unit_path.oriented_st_pts.clear();
+    Eigen::Vector3d avr_vec = Eigen::Vector3d(0,0,0);
+    int m = path_array[i].feasible_orients.size();
+    for(int j=0; j < m; j++)
+    {
+      Eigen::Vector3d e;
+      tf::vectorMsgToEigen(path_array[i].feasible_orients[j], e);
+
+      e = e * 0.001 * 15;
+      avr_vec  = avr_vec  + e;
+      e = e + v_unit_path.start_pt;
+
+      v_unit_path.oriented_st_pts.push_back(e);
+    }
+    avr_vec = avr_vec / avr_vec.norm() * 0.001 * 15;
+    avr_vec = avr_vec + v_unit_path.start_pt;
+
+    v_unit_path.avr_orient_vec = avr_vec;
 
     visual_path_array.push_back(v_unit_path);
   }
@@ -82,13 +106,19 @@ void framefab_visual_tools::FrameFabVisualTool::visualizePath(int i)
     {
       visual_tools_->publishCylinder(visual_path_array_[j].start_pt,
                                      visual_path_array_[j].end_pt,
-                                     rviz_visual_tools::GREY, visual_path_array_[i].diameter, "Cylinder");
+                                     rviz_visual_tools::GREY,
+                                     visual_path_array_[i].diameter,
+                                     "Cylinder");
     }
   }
 
   visual_tools_->publishCylinder(visual_path_array_[i].start_pt,
                                  visual_path_array_[i].end_pt,
-                                 rviz_visual_tools::TRANSLUCENT, visual_path_array_[i].diameter, "Cylinder");
+                                 rviz_visual_tools::TRANSLUCENT,
+                                 visual_path_array_[i].diameter,
+                                 "Cylinder");
+
+  visualizeFeasibleOrientations(i);
 
   visual_tools_->trigger();
 }
@@ -97,4 +127,26 @@ void framefab_visual_tools::FrameFabVisualTool::cleanUpAllPaths()
 {
   visual_tools_->deleteAllMarkers();
   visual_tools_->trigger();
+}
+
+void framefab_visual_tools::FrameFabVisualTool::visualizeFeasibleOrientations(int i)
+{
+  assert(0 <= i && i < visual_path_array_.size());
+
+  for(int j = 0; j < visual_path_array_[i].oriented_st_pts.size(); j++)
+  {
+    visual_tools_->publishCylinder(
+        visual_path_array_[i].start_pt,
+        visual_path_array_[i].oriented_st_pts[j],
+        rviz_visual_tools::GREEN,
+        0.001,
+        "orientation_cylinder");
+  }
+
+  visual_tools_->publishCylinder(
+      visual_path_array_[i].start_pt,
+      visual_path_array_[i].avr_orient_vec,
+      rviz_visual_tools::PURPLE,
+      0.001,
+      "orientation_cylinder");
 }

@@ -13,6 +13,7 @@
 #include <ros/ros.h>
 
 #include <Eigen/Core>
+#include <Eigen/Geometry>
 
 // For visualizing things in rviz
 #include <rviz_visual_tools/rviz_visual_tools.h>
@@ -32,6 +33,10 @@ struct VisualUnitProcessPath
 {
   Eigen::Vector3d start_pt;
   Eigen::Vector3d end_pt;
+
+  std::vector<Eigen::Vector3d> oriented_st_pts;
+  Eigen::Vector3d avr_orient_vec;
+
   UNIT_PATH_TYPE type;
   double diameter;
 };
@@ -57,6 +62,8 @@ class FrameFabVisualTool
 
   void visualizeAllPaths();
   void visualizePath(int index);
+
+  void visualizeFeasibleOrientations(int index);
 
   void cleanUpAllPaths();
 
