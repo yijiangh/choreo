@@ -70,6 +70,24 @@ void framefab_visual_tools::FrameFabVisualTool::convertPathVisual(
 
     v_unit_path.average_f_orient = avr_orient;
 
+    // alternative orientation marker
+    v_unit_path.oriented_st_pts.clear();
+    v_unit_path.average_orient_vec = Eigen::Vector3d(0,0,0);
+    for(int j=0; j < path_array[i].feasible_orients.size(); j++)
+    {
+      Eigen::Vector3d e;
+      tf::vectorMsgToEigen(path_array[i].feasible_orients[j], e);
+
+      e = e * 0.001 * 15;
+      e = e + v_unit_path.start_pt;
+
+      v_unit_path.oriented_st_pts.push_back(e);
+
+      v_unit_path.average_orient_vec  = v_unit_path.average_orient_vec  + e;
+    }
+    v_unit_path.average_orient_vec =
+        v_unit_path.average_orient_vec /  v_unit_path.oriented_st_pts.size();
+
     visual_path_array.push_back(v_unit_path);
   }
 }
@@ -129,7 +147,21 @@ void framefab_visual_tools::FrameFabVisualTool::visualizePath(int i)
                                  visual_path_array_[i].end_pt,
                                  rviz_visual_tools::TRANSLUCENT, visual_path_array_[i].diameter, "Cylinder");
 
-  visualizeFeasibleOrientations(i);
+  for(int j=0; j < visual_path_array_[i].oriented_st_pts.size(); j++)
+  {
+    visual_tools_->publishLine(
+        visual_path_array_[i].start_pt,
+        visual_path_array_[i].oriented_st_pts[j],
+        rviz_visual_tools::GREEN,
+        0.001);
+  }
+
+  visual_tools_->publishLine(
+      visual_path_array_[i].start_pt,
+      visual_path_array_[i].average_orient_vec,
+      rviz_visual_tools::MAGENTA,
+      0.001);
+//  visualizeFeasibleOrientations(i);
 
   visual_tools_->trigger();
 }
