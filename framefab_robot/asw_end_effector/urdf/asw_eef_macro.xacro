@@ -1,0 +1,48 @@
+<?xml version="1.0" ?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:property name="hotend_tcp_x" value="0.15098"/>
+  <xacro:property name="hotend_tcp_y" value="0.000655"/>
+  <xacro:property name="hotend_tcp_z" value="0.115553"/>
+
+  <xacro:property name="half_pi" value="1.5707963267948966"/>
+
+
+  <xacro:macro name="asw_eef_definition" params="prefix">
+    <!-- eef_frame is Base Link -->
+    <link name="${prefix}eef_frame"/>
+
+    <link name="${prefix}hotend_tool">
+      <visual>
+        <geometry>
+          <mesh filename="package://asw_end_effector/meshes/visual/asw_hotend_end_effector.stl" scale=".001 .001 .001"/>
+        </geometry>
+        <material name="grey">
+          <color rgba="0.5 0.5 0.5 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://asw_end_effector/meshes/collision/asw_hotend_end_effector_hull.stl" scale=".001 .001 .001"/>
+        </geometry>
+        <material name="red">
+          <color rgba="1 0 0 1"/>
+        </material>
+      </collision>
+    </link>
+
+    <joint name="${prefix}eef_frame_to_hotend_tool" type="fixed">
+        <parent link="${prefix}eef_frame"/>
+        <child link="${prefix}hotend_tool"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint>
+
+    <link name="${prefix}tcp_frame"/> <!--The actual 'useful' work frame-->
+
+    <joint name="${prefix}eef_to_hotend_tcp_frame" type="fixed">
+        <parent link="${prefix}eef_frame"/>
+        <child link="${prefix}tcp_frame"/>
+        <origin xyz="${hotend_tcp_x} ${hotend_tcp_y} ${hotend_tcp_z}" rpy="0 ${half_pi} 0"/>
+    </joint>
+
+  </xacro:macro>
+</robot>
