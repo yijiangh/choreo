@@ -63,3 +63,5 @@ qtcreator-*
 # clion file
 **/.idea
 **/cmake-build-debug/*
+
+**.dae
