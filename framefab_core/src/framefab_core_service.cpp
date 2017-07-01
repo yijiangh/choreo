@@ -73,7 +73,7 @@ bool FrameFabCoreService::init()
                            &FrameFabCoreService::visualize_selected_path_server_callback, this);
 
   // start local instances
-  visual_tool_.init("arm_base_link", PATH_VISUAL_TOPIC);
+  visual_tool_.init("world_frame", PATH_VISUAL_TOPIC);
 
   // start server
 

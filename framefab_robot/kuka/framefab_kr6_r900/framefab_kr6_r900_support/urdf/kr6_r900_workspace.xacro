@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+<robot name="kr6_r900_workspace" xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:include filename="$(find kuka_kr6_support)/urdf/kr6r900sixx_macro.xacro"/>
+  <xacro:include filename="$(find asw_end_effector)/urdf/asw_eef_macro.xacro"/>
+  
+  <link name="world_frame"/>
+
+  <!-- instantiating arm  --> 
+  <xacro:kuka_kr6r900sixx prefix=""/>
+  <!-- instantiating end effector  -->
+  <xacro:asw_eef_definition prefix=""/>
+
+  <!-- Attach the end effector to the end of the robot arm (tool0) -->
+  <joint name="link_t_to_eef" type="fixed">
+    <parent link="tool0"/>
+    <child link="eef_frame"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <!-- start of arm-workcell joint definitions -->
+  <joint name="world_to_base" type="fixed">
+    <parent link="world_frame"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  
+</robot>
