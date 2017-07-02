@@ -1,0 +1,1 @@
+rosrun moveit_ikfast create_ikfast_moveit_plugin.py kuka_kr6r900sixx manipulator framefab_kr6_r900_ikfast_manipulator_plugin /home/yijiangh/catkin_ws/src/framefab_mpp/framefab_robot/kuka/framefab_kr6_r900/framefab_kr6_r900_ikfast_manipulator_plugin/src/kuka_kr6r900sixx_manipulator_ikfast_solver.cpp
