@@ -115,6 +115,7 @@ enum IkParameterizationType {
 
 class IKFastKinematicsPlugin : public kinematics::KinematicsBase
 {
+protected:
   std::vector<std::string> joint_names_;
   std::vector<double> joint_min_vector_;
   std::vector<double> joint_max_vector_;
@@ -128,7 +129,6 @@ class IKFastKinematicsPlugin : public kinematics::KinematicsBase
   const std::vector<std::string>& getLinkNames() const { return link_names_; }
 
 public:
-
   /** @class
    *  @brief Interface for an IKFast kinematics plugin
    */
@@ -274,7 +274,7 @@ public:
   bool setRedundantJoints(const std::vector<unsigned int> &redundant_joint_indices);
 
 
-private:
+protected:
 
   bool initialize(const std::string &robot_description,
                   const std::string& group_name,
