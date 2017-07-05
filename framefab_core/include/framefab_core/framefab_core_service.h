@@ -11,14 +11,28 @@
 #include <framefab_msgs/FrameFabParameters.h>
 #include <framefab_msgs/ModelInputParameters.h>
 #include <framefab_msgs/PathInputParameters.h>
+#include <framefab_msgs/ElementCandidatePoses.h>
+#include <framefab_msgs/UnitProcessPlan.h>
 
 // actions
 #include <framefab_msgs/PathPlanningAction.h>
+#include <framefab_msgs/ProcessPlanningAction.h>
 #include <actionlib/server/simple_action_server.h>
 #include <actionlib/client/simple_action_client.h>
 
 // core service instances
 #include <framefab_core/visual_tools/framefab_visual_tool.h>
+
+#include "framefab_core/trajectory_library.h"
+
+/**
+ * Associates a name with a joint trajectory
+ */
+struct ProcessPlanResult
+{
+  typedef std::pair<std::string, framefab_msgs::UnitProcessPlan> value_type;
+  std::vector<value_type> plans;
+};
 
 class FrameFabCoreService
 {
@@ -44,7 +58,15 @@ class FrameFabCoreService
   bool visualize_selected_path_server_callback(framefab_msgs::VisualizeSelectedPath::Request& req,
                                                framefab_msgs::VisualizeSelectedPath::Response& res);
 
+  // Action callbacks
   void pathPlanningActionCallback(const framefab_msgs::PathPlanningGoalConstPtr &goal);
+  void processPlanningActionCallback(const framefab_msgs::ProcessPlanningGoalConstPtr &goal);
+
+  // Process Planning - these process planning related
+  // methods are defined in src/framefab_core_service_process_planning.cpp
+  bool generateMotionLibrary(
+      const int selected_path_index,
+      framefab_core_service::TrajectoryLibrary& traj_lib);
 
  private:
   // Services offered by this class
@@ -54,6 +76,7 @@ class FrameFabCoreService
 
   // Services subscribed to by this class
   ros::ServiceClient path_post_processing_client_;
+  ros::ServiceClient process_planning_client_;
 
   // Actions offered by this class
   ros::NodeHandle nh_;
@@ -61,12 +84,22 @@ class FrameFabCoreService
   framefab_msgs::PathPlanningFeedback path_planning_feedback_;
   framefab_msgs::PathPlanningResult path_planning_result_;
 
+  actionlib::SimpleActionServer<framefab_msgs::ProcessPlanningAction> process_planning_server_;
+  framefab_msgs::ProcessPlanningFeedback process_planning_feedback_;
+  framefab_msgs::ProcessPlanningResult process_planning_result_;
+
   // Actions subscribed to by this class
 
   // Current state publishers
 
   // Core Service Instances
   framefab_visual_tools::FrameFabVisualTool visual_tool_;
+
+  // results
+  std::vector<framefab_msgs::ElementCandidatePoses> process_paths_;
+
+  // Trajectory library
+  framefab_core_service::TrajectoryLibrary trajectory_library_;
 
   // Parameters
   framefab_msgs::ModelInputParameters 	model_input_params_;

@@ -1,14 +1,9 @@
-int32 GENERATE_MOTION_PLAN=1
-int32 GENERATE_MOTION_PLAN_AND_PREVIEW=2
-int32 PREVIEW_TOOL_PATH=3
-int32 PREVIEW_MOTION_PLAN=4
-int32 EXECUTE_MOTION_PLAN=5
-
-int32 action
-
-bool use_default_parameters
+# process planning parameters
 framefab_msgs/ProcessPlanningParameters params
+
+# the actual path the tool will follow
+framefab_msgs/ElementCandidatePoses[] process_path
 
 ---
 
-bool succeeded
+framefab_msgs/UnitProcessPlan[] plan

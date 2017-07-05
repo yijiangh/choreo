@@ -2,13 +2,12 @@
 
 #include <framefab_param_helpers/framefab_param_helpers.h>
 
-//services
+//subscribed services
 #include <framefab_msgs/PathPostProcessing.h>
+#include <framefab_msgs/ProcessPlanning.h>
 
-// For visualizing things in rviz
+// For visualizing in rviz
 #include <rviz_visual_tools/rviz_visual_tools.h>
-
-// Process Planning
 
 // topics and services
 const static std::string SAVE_DATA_BOOL_PARAM = "save_data";
@@ -21,6 +20,7 @@ const static std::string VISUALIZE_SELECTED_PATH_SERVICE= "visualize_select_path
 
 // subscribed services
 const static std::string PATH_POST_PROCESSING_SERVICE = "path_post_processing";
+const static std::string PROCESS_PLANNING_SERVICE = "process_planning";
 
 // Default filepaths and namespaces for caching stored parameters
 const static std::string MODEL_INPUT_PARAMS_FILE = "model_input_parameters.msg";
@@ -31,11 +31,14 @@ const static std::string PATH_VISUAL_TOPIC = "path_visualization";
 
 // action server name - note: must be same to client's name
 const static std::string PATH_PLANNING_ACTION_SERVER_NAME = "path_planning_action";
+const static std::string PROCESS_PLANNING_ACTION_SERVER_NAME = "process_planning_action";
 
 FrameFabCoreService::FrameFabCoreService()
     : save_data_(false),
       path_planning_server_(nh_, PATH_PLANNING_ACTION_SERVER_NAME,
-                            boost::bind(&FrameFabCoreService::pathPlanningActionCallback, this, _1), false)
+                            boost::bind(&FrameFabCoreService::pathPlanningActionCallback, this, _1), false),
+      process_planning_server_(nh_, PROCESS_PLANNING_ACTION_SERVER_NAME,
+                            boost::bind(&FrameFabCoreService::processPlanningActionCallback, this, _1), false)
 {}
 
 bool FrameFabCoreService::init()
@@ -79,11 +82,13 @@ bool FrameFabCoreService::init()
 
   // service clients
   path_post_processing_client_ = nh_.serviceClient<framefab_msgs::PathPostProcessing>(PATH_POST_PROCESSING_SERVICE);
+  process_planning_client_ = nh_.serviceClient<framefab_msgs::ProcessPlanning>(PROCESS_PLANNING_SERVICE);
 
   // publishers
 
   // action servers
   path_planning_server_.start();
+  process_planning_server_.start();
 
   return true;
 }
@@ -96,7 +101,6 @@ void FrameFabCoreService::run()
     loop_duration.sleep();
   }
 }
-
 
 bool FrameFabCoreService::load_model_input_parameters(const std::string & filename)
 {
@@ -138,8 +142,8 @@ bool FrameFabCoreService::load_path_input_parameters(const std::string & filenam
   }
 
   // otherwise default to the parameter server
-//  ros::NodeHandle nh("~/path_input_params");
-//  return loadParam(nh, "file_path", path_input_params_.file_path);
+  ros::NodeHandle nh("~/path_input_params");
+  return loadParam(nh, "file_path", path_input_params_.file_path);
 }
 
 void FrameFabCoreService::save_path_input_parameters(const std::string & filename)
@@ -236,8 +240,12 @@ void FrameFabCoreService::pathPlanningActionCallback(const framefab_msgs::PathPl
         path_planning_feedback_.last_completed = "Finished path post processing. Visualizing...\n";
         path_planning_server_.publishFeedback(path_planning_feedback_);
 
+        // import data into visual_tools
         visual_tool_.setProcessPath(srv.response.process);
         visual_tool_.visualizeAllPaths();
+
+        // import data into process_planning_visualizer
+        process_paths_ = srv.response.process;
 
         path_planning_result_.succeeded = true;
         path_planning_server_.setSucceeded(path_planning_result_);
@@ -252,6 +260,46 @@ void FrameFabCoreService::pathPlanningActionCallback(const framefab_msgs::PathPl
     }
   }
   path_planning_result_.succeeded = false;
+}
+
+void FrameFabCoreService::processPlanningActionCallback(const framefab_msgs::ProcessPlanningGoalConstPtr &goal_in)
+{
+  switch (goal_in->action)
+  {
+    case framefab_msgs::ProcessPlanningGoal::GENERATE_MOTION_PLAN_AND_PREVIEW:
+    {
+      process_planning_feedback_.last_completed = "Recieved request to generate motion plan\n";
+      process_planning_server_.publishFeedback(process_planning_feedback_);
+
+      // TODO: make a trajectory library and ui for user to choose
+      bool success = generateMotionLibrary(goal_in->index, trajectory_library_);
+
+      if(success)
+      {
+        process_planning_feedback_.last_completed = "Finished planning. Visualizing...\n";
+        process_planning_server_.publishFeedback(process_planning_feedback_);
+//      visualizePaths();
+        process_planning_result_.succeeded = true;
+        process_planning_server_.setSucceeded(process_planning_result_);
+
+        return;
+      }
+      else
+      {
+        process_planning_feedback_.last_completed = "Process Planning action failed.\n";
+        process_planning_server_.publishFeedback(process_planning_feedback_);
+//      visualizePaths();
+        process_planning_result_.succeeded = false;
+        process_planning_server_.setAborted(process_planning_result_);
+      }
+      break;
+    }
+    default:
+    {
+      ROS_ERROR_STREAM("Unknown action code '" << goal_in->action << "' request");
+      break;
+    }
+  }
 }
 
 int main(int argc, char** argv)

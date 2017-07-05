@@ -1,16 +1,22 @@
-# Godel supports two processes at the moment: surface blending and line scanning
-# This msg encapsulates a motion plan for one of these components.
-
 # Enumeration represeting plan type  
-int32 BLEND_TYPE=0
-int32 SCAN_TYPE=1
+int32 SUPPORT_TYPE=2
+int32 CONTINUOUS_TYPE=1
+int32 DISCONTINUOUS_TYPE=0
 
 # The plan is broken into components so that nodes responsible
 # for the actual execution can perform any necessary IO commands
 # as the robot begins and completes the actual process path. In
-# our case, the blending tool and laser scanner turn on after the 
-# approach and off after the process path is done.
+# framefab we export the tagged trajectory to graphical programming
+# platform (e.g. grasshopper on Rhino) for fine-tuned IO weaving 
+# process.
+
+int32 type
+
 trajectory_msgs/JointTrajectory trajectory_approach
 trajectory_msgs/JointTrajectory trajectory_process
 trajectory_msgs/JointTrajectory trajectory_depart
-int32 type
+
+geometry_msgs/Pose near_start
+geometry_msgs/Pose start
+geometry_msgs/Pose end
+geometry_msgs/Pose near_end

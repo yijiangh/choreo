@@ -22,7 +22,7 @@ framefab_gui::PathPlanningState::~PathPlanningState()
 
 void framefab_gui::PathPlanningState::onStart(FrameFabWidget& gui)
 {
-  gui.setText("PathPlanning State.\nPlease input data in parameter widget.\nClick 'Next' to continue after finished.");
+  gui.setText("PathPlanning State.\nPlease input data in parameter widget.\nClick 'Next' to continue after finished.\n");
 //  gui.setButtonsEnabled(false);
 
   gui_ptr_ = &gui;
@@ -82,7 +82,7 @@ void framefab_gui::PathPlanningState::makeRequest(
 
 void framefab_gui::PathPlanningState::setFeedbackText(QString feedback)
 {
-  gui_ptr_->appendText("\n" + feedback.toStdString());
+  gui_ptr_->appendText("-----------ACTION FEEDBACK-----------\n" + feedback.toStdString());
 }
 
 // Action Callbacks

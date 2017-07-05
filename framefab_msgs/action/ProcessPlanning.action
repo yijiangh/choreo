@@ -4,9 +4,10 @@ int32 PREVIEW_TOOL_PATH=2
 
 int32 action
 
+# index of selected path
+int32 index
+
 # bool use_default_parameters
-# godel_msgs/PathPlanningParameters params
-# godel_msgs/SurfaceBoundaries surface
 
 ---
 
