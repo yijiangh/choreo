@@ -20,6 +20,7 @@ const static std::string VISUALIZE_SELECTED_PATH_SERVICE= "visualize_select_path
 
 // subscribed services
 const static std::string PATH_POST_PROCESSING_SERVICE = "path_post_processing";
+const static std::string PROCESS_PLANNING_SERVICE = "process_planning";
 
 // Default filepaths and namespaces for caching stored parameters
 const static std::string MODEL_INPUT_PARAMS_FILE = "model_input_parameters.msg";
@@ -81,6 +82,7 @@ bool FrameFabCoreService::init()
 
   // service clients
   path_post_processing_client_ = nh_.serviceClient<framefab_msgs::PathPostProcessing>(PATH_POST_PROCESSING_SERVICE);
+  process_planning_client_ = nh_.serviceClient<framefab_msgs::ProcessPlanning>(PROCESS_PLANNING_SERVICE);
 
   // publishers
 
@@ -238,8 +240,12 @@ void FrameFabCoreService::pathPlanningActionCallback(const framefab_msgs::PathPl
         path_planning_feedback_.last_completed = "Finished path post processing. Visualizing...\n";
         path_planning_server_.publishFeedback(path_planning_feedback_);
 
+        // import data into visual_tools
         visual_tool_.setProcessPath(srv.response.process);
         visual_tool_.visualizeAllPaths();
+
+        // import data into process_planning_visualizer
+        process_paths_ = srv.response.process;
 
         path_planning_result_.succeeded = true;
         path_planning_server_.setSucceeded(path_planning_result_);
@@ -264,7 +270,11 @@ void FrameFabCoreService::processPlanningActionCallback(const framefab_msgs::Pro
     {
       process_planning_feedback_.last_completed = "Recieved request to generate motion plan";
       process_planning_server_.publishFeedback(process_planning_feedback_);
+
+      // TODO: make a trajectory library and ui for user to choose
 //      trajectory_library_ = generateMotionLibrary(goal_in->params);
+
+
       process_planning_feedback_.last_completed = "Finished planning. Visualizing...";
       process_planning_server_.publishFeedback(process_planning_feedback_);
 //      visualizePaths();

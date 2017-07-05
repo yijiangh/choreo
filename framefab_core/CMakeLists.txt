@@ -50,6 +50,12 @@ include_directories(
 	${catkin_INCLUDE_DIRS}
 )
 
+## Declare core service library
+## Declare a cpp library
+add_library(${PROJECT_NAME}
+	src/trajectory_library.cpp
+	)
+
 ## Declare visualization library
 add_library(framefab_visual_tools
 	src/visual_tools/framefab_visual_tool.cpp
@@ -67,6 +73,7 @@ add_executable(
 target_link_libraries(
 	framefab_core_service
 	${catkin_LIBRARIES}
+	${PROJECT_NAME}
 	framefab_visual_tools
 )
 add_dependencies(framefab_core_service framefab_msgs_generate_messages_cpp)

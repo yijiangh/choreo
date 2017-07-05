@@ -11,6 +11,8 @@
 #include <framefab_msgs/FrameFabParameters.h>
 #include <framefab_msgs/ModelInputParameters.h>
 #include <framefab_msgs/PathInputParameters.h>
+#include <framefab_msgs/ElementCandidatePoses.h>
+#include <framefab_msgs/ProcessPlan.h>
 
 // actions
 #include <framefab_msgs/PathPlanningAction.h>
@@ -20,6 +22,15 @@
 
 // core service instances
 #include <framefab_core/visual_tools/framefab_visual_tool.h>
+
+/**
+ * Associates a name with a joint trajectory
+ */
+struct ProcessPlanResult
+{
+  typedef std::pair<std::string, framefab_msgs::ProcessPlan> value_type;
+  std::vector<value_type> plans;
+};
 
 class FrameFabCoreService
 {
@@ -75,6 +86,9 @@ class FrameFabCoreService
 
   // Core Service Instances
   framefab_visual_tools::FrameFabVisualTool visual_tool_;
+
+  // results
+  std::vector<framefab_msgs::ElementCandidatePoses> process_paths_;
 
   // Parameters
   framefab_msgs::ModelInputParameters 	model_input_params_;
