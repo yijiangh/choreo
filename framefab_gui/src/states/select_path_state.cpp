@@ -7,7 +7,8 @@
 #include <framefab_gui/states/select_path_state.h>
 #include <framefab_gui/states/system_init_state.h>
 #include <framefab_gui/states/path_planning_state.h>
-#include <QtConcurrent/QtConcurrentRun>
+#include <framefab_gui/states/process_planning_state.h>
+//#include <QtConcurrent/QtConcurrentRun>
 
 void framefab_gui::SelectPathState::onStart(FrameFabWidget& gui)
 {
@@ -27,7 +28,7 @@ void framefab_gui::SelectPathState::onNext(FrameFabWidget& gui)
   gui.select_path().close();
 
   ROS_INFO_STREAM("select path state finished! Selected Path: " << selected_path_id_);
-//  Q_EMIT newStateAvailable(new ProcessPlanningState(intselected_path_id_));
+  Q_EMIT newStateAvailable(new ProcessPlanningState(selected_path_id_));
 }
 
 void framefab_gui::SelectPathState::onBack(FrameFabWidget& gui)
