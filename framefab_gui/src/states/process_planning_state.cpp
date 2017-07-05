@@ -72,7 +72,7 @@ void framefab_gui::ProcessPlanningState::processPlanningDoneCallback(
   }
   else
   {
-    Q_EMIT newStateAvailable(new SelectPathState());
+//    Q_EMIT newStateAvailable(new SelectPathState());
   }
 }
 

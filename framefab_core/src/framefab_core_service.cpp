@@ -142,8 +142,8 @@ bool FrameFabCoreService::load_path_input_parameters(const std::string & filenam
   }
 
   // otherwise default to the parameter server
-//  ros::NodeHandle nh("~/path_input_params");
-//  return loadParam(nh, "file_path", path_input_params_.file_path);
+  ros::NodeHandle nh("~/path_input_params");
+  return loadParam(nh, "file_path", path_input_params_.file_path);
 }
 
 void FrameFabCoreService::save_path_input_parameters(const std::string & filename)
@@ -268,35 +268,38 @@ void FrameFabCoreService::processPlanningActionCallback(const framefab_msgs::Pro
   {
     case framefab_msgs::ProcessPlanningGoal::GENERATE_MOTION_PLAN_AND_PREVIEW:
     {
-      process_planning_feedback_.last_completed = "Recieved request to generate motion plan";
+      process_planning_feedback_.last_completed = "Recieved request to generate motion plan\n";
       process_planning_server_.publishFeedback(process_planning_feedback_);
 
       // TODO: make a trajectory library and ui for user to choose
-//      trajectory_library_ = generateMotionLibrary(goal_in->params);
+      bool success = generateMotionLibrary(goal_in->index, trajectory_library_);
 
-
-      process_planning_feedback_.last_completed = "Finished planning. Visualizing...";
-      process_planning_server_.publishFeedback(process_planning_feedback_);
+      if(success)
+      {
+        process_planning_feedback_.last_completed = "Finished planning. Visualizing...\n";
+        process_planning_server_.publishFeedback(process_planning_feedback_);
 //      visualizePaths();
-      process_planning_result_.succeeded = true;
-      process_planning_server_.setSucceeded(process_planning_result_);
-      break;
-    }
-    case framefab_msgs::ProcessPlanningGoal::PREVIEW_TOOL_PATH:
-    {
-      process_planning_feedback_.last_completed = "Recieved request to preview tool path";
-      process_planning_server_.publishFeedback(process_planning_feedback_);
-      break;
-    }
+        process_planning_result_.succeeded = true;
+        process_planning_server_.setSucceeded(process_planning_result_);
 
+        return;
+      }
+      else
+      {
+        process_planning_feedback_.last_completed = "Process Planning action failed.\n";
+        process_planning_server_.publishFeedback(process_planning_feedback_);
+//      visualizePaths();
+        process_planning_result_.succeeded = false;
+        process_planning_server_.setAborted(process_planning_result_);
+      }
+      break;
+    }
     default:
     {
       ROS_ERROR_STREAM("Unknown action code '" << goal_in->action << "' request");
       break;
     }
   }
-
-  process_planning_result_.succeeded = false;
 }
 
 int main(int argc, char** argv)

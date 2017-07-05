@@ -64,7 +64,9 @@ class FrameFabCoreService
 
   // Process Planning - these process planning related
   // methods are defined in src/framefab_core_service_process_planning.cpp
-  framefab_core_service::TrajectoryLibrary generateMotionLibrary(const int selected_path_index);
+  bool generateMotionLibrary(
+      const int selected_path_index,
+      framefab_core_service::TrajectoryLibrary& traj_lib);
 
  private:
   // Services offered by this class
