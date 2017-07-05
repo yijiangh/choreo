@@ -8,7 +8,7 @@
 #include <string>
 #include <map>
 
-#include <framefab_msgs/ProcessPlan.h>
+#include <framefab_msgs/UnitProcessPlan.h>
 
 namespace framefab_core_service
 {
@@ -16,7 +16,7 @@ namespace framefab_core_service
 class TrajectoryLibrary
 {
  public:
-  typedef std::map<std::string, framefab_msgs::ProcessPlan> TrajectoryMap;
+  typedef std::map<std::string, framefab_msgs::UnitProcessPlan> TrajectoryMap;
 
   void load(const std::string& filename);
   void save(const std::string& filename);

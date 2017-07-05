@@ -12,7 +12,7 @@
 #include <framefab_msgs/ModelInputParameters.h>
 #include <framefab_msgs/PathInputParameters.h>
 #include <framefab_msgs/ElementCandidatePoses.h>
-#include <framefab_msgs/ProcessPlan.h>
+#include <framefab_msgs/UnitProcessPlan.h>
 
 // actions
 #include <framefab_msgs/PathPlanningAction.h>
@@ -23,12 +23,14 @@
 // core service instances
 #include <framefab_core/visual_tools/framefab_visual_tool.h>
 
+#include "framefab_core/trajectory_library.h"
+
 /**
  * Associates a name with a joint trajectory
  */
 struct ProcessPlanResult
 {
-  typedef std::pair<std::string, framefab_msgs::ProcessPlan> value_type;
+  typedef std::pair<std::string, framefab_msgs::UnitProcessPlan> value_type;
   std::vector<value_type> plans;
 };
 
@@ -60,6 +62,10 @@ class FrameFabCoreService
   void pathPlanningActionCallback(const framefab_msgs::PathPlanningGoalConstPtr &goal);
   void processPlanningActionCallback(const framefab_msgs::ProcessPlanningGoalConstPtr &goal);
 
+  // Process Planning - these process planning related
+  // methods are defined in src/framefab_core_service_process_planning.cpp
+  framefab_core_service::TrajectoryLibrary generateMotionLibrary(const int selected_path_index);
+
  private:
   // Services offered by this class
   ros::ServiceServer framefab_parameters_server_;
@@ -89,6 +95,9 @@ class FrameFabCoreService
 
   // results
   std::vector<framefab_msgs::ElementCandidatePoses> process_paths_;
+
+  // Trajectory library
+  framefab_core_service::TrajectoryLibrary trajectory_library_;
 
   // Parameters
   framefab_msgs::ModelInputParameters 	model_input_params_;

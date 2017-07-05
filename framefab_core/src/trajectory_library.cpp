@@ -27,7 +27,7 @@ void framefab_core_service::TrajectoryLibrary::load(const std::string& filename)
 
   for (rosbag::View::iterator it = view.begin(); it != view.end(); ++it)
   {
-    framefab_msgs::ProcessPlanPtr ptr = it->instantiate<framefab_msgs::ProcessPlan>();
+    framefab_msgs::UnitProcessPlanPtr ptr = it->instantiate<framefab_msgs::UnitProcessPlan>();
     if (!ptr)
     {
       // message failed to load

@@ -69,6 +69,7 @@ target_link_libraries(framefab_visual_tools
 add_executable(
 	framefab_core_service
 	src/framefab_core_service.cpp
+	src/framefab_core_service_process_planning.cpp
 )
 target_link_libraries(
 	framefab_core_service
