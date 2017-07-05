@@ -6,8 +6,8 @@
 
   <node name="framefab_process_planning" pkg="framefab_process_planning" type="framefab_process_planning_node" respawn="true">
     <param name="world_frame" value="$(arg world_frame)"/>
-    <param name="hotend_group" value="$(arg blend_group)"/>
-    <param name="hotend_tcp" value="$(arg blend_tcp)"/>
+    <param name="hotend_group" value="$(arg hotend_group)"/>
+    <param name="hotend_tcp" value="$(arg hotend_tcp)"/>
     <param name="robot_model_plugin" value="$(arg robot_model_plugin)"/>
   </node>
 </launch>

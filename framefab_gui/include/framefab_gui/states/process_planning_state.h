@@ -11,7 +11,7 @@
 #include <actionlib/client/simple_action_client.h>
 #include <framefab_msgs/ProcessPlanningAction.h>
 
-const static std::string PROCESS_PLANNING_ACTION_SERVER_NAME = "process_planning_as";
+const static std::string PROCESS_PLANNING_ACTION_CLIENT_NAME = "process_planning_action";
 
 namespace framefab_gui
 {

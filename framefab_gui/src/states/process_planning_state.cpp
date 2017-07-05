@@ -9,16 +9,14 @@
 #include "framefab_gui/states/select_path_state.h"  // next if fail
 //#include "framefab_gui/states/select_plans_state.h" // next is success
 
-const static std::string PROCESS_PLANNING_SERVICE = "process_planning";
-
 framefab_gui::ProcessPlanningState::ProcessPlanningState(const int& index)
-    : process_planning_action_client_(PROCESS_PLANNING_ACTION_SERVER_NAME, true),
+    : process_planning_action_client_(PROCESS_PLANNING_ACTION_CLIENT_NAME, true),
       selected_path_index_(index)
 {}
 
 void framefab_gui::ProcessPlanningState::onStart(FrameFabWidget& gui)
 {
-  gui.setText("Process Planning...");
+  gui.setText("Process Planning...\n");
   gui.setButtonsEnabled(false);
   gui_ptr_ = &gui;
   QObject::connect(this, SIGNAL(feedbackReceived(QString)), this, SLOT(setFeedbackText(QString)));
@@ -38,6 +36,18 @@ void framefab_gui::ProcessPlanningState::makeRequest()
   framefab_msgs::ProcessPlanningGoal goal;
   goal.action = framefab_msgs::ProcessPlanningGoal::GENERATE_MOTION_PLAN_AND_PREVIEW;
   goal.index = selected_path_index_;
+
+  ROS_INFO("Waiting for process planning action server to start.");
+  process_planning_action_client_.waitForServer();
+  if(process_planning_action_client_.isServerConnected())
+  {
+    ROS_INFO_STREAM("process planning action server connected!");
+  }
+  else
+  {
+    ROS_WARN_STREAM("action process planning server not connected");
+  }
+
   process_planning_action_client_.sendGoal(
       goal,
       boost::bind(&framefab_gui::ProcessPlanningState::processPlanningDoneCallback, this, _1, _2),
@@ -48,9 +58,8 @@ void framefab_gui::ProcessPlanningState::makeRequest()
 
 void framefab_gui::ProcessPlanningState::setFeedbackText(QString feedback)
 {
-  gui_ptr_->appendText("\n" + feedback.toStdString());
+  gui_ptr_->appendText("-----------ACTION FEEDBACK-----------\n" + feedback.toStdString());
 }
-
 
 // Action Callbacks
 void framefab_gui::ProcessPlanningState::processPlanningDoneCallback(
