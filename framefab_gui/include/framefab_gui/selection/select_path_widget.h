@@ -35,6 +35,7 @@ class SelectPathWidget : public QWidget
 
   void setInputEnabled(bool enabled);
 
+  int getSelectedValue() { return print_order_; }
 
   // send srv to clean up visualization markers
   void cleanUpVisual();

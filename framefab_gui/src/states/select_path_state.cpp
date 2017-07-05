@@ -13,9 +13,9 @@ void framefab_gui::SelectPathState::onStart(FrameFabWidget& gui)
 {
   gui.setText("Select Path State.\nPlease select the desired path to be planned in selection window.\nClick <Accept> to continue. ");
   gui.setButtonsEnabled(false);
+  selected_path_id_ = -1;
 
   selectPath(gui);
-//  QtConcurrent::run(this, &SelectPathState::selectPath, boost::ref(gui));
 }
 
 void framefab_gui::SelectPathState::onExit(FrameFabWidget& gui) {}
@@ -23,10 +23,11 @@ void framefab_gui::SelectPathState::onExit(FrameFabWidget& gui) {}
 void framefab_gui::SelectPathState::onNext(FrameFabWidget& gui)
 {
   gui.setButtonsEnabled(true);
+  selected_path_id_ = gui.select_path().getSelectedValue();
   gui.select_path().close();
 
-  ROS_INFO_STREAM("select path state finished!");
-//  Q_EMIT newStateAvailable(new ProcessPlanningState(std::vector<int> index_list));
+  ROS_INFO_STREAM("select path state finished! Selected Path: " << selected_path_id_);
+//  Q_EMIT newStateAvailable(new ProcessPlanningState(intselected_path_id_));
 }
 
 void framefab_gui::SelectPathState::onBack(FrameFabWidget& gui)

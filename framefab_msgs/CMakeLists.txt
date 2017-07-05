@@ -38,7 +38,6 @@ add_message_files(
 		ModelInputParameters.msg
 		PathInputParameters.msg
 		ProcessPlanningParameters.msg
-		ProcessPath.msg
 		ProcessPlan.msg
 		ElementCandidatePoses.msg
 )

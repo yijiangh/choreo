@@ -3,12 +3,11 @@
   <name>framefab_process_planning</name>
   <version>0.1.0</version>
   <description>
-    The process planning package handles joint trajectory planning for (at the
-    moment) two distinct processes: blending and laser line scanning. This package replaces the earlier 'godel_path_planning'.
+    The process planning package handles joint trajectory planning.
   </description>
 
-  <maintainer email="jmeyer@swri.org">Jonathan Meyer</maintainer>
-  <author email="jmeyer@swri.org">Jonathan Meyer</author>
+  <maintainer email="yijiangh@mit.edu">Yijiang Huang</maintainer>
+  <author email="yijiangh@mit.edu">Jonathan Meyer</author>
   <license>Apache 2.0</license>
 
   <buildtool_depend>catkin</buildtool_depend>
