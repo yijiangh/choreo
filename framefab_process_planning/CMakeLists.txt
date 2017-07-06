@@ -36,14 +36,13 @@ include_directories(
 
 ## Declare a cpp executable
 add_executable(framefab_process_planning_node 
-  src/blend_process_planning.cpp
-  src/common_utils.cpp
   src/framefab_process_planning.cpp
-  src/framefab_process_planning_node.cpp
-  src/keyence_process_planning.cpp
-  src/trajectory_utils.cpp
-  src/generate_motion_plan.cpp
-  src/path_transitions.cpp
+	src/framefab_process_planning_node.cpp
+#  src/common_utils.cpp
+#  src/keyence_process_planning.cpp
+#  src/trajectory_utils.cpp
+#  src/generate_motion_plan.cpp
+#  src/path_transitions.cpp
 )
 
 ## Add cmake target dependencies of the executable/library
