@@ -16,7 +16,10 @@
   <depend>descartes_moveit</depend>
   <depend>descartes_planner</depend>
   <depend>descartes_trajectory</depend>
+
   <depend>framefab_msgs</depend>
+  <depend>moveit_msgs</depend>
+
   <depend>moveit_ros_planning_interface</depend>
   <depend>roscpp</depend>
 

@@ -1,7 +1,12 @@
 #ifndef FRAMEFAB_PROCESS_PLANNING_H
 #define FRAMEFAB_PROCESS_PLANNING_H
 
+// service
 #include <framefab_msgs/ProcessPlanning.h>
+
+// msg
+#include <framefab_msgs/ElementCandidatePoses.h>
+#include <moveit_msgs/CollisionObject.h>
 
 #include <descartes_core/robot_model.h>
 #include <pluginlib/class_loader.h>
@@ -18,7 +23,7 @@ namespace framefab_process_planning
 
 class ProcessPlanningManager
 {
-public:
+ public:
   ProcessPlanningManager(const std::string& world_frame,
                          const std::string& hotend_group, const std::string& hotend_tcp,
                          const std::string& robot_model_plugin);
@@ -26,11 +31,15 @@ public:
   bool handlePrintPlanning(framefab_msgs::ProcessPlanning::Request& req,
                            framefab_msgs::ProcessPlanning::Response& res) { return true; }
 
-private:
+ private:
   descartes_core::RobotModelPtr hotend_model_;
   moveit::core::RobotModelConstPtr moveit_model_;
   pluginlib::ClassLoader<descartes_core::RobotModel> plugin_loader_; // kept around so code doesn't get unloaded
   std::string hotend_group_name_;
+
+  // planning scene service client
+  ros::NodeHandle nh_;
+  ros::ServiceClient planning_scene_diff_client_;
 };
 }
 

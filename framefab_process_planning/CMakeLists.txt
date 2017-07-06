@@ -9,6 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
   descartes_planner
   descartes_trajectory
   framefab_msgs
+	moveit_msgs
   moveit_ros_planning_interface
   roscpp
 )
@@ -20,7 +21,8 @@ catkin_package(
     descartes_moveit
     descartes_planner
     descartes_trajectory
-    framefab_msgs 
+    framefab_msgs
+		moveit_msgs
     moveit_ros_planning_interface 
     roscpp
 )
@@ -38,7 +40,7 @@ include_directories(
 add_executable(framefab_process_planning_node 
   src/framefab_process_planning.cpp
 	src/framefab_process_planning_node.cpp
-#  src/common_utils.cpp
+	src/common_utils.cpp
 #  src/keyence_process_planning.cpp
 #  src/trajectory_utils.cpp
 #  src/generate_motion_plan.cpp

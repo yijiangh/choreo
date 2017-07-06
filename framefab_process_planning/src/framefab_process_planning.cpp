@@ -5,6 +5,11 @@
 #include "framefab_process_planning/framefab_process_planning.h"
 #include <moveit/robot_model_loader/robot_model_loader.h>
 
+// service
+#include <moveit_msgs/ApplyPlanningScene.h>
+
+const static std::string APPLY_PLANNING_SCENE_SERVICE = "apply_planning_scene";
+
 framefab_process_planning::ProcessPlanningManager::ProcessPlanningManager(
     const std::string& world_frame, const std::string& hotend_group, const std::string& hotend_tcp,
     const std::string& robot_model_plugin)
@@ -31,4 +36,7 @@ framefab_process_planning::ProcessPlanningManager::ProcessPlanningManager(
   {
     throw std::runtime_error("Could not load moveit robot model");
   }
+
+  planning_scene_diff_client_ =
+      nh_.serviceClient<moveit_msgs::ApplyPlanningScene>(APPLY_PLANNING_SCENE_SERVICE);
 }
