@@ -7,7 +7,7 @@
 #include <framefab_process_planning/framefab_process_planning.h>
 
 // Globals
-const static std::string DEFAULT_PRINT_PLANNING_SERVICE = "framefab_process_planning";
+const static std::string DEFAULT_PRINT_PLANNING_SERVICE = "process_planning";
 
 int main(int argc, char** argv)
 {

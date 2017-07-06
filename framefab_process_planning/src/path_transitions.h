@@ -25,13 +25,13 @@ struct TransitionParameters
   double retract_dist;
 };
 
-std::vector<ConnectingPath> generateTransitions(const std::vector<geometry_msgs::PoseArray>& segments,
-                                                const TransitionParameters& params);
+//std::vector<ConnectingPath> generateTransitions(const std::vector<geometry_msgs::PoseArray>& segments,
+//                                                const TransitionParameters& params);
 
-framefab_process_planning::DescartesTraj
-toDescartesTraj(const std::vector<geometry_msgs::PoseArray>& segments,
-                const double process_speed, const TransitionParameters& transition_params,
-                boost::function<descartes_core::TrajectoryPtPtr(const Eigen::Affine3d&, const double)> conversion_fn);
+//framefab_process_planning::DescartesTraj
+//toDescartesTraj(const std::vector<geometry_msgs::PoseArray>& segments,
+//                const double process_speed, const TransitionParameters& transition_params,
+//                boost::function<descartes_core::TrajectoryPtPtr(const Eigen::Affine3d&, const double)> conversion_fn);
 
 }
 

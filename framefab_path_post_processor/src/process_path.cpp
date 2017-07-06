@@ -49,7 +49,7 @@ moveit_msgs::CollisionObject framefab_utils::UnitProcessPath::createCollisionObj
 
   // TODO: make frame_id as input parameter
   collision_cylinder.id = cylinder_id;
-  collision_cylinder.header.frame_id = "arm_base_link";
+  collision_cylinder.header.frame_id = "world_frame";
   collision_cylinder.operation = moveit_msgs::CollisionObject::ADD;
 
   // TODO: turn cylinder radiuus as input parameter

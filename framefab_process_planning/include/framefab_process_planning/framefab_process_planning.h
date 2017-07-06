@@ -29,7 +29,7 @@ class ProcessPlanningManager
                          const std::string& robot_model_plugin);
 
   bool handlePrintPlanning(framefab_msgs::ProcessPlanning::Request& req,
-                           framefab_msgs::ProcessPlanning::Response& res) { return true; }
+                           framefab_msgs::ProcessPlanning::Response& res);
 
  private:
   descartes_core::RobotModelPtr hotend_model_;

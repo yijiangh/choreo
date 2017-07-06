@@ -8,11 +8,13 @@
 #include <framefab_msgs/ElementCandidatePoses.h>
 
 // descartes
+#include "descartes_trajectory/axial_symmetric_pt.h"
+#include "descartes_trajectory/joint_trajectory_pt.h"
 #include "descartes_trajectory/cart_trajectory_pt.h"
 #include "descartes_planner/dense_planner.h"
 
-//#include "path_transitions.h"
-//#include "common_utils.h"
+#include "path_transitions.h"
+#include "common_utils.h"
 //#include "generate_motion_plan.h"
 
 namespace framefab_process_planning
@@ -24,7 +26,7 @@ const double PRINT_ANGLE_DISCRETIZATION =
 const static std::string JOINT_TOPIC_NAME =
     "joint_states"; // ROS topic to subscribe to for current robot state info
 
-descartes_core::TrajectoryPtPtr toDescartesPrintPt(const Eigen::Affine3d& pose, double dt)
+descartes_core::TrajectoryPtPtr toDescartesPrintPt(const Eigen::Affine3d &pose, double dt)
 {
   using namespace descartes_trajectory;
   using namespace descartes_core;
@@ -33,13 +35,13 @@ descartes_core::TrajectoryPtPtr toDescartesPrintPt(const Eigen::Affine3d& pose, 
                                               AxialSymmetricPt::Z_AXIS, tm);
 }
 
-bool ProcessPlanningManager::handlePrintPlanning(godel_msgs::ProcessPlanning::Request& req,
-                                                 godel_msgs::ProcessPlanning::Response& res)
+bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning::Request &req,
+                                                 framefab_msgs::ProcessPlanning::Response &res)
 {
   // Enable Collision Checks
-  blend_model_->setCheckCollisions(true);
+  hotend_model_->setCheckCollisions(true);
 
-  std::vector<framefab_msgs::ElementCandidatePoses> process_path = req.process_path;
+  std::vector <framefab_msgs::ElementCandidatePoses> process_path = req.process_path;
 
   if (process_path.empty())
   {
@@ -49,6 +51,7 @@ bool ProcessPlanningManager::handlePrintPlanning(godel_msgs::ProcessPlanning::Re
 
   // Transform process path from geometry msgs to descartes points
   std::vector<double> current_joints = getCurrentJointState(JOINT_TOPIC_NAME);
+  addCollisionObject(planning_scene_diff_client_, process_path[0].collision_cylinder);
 
   const static double LINEAR_DISCRETIZATION = 0.01; // meters
   const static double ANGULAR_DISCRETIZATION = 0.1; // radians
@@ -67,4 +70,5 @@ bool ProcessPlanningManager::handlePrintPlanning(godel_msgs::ProcessPlanning::Re
 
   return true;
 }
-}
+
+}// end namespace
