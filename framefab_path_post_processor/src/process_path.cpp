@@ -16,24 +16,35 @@ double dist(const Eigen::Vector3d& from, const Eigen::Vector3d& to)
 geometry_msgs::Pose framefab_utils::UnitProcessPath::computeCylinderPose(
     const Eigen::Vector3d& st_pt, const Eigen::Vector3d& end_pt) const
 {
+  geometry_msgs::Pose cylinder_pose;
+
   // rotation
   Eigen::Vector3d axis = end_pt - st_pt;
   axis.normalize();
-  Eigen::Vector3d z_vec(0.0,0.0,1.0);
+  Eigen::Vector3d z_vec(0.0, 0.0, 1.0);
   const Eigen::Vector3d& x_vec = axis.cross(z_vec);
-  double theta = axis.dot(z_vec);
-  double angle = -1.0 * acos(theta);
 
-  // convert eigen vertor to tf::Vector3
-  tf::Vector3 x_vec_tf;
-  tf::vectorEigenToTF(x_vec, x_vec_tf);
+  tf::Quaternion tf_q;
+  if(0 == x_vec.norm())
+  {
+   // axis = z_vec
+    tf_q = tf::Quaternion(0, 0, 0, 1);
+  }
+  else
+  {
+    double theta = axis.dot(z_vec);
+    double angle = -1.0 * acos(theta);
 
-  // Create quaternion
-  tf::Quaternion tf_q(x_vec_tf , angle);
-  tf_q.normalize();
+    // convert eigen vertor to tf::Vector3
+    tf::Vector3 x_vec_tf;
+    tf::vectorEigenToTF(x_vec, x_vec_tf);
+
+    // Create quaternion
+    tf_q = tf::Quaternion(x_vec_tf, angle);
+    tf_q.normalize();
+  }
 
   //back to ros coords
-  geometry_msgs::Pose cylinder_pose;
   tf::quaternionTFToMsg(tf_q, cylinder_pose.orientation);
   tf::pointEigenToMsg((end_pt + st_pt) * 0.5, cylinder_pose.position);
 
@@ -52,39 +63,14 @@ moveit_msgs::CollisionObject framefab_utils::UnitProcessPath::createCollisionObj
   collision_cylinder.header.frame_id = "world_frame";
   collision_cylinder.operation = moveit_msgs::CollisionObject::ADD;
 
-  /* A default pose */
-  geometry_msgs::Pose pose;
-  pose.orientation.w = 1.0;
-
-  // TODO: turn cylinder radiuus as input parameter
   shape_msgs::SolidPrimitive cylinder_solid;
   cylinder_solid.type = shape_msgs::SolidPrimitive::CYLINDER;
   cylinder_solid.dimensions.resize(2);
   cylinder_solid.dimensions[0] = dist(st_pt, end_pt);
   cylinder_solid.dimensions[1] = element_diameter;
   collision_cylinder.primitives.push_back(cylinder_solid);
-//  collision_cylinder.primitive_poses.push_back(computeCylinderPose(st_pt, end_pt));
-  collision_cylinder.primitive_poses.push_back(pose);
+  collision_cylinder.primitive_poses.push_back(computeCylinderPose(st_pt, end_pt));
 
-  // test
-  moveit_msgs::CollisionObject collision_box;
-  std::string box_id = "box_" + std::to_string(id);
-
-  collision_box.id = box_id;
-  collision_box.header.frame_id = "world_frame";
-  collision_box.operation = moveit_msgs::CollisionObject::ADD;
-
-  shape_msgs::SolidPrimitive box_solid;
-  box_solid.type = shape_msgs::SolidPrimitive::BOX;
-  box_solid.dimensions.resize(3);
-  box_solid.dimensions[0] = 0.1;
-  box_solid.dimensions[1] = 0.1;
-  box_solid.dimensions[2] = 0.1;
-
-  collision_box.primitives.push_back(box_solid);
-  collision_box.primitive_poses.push_back(pose);
-
-//  return collision_box;
   return collision_cylinder;
 }
 

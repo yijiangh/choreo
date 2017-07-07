@@ -51,10 +51,6 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
 
   // Transform process path from geometry msgs to descartes points
   std::vector<double> current_joints = getCurrentJointState(JOINT_TOPIC_NAME);
-  for (int i = 0; i < current_joints.size(); i++)
-  {
-    ROS_INFO_STREAM(current_joints[i]);
-  }
 
   addCollisionObject(planning_scene_diff_client_, process_path[0].collision_cylinder);
 
