@@ -9,9 +9,9 @@
   <arg name="save_location" default="$(env HOME)/.ros/" />
 
   <!-- Launches process planners: requires descartes plugin for the robot model -->
-<!--  <include file="$(find framefab_process_planning)/launch/process_planning.launch">-->
-<!--    <arg name="robot_model_plugin" value="$(arg robot_model_plugin)"/>-->
-<!--  </include>-->
+  <include file="$(find framefab_process_planning)/launch/process_planning.launch">
+    <arg name="robot_model_plugin" value="$(arg robot_model_plugin)"/>
+  </include>
 
   <!-- Brings up the core Framefab service - the central coordination -->
   <include file="$(find framefab_core)/launch/framefab_core.launch">

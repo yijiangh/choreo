@@ -1,50 +1,42 @@
 //
-// Created by yijiangh on 6/18/17.
+// Created by yijiangh on 7/5/17.
 //
-#include <ros/ros.h>
-// Process Services
-#include <godel_process_planning/godel_process_planning.h>
 
-// Globals
-const static std::string DEFAULT_FRAMEFAB_PLANNING_SERVICE = "framefab_process_planning";
+#include "framefab_process_planning/framefab_process_planning.h"
+#include <moveit/robot_model_loader/robot_model_loader.h>
 
-int main(int argc, char** argv)
+// service
+#include <moveit_msgs/ApplyPlanningScene.h>
+
+const static std::string APPLY_PLANNING_SCENE_SERVICE = "apply_planning_scene";
+
+framefab_process_planning::ProcessPlanningManager::ProcessPlanningManager(
+    const std::string& world_frame, const std::string& hotend_group, const std::string& hotend_tcp,
+    const std::string& robot_model_plugin)
+    : plugin_loader_("descartes_core", "descartes_core::RobotModel"),
+      hotend_group_name_(hotend_group)
 {
-  ros::init(argc, argv, "godel_process_planning");
-
-  // Load local parameters
-  ros::NodeHandle nh, pnh("~");
-  std::string world_frame, blend_group, keyence_group, blend_tcp, keyence_tcp, robot_model_plugin;
-  pnh.param<std::string>("world_frame", world_frame, "world_frame");
-  pnh.param<std::string>("blend_group", blend_group, "manipulator_tcp");
-  pnh.param<std::string>("keyence_group", keyence_group, "manipulator_keyence");
-  pnh.param<std::string>("blend_tcp", blend_tcp, "tcp_frame");
-  pnh.param<std::string>("keyence_tcp", keyence_tcp, "keyence_tcp_frame");
-  pnh.param<std::string>("robot_model_plugin", robot_model_plugin, "");
-
-  // IK Plugin parameter must be specified
-  if (robot_model_plugin.empty())
+  // Attempt to load and initialize the printing robot model (hotend)
+  hotend_model_ = plugin_loader_.createInstance(robot_model_plugin);
+  if (!hotend_model_)
   {
-    ROS_ERROR_STREAM("MUST SPECIFY PARAMETER 'robot_model_plugin' for framefab_process_planning node");
-    return -1;
+    throw std::runtime_error(std::string("Could not load: ") + robot_model_plugin);
   }
 
-  using godel_process_planning::ProcessPlanningManager;
+  if (!hotend_model_->initialize("robot_description", hotend_group, world_frame, hotend_tcp))
+  {
+    throw std::runtime_error("Unable to initialize printing robot model");
+  }
 
-  // Creates a planning manager that will create the appropriate planning classes and perform
-  // all required initialization. It exposes member functions to handle each kind of processing
-  // event.
-  ProcessPlanningManager manager(world_frame, blend_group, blend_tcp, keyence_group, keyence_tcp,
-                                 robot_model_plugin);
-  // Plumb in the appropriate ros services
-  ros::ServiceServer blend_server = nh.advertiseService(
-      DEFAULT_BLEND_PLANNING_SERVICE, &ProcessPlanningManager::handleBlendPlanning, &manager);
-  ros::ServiceServer keyence_server = nh.advertiseService(
-      DEFAULT_KEYENCE_PLANNING_SERVICE, &ProcessPlanningManager::handleKeyencePlanning, &manager);
+  // Load the moveit model
+  robot_model_loader::RobotModelLoader robot_model_loader("robot_description");
+  moveit_model_ = robot_model_loader.getModel();
 
-  // Serve and wait for shutdown
-  ROS_INFO_STREAM("Godel Process Planning Server Online");
-  ros::spin();
+  if (moveit_model_.get() == NULL)
+  {
+    throw std::runtime_error("Could not load moveit robot model");
+  }
 
-  return 0;
+  planning_scene_diff_client_ =
+      nh_.serviceClient<moveit_msgs::ApplyPlanningScene>(APPLY_PLANNING_SCENE_SERVICE);
 }
