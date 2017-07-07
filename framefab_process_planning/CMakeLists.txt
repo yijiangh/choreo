@@ -44,7 +44,7 @@ add_executable(framefab_process_planning_node
   src/print_process_planning.cpp
 #  src/trajectory_utils.cpp
 #  src/generate_motion_plan.cpp
-#  src/path_transitions.cpp
+  src/path_transitions.cpp
 )
 
 ## Add cmake target dependencies of the executable/library
