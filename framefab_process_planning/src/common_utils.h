@@ -13,6 +13,7 @@
 
 namespace framefab_process_planning
 {
+typedef std::vector<descartes_core::TrajectoryPtPtr> DescartesTraj;
 
 std::vector<double> getCurrentJointState(const std::string& topic);
 
