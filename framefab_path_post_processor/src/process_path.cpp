@@ -52,18 +52,39 @@ moveit_msgs::CollisionObject framefab_utils::UnitProcessPath::createCollisionObj
   collision_cylinder.header.frame_id = "world_frame";
   collision_cylinder.operation = moveit_msgs::CollisionObject::ADD;
 
+  /* A default pose */
+  geometry_msgs::Pose pose;
+  pose.orientation.w = 1.0;
+
   // TODO: turn cylinder radiuus as input parameter
   shape_msgs::SolidPrimitive cylinder_solid;
   cylinder_solid.type = shape_msgs::SolidPrimitive::CYLINDER;
   cylinder_solid.dimensions.resize(2);
   cylinder_solid.dimensions[0] = dist(st_pt, end_pt);
   cylinder_solid.dimensions[1] = element_diameter;
-  collision_cylinder.primitives.resize(1);
   collision_cylinder.primitives.push_back(cylinder_solid);
+//  collision_cylinder.primitive_poses.push_back(computeCylinderPose(st_pt, end_pt));
+  collision_cylinder.primitive_poses.push_back(pose);
 
-  collision_cylinder.primitive_poses.resize(1);
-  collision_cylinder.primitive_poses.push_back(computeCylinderPose(st_pt, end_pt));
+  // test
+  moveit_msgs::CollisionObject collision_box;
+  std::string box_id = "box_" + std::to_string(id);
 
+  collision_box.id = box_id;
+  collision_box.header.frame_id = "world_frame";
+  collision_box.operation = moveit_msgs::CollisionObject::ADD;
+
+  shape_msgs::SolidPrimitive box_solid;
+  box_solid.type = shape_msgs::SolidPrimitive::BOX;
+  box_solid.dimensions.resize(3);
+  box_solid.dimensions[0] = 0.1;
+  box_solid.dimensions[1] = 0.1;
+  box_solid.dimensions[2] = 0.1;
+
+  collision_box.primitives.push_back(box_solid);
+  collision_box.primitive_poses.push_back(pose);
+
+//  return collision_box;
   return collision_cylinder;
 }
 
