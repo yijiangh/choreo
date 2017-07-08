@@ -63,7 +63,7 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
 
   const static double LINEAR_DISCRETIZATION = 0.01; // meters
   const static double ANGULAR_DISCRETIZATION = 0.1; // radians
-  const static double RETRACT_DISTANCE = 0.05; // meters
+  const static double RETRACT_DISTANCE = 0.005; // meters
 
   TransitionParameters transition_params;
   transition_params.linear_disc = LINEAR_DISCRETIZATION;

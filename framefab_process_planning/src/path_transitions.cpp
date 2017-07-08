@@ -24,6 +24,78 @@ struct Vector3dAvrSort
   }
 };
 
+static EigenSTL::vector_Affine3d interpolateCartesian(const Eigen::Affine3d& start, const Eigen::Affine3d& stop,
+                                                      const double ds, const double dt)
+{
+  // Required position change
+  Eigen::Vector3d delta_translation = (stop.translation() - start.translation());
+  Eigen::Vector3d start_pos = start.translation();
+  Eigen::Affine3d stop_prime = start.inverse()*stop; //This the stop pose represented in the start pose coordinate system
+  Eigen::AngleAxisd delta_rotation(stop_prime.rotation());
+
+  // Calculate number of steps
+  unsigned steps_translation = static_cast<unsigned>(delta_translation.norm() / ds) + 1;
+  unsigned steps_rotation = static_cast<unsigned>(delta_rotation.angle() / dt) + 1;
+  unsigned steps = std::max(steps_translation, steps_rotation);
+
+  // Step size
+  Eigen::Vector3d step = delta_translation / steps;
+
+  // Orientation interpolation
+  Eigen::Quaterniond start_q (start.rotation());
+  Eigen::Quaterniond stop_q (stop.rotation());
+  double slerp_ratio = 1.0 / steps;
+
+  std::vector<Eigen::Affine3d, Eigen::aligned_allocator<Eigen::Affine3d> > result;
+  Eigen::Vector3d trans;
+  Eigen::Quaterniond q;
+  Eigen::Affine3d pose;
+  result.reserve(steps+1);
+  for (unsigned i = 0; i <= steps; ++i)
+  {
+    trans = start_pos + step * i;
+    q = start_q.slerp(slerp_ratio * i, stop_q);
+    pose = (Eigen::Translation3d(trans) * q);
+    result.push_back(pose);
+  }
+  return result;
+}
+
+static EigenSTL::vector_Affine3d retractPath(const Eigen::Affine3d& pose, double retract_dist,
+                                             const double linear_disc, const double angular_disc)
+{
+  Eigen::Affine3d retract_pose = Eigen::Translation3d(0, 0, retract_dist) * Eigen::AngleAxisd(0, Eigen::Vector3d::UnitZ());
+  retract_pose = pose * retract_pose;
+
+  auto segment_retract = interpolateCartesian(pose, retract_pose, linear_disc, angular_disc);
+
+  EigenSTL::vector_Affine3d result;
+  result.insert(result.end(), segment_retract.begin(), segment_retract.end());
+
+  return result;
+}
+
+void framefab_process_planning::generateTransitions(std::vector<ProcessPathPose>& process_path_poses,
+                         const TransitionParameters& params)
+{
+  for (int i = 0; i < process_path_poses.size(); i++)
+  {
+    Eigen::Affine3d start_pose = process_path_poses[i].print[0];
+    Eigen::Affine3d end_pose = process_path_poses[i].print[1];
+
+    // generate intermediate waypoints
+    auto approach = retractPath(start_pose, params.retract_dist,
+                                               params.linear_disc, params.angular_disc);
+
+    auto depart = retractPath(end_pose, params.retract_dist,
+                                               params.linear_disc, params.angular_disc);
+    std::reverse(approach.begin(), approach.end());
+
+    process_path_poses[i].approach = approach;
+    process_path_poses[i].depart = depart;
+  }
+}
+
 void framefab_process_planning::generatePrintPoses(const std::vector<framefab_msgs::ElementCandidatePoses>& process_path,
                           std::vector<ProcessPathPose>& process_path_poses)
 {
@@ -102,8 +174,19 @@ framefab_process_planning::toDescartesTraj(const std::vector<framefab_msgs::Elem
   // generate pose for print start & end
   generatePrintPoses(process_path, process_path_poses);
 
+  // add retract pose
+  generateTransitions(process_path_poses, transition_params);
 
   auto v = process_path_poses[index];
+  for(auto v_app : process_path_poses[index].approach)
+  {
+    visual_tool->publishAxis(v_app, visual_axis_length, visual_axis_diameter, "pose_axis");
+  }
+
+  for(auto v_dep : process_path_poses[index].depart)
+  {
+    visual_tool->publishAxis(v_dep, visual_axis_length, visual_axis_diameter, "pose_axis");
+  }
   visual_tool->publishAxis(v.print[0], visual_axis_length, visual_axis_diameter, "pose_axis");
   visual_tool->publishAxis(v.print[1], visual_axis_length, visual_axis_diameter, "pose_axis");
   visual_tool->trigger();

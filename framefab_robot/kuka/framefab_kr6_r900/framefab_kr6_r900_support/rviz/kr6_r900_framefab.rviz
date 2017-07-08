@@ -36,7 +36,6 @@ Panels:
         - /MotionPlanning1/Scene Geometry1
         - /MotionPlanning1/Planned Path1
         - /MarkerArray1
-        - /PlanningScene1
         - /MarkerArray2
       Splitter Ratio: 0.5
     Tree Height: 369
@@ -227,14 +226,6 @@ Visualization Manager:
       Update Interval: 0
       Value: true
       Visual Enabled: true
-    - Class: rviz/MarkerArray
-      Enabled: true
-      Marker Topic: /framefab_core_service/path_visualization
-      Name: MarkerArray
-      Namespaces:
-        Cylinder: true
-      Queue Size: 100
-      Value: true
     - Class: moveit_rviz_plugin/PlanningScene
       Enabled: true
       Move Group Namespace: ""
@@ -322,6 +313,14 @@ Visualization Manager:
       Value: true
     - Class: rviz/MarkerArray
       Enabled: true
+      Marker Topic: /framefab_core_service/path_visualization
+      Name: MarkerArray
+      Namespaces:
+        Arrow: true
+      Queue Size: 100
+      Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
       Marker Topic: framefab_process_planning/pose_visualization
       Name: MarkerArray
       Namespaces:
@@ -343,24 +342,24 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 1.73229516
+      Distance: 1.41394258
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.505190492
-        Y: 0.0193919316
+        X: 0.158523679
+        Y: 0.246522337
         Z: 1.53482085e-06
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.295203596
+      Pitch: 0.0702033937
       Target Frame: arm_base_link
       Value: XYOrbit (rviz)
-      Yaw: 0.436756372
+      Yaw: 5.65493631
     Saved: ~
 Window Geometry:
   Displays:
