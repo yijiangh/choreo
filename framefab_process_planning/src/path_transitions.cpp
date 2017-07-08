@@ -2,7 +2,10 @@
 // Created by yijiangh on 7/7/17.
 //
 #include "path_transitions.h"
+
 #include <algorithm>
+
+#include <Eigen/Geometry>
 
 struct Vector3dAvrSort
 {
@@ -35,21 +38,21 @@ void framefab_process_planning::generatePrintPoses(const std::vector<framefab_ms
     tf::pointMsgToEigen(process_path[i].end_pt, end_v);
 
     // compute average feasible orientation
-    Eigen::Vector3d avr_vec = Eigen::Vector3d(0,0,0);
+    Eigen::Vector3d avr_vec = Eigen::Vector3d(0, 0, 0);
     int m = process_path[i].feasible_orients.size();
-    std::vector<Vector3dAvrSort> sort_vlist;
+    std::vector <Vector3dAvrSort> sort_vlist;
 
-    for(int j = 0; j < m; j++)
+    for (int j = 0; j < m; j++)
     {
       Eigen::Vector3d e;
       tf::vectorMsgToEigen(process_path[i].feasible_orients[j], e);
-      avr_vec  = avr_vec  + e;
+      avr_vec = avr_vec + e;
       sort_vlist.push_back(Vector3dAvrSort(e));
     }
     avr_vec.normalize();
 
     // construct the sort list
-    for(Vector3dAvrSort v : sort_vlist)
+    for (Vector3dAvrSort v : sort_vlist)
     {
       v.setKey(avr_vec);
     }
@@ -58,11 +61,11 @@ void framefab_process_planning::generatePrintPoses(const std::vector<framefab_ms
     Eigen::Vector3d z_axis = sort_vlist.begin()->v_;
 
     // generate start & end pose using generated vector as axis
-    start_pose.translation() = start_v;
-    end_pose.translation() = end_v;
+    Eigen::Vector3d global_z_axis(0.0, 0.0, 1.0);
+    Eigen::Quaterniond quat = Eigen::Quaterniond::FromTwoVectors(global_z_axis, z_axis);
 
-    
-
+    start_pose = (Eigen::Translation3d(start_v) * quat);
+    end_pose = (Eigen::Translation3d(end_v) * quat);
   }
 }
 
