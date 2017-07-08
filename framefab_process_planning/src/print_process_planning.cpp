@@ -63,8 +63,8 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
   transition_params.angular_disc = ANGULAR_DISCRETIZATION;
   transition_params.retract_dist = RETRACT_DISTANCE;
 
-//  DescartesTraj process_points = toDescartesTraj(req.path.segments, req.params.traverse_spd, transition_params,
-//                                                 toDescartesBlendPt);
+  std::vector<DescartesTraj> process_points = toDescartesTraj(req.process_path, 0.01, transition_params,
+                                                 toDescartesPrintPt);
 
 //  generateMotionPlan(blend_model_, process_points, moveit_model_, blend_group_name_,
 //                         current_joints, res.plan)

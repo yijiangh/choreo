@@ -7,6 +7,9 @@
 
 #include <Eigen/Geometry>
 
+// rviz visual debug
+#include <rviz_visual_tools/rviz_visual_tools.h>
+
 struct Vector3dAvrSort
 {
   double key_;
@@ -66,6 +69,12 @@ void framefab_process_planning::generatePrintPoses(const std::vector<framefab_ms
 
     start_pose = (Eigen::Translation3d(start_v) * quat);
     end_pose = (Eigen::Translation3d(end_v) * quat);
+
+    ProcessPathPose unit_process;
+    unit_process.print.push_back(start_pose);
+    unit_process.print.push_back(end_pose);
+
+    process_path_poses[i] = unit_process;
   }
 }
 
@@ -77,6 +86,13 @@ framefab_process_planning::toDescartesTraj(const std::vector<framefab_msgs::Elem
                                         const double process_speed, const TransitionParameters& transition_params,
                                         DescartesConversionFunc conversion_fn)
 {
+  // visual debug
+  rviz_visual_tools::RvizVisualToolsPtr visual_tool;
+  visual_tool.reset(
+      new rviz_visual_tools::RvizVisualTools("world_frame", "pose_visualization"));
+  double visual_axis_length = 0.01;
+  double visual_axis_diameter = 0.001;
+
   // sort for every ElementCandidatePoses's feasible orientation
   // just for experiment, take the one closest to average orientation
   // convert all process path into pose_array (st_pt, end_pt, take the selected vector as z axis)
@@ -85,6 +101,13 @@ framefab_process_planning::toDescartesTraj(const std::vector<framefab_msgs::Elem
 
   // generate pose for print start & end
   generatePrintPoses(process_path, process_path_poses);
+
+  for(auto v : process_path_poses)
+  {
+    visual_tool->publishAxis(v.print[0], visual_axis_length, visual_axis_diameter, "pose_axis");
+    visual_tool->publishAxis(v.print[1], visual_axis_length, visual_axis_diameter, "pose_axis");
+  }
+  visual_tool->trigger();
 
   // add retraction point
 //  generateTransitions(process_path_poses, transition_params);

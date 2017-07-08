@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
 	moveit_msgs
   moveit_ros_planning_interface
   roscpp
+	rviz_visual_tools
 )
 
 catkin_package(
@@ -25,6 +26,7 @@ catkin_package(
 		moveit_msgs
     moveit_ros_planning_interface 
     roscpp
+		rviz_visual_tools
 )
 
 ###########
