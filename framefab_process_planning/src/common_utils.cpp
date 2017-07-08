@@ -26,7 +26,7 @@ bool framefab_process_planning::addCollisionObject(
 {
   if(planning_scene_diff_client.waitForExistence())
   {
-    ROS_INFO_STREAM("planning scene diff srv connected!");
+//    ROS_INFO_STREAM("planning scene diff srv connected!");
   }
   else
   {
@@ -42,7 +42,7 @@ bool framefab_process_planning::addCollisionObject(
 
   if(planning_scene_diff_client.call(srv))
   {
-    ROS_INFO_STREAM("adding new collision object to planning scene published!");
+//    ROS_INFO_STREAM("adding new collision object to planning scene published!");
     return true;
   }
   else

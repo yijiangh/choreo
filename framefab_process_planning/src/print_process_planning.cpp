@@ -59,7 +59,10 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
   // Transform process path from geometry msgs to descartes points
   std::vector<double> current_joints = getCurrentJointState(JOINT_TOPIC_NAME);
 
-  addCollisionObject(planning_scene_diff_client_, process_path[0].collision_cylinder);
+  for(std::size_t i = 0; i < index; i++)
+  {
+    addCollisionObject(planning_scene_diff_client_, process_path[i].collision_cylinder);
+  }
 
   const static double LINEAR_DISCRETIZATION = 0.01; // meters
   const static double ANGULAR_DISCRETIZATION = 0.1; // radians
