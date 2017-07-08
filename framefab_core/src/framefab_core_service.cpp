@@ -202,6 +202,7 @@ bool FrameFabCoreService::visualize_selected_path_server_callback(
   if(req.index != -1)
   {
     visual_tool_.visualizePath(req.index);
+    visual_tool_.visualizeFeasibleOrientations(req.index, true);
     res.succeeded = true;
   }
   else
@@ -270,6 +271,10 @@ void FrameFabCoreService::processPlanningActionCallback(const framefab_msgs::Pro
     {
       process_planning_feedback_.last_completed = "Recieved request to generate motion plan\n";
       process_planning_server_.publishFeedback(process_planning_feedback_);
+
+      visual_tool_.cleanUpAllPaths();
+      visual_tool_.visualizePath(goal_in->index);
+      visual_tool_.visualizeFeasibleOrientations(goal_in->index, false);
 
       // TODO: make a trajectory library and ui for user to choose
       bool success = generateMotionLibrary(goal_in->index, trajectory_library_);

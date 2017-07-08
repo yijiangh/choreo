@@ -83,7 +83,7 @@ boost::function<descartes_core::TrajectoryPtPtr (const Eigen::Affine3d &, const 
 
 std::vector<framefab_process_planning::DescartesTraj>
 framefab_process_planning::toDescartesTraj(const std::vector<framefab_msgs::ElementCandidatePoses>& process_path,
-                                        const double process_speed, const TransitionParameters& transition_params,
+                                        const int index, const double process_speed, const TransitionParameters& transition_params,
                                         DescartesConversionFunc conversion_fn)
 {
   // visual debug
@@ -102,11 +102,10 @@ framefab_process_planning::toDescartesTraj(const std::vector<framefab_msgs::Elem
   // generate pose for print start & end
   generatePrintPoses(process_path, process_path_poses);
 
-  for(auto v : process_path_poses)
-  {
-    visual_tool->publishAxis(v.print[0], visual_axis_length, visual_axis_diameter, "pose_axis");
-    visual_tool->publishAxis(v.print[1], visual_axis_length, visual_axis_diameter, "pose_axis");
-  }
+
+  auto v = process_path_poses[index];
+  visual_tool->publishAxis(v.print[0], visual_axis_length, visual_axis_diameter, "pose_axis");
+  visual_tool->publishAxis(v.print[1], visual_axis_length, visual_axis_diameter, "pose_axis");
   visual_tool->trigger();
 
   // add retraction point

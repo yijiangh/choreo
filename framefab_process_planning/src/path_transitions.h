@@ -36,6 +36,7 @@ void generateTransitions(const std::vector<geometry_msgs::PoseArray>& segments,
 
 std::vector<framefab_process_planning::DescartesTraj>
 toDescartesTraj(const std::vector<framefab_msgs::ElementCandidatePoses>& process_path,
+                const int selected_path_id,
                 const double process_speed, const TransitionParameters& transition_params,
                 boost::function<descartes_core::TrajectoryPtPtr(const Eigen::Affine3d&, const double)> conversion_fn);
 

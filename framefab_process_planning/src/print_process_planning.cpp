@@ -5,7 +5,11 @@
 #include <framefab_process_planning/framefab_process_planning.h>
 #include <ros/console.h>
 
+// msg
 #include <framefab_msgs/ElementCandidatePoses.h>
+
+// service
+#include <framefab_msgs/ProcessPlanning.h>
 
 // descartes
 #include "descartes_trajectory/axial_symmetric_pt.h"
@@ -38,6 +42,9 @@ descartes_core::TrajectoryPtPtr toDescartesPrintPt(const Eigen::Affine3d &pose, 
 bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning::Request &req,
                                                  framefab_msgs::ProcessPlanning::Response &res)
 {
+  // selected path index
+  int index = req.index;
+
   // Enable Collision Checks
   hotend_model_->setCheckCollisions(true);
 
@@ -63,8 +70,9 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
   transition_params.angular_disc = ANGULAR_DISCRETIZATION;
   transition_params.retract_dist = RETRACT_DISTANCE;
 
-  std::vector<DescartesTraj> process_points = toDescartesTraj(req.process_path, 0.01, transition_params,
-                                                 toDescartesPrintPt);
+  std::vector<DescartesTraj> process_points = toDescartesTraj(req.process_path,
+                                                              index, 0.01, transition_params,
+                                                              toDescartesPrintPt);
 
 //  generateMotionPlan(blend_model_, process_points, moveit_model_, blend_group_name_,
 //                         current_joints, res.plan)
