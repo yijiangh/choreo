@@ -17,6 +17,7 @@ bool FrameFabCoreService::generateMotionLibrary(
   // call process_processing srv
   framefab_msgs::ProcessPlanning srv;
 //  srv.request.params = process_planning_params_;
+  srv.request.index = selected_path_index;
   srv.request.process_path = process_paths_;
 
   if(!process_planning_client_.call(srv))

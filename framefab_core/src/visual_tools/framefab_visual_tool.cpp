@@ -84,9 +84,16 @@ void framefab_visual_tools::FrameFabVisualTool::visualizeAllPaths()
       type_color = rviz_visual_tools::RED;
     }
 
-    visual_tools_->publishCylinder(visual_path_array_[i].start_pt,
-                                   visual_path_array_[i].end_pt,
-                                   type_color, visual_path_array_[i].diameter, "Cylinder");
+//    visual_tools_->publishCylinder(visual_path_array_[i].start_pt,
+//                                   visual_path_array_[i].end_pt,
+//                                   type_color, visual_path_array_[i].diameter, "Cylinder");
+
+    visual_tools_->publishArrow(
+        visual_tools_->getVectorBetweenPoints(visual_path_array_[i].start_pt,
+                                              visual_path_array_[i].end_pt),
+        type_color, rviz_visual_tools::XXXXSMALL,
+        (visual_path_array_[i].start_pt - visual_path_array_[i].end_pt).norm(),
+        i);
   }
 
   visual_tools_->trigger();
@@ -104,21 +111,32 @@ void framefab_visual_tools::FrameFabVisualTool::visualizePath(int i)
   {
     for(int j=0; j < i; j++)
     {
-      visual_tools_->publishCylinder(visual_path_array_[j].start_pt,
-                                     visual_path_array_[j].end_pt,
-                                     rviz_visual_tools::GREY,
-                                     visual_path_array_[i].diameter,
-                                     "Cylinder");
+//      visual_tools_->publishCylinder(visual_path_array_[j].start_pt,
+//                                     visual_path_array_[j].end_pt,
+//                                     rviz_visual_tools::GREY,
+//                                     visual_path_array_[i].diameter,
+//                                     "Cylinder");
+
+      visual_tools_->publishArrow(
+          visual_tools_->getVectorBetweenPoints(visual_path_array_[j].start_pt,
+                                                visual_path_array_[j].end_pt),
+          rviz_visual_tools::GREY, rviz_visual_tools::XXXXSMALL,
+          (visual_path_array_[j].start_pt - visual_path_array_[j].end_pt).norm(),
+          j);
     }
   }
 
-  visual_tools_->publishCylinder(visual_path_array_[i].start_pt,
-                                 visual_path_array_[i].end_pt,
-                                 rviz_visual_tools::TRANSLUCENT,
-                                 visual_path_array_[i].diameter,
-                                 "Cylinder");
-
-  visualizeFeasibleOrientations(i);
+//  visual_tools_->publishCylinder(visual_path_array_[i].start_pt,
+//                                 visual_path_array_[i].end_pt,
+//                                 rviz_visual_tools::TRANSLUCENT,
+//                                 visual_path_array_[i].diameter,
+//                                 "Cylinder");
+  visual_tools_->publishArrow(
+      visual_tools_->getVectorBetweenPoints(visual_path_array_[i].start_pt,
+                                            visual_path_array_[i].end_pt),
+      rviz_visual_tools::TRANSLUCENT, rviz_visual_tools::XXXXSMALL,
+      (visual_path_array_[i].start_pt - visual_path_array_[i].end_pt).norm(),
+      i);
 
   visual_tools_->trigger();
 }
@@ -129,24 +147,46 @@ void framefab_visual_tools::FrameFabVisualTool::cleanUpAllPaths()
   visual_tools_->trigger();
 }
 
-void framefab_visual_tools::FrameFabVisualTool::visualizeFeasibleOrientations(int i)
+void framefab_visual_tools::FrameFabVisualTool::visualizeFeasibleOrientations(int i, bool solid)
 {
   assert(0 <= i && i < visual_path_array_.size());
 
   for(int j = 0; j < visual_path_array_[i].oriented_st_pts.size(); j++)
   {
+    rviz_visual_tools::colors type_color;
+    if(!solid)
+    {
+      type_color = rviz_visual_tools::TRANSLUCENT;
+    }
+    else
+    {
+      type_color = rviz_visual_tools::GREEN;
+    }
+
     visual_tools_->publishCylinder(
         visual_path_array_[i].start_pt,
         visual_path_array_[i].oriented_st_pts[j],
-        rviz_visual_tools::GREEN,
+        type_color,
         0.001,
         "orientation_cylinder");
+  }
+
+  rviz_visual_tools::colors type_color_avr;
+  if(!solid)
+  {
+    type_color_avr = rviz_visual_tools::TRANSLUCENT;
+  }
+  else
+  {
+    type_color_avr = rviz_visual_tools::PURPLE;
   }
 
   visual_tools_->publishCylinder(
       visual_path_array_[i].start_pt,
       visual_path_array_[i].avr_orient_vec,
-      rviz_visual_tools::PURPLE,
+      type_color_avr,
       0.001,
       "orientation_cylinder");
+
+  visual_tools_->trigger();
 }

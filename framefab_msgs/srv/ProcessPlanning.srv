@@ -1,3 +1,8 @@
+int32 ALL=-1
+
+# selected path id
+int32 index
+
 # process planning parameters
 framefab_msgs/ProcessPlanningParameters params
 

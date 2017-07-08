@@ -8,6 +8,7 @@
 #include <framefab_msgs/ElementCandidatePoses.h>
 #include <moveit_msgs/CollisionObject.h>
 
+// robot model
 #include <descartes_core/robot_model.h>
 #include <pluginlib/class_loader.h>
 

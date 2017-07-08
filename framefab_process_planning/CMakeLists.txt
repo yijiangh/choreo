@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
 	moveit_msgs
   moveit_ros_planning_interface
   roscpp
+	rviz_visual_tools
 )
 
 catkin_package(
@@ -25,6 +26,7 @@ catkin_package(
 		moveit_msgs
     moveit_ros_planning_interface 
     roscpp
+		rviz_visual_tools
 )
 
 ###########
@@ -44,7 +46,7 @@ add_executable(framefab_process_planning_node
   src/print_process_planning.cpp
 #  src/trajectory_utils.cpp
 #  src/generate_motion_plan.cpp
-#  src/path_transitions.cpp
+  src/path_transitions.cpp
 )
 
 ## Add cmake target dependencies of the executable/library

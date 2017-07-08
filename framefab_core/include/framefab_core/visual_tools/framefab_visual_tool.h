@@ -63,7 +63,7 @@ class FrameFabVisualTool
   void visualizeAllPaths();
   void visualizePath(int index);
 
-  void visualizeFeasibleOrientations(int index);
+  void visualizeFeasibleOrientations(int index, bool solid);
 
   void cleanUpAllPaths();
 
