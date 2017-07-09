@@ -59,11 +59,9 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
   // Transform process path from geometry msgs to descartes points
   std::vector<double> current_joints = getCurrentJointState(JOINT_TOPIC_NAME);
 
-  addCollisionObject(planning_scene_diff_client_, process_path[0].collision_cylinder);
-
   const static double LINEAR_DISCRETIZATION = 0.01; // meters
   const static double ANGULAR_DISCRETIZATION = 0.1; // radians
-  const static double RETRACT_DISTANCE = 0.05; // meters
+  const static double RETRACT_DISTANCE = 0.005; // meters
 
   TransitionParameters transition_params;
   transition_params.linear_disc = LINEAR_DISCRETIZATION;
@@ -76,6 +74,12 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
 
 //  generateMotionPlan(blend_model_, process_points, moveit_model_, blend_group_name_,
 //                         current_joints, res.plan)
+
+  // TODO: collision objects should be added in each planning iteration
+  //  for(std::size_t i = 0; i < index; i++)
+//  {
+//    addCollisionObject(planning_scene_diff_client_, process_path[i].collision_cylinder);
+//  }
 
   return true;
 }

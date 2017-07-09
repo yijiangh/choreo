@@ -17,9 +17,9 @@ namespace framefab_process_planning
 
 struct ProcessPathPose
 {
-  EigenSTL::vector_Affine3d depart;
-  EigenSTL::vector_Affine3d print; // start & end node
   EigenSTL::vector_Affine3d approach;
+  EigenSTL::vector_Affine3d print; // start & end node
+  EigenSTL::vector_Affine3d depart;
 };
 
 struct TransitionParameters
@@ -31,7 +31,7 @@ struct TransitionParameters
 
 void generatePrintPoses(const std::vector<framefab_msgs::ElementCandidatePoses>& process_path,
                           std::vector<ProcessPathPose>& process_path_poses);
-void generateTransitions(const std::vector<geometry_msgs::PoseArray>& segments,
+void generateTransitions(std::vector<ProcessPathPose>& process_path_poses,
                          const TransitionParameters& params);
 
 std::vector<framefab_process_planning::DescartesTraj>

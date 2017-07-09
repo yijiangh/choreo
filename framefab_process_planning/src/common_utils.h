@@ -7,6 +7,8 @@
 
 #include <ros/ros.h>
 
+#include <Eigen/Geometry>
+
 // descartes
 #include <descartes_core/trajectory_pt.h>
 #include <descartes_core/robot_model.h>
@@ -20,6 +22,14 @@
 namespace framefab_process_planning
 {
 typedef std::vector<descartes_core::TrajectoryPtPtr> DescartesTraj;
+
+Eigen::Affine3d createNominalTransform(const geometry_msgs::Pose& ref_pose,
+                                       const geometry_msgs::Point& pt);
+
+Eigen::Affine3d createNominalTransform(const geometry_msgs::Pose& ref_pose, const double z_adjust = 0.0);
+
+
+Eigen::Affine3d createNominalTransform(const Eigen::Affine3d& ref_pose, const double z_adjust = 0.0);
 
 std::vector<double> getCurrentJointState(const std::string& topic);
 

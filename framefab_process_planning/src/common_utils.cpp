@@ -3,7 +3,9 @@
 //
 
 #include "common_utils.h"
+
 #include <ros/topic.h>
+#include <eigen_conversions/eigen_msg.h>
 
 // services
 #include <moveit_msgs/ApplyPlanningScene.h>
@@ -11,6 +13,47 @@
 // Constants
 const static double DEFAULT_JOINT_WAIT_TIME = 5.0; // Maximum time allowed to capture a new joint
 // state message
+
+Eigen::Affine3d framefab_process_planning::createNominalTransform(const geometry_msgs::Pose& ref_pose,
+                                                               const geometry_msgs::Point& pt)
+{
+  Eigen::Affine3d eigen_pose;
+  Eigen::Vector3d eigen_pt;
+
+  tf::poseMsgToEigen(ref_pose, eigen_pose);
+  tf::pointMsgToEigen(pt, eigen_pt);
+
+  // Translation transform
+  Eigen::Affine3d to_point;
+  to_point = Eigen::Translation3d(eigen_pt);
+
+  // Reverse the Z axis
+  Eigen::Affine3d flip_z;
+  flip_z = Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitY());
+
+  // "snap" to the pt and flip z axis
+  return eigen_pose * to_point * flip_z;
+}
+
+Eigen::Affine3d framefab_process_planning::createNominalTransform(const geometry_msgs::Pose& ref_pose,
+                                                               const double z_adjust)
+{
+  Eigen::Affine3d eigen_pose;
+
+  tf::poseMsgToEigen(ref_pose, eigen_pose);
+
+  return createNominalTransform(eigen_pose, z_adjust);
+}
+
+Eigen::Affine3d framefab_process_planning::createNominalTransform(const Eigen::Affine3d &ref_pose,
+                                                               const double z_adjust)
+{
+  // Reverse the Z axis
+  Eigen::Affine3d flip_z;
+  flip_z = Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitY());
+
+  return ref_pose * Eigen::Translation3d(0, 0, z_adjust) * flip_z;
+}
 
 std::vector<double> framefab_process_planning::getCurrentJointState(const std::string& topic)
 {
@@ -26,7 +69,7 @@ bool framefab_process_planning::addCollisionObject(
 {
   if(planning_scene_diff_client.waitForExistence())
   {
-    ROS_INFO_STREAM("planning scene diff srv connected!");
+//    ROS_INFO_STREAM("planning scene diff srv connected!");
   }
   else
   {
@@ -42,7 +85,7 @@ bool framefab_process_planning::addCollisionObject(
 
   if(planning_scene_diff_client.call(srv))
   {
-    ROS_INFO_STREAM("adding new collision object to planning scene published!");
+//    ROS_INFO_STREAM("adding new collision object to planning scene published!");
     return true;
   }
   else
