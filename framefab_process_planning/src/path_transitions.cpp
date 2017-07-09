@@ -191,8 +191,6 @@ framefab_process_planning::toDescartesTraj(const std::vector<framefab_msgs::Elem
   visual_tool->publishAxis(v.print[1], visual_axis_length, visual_axis_diameter, "pose_axis");
   visual_tool->trigger();
 
-  // add retraction point
-//  generateTransitions(process_path_poses, transition_params);
 
   std::vector<DescartesTraj> trajs;
 //  Eigen::Affine3d last_pose = createNominalTransform(segments.front().poses.front());
