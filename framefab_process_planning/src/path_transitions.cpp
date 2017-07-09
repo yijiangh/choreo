@@ -10,19 +10,28 @@
 // rviz visual debug
 #include <rviz_visual_tools/rviz_visual_tools.h>
 
-struct Vector3dAvrSort
+static double quaternionDistance(const Eigen::Quaterniond& a, const Eigen::Quaterniond& b)
 {
-  double key_;
-  Eigen::Vector3d v_;
+  return std::acos(2.0 * std::pow(a.dot(b), 2.0) - 1.0);
+}
 
-  Vector3dAvrSort(const Eigen::Vector3d& v) : key_(-1), v_(v) {}
+static Eigen::Affine3d closestRotationalPose(const Eigen::Affine3d& start, const Eigen::Affine3d& nominal_stop)
+{
+  Eigen::Affine3d alt_candidate = nominal_stop * Eigen::AngleAxisd(M_PI, Eigen::Vector3d(0, 0, 1));
 
-  void setKey(Eigen::Vector3d avr_e) { key_ = (v_ - avr_e).norm(); }
-  bool operator < (const Vector3dAvrSort& v) const
+  const auto distance1 = quaternionDistance(Eigen::Quaterniond(start.rotation()),
+                                            Eigen::Quaterniond(nominal_stop.rotation()));
+  const auto distance2 = quaternionDistance(Eigen::Quaterniond(start.rotation()),
+                                            Eigen::Quaterniond(alt_candidate.rotation()));
+  if (distance1 < distance2)
   {
-    return (key_ < v.key_);
+    return nominal_stop;
   }
-};
+  else
+  {
+    return alt_candidate;
+  }
+}
 
 static EigenSTL::vector_Affine3d interpolateCartesian(const Eigen::Affine3d& start, const Eigen::Affine3d& stop,
                                                       const double ds, const double dt)
@@ -95,6 +104,20 @@ void framefab_process_planning::generateTransitions(std::vector<ProcessPathPose>
     process_path_poses[i].depart = depart;
   }
 }
+
+struct Vector3dAvrSort
+{
+  double key_;
+  Eigen::Vector3d v_;
+
+  Vector3dAvrSort(const Eigen::Vector3d& v) : key_(-1), v_(v) {}
+
+  void setKey(Eigen::Vector3d avr_e) { key_ = (v_ - avr_e).norm(); }
+  bool operator < (const Vector3dAvrSort& v) const
+  {
+    return (key_ < v.key_);
+  }
+};
 
 void framefab_process_planning::generatePrintPoses(const std::vector<framefab_msgs::ElementCandidatePoses>& process_path,
                           std::vector<ProcessPathPose>& process_path_poses)
@@ -169,7 +192,6 @@ framefab_process_planning::toDescartesTraj(const std::vector<framefab_msgs::Elem
   // just for experiment, take the one closest to average orientation
   // convert all process path into pose_array (st_pt, end_pt, take the selected vector as z axis)
   std::vector<ProcessPathPose> process_path_poses;
-  process_path_poses.resize(process_path.size());
 
   // generate pose for print start & end
   generatePrintPoses(process_path, process_path_poses);
@@ -191,58 +213,46 @@ framefab_process_planning::toDescartesTraj(const std::vector<framefab_msgs::Elem
   visual_tool->publishAxis(v.print[1], visual_axis_length, visual_axis_diameter, "pose_axis");
   visual_tool->trigger();
 
-
-  std::vector<DescartesTraj> trajs;
-//  Eigen::Affine3d last_pose = createNominalTransform(segments.front().poses.front());
-
-  // Convert pose arrays to Eigen types
-//  auto eigen_segments = toEigenArrays(segments);
+  std::vector<DescartesTraj> trajs(process_path_poses.size());
 
   // Inline function for adding a sequence of motions
-//  auto add_segment = [&traj, &last_pose, process_speed, conversion_fn, transition_params]
-//      (const EigenSTL::vector_Affine3d& poses, bool free_last)
-//  {
-//    // Create Descartes trajectory for the segment path
-//    for (std::size_t j = 0; j < poses.size(); ++j)
-//    {
-//      Eigen::Affine3d this_pose = createNominalTransform(poses[j], transition_params.z_adjust);
-//      // O(1) jerky - may need to revisit this time parameterization later. This at least allows
-//      // Descartes to perform some optimizations in its graph serach.
-//      double dt = (this_pose.translation() - last_pose.translation()).norm() / process_speed;
-//
-//      if (dt < 1e-4)
+  auto add_segment = [&trajs, process_speed, conversion_fn, transition_params]
+      (int index, const EigenSTL::vector_Affine3d& poses, bool free_last)
+  {
+    // Create Descartes trajectory for the segment path
+    for (std::size_t j = 0; j < poses.size(); ++j)
+    {
+      Eigen::Affine3d this_pose = createNominalTransform(poses[j]);
+
+      double dt = 0;
+      trajs[index].push_back(conversion_fn(this_pose, dt));
+    }
+  };
+
+  for (std::size_t i = 0; i < index; ++i)
+  {
+    add_segment(i, process_path_poses[i].approach, false);
+
+    add_segment(i, process_path_poses[i].print, false);
+
+    add_segment(i, process_path_poses[i].depart, false);
+
+    if (i != index - 1)
+    {
+      auto connection = interpolateCartesian(process_path_poses[i].depart.back(),
+                                             closestRotationalPose(process_path_poses[i].depart.back(),
+                                                                   process_path_poses[i+1].approach.front()),
+                                             transition_params.linear_disc, transition_params.angular_disc);
+      add_segment(i, connection, false);
+
+//      for(auto v : connection)
 //      {
-//        continue;
+//        visual_tool->publishAxis(v, visual_axis_length, visual_axis_diameter, "pose_axis");
 //      }
-//
-//      if (j == poses.size() - 1 && free_last)
-//      {
-//        dt = 0.0;
-//      }
-//      traj.push_back( conversion_fn(this_pose, dt) );
-//      last_pose = this_pose;
-//    }
-//  };
-//
-//  for (std::size_t i = 0; i < segments.size(); ++i)
-//  {
-//    add_segment(transitions[i].approach, false);
-//
-//    add_segment(eigen_segments[i], false);
-//
-//    add_segment(transitions[i].depart, false);
-//
-//    if (i != segments.size() - 1)
-//    {
-//      // To keep the robot at a safe height while we have no model of the parts we're working on, this code enforces a
-//      // linear travel between poses. The call to closestRotationalPose allows the linear interpolation to happen to the
-//      // pose that is 180 degrees off (about Z) from the nominal one. The discretization in Descartes takes care of the rest.
-//      auto connection = interpolateCartesian(transitions[i].depart.back(),
-//                                             closestRotationalPose(transitions[i].depart.back(), transitions[i+1].approach.front()),
-//                                             transition_params.linear_disc, transition_params.angular_disc);
-//      add_segment(connection, false);
-//    }
-//  } // end segments
+    }
+  } // end segments
+
+//  visual_tool->trigger();
 
   return trajs;
 }
