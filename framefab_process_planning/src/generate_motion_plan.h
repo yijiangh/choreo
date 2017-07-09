@@ -13,7 +13,7 @@ namespace framefab_process_planning
 {
 
 bool generateMotionPlan(const descartes_core::RobotModelPtr model,
-                        const std::vector<std::vector<descartes_core::TrajectoryPtPtr>>& trajs,
+                        const std::vector<DescartesUnitProcess>& trajs,
                         moveit::core::RobotModelConstPtr moveit_model,
                         const std::string& move_group_name,
                         const std::vector<double>& start_state,

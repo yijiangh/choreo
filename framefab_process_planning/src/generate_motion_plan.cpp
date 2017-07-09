@@ -50,18 +50,28 @@ const static bool validateTrajectory(const trajectory_msgs::JointTrajectory& pts
 }
 
 bool framefab_process_planning::generateMotionPlan(const descartes_core::RobotModelPtr model,
-                        const std::vector<std::vector<descartes_core::TrajectoryPtPtr>>& trajs,
+                        const std::vector<DescartesUnitProcess>& trajs,
                         moveit::core::RobotModelConstPtr moveit_model,
                         const std::string& move_group_name,
                         const std::vector<double>& start_state,
                         std::vector<framefab_msgs::UnitProcessPlan>& plan)
 {
-  Eigen::Affine3d start_pose;
-  model->getFK(start_state, start_pose);
+  Eigen::Affine3d last_pose;
+  // start with home pose
+  model->getFK(start_state, last_pose);
 
-  geometry_msgs::Pose s;
-  tf::poseEigenToMsg(start_pose, s);
-  ROS_INFO_STREAM(s);
+  for(std::size_t i = 0; i < trajs.size(); i++)
+  {
+    // update collision objects
+
+    // try descartes planning with connect + unit process
+
+    // if no solution found, descartes planning with unit process
+    // and get free plan for connect path
+
+    // update last pose
+
+  }
 
   return true;
 }

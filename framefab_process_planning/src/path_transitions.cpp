@@ -176,7 +176,7 @@ void framefab_process_planning::generatePrintPoses(const std::vector<framefab_ms
 using DescartesConversionFunc =
 boost::function<descartes_core::TrajectoryPtPtr (const Eigen::Affine3d &, const double)>;
 
-std::vector<framefab_process_planning::DescartesTraj>
+std::vector<framefab_process_planning::DescartesUnitProcess>
 framefab_process_planning::toDescartesTraj(const std::vector<framefab_msgs::ElementCandidatePoses>& process_path,
                                         const int index, const double process_speed, const TransitionParameters& transition_params,
                                         DescartesConversionFunc conversion_fn)
@@ -193,11 +193,11 @@ framefab_process_planning::toDescartesTraj(const std::vector<framefab_msgs::Elem
   generateTransitions(process_path_poses, transition_params);
 
   int selected_path_num = index + 1;
-  std::vector<DescartesTraj> trajs(selected_path_num);
+  std::vector<DescartesUnitProcess> trajs(selected_path_num);
 
   // Inline function for adding a sequence of motions
-  auto add_segment = [&trajs, process_speed, conversion_fn, transition_params]
-      (int id, const EigenSTL::vector_Affine3d& poses, bool free_last)
+  auto add_segment = [process_speed, conversion_fn, transition_params]
+      (DescartesTraj& traj, const EigenSTL::vector_Affine3d& poses, bool free_last)
   {
     // Create Descartes trajectory for the segment path
     for (std::size_t j = 0; j < poses.size(); ++j)
@@ -205,7 +205,7 @@ framefab_process_planning::toDescartesTraj(const std::vector<framefab_msgs::Elem
       Eigen::Affine3d this_pose = createNominalTransform(poses[j]);
 
       double dt = 0;
-      trajs[id].push_back(conversion_fn(this_pose, dt));
+      traj.push_back(conversion_fn(this_pose, dt));
     }
   };
 
@@ -213,11 +213,13 @@ framefab_process_planning::toDescartesTraj(const std::vector<framefab_msgs::Elem
 
   for (std::size_t i = 0; i < selected_path_num; ++i)
   {
-    add_segment(i, process_path_poses[i].approach, false);
+    add_segment(trajs[i].connect_path, process_path_poses[i].connect, false);
 
-    add_segment(i, process_path_poses[i].print, false);
+    add_segment(trajs[i].unit_process_path, process_path_poses[i].approach, false);
 
-    add_segment(i, process_path_poses[i].depart, false);
+    add_segment(trajs[i].unit_process_path, process_path_poses[i].print, false);
+
+    add_segment(trajs[i].unit_process_path, process_path_poses[i].depart, false);
     
     result[i].insert(result[i].end(), process_path_poses[i].approach.begin(), process_path_poses[i].approach.end());
     result[i].insert(result[i].end(), process_path_poses[i].print.begin(), process_path_poses[i].print.end());
