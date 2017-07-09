@@ -218,8 +218,8 @@ framefab_process_planning::toDescartesTraj(const std::vector<framefab_msgs::Elem
     add_segment(i, process_path_poses[i].print, false);
 
     add_segment(i, process_path_poses[i].depart, false);
-
-    result[i].insert(result[i].end(), process_path_poses[i].approach.begin(),process_path_poses[i].approach.end());
+    
+    result[i].insert(result[i].end(), process_path_poses[i].approach.begin(), process_path_poses[i].approach.end());
     result[i].insert(result[i].end(), process_path_poses[i].print.begin(), process_path_poses[i].print.end());
     result[i].insert(result[i].end(), process_path_poses[i].depart.begin(), process_path_poses[i].depart.end());
 
@@ -249,7 +249,11 @@ framefab_process_planning::toDescartesTraj(const std::vector<framefab_msgs::Elem
     visual_tool->trigger();
   }
 
-  visual_tool->trigger();
+  for(auto v : result.back())
+  {
+    visual_tool->publishAxis(v, visual_axis_length, visual_axis_diameter, "pose_axis");
+    visual_tool->trigger();
+  }
 
   return trajs;
 }
