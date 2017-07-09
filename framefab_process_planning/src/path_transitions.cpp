@@ -181,13 +181,6 @@ framefab_process_planning::toDescartesTraj(const std::vector<framefab_msgs::Elem
                                         const int index, const double process_speed, const TransitionParameters& transition_params,
                                         DescartesConversionFunc conversion_fn)
 {
-  // visual debug
-  rviz_visual_tools::RvizVisualToolsPtr visual_tool;
-  visual_tool.reset(
-      new rviz_visual_tools::RvizVisualTools("world_frame", "pose_visualization"));
-  double visual_axis_length = 0.01;
-  double visual_axis_diameter = 0.001;
-
   // sort for every ElementCandidatePoses's feasible orientation
   // just for experiment, take the one closest to average orientation
   // convert all process path into pose_array (st_pt, end_pt, take the selected vector as z axis)
@@ -199,21 +192,7 @@ framefab_process_planning::toDescartesTraj(const std::vector<framefab_msgs::Elem
   // add retract pose
   generateTransitions(process_path_poses, transition_params);
 
-  auto v = process_path_poses[index];
-  for(auto v_app : process_path_poses[index].approach)
-  {
-    visual_tool->publishAxis(v_app, visual_axis_length, visual_axis_diameter, "pose_axis");
-  }
-
-  for(auto v_dep : process_path_poses[index].depart)
-  {
-    visual_tool->publishAxis(v_dep, visual_axis_length, visual_axis_diameter, "pose_axis");
-  }
-  visual_tool->publishAxis(v.print[0], visual_axis_length, visual_axis_diameter, "pose_axis");
-  visual_tool->publishAxis(v.print[1], visual_axis_length, visual_axis_diameter, "pose_axis");
-  visual_tool->trigger();
-
-  std::vector<DescartesTraj> trajs(process_path_poses.size());
+  std::vector<DescartesTraj> trajs(index);
 
   // Inline function for adding a sequence of motions
   auto add_segment = [&trajs, process_speed, conversion_fn, transition_params]
@@ -229,6 +208,8 @@ framefab_process_planning::toDescartesTraj(const std::vector<framefab_msgs::Elem
     }
   };
 
+  std::vector<EigenSTL::vector_Affine3d> result(index);
+
   for (std::size_t i = 0; i < index; ++i)
   {
     add_segment(i, process_path_poses[i].approach, false);
@@ -237,6 +218,10 @@ framefab_process_planning::toDescartesTraj(const std::vector<framefab_msgs::Elem
 
     add_segment(i, process_path_poses[i].depart, false);
 
+    result[i].insert(result[i].end(), process_path_poses[i].approach.begin(),process_path_poses[i].approach.end());
+    result[i].insert(result[i].end(), process_path_poses[i].print.begin(), process_path_poses[i].print.end());
+    result[i].insert(result[i].end(), process_path_poses[i].depart.begin(), process_path_poses[i].depart.end());
+
     if (i != index - 1)
     {
       auto connection = interpolateCartesian(process_path_poses[i].depart.back(),
@@ -244,15 +229,24 @@ framefab_process_planning::toDescartesTraj(const std::vector<framefab_msgs::Elem
                                                                    process_path_poses[i+1].approach.front()),
                                              transition_params.linear_disc, transition_params.angular_disc);
       add_segment(i, connection, false);
-
-//      for(auto v : connection)
-//      {
-//        visual_tool->publishAxis(v, visual_axis_length, visual_axis_diameter, "pose_axis");
-//      }
+      result[i].insert(result[i].end(), connection.begin(), connection.end());
     }
   } // end segments
 
-//  visual_tool->trigger();
+  // visual debug
+  rviz_visual_tools::RvizVisualToolsPtr visual_tool;
+  visual_tool.reset(
+      new rviz_visual_tools::RvizVisualTools("world_frame", "pose_visualization"));
+  double visual_axis_length = 0.01;
+  double visual_axis_diameter = 0.001;
+
+  for(auto v : result[index-1])
+  {
+    visual_tool->publishAxis(v, visual_axis_length, visual_axis_diameter, "pose_axis");
+    visual_tool->trigger();
+  }
+
+  visual_tool->trigger();
 
   return trajs;
 }
