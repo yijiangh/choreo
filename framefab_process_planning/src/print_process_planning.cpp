@@ -68,8 +68,6 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
   transition_params.angular_disc = ANGULAR_DISCRETIZATION;
   transition_params.retract_dist = RETRACT_DISTANCE;
 
-  ROS_INFO_STREAM(req.process_path[0]);
-
   std::vector<DescartesTraj> process_points = toDescartesTraj(req.process_path,
                                                               index, 0.01, transition_params,
                                                               toDescartesPrintPt);

@@ -5,6 +5,7 @@
 #include <ros/console.h>
 #include <QtConcurrent/QtConcurrentRun>
 #include "framefab_gui/framefab_widget.h"
+#include "framefab_gui/states/system_init_state.h"
 #include "framefab_gui/states/process_planning_state.h"  // previous
 #include "framefab_gui/states/select_path_state.h"  // next if fail
 //#include "framefab_gui/states/select_plans_state.h" // next is success
@@ -27,8 +28,18 @@ void framefab_gui::ProcessPlanningState::onExit(FrameFabWidget& gui) { gui.setBu
 
 // Handlers for the fixed buttons
 void framefab_gui::ProcessPlanningState::onNext(FrameFabWidget& gui) {}
-void framefab_gui::ProcessPlanningState::onBack(FrameFabWidget& gui) {}
-void framefab_gui::ProcessPlanningState::onReset(FrameFabWidget& gui) {}
+
+void framefab_gui::ProcessPlanningState::onBack(FrameFabWidget& gui)
+{
+  gui.select_path().cleanUpVisual();
+  Q_EMIT newStateAvailable(new SelectPathState());
+}
+
+void framefab_gui::ProcessPlanningState::onReset(FrameFabWidget& gui)
+{
+  gui.select_path().cleanUpVisual();
+  Q_EMIT newStateAvailable(new SystemInitState());
+}
 
 // State Specific Functions
 void framefab_gui::ProcessPlanningState::makeRequest()
@@ -69,6 +80,7 @@ void framefab_gui::ProcessPlanningState::processPlanningDoneCallback(
   if (result->succeeded)
   {
 //    Q_EMIT newStateAvailable(new SelectPlansState());
+    gui_ptr_->setButtonsEnabled(true);
   }
   else
   {

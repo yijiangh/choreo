@@ -192,11 +192,12 @@ framefab_process_planning::toDescartesTraj(const std::vector<framefab_msgs::Elem
   // add retract pose
   generateTransitions(process_path_poses, transition_params);
 
-  std::vector<DescartesTraj> trajs(index);
+  int selected_path_num = index + 1;
+  std::vector<DescartesTraj> trajs(selected_path_num);
 
   // Inline function for adding a sequence of motions
   auto add_segment = [&trajs, process_speed, conversion_fn, transition_params]
-      (int index, const EigenSTL::vector_Affine3d& poses, bool free_last)
+      (int id, const EigenSTL::vector_Affine3d& poses, bool free_last)
   {
     // Create Descartes trajectory for the segment path
     for (std::size_t j = 0; j < poses.size(); ++j)
@@ -204,13 +205,13 @@ framefab_process_planning::toDescartesTraj(const std::vector<framefab_msgs::Elem
       Eigen::Affine3d this_pose = createNominalTransform(poses[j]);
 
       double dt = 0;
-      trajs[index].push_back(conversion_fn(this_pose, dt));
+      trajs[id].push_back(conversion_fn(this_pose, dt));
     }
   };
 
-  std::vector<EigenSTL::vector_Affine3d> result(index);
+  std::vector<EigenSTL::vector_Affine3d> result(selected_path_num);
 
-  for (std::size_t i = 0; i < index; ++i)
+  for (std::size_t i = 0; i < selected_path_num; ++i)
   {
     add_segment(i, process_path_poses[i].approach, false);
 
@@ -222,7 +223,7 @@ framefab_process_planning::toDescartesTraj(const std::vector<framefab_msgs::Elem
     result[i].insert(result[i].end(), process_path_poses[i].print.begin(), process_path_poses[i].print.end());
     result[i].insert(result[i].end(), process_path_poses[i].depart.begin(), process_path_poses[i].depart.end());
 
-    if (i != index - 1)
+    if (i != selected_path_num - 1)
     {
       auto connection = interpolateCartesian(process_path_poses[i].depart.back(),
                                              closestRotationalPose(process_path_poses[i].depart.back(),
@@ -240,7 +241,9 @@ framefab_process_planning::toDescartesTraj(const std::vector<framefab_msgs::Elem
   double visual_axis_length = 0.01;
   double visual_axis_diameter = 0.001;
 
-  for(auto v : result[index-1])
+  int display_id = (1 >= selected_path_num) ? 0 : selected_path_num - 2;
+
+  for(auto v : result[display_id])
   {
     visual_tool->publishAxis(v, visual_axis_length, visual_axis_diameter, "pose_axis");
     visual_tool->trigger();
