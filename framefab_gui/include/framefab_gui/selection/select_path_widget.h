@@ -20,9 +20,18 @@ namespace framefab_gui
 
 class SelectPathWidget : public QWidget
 {
+  enum MODE
+  {
+    PATH_SELECTION,
+    PLAN_SELECTION
+  };
+
   Q_OBJECT
  public:
   SelectPathWidget(QWidget* parent = 0);
+
+  // set path or plan selection mode
+  void setMode(MODE _mode) { mode_ = _mode; }
 
   // service request on required parameters
   void loadParameters();
@@ -47,6 +56,7 @@ class SelectPathWidget : public QWidget
   // different source that changes order_value
   void buttonForwardUpdateOrderValue();
   void buttonBackwardUpdateOrderValue();
+  void buttonSelectAll();
   void sliderUpdateOrderValue(int value);
   void lineeditUpdateOrderValue();
 
@@ -59,6 +69,8 @@ class SelectPathWidget : public QWidget
 
   int max_value_;
   int print_order_;
+
+  MODE mode_;
 };
 }
 
