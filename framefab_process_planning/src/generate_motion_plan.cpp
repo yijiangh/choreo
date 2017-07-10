@@ -56,10 +56,6 @@ bool framefab_process_planning::generateMotionPlan(const descartes_core::RobotMo
                         const std::vector<double>& start_state,
                         std::vector<framefab_msgs::UnitProcessPlan>& plan)
 {
-  Eigen::Affine3d last_pose;
-  // start with home pose
-  model->getFK(start_state, last_pose);
-
   for(std::size_t i = 0; i < trajs.size(); i++)
   {
     // update collision objects

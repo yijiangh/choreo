@@ -9,6 +9,8 @@
 #include <descartes_core/trajectory_pt.h>
 #include <framefab_msgs/UnitProcessPlan.h>
 
+#include "common_utils.h"
+
 namespace framefab_process_planning
 {
 

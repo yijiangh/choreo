@@ -65,14 +65,15 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
   transition_params.angular_disc = ANGULAR_DISCRETIZATION;
   transition_params.retract_dist = RETRACT_DISTANCE;
 
-  std::vector<framefab_process_planning::DescartesUnitProcess> process_points = toDescartesTraj(req.process_path,
-                                                              index, 0.01, transition_params,
-                                                              toDescartesPrintPt);
-
+  Eigen::Affine3d start_home_pose;
   std::vector<double> current_joints = getCurrentJointState(JOINT_TOPIC_NAME);
+  hotend_model_->getFK(current_joints, start_home_pose);
+
+  std::vector<framefab_process_planning::DescartesUnitProcess> process_points =
+      toDescartesTraj(req.process_path, index, start_home_pose, 0.01, transition_params, toDescartesPrintPt);
 
   if(generateMotionPlan(hotend_model_, process_points, moveit_model_, hotend_group_name_,
-                         current_joints, res.plan))
+                        current_joints, res.plan))
   {
     return true;
   }
