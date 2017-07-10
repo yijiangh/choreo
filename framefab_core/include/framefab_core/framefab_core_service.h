@@ -30,8 +30,7 @@
  */
 struct ProcessPlanResult
 {
-  typedef std::pair<std::string, framefab_msgs::UnitProcessPlan> value_type;
-  std::vector<value_type> plans;
+  std::vector<framefab_msgs::UnitProcessPlan> plans;
 };
 
 class FrameFabCoreService
@@ -67,6 +66,8 @@ class FrameFabCoreService
   bool generateMotionLibrary(
       const int selected_path_index,
       framefab_core_service::TrajectoryLibrary& traj_lib);
+
+  ProcessPlanResult generateProcessPlan(const int index);
 
  private:
   // Services offered by this class
