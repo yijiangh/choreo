@@ -167,7 +167,7 @@ void framefab_visual_tools::FrameFabVisualTool::visualizeFeasibleOrientations(in
         visual_path_array_[i].start_pt,
         visual_path_array_[i].oriented_st_pts[j],
         type_color,
-        0.001,
+        0.0003,
         "orientation_cylinder");
   }
 
@@ -185,7 +185,7 @@ void framefab_visual_tools::FrameFabVisualTool::visualizeFeasibleOrientations(in
       visual_path_array_[i].start_pt,
       visual_path_array_[i].avr_orient_vec,
       type_color_avr,
-      0.001,
+      0.0003,
       "orientation_cylinder");
 
   visual_tools_->trigger();

@@ -10,6 +10,8 @@
 // rviz visual debug
 #include <rviz_visual_tools/rviz_visual_tools.h>
 
+#include <eigen_conversions/eigen_msg.h>
+
 static double quaternionDistance(const Eigen::Quaterniond& a, const Eigen::Quaterniond& b)
 {
   return std::acos(2.0 * std::pow(a.dot(b), 2.0) - 1.0);
@@ -113,7 +115,7 @@ void framefab_process_planning::generateConnectPoses(std::vector<ProcessPathPose
 
   for (std::size_t i = 0; i < process_path_poses.size(); i++)
   {
-    auto connection = interpolateCartesian(process_path_poses[i].depart.back(),
+    auto connection = interpolateCartesian(last_pose,
                                            closestRotationalPose(last_pose,
                                                                  process_path_poses[i].approach.front()),
                                            params.linear_disc, params.angular_disc);
@@ -253,8 +255,10 @@ framefab_process_planning::toDescartesTraj(const std::vector<framefab_msgs::Elem
   rviz_visual_tools::RvizVisualToolsPtr visual_tool;
   visual_tool.reset(
       new rviz_visual_tools::RvizVisualTools("world_frame", "pose_visualization"));
+  visual_tool->deleteAllMarkers();
+
   double visual_axis_length = 0.01;
-  double visual_axis_diameter = 0.001;
+  double visual_axis_diameter = 0.0005;
 
 //  int display_id = (1 >= selected_path_num) ? 0 : selected_path_num - 2;
 //
