@@ -17,6 +17,8 @@
 // actions
 #include <framefab_msgs/PathPlanningAction.h>
 #include <framefab_msgs/ProcessPlanningAction.h>
+#include <framefab_msgs/ProcessExecutionAction.h>
+#include <framefab_msgs/SimulateMotionPlanAction.h>
 #include <actionlib/server/simple_action_server.h>
 #include <actionlib/client/simple_action_client.h>
 
@@ -60,6 +62,7 @@ class FrameFabCoreService
   // Action callbacks
   void pathPlanningActionCallback(const framefab_msgs::PathPlanningGoalConstPtr &goal);
   void processPlanningActionCallback(const framefab_msgs::ProcessPlanningGoalConstPtr &goal);
+  void simulateMotionPlansActionCallback(const framefab_msgs::SimulateMotionPlanGoalConstPtr& goal_in);
 
   // Process Planning - these process planning related
   // methods are defined in src/framefab_core_service_process_planning.cpp
@@ -89,7 +92,10 @@ class FrameFabCoreService
   framefab_msgs::ProcessPlanningFeedback process_planning_feedback_;
   framefab_msgs::ProcessPlanningResult process_planning_result_;
 
+  actionlib::SimpleActionServer<framefab_msgs::SimulateMotionPlanAction> simulate_motion_plan_server_;
+
   // Actions subscribed to by this class
+  actionlib::SimpleActionClient<framefab_msgs::ProcessExecutionAction> framefab_exe_client_;
 
   // Current state publishers
 

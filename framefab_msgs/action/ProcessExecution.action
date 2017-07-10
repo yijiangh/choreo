@@ -1,6 +1,7 @@
 # Goal
 
 # Joint trajectory
+trajectory_msgs/JointTrajectory trajectory_connection
 trajectory_msgs/JointTrajectory trajectory_approach
 trajectory_msgs/JointTrajectory trajectory_process
 trajectory_msgs/JointTrajectory trajectory_depart
