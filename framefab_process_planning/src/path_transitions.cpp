@@ -109,7 +109,7 @@ void framefab_process_planning::generateConnectPoses(std::vector<ProcessPathPose
                           const Eigen::Affine3d& start_pose,
                           const TransitionParameters& params)
 {
-  Eigen::Affine3d last_pose = start_pose;
+  Eigen::Affine3d last_pose = createNominalTransform(start_pose);
 
   for (std::size_t i = 0; i < process_path_poses.size(); i++)
   {
