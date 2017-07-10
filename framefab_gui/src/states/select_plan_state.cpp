@@ -10,6 +10,7 @@
 #include <ros/console.h>
 #include <framefab_gui/states/select_plan_state.h>
 #include <framefab_gui/states/system_init_state.h>
+#include <framefab_gui/states/simulating_state.h>
 //#include <QtConcurrent/QtConcurrentRun>
 
 void framefab_gui::SelectPlanState::onStart(FrameFabWidget& gui)
@@ -30,7 +31,11 @@ void framefab_gui::SelectPlanState::onNext(FrameFabWidget& gui)
   gui.selection_widget().close();
 
   gui.appendText("\nselect plan state finished! Selected Plan: #" + std::to_string(selected_plan_id_));
-//  Q_EMIT newStateAvailable(new SimulatingState(selected_plan_id_));
+
+  std::vector<int> plan_ids;
+  plan_ids.push_back(selected_plan_id_);
+
+  Q_EMIT newStateAvailable(new SimulatingState(plan_ids));
 }
 
 void framefab_gui::SelectPlanState::onBack(FrameFabWidget& gui)
