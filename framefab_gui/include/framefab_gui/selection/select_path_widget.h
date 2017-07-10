@@ -20,6 +20,7 @@ namespace framefab_gui
 
 class SelectPathWidget : public QWidget
 {
+ public:
   enum MODE
   {
     PATH_SELECTION,

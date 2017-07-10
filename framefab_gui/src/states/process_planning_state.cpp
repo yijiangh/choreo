@@ -8,7 +8,7 @@
 #include "framefab_gui/states/system_init_state.h"
 #include "framefab_gui/states/process_planning_state.h"  // previous
 #include "framefab_gui/states/select_path_state.h"  // next if fail
-//#include "framefab_gui/states/select_plans_state.h" // next is success
+#include "framefab_gui/states/select_plan_state.h" // next if success
 
 framefab_gui::ProcessPlanningState::ProcessPlanningState(const int& index)
     : process_planning_action_client_(PROCESS_PLANNING_ACTION_CLIENT_NAME, true),
@@ -27,7 +27,11 @@ void framefab_gui::ProcessPlanningState::onStart(FrameFabWidget& gui)
 void framefab_gui::ProcessPlanningState::onExit(FrameFabWidget& gui) { gui.setButtonsEnabled(true); }
 
 // Handlers for the fixed buttons
-void framefab_gui::ProcessPlanningState::onNext(FrameFabWidget& gui) {}
+void framefab_gui::ProcessPlanningState::onNext(FrameFabWidget& gui)
+{
+  gui.select_path().cleanUpVisual();
+  Q_EMIT newStateAvailable(new SelectPlanState());
+}
 
 void framefab_gui::ProcessPlanningState::onBack(FrameFabWidget& gui)
 {

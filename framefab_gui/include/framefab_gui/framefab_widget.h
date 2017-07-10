@@ -28,7 +28,7 @@ namespace framefab_gui
  * 2. Path Planning State           (req Model Info)
  * 3. Select Path State             (user select path for process planning)
  * 4. Process Planning State        (motion planning)
- * 5. Select Process Plan State     (User selects plans)
+ * 5. Select Plan State             (User selects plans)
  * 6. Simulating State              (simulated robot execution motion)
  * 7. PostProcessing State          (output results to Grasshopper for fine-tuned motion compensation)
  */

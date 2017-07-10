@@ -12,7 +12,7 @@
 
 void framefab_gui::SelectPathState::onStart(FrameFabWidget& gui)
 {
-  gui.setText("Select Path State.\nPlease select the desired path to be planned in selection window.\nClick <Accept> to continue. ");
+  gui.setText("Select Path State.\nPlease select the desired path to be planned in selection window.\nClick <Plan> to continue. ");
   gui.setButtonsEnabled(false);
   selected_path_id_ = -1;
 
@@ -27,7 +27,7 @@ void framefab_gui::SelectPathState::onNext(FrameFabWidget& gui)
   selected_path_id_ = gui.select_path().getSelectedValue();
   gui.select_path().close();
 
-  ROS_INFO_STREAM("select path state finished! Selected Path: " << selected_path_id_);
+  gui.appendText("\nselect path state finished! Selected Path: #" + std::to_string(selected_path_id_));
   Q_EMIT newStateAvailable(new ProcessPlanningState(selected_path_id_));
 }
 
@@ -45,8 +45,7 @@ void framefab_gui::SelectPathState::onReset(FrameFabWidget& gui)
 
 void framefab_gui::SelectPathState::selectPath(FrameFabWidget& gui)
 {
+  gui.select_path().setMode(framefab_gui::SelectPathWidget::PATH_SELECTION);
   gui.select_path().show();
   gui.select_path().loadParameters();
 }
-
-

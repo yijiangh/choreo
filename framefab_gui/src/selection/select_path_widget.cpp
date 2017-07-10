@@ -91,11 +91,19 @@ void framefab_gui::SelectPathWidget::loadParameters()
 
 void framefab_gui::SelectPathWidget::setMaxValue(int m)
 {
-  max_value_ = m;
+  if(mode_ == PATH_SELECTION)
+  {
+    max_value_ = m - 1;
+  }
 
-  ui_->slider_select_number->setMaximum(max_value_-1);
-  ui_->lineedit_select_number->setValidator(new QIntValidator(0, max_value_ - 1, this));
-  ui_->lineedit_max->setText(QString::number(max_value_-1));
+  if(mode_ == PLAN_SELECTION)
+  {
+    max_value_ = m;
+  }
+
+  ui_->slider_select_number->setMaximum(max_value_);
+  ui_->lineedit_select_number->setValidator(new QIntValidator(0, max_value_, this));
+  ui_->lineedit_max->setText(QString::number(max_value_));
 }
 
 void framefab_gui::SelectPathWidget::orderValueChanged()
@@ -154,7 +162,7 @@ void framefab_gui::SelectPathWidget::setInputEnabled(bool enabled)
 
 void framefab_gui::SelectPathWidget::buttonForwardUpdateOrderValue()
 {
-  if((print_order_+1) < max_value_)
+  if((print_order_+1) <= max_value_)
   {
     print_order_++;
     orderValueChanged();
@@ -172,7 +180,7 @@ void framefab_gui::SelectPathWidget::buttonBackwardUpdateOrderValue()
 
 void framefab_gui::SelectPathWidget::buttonSelectAll()
 {
-  print_order_ = max_value_ - 1;
+  print_order_ = max_value_;
   orderValueChanged();
 
   Q_EMIT acceptSelection();
