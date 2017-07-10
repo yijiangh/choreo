@@ -2,8 +2,8 @@
 // Created by yijiangh on 6/27/17.
 //
 
-#ifndef FRAMEFAB_GUI_SELECT_PATH_WIDGET_H
-#define FRAMEFAB_GUI_SELECT_PATH_WIDGET_H
+#ifndef FRAMEFAB_GUI_SELECTION_WIDGET_H
+#define FRAMEFAB_GUI_SELECTION_WIDGET_H
 
 #include <QString>
 #include <QWidget>
@@ -12,17 +12,27 @@
 
 namespace Ui
 {
-class SelectPathWidgetWindow;
+class SelectionWidgetWindow;
 }
 
 namespace framefab_gui
 {
 
-class SelectPathWidget : public QWidget
+class SelectionWidget : public QWidget
 {
+ public:
+  enum MODE
+  {
+    PATH_SELECTION,
+    PLAN_SELECTION
+  };
+
   Q_OBJECT
  public:
-  SelectPathWidget(QWidget* parent = 0);
+  SelectionWidget(QWidget* parent = 0);
+
+  // set path or plan selection mode
+  void setMode(MODE _mode) { mode_ = _mode; }
 
   // service request on required parameters
   void loadParameters();
@@ -47,6 +57,7 @@ class SelectPathWidget : public QWidget
   // different source that changes order_value
   void buttonForwardUpdateOrderValue();
   void buttonBackwardUpdateOrderValue();
+  void buttonSelectAll();
   void sliderUpdateOrderValue(int value);
   void lineeditUpdateOrderValue();
 
@@ -55,11 +66,13 @@ class SelectPathWidget : public QWidget
 
   ros::ServiceClient visualize_client_;
 
-  Ui::SelectPathWidgetWindow* ui_;
+  Ui::SelectionWidgetWindow* ui_;
 
   int max_value_;
   int print_order_;
+
+  MODE mode_;
 };
 }
 
-#endif //FRAMEFAB_GUI_SELECT_PATH_WIDGET_H
+#endif //FRAMEFAB_GUI_SELECTION_WIDGET_H

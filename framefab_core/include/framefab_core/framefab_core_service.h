@@ -106,6 +106,7 @@ class FrameFabCoreService
   std::vector<framefab_msgs::ElementCandidatePoses> process_paths_;
 
   // Trajectory library
+  int selected_path_id_;
   framefab_core_service::TrajectoryLibrary trajectory_library_;
 
   // Parameters
