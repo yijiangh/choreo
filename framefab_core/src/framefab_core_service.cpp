@@ -39,6 +39,7 @@ const static int PROCESS_EXE_BUFFER = 5;  // Additional time [s] buffer between 
 
 FrameFabCoreService::FrameFabCoreService()
     : save_data_(false),
+      selected_path_id_(0),
       framefab_exe_client_(FRAMEFAB_EXE_ACTION_SERVER_NAME, true),
       path_planning_server_(nh_, PATH_PLANNING_ACTION_SERVER_NAME,
                             boost::bind(&FrameFabCoreService::pathPlanningActionCallback, this, _1), false),
@@ -200,7 +201,25 @@ bool FrameFabCoreService::element_number_sequest_server_callback(
     framefab_msgs::ElementNumberRequest::Request& req,
     framefab_msgs::ElementNumberRequest::Response& res)
 {
-  res.element_number = visual_tool_.getPathArraySize();
+  switch (req.action)
+  {
+    case framefab_msgs::ElementNumberRequest::Request::REQUEST_ELEMENT_NUMBER:
+    {
+      res.element_number = visual_tool_.getPathArraySize();
+      break;
+    }
+    case framefab_msgs::ElementNumberRequest::Request::REQUEST_SELECTED_PATH_NUMBER:
+    {
+      res.element_number = selected_path_id_;
+      break;
+    }
+    default:
+    {
+      res.element_number = 0;
+      ROS_ERROR_STREAM("Unknown parameter loading request in selection widget");
+      break;
+    }
+  }
 }
 
 bool FrameFabCoreService::visualize_selected_path_server_callback(
@@ -279,6 +298,8 @@ void FrameFabCoreService::processPlanningActionCallback(const framefab_msgs::Pro
     {
       process_planning_feedback_.last_completed = "Recieved request to generate motion plan\n";
       process_planning_server_.publishFeedback(process_planning_feedback_);
+
+      selected_path_id_ = goal_in->index;
 
       visual_tool_.cleanUpAllPaths();
       visual_tool_.visualizePath(goal_in->index);
