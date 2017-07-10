@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>SelectPathWidgetWindow</class>
- <widget class="QWidget" name="SelectPathWidgetWindow">
+ <class>SelectionWidgetWindow</class>
+ <widget class="QWidget" name="SelectionWidgetWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Path Selection</string>
+   <string>Selection</string>
   </property>
   <widget class="QSlider" name="slider_select_number">
    <property name="geometry">

@@ -4,8 +4,8 @@
 
 #include <ros/console.h>
 
-#include <ui_select_path_widget.h>
-#include <framefab_gui/selection/select_path_widget.h>
+#include <ui_selection_widget.h>
+#include <framefab_gui/selection/selection_widget.h>
 
 // service
 #include <framefab_msgs/ElementNumberRequest.h>
@@ -14,10 +14,10 @@
 const static std::string ELEMENT_NUMBER_REQUEST_SERVICE = "element_member_request";
 const static std::string VISUALIZE_SELECTED_PATH = "visualize_select_path";
 
-framefab_gui::SelectPathWidget::SelectPathWidget(QWidget* parent) : QWidget(parent), mode_(PATH_SELECTION)
+framefab_gui::SelectionWidget::SelectionWidget(QWidget* parent) : QWidget(parent), mode_(PATH_SELECTION)
 {
   // UI setup
-  ui_ = new Ui::SelectPathWidgetWindow;
+  ui_ = new Ui::SelectionWidgetWindow;
   ui_->setupUi(this);
 
   this->setWindowFlags(Qt::WindowStaysOnTopHint);
@@ -40,7 +40,7 @@ framefab_gui::SelectPathWidget::SelectPathWidget(QWidget* parent) : QWidget(pare
       nh_.serviceClient<framefab_msgs::VisualizeSelectedPath>(VISUALIZE_SELECTED_PATH);
 }
 
-void framefab_gui::SelectPathWidget::loadParameters()
+void framefab_gui::SelectionWidget::loadParameters()
 {
   framefab_msgs::ElementNumberRequest srv;
 
@@ -89,7 +89,7 @@ void framefab_gui::SelectPathWidget::loadParameters()
   setInputEnabled(true);
 }
 
-void framefab_gui::SelectPathWidget::setMaxValue(int m)
+void framefab_gui::SelectionWidget::setMaxValue(int m)
 {
   if(mode_ == PATH_SELECTION)
   {
@@ -106,7 +106,7 @@ void framefab_gui::SelectPathWidget::setMaxValue(int m)
   ui_->lineedit_max->setText(QString::number(max_value_));
 }
 
-void framefab_gui::SelectPathWidget::orderValueChanged()
+void framefab_gui::SelectionWidget::orderValueChanged()
 {
   ui_->slider_select_number->setValue(print_order_);
   ui_->lineedit_select_number->setText(QString::number(print_order_));
@@ -126,7 +126,7 @@ void framefab_gui::SelectPathWidget::orderValueChanged()
   setInputEnabled(true);
 }
 
-void framefab_gui::SelectPathWidget::cleanUpVisual()
+void framefab_gui::SelectionWidget::cleanUpVisual()
 {
  // call visualization srv
   framefab_msgs::VisualizeSelectedPath srv;
@@ -139,7 +139,7 @@ void framefab_gui::SelectPathWidget::cleanUpVisual()
   }
 }
 
-void framefab_gui::SelectPathWidget::setInputEnabled(bool enabled)
+void framefab_gui::SelectionWidget::setInputEnabled(bool enabled)
 {
   ui_->pushbutton_select_backward->setEnabled(enabled);
   ui_->pushbutton_select_forward->setEnabled(enabled);
@@ -160,7 +160,7 @@ void framefab_gui::SelectPathWidget::setInputEnabled(bool enabled)
   ui_->lineedit_select_number->setEnabled(enabled);
 }
 
-void framefab_gui::SelectPathWidget::buttonForwardUpdateOrderValue()
+void framefab_gui::SelectionWidget::buttonForwardUpdateOrderValue()
 {
   if((print_order_+1) <= max_value_)
   {
@@ -169,7 +169,7 @@ void framefab_gui::SelectPathWidget::buttonForwardUpdateOrderValue()
   }
 }
 
-void framefab_gui::SelectPathWidget::buttonBackwardUpdateOrderValue()
+void framefab_gui::SelectionWidget::buttonBackwardUpdateOrderValue()
 {
   if((print_order_-1) >= 0)
   {
@@ -178,7 +178,7 @@ void framefab_gui::SelectPathWidget::buttonBackwardUpdateOrderValue()
   }
 }
 
-void framefab_gui::SelectPathWidget::buttonSelectAll()
+void framefab_gui::SelectionWidget::buttonSelectAll()
 {
   print_order_ = max_value_;
   orderValueChanged();
@@ -186,13 +186,13 @@ void framefab_gui::SelectPathWidget::buttonSelectAll()
   Q_EMIT acceptSelection();
 }
 
-void framefab_gui::SelectPathWidget::sliderUpdateOrderValue(int value)
+void framefab_gui::SelectionWidget::sliderUpdateOrderValue(int value)
 {
   print_order_ = value;
   orderValueChanged();
 }
 
-void framefab_gui::SelectPathWidget::lineeditUpdateOrderValue()
+void framefab_gui::SelectionWidget::lineeditUpdateOrderValue()
 {
   print_order_ = ui_->lineedit_select_number->text().toInt();
   orderValueChanged();

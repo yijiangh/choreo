@@ -41,13 +41,13 @@ void framefab_gui::PathPlanningState::onNext(FrameFabWidget& gui)
 
 void framefab_gui::PathPlanningState::onBack(FrameFabWidget& gui)
 {
-  gui.select_path().cleanUpVisual();
+  gui.selection_widget().cleanUpVisual();
   Q_EMIT newStateAvailable(new SystemInitState());
 }
 
 void framefab_gui::PathPlanningState::onReset(FrameFabWidget& gui)
 {
-  gui.select_path().cleanUpVisual();
+  gui.selection_widget().cleanUpVisual();
   Q_EMIT newStateAvailable(new SystemInitState());
 }
 

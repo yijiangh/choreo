@@ -29,19 +29,19 @@ void framefab_gui::ProcessPlanningState::onExit(FrameFabWidget& gui) { gui.setBu
 // Handlers for the fixed buttons
 void framefab_gui::ProcessPlanningState::onNext(FrameFabWidget& gui)
 {
-  gui.select_path().cleanUpVisual();
+  gui.selection_widget().cleanUpVisual();
   Q_EMIT newStateAvailable(new SelectPlanState());
 }
 
 void framefab_gui::ProcessPlanningState::onBack(FrameFabWidget& gui)
 {
-  gui.select_path().cleanUpVisual();
+  gui.selection_widget().cleanUpVisual();
   Q_EMIT newStateAvailable(new SelectPathState());
 }
 
 void framefab_gui::ProcessPlanningState::onReset(FrameFabWidget& gui)
 {
-  gui.select_path().cleanUpVisual();
+  gui.selection_widget().cleanUpVisual();
   Q_EMIT newStateAvailable(new SystemInitState());
 }
 

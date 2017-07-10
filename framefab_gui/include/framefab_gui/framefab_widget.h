@@ -8,7 +8,7 @@
 
 #include <framefab_gui/gui_state.h>
 #include <framefab_gui/params_submenu.h>
-#include <framefab_gui/selection/select_path_widget.h>
+#include <framefab_gui/selection/selection_widget.h>
 
 #include "actionlib/client/simple_action_client.h"
 
@@ -54,7 +54,7 @@ class FrameFabWidget : public QWidget
 
   ros::NodeHandle&  nodeHandle() { return nh_; }
   ParamsSubmenu&    params() { return *params_; }
-  SelectPathWidget& select_path() { return *select_path_; }
+  SelectionWidget& selection_widget() { return *selection_widget_; }
 
  protected:
   void loadParameters();
@@ -76,7 +76,7 @@ class FrameFabWidget : public QWidget
   // UI
   Ui::FrameFabWidget* ui_;
   ParamsSubmenu* params_;
-  SelectPathWidget* select_path_;
+  SelectionWidget* selection_widget_;
 
   // ROS specific stuff
   ros::NodeHandle nh_;

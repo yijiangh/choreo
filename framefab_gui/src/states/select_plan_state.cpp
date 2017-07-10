@@ -26,8 +26,8 @@ void framefab_gui::SelectPlanState::onExit(FrameFabWidget& gui) {}
 void framefab_gui::SelectPlanState::onNext(FrameFabWidget& gui)
 {
   gui.setButtonsEnabled(true);
-  selected_plan_id_ = gui.select_path().getSelectedValue();
-  gui.select_path().close();
+  selected_plan_id_ = gui.selection_widget().getSelectedValue();
+  gui.selection_widget().close();
 
   gui.appendText("\nselect plan state finished! Selected Plan: #" + std::to_string(selected_plan_id_));
 //  Q_EMIT newStateAvailable(new SimulatingState(selected_plan_id_));
@@ -35,21 +35,21 @@ void framefab_gui::SelectPlanState::onNext(FrameFabWidget& gui)
 
 void framefab_gui::SelectPlanState::onBack(FrameFabWidget& gui)
 {
-  gui.select_path().cleanUpVisual();
+  gui.selection_widget().cleanUpVisual();
   Q_EMIT newStateAvailable(new SystemInitState());
 }
 
 void framefab_gui::SelectPlanState::onReset(FrameFabWidget& gui)
 {
-  gui.select_path().cleanUpVisual();
+  gui.selection_widget().cleanUpVisual();
   Q_EMIT newStateAvailable(new SystemInitState());
 }
 
 void framefab_gui::SelectPlanState::selectPlan(FrameFabWidget& gui)
 {
-  gui.select_path().setMode(framefab_gui::SelectPathWidget::PLAN_SELECTION);
-  gui.select_path().show();
-  gui.select_path().loadParameters();
+  gui.selection_widget().setMode(framefab_gui::SelectionWidget::PLAN_SELECTION);
+  gui.selection_widget().show();
+  gui.selection_widget().loadParameters();
 }
 
 
