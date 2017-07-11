@@ -1,0 +1,8 @@
+<?xml version="1.0" ?>
+
+<!-- Has several service interfaces: -->
+<!-- 1. simulation server: "simulate_path" -->
+
+<launch>
+  <node pkg="framefab_process_execution" type="framefab_process_execution_service_node" name="framefab_process_execution"/>
+</launch>
