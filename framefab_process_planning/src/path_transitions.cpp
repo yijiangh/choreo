@@ -239,11 +239,11 @@ framefab_process_planning::toDescartesTraj(const std::vector<framefab_msgs::Elem
   {
     add_segment(trajs[i].connect_path, process_path_poses[i].connect, false);
 
-    add_segment(trajs[i].unit_process_path, process_path_poses[i].approach, false);
+    add_segment(trajs[i].approach_path, process_path_poses[i].approach, false);
 
-    add_segment(trajs[i].unit_process_path, process_path_poses[i].print, false);
+    add_segment(trajs[i].print_path, process_path_poses[i].print, false);
 
-    add_segment(trajs[i].unit_process_path, process_path_poses[i].depart, false);
+    add_segment(trajs[i].depart_path, process_path_poses[i].depart, false);
 
     result[i].insert(result[i].end(), process_path_poses[i].connect.begin(), process_path_poses[i].connect.end());
     result[i].insert(result[i].end(), process_path_poses[i].approach.begin(), process_path_poses[i].approach.end());

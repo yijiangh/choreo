@@ -140,7 +140,9 @@ bool framefab_process_planning::generateMotionPlan(
     // try descartes planning with connect + unit process
     DescartesTraj traj;
     traj.insert(traj.end(), trajs[i].connect_path.begin(), trajs[i].connect_path.end());
-    traj.insert(traj.end(), trajs[i].unit_process_path.begin(), trajs[i].unit_process_path.end());
+    traj.insert(traj.end(), trajs[i].approach_path.begin(), trajs[i].approach_path.end());
+    traj.insert(traj.end(), trajs[i].print_path.begin(), trajs[i].print_path.end());
+    traj.insert(traj.end(), trajs[i].depart_path.begin(), trajs[i].depart_path.end());
 
     DescartesTraj solution = generateUnitProcessMotionPlan(model, traj, start_state, moveit_model, move_group_name);
 
@@ -148,7 +150,8 @@ bool framefab_process_planning::generateMotionPlan(
     // and get free plan for connect path
 
     // add generated traj into plan output
-//    plan[i].trajectory_connection =
+
+
 
     // update last pose (joint)
 

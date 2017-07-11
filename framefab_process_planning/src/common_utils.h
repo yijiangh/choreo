@@ -26,8 +26,9 @@ typedef std::vector<descartes_core::TrajectoryPtPtr> DescartesTraj;
 struct DescartesUnitProcess
 {
   DescartesTraj connect_path;
-  DescartesTraj unit_process_path;
-};
+  DescartesTraj approach_path;
+  DescartesTraj print_path;
+  DescartesTraj depart_path;};
 
 Eigen::Affine3d createNominalTransform(const geometry_msgs::Pose& ref_pose,
                                        const geometry_msgs::Point& pt);
@@ -36,6 +37,9 @@ Eigen::Affine3d createNominalTransform(const geometry_msgs::Pose& ref_pose, cons
 
 
 Eigen::Affine3d createNominalTransform(const Eigen::Affine3d& ref_pose, const double z_adjust = 0.0);
+
+trajectory_msgs::JointTrajectory toROSTrajectory(const DescartesTraj& solution,
+                                                 const descartes_core::RobotModel& model);
 
 std::vector<double> getCurrentJointState(const std::string& topic);
 
