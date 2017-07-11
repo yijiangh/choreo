@@ -10,6 +10,8 @@
 // rviz visual debug
 #include <rviz_visual_tools/rviz_visual_tools.h>
 
+#include <eigen_conversions/eigen_msg.h>
+
 static double quaternionDistance(const Eigen::Quaterniond& a, const Eigen::Quaterniond& b)
 {
   return std::acos(2.0 * std::pow(a.dot(b), 2.0) - 1.0);
@@ -87,7 +89,7 @@ static EigenSTL::vector_Affine3d retractPath(const Eigen::Affine3d& pose, double
 void framefab_process_planning::generateTransitions(std::vector<ProcessPathPose>& process_path_poses,
                          const TransitionParameters& params)
 {
-  for (int i = 0; i < process_path_poses.size(); i++)
+  for (std::size_t i = 0; i < process_path_poses.size(); i++)
   {
     Eigen::Affine3d start_pose = process_path_poses[i].print[0];
     Eigen::Affine3d end_pose = process_path_poses[i].print[1];
@@ -102,6 +104,24 @@ void framefab_process_planning::generateTransitions(std::vector<ProcessPathPose>
 
     process_path_poses[i].approach = approach;
     process_path_poses[i].depart = depart;
+  }
+}
+
+void framefab_process_planning::generateConnectPoses(std::vector<ProcessPathPose>& process_path_poses,
+                          const Eigen::Affine3d& start_pose,
+                          const TransitionParameters& params)
+{
+  Eigen::Affine3d last_pose = createNominalTransform(start_pose);
+
+  for (std::size_t i = 0; i < process_path_poses.size(); i++)
+  {
+    auto connection = interpolateCartesian(last_pose,
+                                           closestRotationalPose(last_pose,
+                                                                 process_path_poses[i].approach.front()),
+                                           params.linear_disc, params.angular_disc);
+
+    process_path_poses[i].connect = connection;
+    last_pose = process_path_poses[i].depart.back();
   }
 }
 
@@ -176,10 +196,11 @@ void framefab_process_planning::generatePrintPoses(const std::vector<framefab_ms
 using DescartesConversionFunc =
 boost::function<descartes_core::TrajectoryPtPtr (const Eigen::Affine3d &, const double)>;
 
-std::vector<framefab_process_planning::DescartesTraj>
+std::vector<framefab_process_planning::DescartesUnitProcess>
 framefab_process_planning::toDescartesTraj(const std::vector<framefab_msgs::ElementCandidatePoses>& process_path,
-                                        const int index, const double process_speed, const TransitionParameters& transition_params,
-                                        DescartesConversionFunc conversion_fn)
+                                           const int index, const Eigen::Affine3d& start_pose,
+                                           const double process_speed, const TransitionParameters& transition_params,
+                                           DescartesConversionFunc conversion_fn)
 {
   // sort for every ElementCandidatePoses's feasible orientation
   // just for experiment, take the one closest to average orientation
@@ -192,12 +213,15 @@ framefab_process_planning::toDescartesTraj(const std::vector<framefab_msgs::Elem
   // add retract pose
   generateTransitions(process_path_poses, transition_params);
 
+  // add connect poses
+  generateConnectPoses(process_path_poses, start_pose, transition_params);
+
   int selected_path_num = index + 1;
-  std::vector<DescartesTraj> trajs(selected_path_num);
+  std::vector<DescartesUnitProcess> trajs(selected_path_num);
 
   // Inline function for adding a sequence of motions
-  auto add_segment = [&trajs, process_speed, conversion_fn, transition_params]
-      (int id, const EigenSTL::vector_Affine3d& poses, bool free_last)
+  auto add_segment = [process_speed, conversion_fn, transition_params]
+      (DescartesTraj& traj, const EigenSTL::vector_Affine3d& poses, bool free_last)
   {
     // Create Descartes trajectory for the segment path
     for (std::size_t j = 0; j < poses.size(); ++j)
@@ -205,7 +229,7 @@ framefab_process_planning::toDescartesTraj(const std::vector<framefab_msgs::Elem
       Eigen::Affine3d this_pose = createNominalTransform(poses[j]);
 
       double dt = 0;
-      trajs[id].push_back(conversion_fn(this_pose, dt));
+      traj.push_back(conversion_fn(this_pose, dt));
     }
   };
 
@@ -213,41 +237,36 @@ framefab_process_planning::toDescartesTraj(const std::vector<framefab_msgs::Elem
 
   for (std::size_t i = 0; i < selected_path_num; ++i)
   {
-    add_segment(i, process_path_poses[i].approach, false);
+    add_segment(trajs[i].connect_path, process_path_poses[i].connect, false);
 
-    add_segment(i, process_path_poses[i].print, false);
+    add_segment(trajs[i].unit_process_path, process_path_poses[i].approach, false);
 
-    add_segment(i, process_path_poses[i].depart, false);
-    
+    add_segment(trajs[i].unit_process_path, process_path_poses[i].print, false);
+
+    add_segment(trajs[i].unit_process_path, process_path_poses[i].depart, false);
+
+    result[i].insert(result[i].end(), process_path_poses[i].connect.begin(), process_path_poses[i].connect.end());
     result[i].insert(result[i].end(), process_path_poses[i].approach.begin(), process_path_poses[i].approach.end());
     result[i].insert(result[i].end(), process_path_poses[i].print.begin(), process_path_poses[i].print.end());
     result[i].insert(result[i].end(), process_path_poses[i].depart.begin(), process_path_poses[i].depart.end());
-
-    if (i != selected_path_num - 1)
-    {
-      auto connection = interpolateCartesian(process_path_poses[i].depart.back(),
-                                             closestRotationalPose(process_path_poses[i].depart.back(),
-                                                                   process_path_poses[i+1].approach.front()),
-                                             transition_params.linear_disc, transition_params.angular_disc);
-      add_segment(i, connection, false);
-      result[i].insert(result[i].end(), connection.begin(), connection.end());
-    }
   } // end segments
 
   // visual debug
   rviz_visual_tools::RvizVisualToolsPtr visual_tool;
   visual_tool.reset(
       new rviz_visual_tools::RvizVisualTools("world_frame", "pose_visualization"));
+  visual_tool->deleteAllMarkers();
+
   double visual_axis_length = 0.01;
-  double visual_axis_diameter = 0.001;
+  double visual_axis_diameter = 0.0005;
 
-  int display_id = (1 >= selected_path_num) ? 0 : selected_path_num - 2;
-
-  for(auto v : result[display_id])
-  {
-    visual_tool->publishAxis(v, visual_axis_length, visual_axis_diameter, "pose_axis");
-    visual_tool->trigger();
-  }
+//  int display_id = (1 >= selected_path_num) ? 0 : selected_path_num - 2;
+//
+//  for(auto v : result[display_id])
+//  {
+//    visual_tool->publishAxis(v, visual_axis_length, visual_axis_diameter, "pose_axis");
+//    visual_tool->trigger();
+//  }
 
   for(auto v : result.back())
   {

@@ -1,6 +1,7 @@
 //
 // Created by yijiangh on 7/5/17.
 //
+#include <string>
 
 #include "framefab_core/framefab_core_service.h"
 
@@ -12,7 +13,23 @@ bool FrameFabCoreService::generateMotionLibrary(
 {
   framefab_core_service::TrajectoryLibrary lib;
 
-  ros::NodeHandle nh;
+  ProcessPlanResult plan = generateProcessPlan(selected_path_index);
+
+  for (std::size_t k = 0; k < plan.plans.size(); ++k)
+  {
+    lib.get()[std::to_string(k)] = plan.plans[k];
+  }
+
+  trajectory_library_ = traj_lib;
+  return true;
+}
+
+ProcessPlanResult FrameFabCoreService::generateProcessPlan(const int selected_path_index)
+{
+  ProcessPlanResult result;
+
+  bool success = false;
+  std::vector<framefab_msgs::UnitProcessPlan> process_plan;
 
   // call process_processing srv
   framefab_msgs::ProcessPlanning srv;
@@ -20,14 +37,20 @@ bool FrameFabCoreService::generateMotionLibrary(
   srv.request.index = selected_path_index;
   srv.request.process_path = process_paths_;
 
-  if(!process_planning_client_.call(srv))
+  success = process_planning_client_.call(srv);
+  process_plan = srv.response.plan;
+
+  if (success)
   {
-    ROS_WARN_STREAM("Unable to call process processing service");
-    process_planning_feedback_.last_completed = "Failed to call Process Planning Service!\n";
-    process_planning_server_.publishFeedback(process_planning_feedback_);
-    return false;
+    for (auto v : process_plan)
+    {
+      result.plans.push_back(v);
+    }
+  }
+  else
+  {
+    ROS_ERROR_STREAM("Failed to plan for path #" << selected_path_index << ", unable to connect to process planning node.");
   }
 
-  trajectory_library_ = traj_lib;
-  return true;
+  return result;
 }

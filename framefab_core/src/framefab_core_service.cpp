@@ -30,15 +30,23 @@ const static std::string PATH_INPUT_PARAMS_FILE = "path_input_parameters.msg";
 const static std::string PATH_VISUAL_TOPIC = "path_visualization";
 
 // action server name - note: must be same to client's name
+const static std::string FRAMEFAB_EXE_ACTION_SERVER_NAME = "framefab_process_execution_as";
 const static std::string PATH_PLANNING_ACTION_SERVER_NAME = "path_planning_action";
 const static std::string PROCESS_PLANNING_ACTION_SERVER_NAME = "process_planning_action";
+const static std::string SIMULATE_MOTION_PLAN_ACTION_SERVER_NAME = "simulate_motion_plan_as";
+
+const static int PROCESS_EXE_BUFFER = 5;  // Additional time [s] buffer between when blending should end and timeout
 
 FrameFabCoreService::FrameFabCoreService()
     : save_data_(false),
+      selected_path_id_(0),
+      framefab_exe_client_(FRAMEFAB_EXE_ACTION_SERVER_NAME, true),
       path_planning_server_(nh_, PATH_PLANNING_ACTION_SERVER_NAME,
                             boost::bind(&FrameFabCoreService::pathPlanningActionCallback, this, _1), false),
       process_planning_server_(nh_, PROCESS_PLANNING_ACTION_SERVER_NAME,
-                            boost::bind(&FrameFabCoreService::processPlanningActionCallback, this, _1), false)
+                            boost::bind(&FrameFabCoreService::processPlanningActionCallback, this, _1), false),
+      simulate_motion_plan_server_(nh_, SIMULATE_MOTION_PLAN_ACTION_SERVER_NAME,
+                                 boost::bind(&FrameFabCoreService::simulateMotionPlansActionCallback, this, _1), false)
 {}
 
 bool FrameFabCoreService::init()
@@ -89,6 +97,7 @@ bool FrameFabCoreService::init()
   // action servers
   path_planning_server_.start();
   process_planning_server_.start();
+  simulate_motion_plan_server_.start();
 
   return true;
 }
@@ -192,7 +201,25 @@ bool FrameFabCoreService::element_number_sequest_server_callback(
     framefab_msgs::ElementNumberRequest::Request& req,
     framefab_msgs::ElementNumberRequest::Response& res)
 {
-  res.element_number = visual_tool_.getPathArraySize();
+  switch (req.action)
+  {
+    case framefab_msgs::ElementNumberRequest::Request::REQUEST_ELEMENT_NUMBER:
+    {
+      res.element_number = visual_tool_.getPathArraySize();
+      break;
+    }
+    case framefab_msgs::ElementNumberRequest::Request::REQUEST_SELECTED_PATH_NUMBER:
+    {
+      res.element_number = selected_path_id_;
+      break;
+    }
+    default:
+    {
+      res.element_number = 0;
+      ROS_ERROR_STREAM("Unknown parameter loading request in selection widget");
+      break;
+    }
+  }
 }
 
 bool FrameFabCoreService::visualize_selected_path_server_callback(
@@ -272,6 +299,8 @@ void FrameFabCoreService::processPlanningActionCallback(const framefab_msgs::Pro
       process_planning_feedback_.last_completed = "Recieved request to generate motion plan\n";
       process_planning_server_.publishFeedback(process_planning_feedback_);
 
+      selected_path_id_ = goal_in->index;
+
       visual_tool_.cleanUpAllPaths();
       visual_tool_.visualizePath(goal_in->index);
       visual_tool_.visualizeFeasibleOrientations(goal_in->index, false);
@@ -304,6 +333,47 @@ void FrameFabCoreService::processPlanningActionCallback(const framefab_msgs::Pro
       ROS_ERROR_STREAM("Unknown action code '" << goal_in->action << "' request");
       break;
     }
+  }
+}
+
+void FrameFabCoreService::simulateMotionPlansActionCallback(const framefab_msgs::SimulateMotionPlanGoalConstPtr& goal_in)
+{
+  framefab_msgs::SimulateMotionPlanResult res;
+
+  std::string lib_sort_id = std::to_string(goal_in->index);
+
+  // If plan does not exist, abort and return
+  if (trajectory_library_.get().find(lib_sort_id) == trajectory_library_.get().end())
+  {
+    ROS_WARN_STREAM("Motion plan #" << lib_sort_id << " does not exist. Cannot execute.");
+    res.code = framefab_msgs::SimulateMotionPlanResult::NO_SUCH_NAME;
+    simulate_motion_plan_server_.setAborted(res);
+    return;
+  }
+
+  // Send command to execution server
+  framefab_msgs::ProcessExecutionActionGoal goal;
+  goal.goal.trajectory_connection = trajectory_library_.get()[lib_sort_id].trajectory_connection;
+  goal.goal.trajectory_approach = trajectory_library_.get()[lib_sort_id].trajectory_approach;
+  goal.goal.trajectory_process = trajectory_library_.get()[lib_sort_id].trajectory_process;
+  goal.goal.trajectory_depart = trajectory_library_.get()[lib_sort_id].trajectory_depart;
+  goal.goal.wait_for_execution = goal_in->wait_for_execution;
+  goal.goal.simulate = goal_in->simulate;
+
+  actionlib::SimpleActionClient<framefab_msgs::ProcessExecutionAction> *exe_client = &framefab_exe_client_;
+  exe_client->sendGoal(goal.goal);
+
+  ros::Duration process_time(goal.goal.trajectory_depart.points.back().time_from_start);
+  ros::Duration buffer_time(PROCESS_EXE_BUFFER);
+  if(exe_client->waitForResult(process_time + buffer_time))
+  {
+    res.code = framefab_msgs::SimulateMotionPlanResult::SUCCESS;
+    simulate_motion_plan_server_.setSucceeded(res);
+  }
+  else
+  {
+    res.code = framefab_msgs::SimulateMotionPlanResult::TIMEOUT;
+    simulate_motion_plan_server_.setAborted(res);
   }
 }
 

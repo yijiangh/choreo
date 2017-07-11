@@ -19,7 +19,7 @@
 
 #include "path_transitions.h"
 #include "common_utils.h"
-//#include "generate_motion_plan.h"
+#include "generate_motion_plan.h"
 
 namespace framefab_process_planning
 {
@@ -56,9 +56,6 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
     return true;
   }
 
-  // Transform process path from geometry msgs to descartes points
-  std::vector<double> current_joints = getCurrentJointState(JOINT_TOPIC_NAME);
-
   const static double LINEAR_DISCRETIZATION = 0.01; // meters
   const static double ANGULAR_DISCRETIZATION = 0.1; // radians
   const static double RETRACT_DISTANCE = 0.005; // meters
@@ -68,20 +65,22 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
   transition_params.angular_disc = ANGULAR_DISCRETIZATION;
   transition_params.retract_dist = RETRACT_DISTANCE;
 
-  std::vector<DescartesTraj> process_points = toDescartesTraj(req.process_path,
-                                                              index, 0.01, transition_params,
-                                                              toDescartesPrintPt);
+  Eigen::Affine3d start_home_pose;
+  std::vector<double> current_joints = getCurrentJointState(JOINT_TOPIC_NAME);
+  hotend_model_->getFK(current_joints, start_home_pose);
 
-//  generateMotionPlan(blend_model_, process_points, moveit_model_, blend_group_name_,
-//                         current_joints, res.plan)
+  std::vector<framefab_process_planning::DescartesUnitProcess> process_points =
+      toDescartesTraj(req.process_path, index, start_home_pose, 0.01, transition_params, toDescartesPrintPt);
 
-  // TODO: collision objects should be added in each planning iteration
-  //  for(std::size_t i = 0; i < index; i++)
-//  {
-//    addCollisionObject(planning_scene_diff_client_, process_path[i].collision_cylinder);
-//  }
-
-  return true;
+  if(generateMotionPlan(hotend_model_, process_points, moveit_model_, hotend_group_name_,
+                        current_joints, res.plan))
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
 }
 
 }// end namespace

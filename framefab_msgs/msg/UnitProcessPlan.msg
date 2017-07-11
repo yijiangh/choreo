@@ -12,6 +12,7 @@ int32 DISCONTINUOUS_TYPE=0
 
 int32 type
 
+trajectory_msgs/JointTrajectory trajectory_connection
 trajectory_msgs/JointTrajectory trajectory_approach
 trajectory_msgs/JointTrajectory trajectory_process
 trajectory_msgs/JointTrajectory trajectory_depart

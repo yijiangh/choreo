@@ -2,22 +2,20 @@
 // Created by yijiangh on 6/22/17.
 //
 
-#ifndef FRAMEFAB_GUI_SIMULATING_STATE_H
-#define FRAMEFAB_GUI_SIMULATING_STATE_H
+#ifndef FRAMEFAB_GUI_SELECT_PROCESS_PLAN_STATE_H
+#define FRAMEFAB_GUI_SELECT_PROCESS_PLAN_STATE_H
 
-#include "framefab_gui/gui_state.h"
+#include <framefab_gui/gui_state.h>
+#include <framefab_gui/framefab_widget.h>
 #include <ros/ros.h>
 
 namespace framefab_gui
 {
 
-class SimulatingState : public GuiState
+class SelectPlanState : public GuiState
 {
   Q_OBJECT
  public:
-  // Constructor
-  SimulatingState(const std::vector<int>& plan_ids);
-
   // Entry and exit classes
   virtual void onStart(FrameFabWidget& gui);
   virtual void onExit(FrameFabWidget& gui);
@@ -28,12 +26,11 @@ class SimulatingState : public GuiState
   virtual void onReset(FrameFabWidget& gui);
 
  protected:
-  void simulateAll(FrameFabWidget& gui);
-  void simulateOne(const int& plan_id, FrameFabWidget& gui);
+  void selectPlan(FrameFabWidget& gui);
 
  private:
-  std::vector<int> plan_ids_;
+  int selected_plan_id_;
 };
 }
 
-#endif //FRAMEFAB_GUI_SIMULATING_STATE_H
+#endif //FRAMEFAB_GUI_SELECT_PROCESS_PLAN_STATE_H

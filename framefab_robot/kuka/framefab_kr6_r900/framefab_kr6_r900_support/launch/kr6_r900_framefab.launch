@@ -13,6 +13,22 @@
     <arg name="robot_model_plugin" value="$(arg robot_model_plugin)"/>
   </include>
 
+<!-- Process execution nodes: These monitor the state of robot's execution of the planned path. They can be, and in this case are, robot or vendor specific -->
+  <group>
+    <!-- Choose between 'execution' handlers based on whether we're connected to a real robot -->
+    <group if="$(arg sim_robot)">
+      <node name="framefab_process_execution" pkg="framefab_process_execution" type="framefab_process_execution_service_node"/>
+    </group>
+
+    <group unless="$(arg sim_robot)">
+      <!-- This requires connection to the service port of a physical robot controller -->
+    </group>
+  </group>
+
+  <!-- Bring up simulated robot that can be visualized under the tf namespace 'simulation'
+       Allows for previewing paths generated before execution. -->
+  <include file="$(find industrial_robot_simulator_service)/launch/start_simulation_server.launch"/>
+
   <!-- Brings up the core Framefab service - the central coordination -->
   <include file="$(find framefab_core)/launch/framefab_core.launch">
     <arg name="config_path" value="$(find framefab_kr6_r900_support)/config"/>

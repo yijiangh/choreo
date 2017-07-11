@@ -2,11 +2,11 @@
 
 # Goal
 
-# Used by external processes to command the 'godel_surface_blending' service to
+# Used by external processes to command the 'framefab_core_service' node to
 # execute an 'available' motion plan.
 # See 'LoadSaveMotionPlan.srv' for more details on the motion plan concept
 
-# string name                 # Name of the motion plan to be executed
+int32 index                 # Index of the motion plan to be executed
 
 bool simulate               # If true, the motion plan will be simulated and not executed.
 

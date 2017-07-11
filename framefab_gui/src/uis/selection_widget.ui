@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>SelectPathWidgetWindow</class>
- <widget class="QWidget" name="SelectPathWidgetWindow">
+ <class>SelectionWidgetWindow</class>
+ <widget class="QWidget" name="SelectionWidgetWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>385</width>
-    <height>137</height>
+    <width>369</width>
+    <height>134</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Path Selection</string>
+   <string>Selection</string>
   </property>
   <widget class="QSlider" name="slider_select_number">
    <property name="geometry">
@@ -54,7 +54,7 @@
   </widget>
   <widget class="QPushButton" name="pushbutton_select_all">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="geometry">
     <rect>
@@ -66,19 +66,6 @@
    </property>
    <property name="text">
     <string>Select All</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="pushbutton_accept">
-   <property name="geometry">
-    <rect>
-     <x>220</x>
-     <y>60</y>
-     <width>111</width>
-     <height>27</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Accept</string>
    </property>
   </widget>
   <widget class="QWidget" name="horizontalLayoutWidget_2">
@@ -118,6 +105,32 @@
       </property>
       <property name="readOnly">
        <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="verticalLayoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>220</x>
+     <y>60</y>
+     <width>141</width>
+     <height>62</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QPushButton" name="pushbutton_accept">
+      <property name="text">
+       <string>Plan</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="pushbutton_simulate">
+      <property name="text">
+       <string>Simulate</string>
       </property>
      </widget>
     </item>
