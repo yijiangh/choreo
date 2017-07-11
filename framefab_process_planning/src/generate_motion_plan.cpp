@@ -116,12 +116,14 @@ static framefab_process_planning::DescartesTraj generateUnitProcessMotionPlan(
   return solution;
 }
 
-bool framefab_process_planning::generateMotionPlan(const descartes_core::RobotModelPtr model,
-                        const std::vector<DescartesUnitProcess>& trajs,
-                        moveit::core::RobotModelConstPtr moveit_model,
-                        const std::string& move_group_name,
-                        const std::vector<double>& start_state,
-                        std::vector<framefab_msgs::UnitProcessPlan>& plan)
+bool framefab_process_planning::generateMotionPlan(
+    const descartes_core::RobotModelPtr model,
+    const std::vector<DescartesUnitProcess>& trajs,
+    const std::vector<moveit_msgs::CollisionObject>& collision_objs,
+    moveit::core::RobotModelConstPtr moveit_model,
+    const std::string& move_group_name,
+    const std::vector<double>& start_state,
+    std::vector<framefab_msgs::UnitProcessPlan>& plan)
 {
   for(std::size_t i = 0; i < trajs.size(); i++)
   {
