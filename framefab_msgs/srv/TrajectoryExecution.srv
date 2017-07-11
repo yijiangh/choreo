@@ -1,6 +1,6 @@
 # Trajectory Execution Service
 # This service executes/simulates a single continuous joint motion. 
-# This service was added in combination with 'godel_path_execution' in order
+# This service was added in combination with 'framefab_process_execution' in order
 # to centralize the duty of managing robot motion.
 
 # Joint trajectory
