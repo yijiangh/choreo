@@ -42,6 +42,8 @@ std::vector<double> getCurrentJointState(const std::string& topic);
 bool addCollisionObject(
     ros::ServiceClient& planning_scene, const moveit_msgs::CollisionObject& c_obj);
 
+double freeSpaceCostFunction(const std::vector<double>& source,
+                             const std::vector<double>& target);
 }
 
 #endif //FRAMEFAB_PROCESS_PLANNING_COMMON_UTILS_H
