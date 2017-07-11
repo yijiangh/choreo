@@ -11,16 +11,14 @@
 bool FrameFabCoreService::generateMotionLibrary(
     const int selected_path_index, framefab_core_service::TrajectoryLibrary& traj_lib)
 {
-  framefab_core_service::TrajectoryLibrary lib;
-
   ProcessPlanResult plan = generateProcessPlan(selected_path_index);
 
+  traj_lib.get().clear();
   for (std::size_t k = 0; k < plan.plans.size(); ++k)
   {
-    lib.get()[std::to_string(k)] = plan.plans[k];
+    traj_lib.get()[std::to_string(k)] = plan.plans[k];
   }
 
-  trajectory_library_ = traj_lib;
   return true;
 }
 
