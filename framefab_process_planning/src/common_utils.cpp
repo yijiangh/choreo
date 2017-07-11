@@ -133,6 +133,14 @@ trajectory_msgs::JointTrajectory framefab_process_planning::toROSTrajectory(
   return ros_trajectory;
 }
 
+void framefab_process_planning::fillTrajectoryHeaders(const std::vector<std::string>& joints,
+                                                   trajectory_msgs::JointTrajectory& traj)
+{
+  traj.joint_names = joints;
+  traj.header.frame_id = DEFAULT_FRAME_ID;
+  traj.header.stamp = ros::Time::now();
+}
+
 std::vector<double> framefab_process_planning::getCurrentJointState(const std::string& topic)
 {
   sensor_msgs::JointStateConstPtr state = ros::topic::waitForMessage<sensor_msgs::JointState>(

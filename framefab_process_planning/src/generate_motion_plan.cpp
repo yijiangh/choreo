@@ -113,10 +113,6 @@ static framefab_process_planning::DescartesTraj generateUnitProcessMotionPlan(
     solution.push_back(pt);
   }
 
-  ROS_INFO_STREAM("-----------------------------");
-  ROS_INFO_STREAM("input traj size: " << traj.size());
-  ROS_INFO_STREAM("solution size: " << solution.size());
-
   return solution;
 }
 
@@ -131,6 +127,10 @@ bool framefab_process_planning::generateMotionPlan(
     std::vector<framefab_msgs::UnitProcessPlan>& plan)
 {
   plan.resize(trajs.size());
+  std::vector<double> last_pose = start_state;
+
+  const std::vector<std::string>& joint_names =
+      moveit_model->getJointModelGroup(move_group_name)->getActiveJointModelNames();
 
   for(std::size_t i = 0; i < trajs.size(); i++)
   {
@@ -144,17 +144,74 @@ bool framefab_process_planning::generateMotionPlan(
     traj.insert(traj.end(), trajs[i].print_path.begin(), trajs[i].print_path.end());
     traj.insert(traj.end(), trajs[i].depart_path.begin(), trajs[i].depart_path.end());
 
-    DescartesTraj solution = generateUnitProcessMotionPlan(model, traj, start_state, moveit_model, move_group_name);
+    DescartesTraj solution = generateUnitProcessMotionPlan(model, traj, last_pose, moveit_model, move_group_name);
+    if(0 == solution.size())
+    {
+      ROS_ERROR_STREAM("No Descartes Solution Found in process #" << i);
+      break;
+    }
 
     // if no solution found, descartes planning with unit process
     // and get free plan for connect path
 
-    // add generated traj into plan output
+    trajectory_msgs::JointTrajectory ros_traj = toROSTrajectory(solution, *model);
 
+    const static double SMALLEST_VALID_SEGMENT = 0.05;
+    if (!validateTrajectory(ros_traj, *model, SMALLEST_VALID_SEGMENT))
+    {
+      ROS_ERROR_STREAM("%s: Computed path contains joint configuration changes that would result in a collision.");
+      return false;
+    }
 
+    // fill in result trajectory
+    int connection_size = trajs[i].connect_path.size();
+    int approach_size = trajs[i].approach_path.size();
+    int process_size = trajs[i].print_path.size();
+    int depart_size = trajs[i].depart_path.size();
+
+    ROS_INFO_STREAM("input traj num: " << traj.size());
+    ROS_INFO_STREAM("solution num: " << solution.size());
+
+    for(std::size_t j = 0; j < ros_traj.points.size(); j++)
+    {
+      if(0 <= j && j <= connection_size - 1)
+      {
+        plan[i].trajectory_connection.points.push_back(ros_traj.points[j]);
+      }
+      if(connection_size <= j && j <= connection_size + approach_size - 1)
+      {
+        plan[i].trajectory_approach.points.push_back(ros_traj.points[j]);
+      }
+      if(connection_size + approach_size <= j && j <= connection_size + approach_size + process_size - 1)
+      {
+        plan[i].trajectory_process.points.push_back(ros_traj.points[j]);
+      }
+      if(connection_size + approach_size + process_size <= j && j <= connection_size + approach_size + process_size + depart_size - 1)
+      {
+        plan[i].trajectory_depart.points.push_back(ros_traj.points[j]);
+      }
+    }
+
+    ROS_INFO_STREAM("plan #" << i << " - connection traj num: " << plan[i].trajectory_connection.points.size());
+    ROS_INFO_STREAM("actual connect path size: " << connection_size);
+
+    ROS_INFO_STREAM("plan #" << i << " - approach traj num: " << plan[i].trajectory_approach.points.size());
+    ROS_INFO_STREAM("actual approach path size: " << approach_size);
+
+    ROS_INFO_STREAM("plan #" << i << " - process traj num: " << plan[i].trajectory_process.points.size());
+    ROS_INFO_STREAM("actual process path size: " << process_size);
+
+    ROS_INFO_STREAM("plan #" << i << " - depart traj num: " << plan[i].trajectory_depart.points.size());
+    ROS_INFO_STREAM("actual deaprt path size: " << depart_size);
+
+    // Fill in result header information
+    framefab_process_planning::fillTrajectoryHeaders(joint_names, plan[i].trajectory_connection);
+    framefab_process_planning::fillTrajectoryHeaders(joint_names, plan[i].trajectory_approach);
+    framefab_process_planning::fillTrajectoryHeaders(joint_names, plan[i].trajectory_process);
+    framefab_process_planning::fillTrajectoryHeaders(joint_names, plan[i].trajectory_depart);
 
     // update last pose (joint)
-
+    last_pose = extractJoints(*model, *solution.back());
   }
 
   return true;
