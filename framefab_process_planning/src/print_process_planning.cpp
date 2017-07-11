@@ -79,8 +79,8 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
     collision_objs.push_back(v.collision_cylinder);
   }
 
-  if(generateMotionPlan(hotend_model_, process_points, collision_objs, moveit_model_, hotend_group_name_,
-                        current_joints, res.plan))
+  if(generateMotionPlan(hotend_model_, process_points, collision_objs, moveit_model_, planning_scene_diff_client_,
+                        hotend_group_name_, current_joints, res.plan))
   {
     return true;
   }

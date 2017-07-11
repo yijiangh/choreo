@@ -113,6 +113,10 @@ static framefab_process_planning::DescartesTraj generateUnitProcessMotionPlan(
     solution.push_back(pt);
   }
 
+  ROS_INFO_STREAM("-----------------------------");
+  ROS_INFO_STREAM("input traj size: " << traj.size());
+  ROS_INFO_STREAM("solution size: " << solution.size());
+
   return solution;
 }
 
@@ -121,18 +125,30 @@ bool framefab_process_planning::generateMotionPlan(
     const std::vector<DescartesUnitProcess>& trajs,
     const std::vector<moveit_msgs::CollisionObject>& collision_objs,
     moveit::core::RobotModelConstPtr moveit_model,
+    ros::ServiceClient& planning_scene_diff_client,
     const std::string& move_group_name,
     const std::vector<double>& start_state,
     std::vector<framefab_msgs::UnitProcessPlan>& plan)
 {
+  plan.resize(trajs.size());
+
   for(std::size_t i = 0; i < trajs.size(); i++)
   {
     // update collision objects
+    addCollisionObject(planning_scene_diff_client, collision_objs[i]);
 
     // try descartes planning with connect + unit process
+    DescartesTraj traj;
+    traj.insert(traj.end(), trajs[i].connect_path.begin(), trajs[i].connect_path.end());
+    traj.insert(traj.end(), trajs[i].unit_process_path.begin(), trajs[i].unit_process_path.end());
+
+    DescartesTraj solution = generateUnitProcessMotionPlan(model, traj, start_state, moveit_model, move_group_name);
 
     // if no solution found, descartes planning with unit process
     // and get free plan for connect path
+
+    // add generated traj into plan output
+//    plan[i].trajectory_connection =
 
     // update last pose (joint)
 
