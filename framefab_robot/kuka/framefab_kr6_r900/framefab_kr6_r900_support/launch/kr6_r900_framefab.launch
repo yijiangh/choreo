@@ -15,6 +15,9 @@
 
 <!-- Process execution nodes: These monitor the state of robot's execution of the planned path. They can be, and in this case are, robot or vendor specific -->
   <group>
+<!--		remap	"process execution" service name to be compatible with simulator node-->
+		<remap from="process_simulation" to="simulation/simulate_trajectory"/>
+
     <!-- Choose between 'execution' handlers based on whether we're connected to a real robot -->
     <group if="$(arg sim_robot)">
       <node name="framefab_process_execution" pkg="framefab_process_execution" type="framefab_process_execution_service_node"/>

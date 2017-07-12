@@ -105,7 +105,7 @@ bool framefab_process_execution::FrameFabProcessExecutionService::simulateProces
   // Call simulation service
   if (!sim_client_.call(srv))
   {
-    ROS_ERROR("Simulation client unavailable or unable to simulate trajectory.");
+    ROS_ERROR("[process execution] Simulation client unavailable or unable to simulate trajectory.");
     return false;
   }
   else
