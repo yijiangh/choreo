@@ -8,6 +8,9 @@
   <arg name="save_data" default="false" />
   <arg name="save_location" default="$(env HOME)/.ros/" />
 
+  <!-- Brings up action interface for simple trajectory execution -->
+  <node name="path_execution_service" pkg="framefab_path_execution" type="path_execution_service_node"/>
+
   <!-- Launches process planners: requires descartes plugin for the robot model -->
   <include file="$(find framefab_process_planning)/launch/process_planning.launch">
     <arg name="robot_model_plugin" value="$(arg robot_model_plugin)"/>

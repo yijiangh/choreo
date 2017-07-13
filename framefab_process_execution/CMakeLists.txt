@@ -4,7 +4,7 @@ add_definitions(-std=c++11)
 
 find_package(catkin REQUIRED COMPONENTS
   framefab_msgs
-  industrial_robot_simulator_service
+  framefab_industrial_robot_simulator_service
   trajectory_msgs
 )
 
@@ -13,7 +13,7 @@ catkin_package(
     include
   CATKIN_DEPENDS 
     framefab_msgs
-    industrial_robot_simulator_service
+    framefab_industrial_robot_simulator_service
     trajectory_msgs
 )
 

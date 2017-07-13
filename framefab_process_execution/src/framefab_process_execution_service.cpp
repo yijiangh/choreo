@@ -4,7 +4,7 @@
 
 #include <framefab_process_execution/framefab_process_execution_service.h>
 
-#include <industrial_robot_simulator_service/SimulateTrajectory.h>
+#include <framefab_industrial_robot_simulator_service/SimulateTrajectory.h>
 #include <framefab_msgs/TrajectoryExecution.h>
 
 #include "process_utils.h"
@@ -12,7 +12,7 @@
 
 #include <ros/topic.h>
 
-const static std::string EXECUTION_SERVICE_NAME = "process_execution";
+const static std::string EXECUTION_SERVICE_NAME = "path_execution";
 const static std::string SIMULATION_SERVICE_NAME = "process_simulation";
 const static std::string PROCESS_EXE_ACTION_SERVER_NAME = "framefab_process_execution_as";
 
@@ -24,7 +24,7 @@ framefab_process_execution::FrameFabProcessExecutionService::FrameFabProcessExec
                                  false)
 {
   // Simulation Server
-  sim_client_ = nh_.serviceClient<industrial_robot_simulator_service::SimulateTrajectory>(
+  sim_client_ = nh_.serviceClient<framefab_industrial_robot_simulator_service::SimulateTrajectory>(
       SIMULATION_SERVICE_NAME);
 
   // Trajectory Execution Service
@@ -98,7 +98,7 @@ bool framefab_process_execution::FrameFabProcessExecutionService::executeProcess
 bool framefab_process_execution::FrameFabProcessExecutionService::simulateProcess(
     const framefab_msgs::ProcessExecutionGoalConstPtr &goal)
 {
-  using industrial_robot_simulator_service::SimulateTrajectory;
+  using framefab_industrial_robot_simulator_service::SimulateTrajectory;
 
   // The simulation server doesn't support any I/O visualizations, so we aggregate the
   // trajectory components and send them all at once
