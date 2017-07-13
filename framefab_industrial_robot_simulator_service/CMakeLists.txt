@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(industrial_robot_simulator_service)
+project(framefab_industrial_robot_simulator_service)
 
 find_package(catkin REQUIRED COMPONENTS
   actionlib
@@ -38,7 +38,7 @@ include_directories(
 
 add_executable(simulator_service_node src/simulator_service_node.cpp)
 
-add_dependencies(simulator_service_node industrial_robot_simulator_service_generate_messages_cpp)
+add_dependencies(simulator_service_node framefab_industrial_robot_simulator_service_generate_messages_cpp)
 
 target_link_libraries(simulator_service_node
   ${catkin_LIBRARIES}

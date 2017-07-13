@@ -1,6 +1,6 @@
 #include <ros/ros.h>
 
-#include <industrial_robot_simulator_service/SimulateTrajectory.h>
+#include <framefab_industrial_robot_simulator_service/SimulateTrajectory.h>
 
 #include <actionlib/client/simple_action_client.h>
 #include <control_msgs/FollowJointTrajectoryAction.h>
@@ -20,7 +20,7 @@ static void scaleDurations(trajectory_msgs::JointTrajectory& traj, double scale)
   }
 }
 
-namespace industrial_robot_simulator_service
+namespace framefab_industrial_robot_simulator_service
 {
 class SimulatorService
 {
@@ -44,8 +44,8 @@ public:
 
   // Makes call to the simulation action server
   bool
-  simulateTrajectoryCallback(industrial_robot_simulator_service::SimulateTrajectory::Request& req,
-                             industrial_robot_simulator_service::SimulateTrajectory::Response& res)
+  simulateTrajectoryCallback(framefab_industrial_robot_simulator_service::SimulateTrajectory::Request& req,
+                             framefab_industrial_robot_simulator_service::SimulateTrajectory::Response& res)
   {
     // If empty trajectory, return true right away
     if (req.trajectory.points.empty())
@@ -122,7 +122,7 @@ int main(int argc, char** argv)
   pnh.param<std::string>("action_name", action_name, "joint_trajectory_action");
 
   // Initialize the service
-  industrial_robot_simulator_service::SimulatorService service(nh, service_name, action_name);
+  framefab_industrial_robot_simulator_service::SimulatorService service(nh, service_name, action_name);
 
   // Optionally load a new default scale factor
   if (pnh.getParam("scale_factor", scale_factor))

@@ -30,7 +30,7 @@
 
   <!-- Bring up simulated robot that can be visualized under the tf namespace 'simulation'
        Allows for previewing paths generated before execution. -->
-  <include file="$(find industrial_robot_simulator_service)/launch/start_simulation_server.launch"/>
+  <include file="$(find framefab_industrial_robot_simulator_service)/launch/start_simulation_server.launch"/>
 
   <!-- Brings up the core Framefab service - the central coordination -->
   <include file="$(find framefab_core)/launch/framefab_core.launch">

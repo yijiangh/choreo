@@ -93,7 +93,8 @@ bool framefab_process_execution::FrameFabProcessExecutionService::simulateProces
   // The simulation server doesn't support any I/O visualizations, so we aggregate the
   // trajectory components and send them all at once
   trajectory_msgs::JointTrajectory aggregate_traj;
-  aggregate_traj = goal->trajectory_approach;
+  aggregate_traj = goal->trajectory_connection;
+  appendTrajectory(aggregate_traj, goal->trajectory_approach);
   appendTrajectory(aggregate_traj, goal->trajectory_process);
   appendTrajectory(aggregate_traj, goal->trajectory_depart);
 
