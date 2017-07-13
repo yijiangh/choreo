@@ -26,8 +26,9 @@ typedef std::vector<descartes_core::TrajectoryPtPtr> DescartesTraj;
 struct DescartesUnitProcess
 {
   DescartesTraj connect_path;
-  DescartesTraj unit_process_path;
-};
+  DescartesTraj approach_path;
+  DescartesTraj print_path;
+  DescartesTraj depart_path;};
 
 Eigen::Affine3d createNominalTransform(const geometry_msgs::Pose& ref_pose,
                                        const geometry_msgs::Point& pt);
@@ -37,11 +38,28 @@ Eigen::Affine3d createNominalTransform(const geometry_msgs::Pose& ref_pose, cons
 
 Eigen::Affine3d createNominalTransform(const Eigen::Affine3d& ref_pose, const double z_adjust = 0.0);
 
+trajectory_msgs::JointTrajectory toROSTrajectory(const DescartesTraj& solution,
+                                                 const descartes_core::RobotModel& model);
+
+void fillTrajectoryHeaders(const std::vector<std::string>& joints,
+                           trajectory_msgs::JointTrajectory& traj);
+
 std::vector<double> getCurrentJointState(const std::string& topic);
 
 bool addCollisionObject(
     ros::ServiceClient& planning_scene, const moveit_msgs::CollisionObject& c_obj);
 
+static inline std::vector<double> extractJoints(const descartes_core::RobotModel& model,
+                                                const descartes_core::TrajectoryPt& pt)
+{
+  std::vector<double> dummy, result;
+  pt.getNominalJointPose(dummy, model, result);
+  return result;
+}
+
+
+double freeSpaceCostFunction(const std::vector<double>& source,
+                             const std::vector<double>& target);
 }
 
 #endif //FRAMEFAB_PROCESS_PLANNING_COMMON_UTILS_H

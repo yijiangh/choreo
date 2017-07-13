@@ -72,8 +72,15 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
   std::vector<framefab_process_planning::DescartesUnitProcess> process_points =
       toDescartesTraj(req.process_path, index, start_home_pose, 0.01, transition_params, toDescartesPrintPt);
 
-  if(generateMotionPlan(hotend_model_, process_points, moveit_model_, hotend_group_name_,
-                        current_joints, res.plan))
+  // extract collision objs from process_path
+  std::vector<moveit_msgs::CollisionObject> collision_objs;
+  for (auto v : process_path)
+  {
+    collision_objs.push_back(v.collision_cylinder);
+  }
+
+  if(generateMotionPlan(hotend_model_, process_points, collision_objs, moveit_model_, planning_scene_diff_client_,
+                        hotend_group_name_, current_joints, res.plan))
   {
     return true;
   }

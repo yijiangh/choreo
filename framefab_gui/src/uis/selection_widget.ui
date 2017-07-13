@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>369</width>
-    <height>134</height>
+    <width>478</width>
+    <height>160</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,7 +18,7 @@
     <rect>
      <x>10</x>
      <y>20</y>
-     <width>201</width>
+     <width>281</width>
      <height>29</height>
     </rect>
    </property>
@@ -71,7 +71,7 @@
   <widget class="QWidget" name="horizontalLayoutWidget_2">
    <property name="geometry">
     <rect>
-     <x>220</x>
+     <x>310</x>
      <y>20</y>
      <width>139</width>
      <height>31</height>
@@ -115,8 +115,8 @@
     <rect>
      <x>220</x>
      <y>60</y>
-     <width>141</width>
-     <height>62</height>
+     <width>235</width>
+     <height>95</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -128,9 +128,16 @@
      </widget>
     </item>
     <item>
-     <widget class="QPushButton" name="pushbutton_simulate">
+     <widget class="QPushButton" name="pushbutton_simulate_single">
       <property name="text">
-       <string>Simulate</string>
+       <string>Simulate Single Path</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="pushbutton_simulate_until">
+      <property name="text">
+       <string>Simulate All Until Selected Path</string>
       </property>
      </widget>
     </item>

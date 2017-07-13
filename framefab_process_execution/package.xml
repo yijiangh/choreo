@@ -14,7 +14,7 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>framefab_msgs</depend>
-  <depend>industrial_robot_simulator_service</depend>
+  <depend>framefab_industrial_robot_simulator_service</depend>
   <depend>trajectory_msgs</depend>
 
 </package>

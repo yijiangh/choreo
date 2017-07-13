@@ -239,26 +239,26 @@ framefab_process_planning::toDescartesTraj(const std::vector<framefab_msgs::Elem
   {
     add_segment(trajs[i].connect_path, process_path_poses[i].connect, false);
 
-    add_segment(trajs[i].unit_process_path, process_path_poses[i].approach, false);
+    add_segment(trajs[i].approach_path, process_path_poses[i].approach, false);
 
-    add_segment(trajs[i].unit_process_path, process_path_poses[i].print, false);
+    add_segment(trajs[i].print_path, process_path_poses[i].print, false);
 
-    add_segment(trajs[i].unit_process_path, process_path_poses[i].depart, false);
+    add_segment(trajs[i].depart_path, process_path_poses[i].depart, false);
 
-    result[i].insert(result[i].end(), process_path_poses[i].connect.begin(), process_path_poses[i].connect.end());
-    result[i].insert(result[i].end(), process_path_poses[i].approach.begin(), process_path_poses[i].approach.end());
-    result[i].insert(result[i].end(), process_path_poses[i].print.begin(), process_path_poses[i].print.end());
-    result[i].insert(result[i].end(), process_path_poses[i].depart.begin(), process_path_poses[i].depart.end());
+//    result[i].insert(result[i].end(), process_path_poses[i].connect.begin(), process_path_poses[i].connect.end());
+//    result[i].insert(result[i].end(), process_path_poses[i].approach.begin(), process_path_poses[i].approach.end());
+//    result[i].insert(result[i].end(), process_path_poses[i].print.begin(), process_path_poses[i].print.end());
+//    result[i].insert(result[i].end(), process_path_poses[i].depart.begin(), process_path_poses[i].depart.end());
   } // end segments
 
   // visual debug
-  rviz_visual_tools::RvizVisualToolsPtr visual_tool;
-  visual_tool.reset(
-      new rviz_visual_tools::RvizVisualTools("world_frame", "pose_visualization"));
-  visual_tool->deleteAllMarkers();
-
-  double visual_axis_length = 0.01;
-  double visual_axis_diameter = 0.0005;
+//  rviz_visual_tools::RvizVisualToolsPtr visual_tool;
+//  visual_tool.reset(
+//      new rviz_visual_tools::RvizVisualTools("world_frame", "pose_visualization"));
+//  visual_tool->deleteAllMarkers();
+//
+//  double visual_axis_length = 0.01;
+//  double visual_axis_diameter = 0.0005;
 
 //  int display_id = (1 >= selected_path_num) ? 0 : selected_path_num - 2;
 //
@@ -268,11 +268,11 @@ framefab_process_planning::toDescartesTraj(const std::vector<framefab_msgs::Elem
 //    visual_tool->trigger();
 //  }
 
-  for(auto v : result.back())
-  {
-    visual_tool->publishAxis(v, visual_axis_length, visual_axis_diameter, "pose_axis");
-    visual_tool->trigger();
-  }
+//  for(auto v : result.back())
+//  {
+//    visual_tool->publishAxis(v, visual_axis_length, visual_axis_diameter, "pose_axis");
+//    visual_tool->trigger();
+//  }
 
   return trajs;
 }

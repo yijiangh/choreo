@@ -6,6 +6,11 @@
 # execute an 'available' motion plan.
 # See 'LoadSaveMotionPlan.srv' for more details on the motion plan concept
 
+int32 SINGLE_PATH_RUN=0
+int32 ALL_PATHS_UNTIL_SELECTED_RUN=1
+
+int32 action
+
 int32 index                 # Index of the motion plan to be executed
 
 bool simulate               # If true, the motion plan will be simulated and not executed.
