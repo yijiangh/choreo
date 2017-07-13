@@ -33,7 +33,22 @@ void framefab_gui::SelectPlanState::onNext(FrameFabWidget& gui)
   gui.appendText("\nselect plan state finished! Selected Plan: #" + std::to_string(selected_plan_id_));
 
   std::vector<int> plan_ids;
-  plan_ids.push_back(selected_plan_id_);
+
+  if(gui.selection_widget().getSimulateType())
+  {
+    // simulate single
+    ROS_INFO_STREAM("[selection widget] Single Simulation!");
+    plan_ids.push_back(selected_plan_id_);
+  }
+  else
+  {
+    ROS_INFO_STREAM("[selection widget] All Simulations Until Selected id!");
+    // simulate until selected id
+    for(std::size_t i = 0; i <= selected_plan_id_; i++)
+    {
+      plan_ids.push_back(i);
+    }
+  }
 
   Q_EMIT newStateAvailable(new SimulatingState(plan_ids));
 }

@@ -1,5 +1,10 @@
 # Goal
 
+int32 SINGLE_PATH_RUN=0
+int32 ALL_PATHS_UNTIL_SELECTED_RUN=1
+
+int32 action
+
 # Joint trajectory
 trajectory_msgs/JointTrajectory trajectory_connection
 trajectory_msgs/JointTrajectory trajectory_approach

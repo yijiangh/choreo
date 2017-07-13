@@ -51,6 +51,7 @@ void framefab_gui::SimulatingState::simulateAll(FrameFabWidget& gui)
   for (std::size_t i = 0; i < plan_ids_.size(); ++i)
   {
     simulateOne(plan_ids_[i], gui);
+    ROS_INFO_STREAM("[SimulatingState ui] simulate #" << i);
   }
 
   gui.setButtonsEnabled(true);
@@ -62,6 +63,6 @@ void framefab_gui::SimulatingState::simulateOne(const int& plan_id, FrameFabWidg
   framefab_msgs::SimulateMotionPlanActionGoal goal;
   goal.goal.index = plan_id;
   goal.goal.simulate = false;
-  goal.goal.wait_for_execution = true;
+  goal.goal.wait_for_execution = false;
   gui.sendGoalAndWait(goal);
 }

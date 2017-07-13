@@ -45,19 +45,22 @@ class SelectionWidget : public QWidget
 
   void setInputEnabled(bool enabled);
 
-  int getSelectedValue() { return print_order_; }
+  int   getSelectedValue() { return print_order_; }
+  bool  getSimulateType() {return simulate_single_; }
 
   // send srv to clean up visualization markers
   void cleanUpVisual();
 
   Q_SIGNALS:
   void acceptSelection();
+  void simulateTypeChange(bool);
 
  protected Q_SLOTS:
   // different source that changes order_value
   void buttonForwardUpdateOrderValue();
   void buttonBackwardUpdateOrderValue();
   void buttonSelectAll();
+  void buttonSimulate(bool single);
   void sliderUpdateOrderValue(int value);
   void lineeditUpdateOrderValue();
 
@@ -70,6 +73,8 @@ class SelectionWidget : public QWidget
 
   int max_value_;
   int print_order_;
+
+  bool simulate_single_;
 
   MODE mode_;
 };
