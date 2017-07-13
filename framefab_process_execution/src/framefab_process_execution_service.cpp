@@ -52,6 +52,10 @@ void framefab_process_execution::FrameFabProcessExecutionService::executionCallb
 bool framefab_process_execution::FrameFabProcessExecutionService::executeProcess(
     const framefab_msgs::ProcessExecutionGoalConstPtr &goal)
 {
+  framefab_msgs::TrajectoryExecution srv_connection;
+  srv_connection.request.wait_for_execution = true;
+  srv_connection.request.trajectory = goal->trajectory_connection;
+
   framefab_msgs::TrajectoryExecution srv_approach;
   srv_approach.request.wait_for_execution = true;
   srv_approach.request.trajectory = goal->trajectory_approach;
@@ -63,6 +67,12 @@ bool framefab_process_execution::FrameFabProcessExecutionService::executeProcess
   framefab_msgs::TrajectoryExecution srv_depart;
   srv_depart.request.wait_for_execution = true;
   srv_depart.request.trajectory = goal->trajectory_depart;
+
+  if (!real_client_.call(srv_connection))
+  {
+    ROS_ERROR("Execution client unavailable or unable to execute connection trajectory.");
+    return false;
+  }
 
   if (!real_client_.call(srv_approach))
   {

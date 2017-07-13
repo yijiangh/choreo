@@ -61,7 +61,7 @@ void framefab_gui::SimulatingState::simulateOne(const int& plan_id, FrameFabWidg
 {
   framefab_msgs::SimulateMotionPlanActionGoal goal;
   goal.goal.index = plan_id;
-  goal.goal.simulate = true;
+  goal.goal.simulate = false;
   goal.goal.wait_for_execution = true;
   gui.sendGoalAndWait(goal);
 }
