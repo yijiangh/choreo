@@ -35,10 +35,14 @@ Panels:
         - /Global Options1
         - /MotionPlanning1/Scene Geometry1
         - /MotionPlanning1/Planned Path1
+        - /TF1/Frames1
+        - /TF1/Tree1/world_frame1
+        - /TF1/Tree1/world_frame1/simulation/world_frame1
+        - /TF1/Tree1/world_frame1/simulation/world_frame1/simulation/base_link1
         - /MarkerArray1
         - /MarkerArray2
       Splitter Ratio: 0.5
-    Tree Height: 369
+    Tree Height: 356
 Visualization Manager:
   Class: ""
   Displays:
@@ -137,19 +141,102 @@ Visualization Manager:
         Show Robot Visual: false
       Value: false
     - Class: rviz/TF
-      Enabled: false
+      Enabled: true
       Frame Timeout: 15
       Frames:
         All Enabled: false
-      Marker Scale: 0.5
+        base:
+          Value: true
+        base_link:
+          Value: true
+        eef_frame:
+          Value: true
+        hotend_tool:
+          Value: true
+        link_1:
+          Value: true
+        link_2:
+          Value: true
+        link_3:
+          Value: true
+        link_4:
+          Value: true
+        link_5:
+          Value: true
+        link_6:
+          Value: true
+        simulation/base:
+          Value: false
+        simulation/base_link:
+          Value: false
+        simulation/eef_frame:
+          Value: false
+        simulation/hotend_tool:
+          Value: false
+        simulation/link_1:
+          Value: false
+        simulation/link_2:
+          Value: false
+        simulation/link_3:
+          Value: false
+        simulation/link_4:
+          Value: false
+        simulation/link_5:
+          Value: false
+        simulation/link_6:
+          Value: false
+        simulation/tcp_frame:
+          Value: false
+        simulation/tool0:
+          Value: false
+        simulation/world_frame:
+          Value: false
+        tcp_frame:
+          Value: true
+        tool0:
+          Value: true
+        world_frame:
+          Value: false
+      Marker Scale: 0.100000001
       Name: TF
       Show Arrows: false
       Show Axes: true
       Show Names: false
       Tree:
-        {}
+        world_frame:
+          base_link:
+            base:
+              {}
+            link_1:
+              link_2:
+                link_3:
+                  link_4:
+                    link_5:
+                      link_6:
+                        tool0:
+                          eef_frame:
+                            hotend_tool:
+                              {}
+                            tcp_frame:
+                              {}
+          simulation/world_frame:
+            simulation/base_link:
+              simulation/base:
+                {}
+              simulation/link_1:
+                simulation/link_2:
+                  simulation/link_3:
+                    simulation/link_4:
+                      simulation/link_5:
+                        simulation/link_6:
+                          simulation/tool0:
+                            simulation/eef_frame:
+                              simulation/hotend_tool:
+                                {}
+                              simulation/tcp_frame:
+                                {}
       Update Interval: 0
-      Value: false
+      Value: true
     - Alpha: 1
       Class: rviz/RobotModel
       Collision Enabled: false
@@ -342,38 +429,38 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 1.41394258
+      Distance: 3.96037221
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.158523679
-        Y: 0.246522337
-        Z: 1.53482085e-06
+        X: -1.27885807
+        Y: 1.73685765
+        Z: 1.41444241e-06
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.0702033937
+      Pitch: -0.13479653
       Target Frame: arm_base_link
       Value: XYOrbit (rviz)
-      Yaw: 5.65493631
+      Yaw: 5.48493576
     Saved: ~
 Window Geometry:
   Displays:
     collapsed: false
   FrameFabPanel:
     collapsed: false
-  Height: 1176
+  Height: 1148
   Hide Left Dock: false
   Hide Right Dock: false
   MotionPlanning:
     collapsed: false
   MotionPlanning - Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000100000000000002b800000452fc020000000cfb000000100044006900730070006c0061007900730000000028000000dd000000dd00fffffffb0000000800480065006c00700000000342000000bb0000000000000000fb0000000a0056006900650077007300000003b0000000b0000000b000fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000028000002110000000000000000fb00000022004600720061006d0065004600610062005200760069007a00500061006e0065006c0000000028000002180000000000000000fb0000001200530065006c0065006300740069006f006e00000003bb000000bf0000006400fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007300000003d8000000a20000006400fffffffb0000002e004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d00200053006c00690064006500720000000000ffffffff0000004a00fffffffb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670000000028000001cc000001cc00fffffffb0000001a004600720061006d006500460061006200500061006e0065006c01000000280000024c000001ea00fffffffb000000100044006900730070006c006100790073010000027a00000200000000dd00ffffff000004950000045200000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000100000000000002b800000436fc020000000cfb000000100044006900730070006c0061007900730000000028000000dd000000dd00fffffffb0000000800480065006c00700000000342000000bb0000000000000000fb0000000a0056006900650077007300000003b0000000b0000000b000fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000028000002110000000000000000fb00000022004600720061006d0065004600610062005200760069007a00500061006e0065006c0000000028000002180000000000000000fb0000001200530065006c0065006300740069006f006e00000003bb000000bf0000006400fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007300000003d8000000a20000006400fffffffb0000002e004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d00200053006c00690064006500720000000000ffffffff0000004a00fffffffb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670000000028000001cc000001cc00fffffffb0000001a004600720061006d006500460061006200500061006e0065006c01000000280000023d000001ea00fffffffb000000100044006900730070006c006100790073010000026b000001f3000000dd00ffffff000004950000043600000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Tool Properties:
