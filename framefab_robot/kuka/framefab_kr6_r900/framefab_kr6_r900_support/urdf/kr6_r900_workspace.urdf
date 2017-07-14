@@ -217,7 +217,7 @@
   <joint name="eef_to_hotend_tcp_frame" type="fixed">
     <parent link="eef_frame"/>
     <child link="tcp_frame"/>
-    <origin rpy="0 1.57079632679 0" xyz="0.15098 0.000655 0.115553"/>
+    <origin rpy="0 1.57079632679 0" xyz="0.15045 0.000282 0.121277"/>
   </joint>
   <!-- Attach the end effector to the end of the robot arm (tool0) -->
   <joint name="link_t_to_eef" type="fixed">
