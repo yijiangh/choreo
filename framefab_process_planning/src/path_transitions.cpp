@@ -12,6 +12,9 @@
 
 #include <eigen_conversions/eigen_msg.h>
 
+// full extra descartes graph building feature
+#include <descartes_planner/graph_builders.h>
+
 static double quaternionDistance(const Eigen::Quaterniond& a, const Eigen::Quaterniond& b)
 {
   return std::acos(2.0 * std::pow(a.dot(b), 2.0) - 1.0);
