@@ -20,6 +20,16 @@ Development mainly on *kuka_kr6r900sixx robot* for now.
   sudo apt install python-wstool
   ```
 
+- Install [moveit](http://moveit.ros.org/install/).
+  ```
+  sudo apt-get install ros-kinetic-moveit
+  ```
+
+- Install [rviz visual tools](https://github.com/davetcoleman/rviz_visual_tools) for pose visualization.
+  ```
+  sudo apt-get install ros-kinetic-rviz-visual-tools
+  ```
+
 - Cd into the 'src' directory of your catkin workspace and run the following:
   ```
   wstool init . 

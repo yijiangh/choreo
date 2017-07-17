@@ -5,3 +5,4 @@
 - git: {local-name: kuka_experimental, uri: 'https://github.com/yijiangh/kuka_experimental.git', version: indigo-devel}
 # Custom descartes until we get changes merged in
 - git: {local-name: descartes, uri: 'https://github.com/Jmeyer1292/descartes.git', version: godel_refactor_omp}
+
