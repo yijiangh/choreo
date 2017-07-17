@@ -134,6 +134,8 @@ bool framefab_process_planning::generateMotionPlan(
 
   for(std::size_t i = 0; i < trajs.size(); i++)
   {
+    ROS_INFO_STREAM("Process Planning #" << i);
+
     // update collision objects
     addCollisionObject(planning_scene_diff_client, collision_objs[i]);
 
@@ -169,9 +171,6 @@ bool framefab_process_planning::generateMotionPlan(
     int process_size = trajs[i].print_path.size();
     int depart_size = trajs[i].depart_path.size();
 
-    ROS_INFO_STREAM("input traj num: " << traj.size());
-    ROS_INFO_STREAM("solution num: " << solution.size());
-
     for(std::size_t j = 0; j < ros_traj.points.size(); j++)
     {
       if(0 <= j && j <= connection_size - 1)
@@ -191,18 +190,6 @@ bool framefab_process_planning::generateMotionPlan(
         plan[i].trajectory_depart.points.push_back(ros_traj.points[j]);
       }
     }
-
-    ROS_INFO_STREAM("plan #" << i << " - connection traj num: " << plan[i].trajectory_connection.points.size());
-    ROS_INFO_STREAM("actual connect path size: " << connection_size);
-
-    ROS_INFO_STREAM("plan #" << i << " - approach traj num: " << plan[i].trajectory_approach.points.size());
-    ROS_INFO_STREAM("actual approach path size: " << approach_size);
-
-    ROS_INFO_STREAM("plan #" << i << " - process traj num: " << plan[i].trajectory_process.points.size());
-    ROS_INFO_STREAM("actual process path size: " << process_size);
-
-    ROS_INFO_STREAM("plan #" << i << " - depart traj num: " << plan[i].trajectory_depart.points.size());
-    ROS_INFO_STREAM("actual deaprt path size: " << depart_size);
 
     // Fill in result header information
     framefab_process_planning::fillTrajectoryHeaders(joint_names, plan[i].trajectory_connection);
