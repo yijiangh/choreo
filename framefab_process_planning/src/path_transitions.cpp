@@ -20,10 +20,11 @@
 namespace // anon namespace to hide utility functions
 {
   // convert orientations representing by Eigen3d::vector into Eigen::Matrix3d
-  std::vector<Eigen::Matrix3d> convertOrientationVector(
-      const std::vector<geometry_msgs::Vector3>& orients_msg)
+  void convertOrientationVector(
+      const std::vector<geometry_msgs::Vector3>& orients_msg,
+      descartes_planner::ConstrainedSegment::OrientationVector& m_orients)
   {
-    std::vector<Eigen::Matrix3d> m_orients;
+    m_orients.clear();
 
     for(auto v : orients_msg)
     {
@@ -38,13 +39,10 @@ namespace // anon namespace to hide utility functions
       {
         double rot_angle = acos(eigen_vec.dot(Eigen::Vector3d::UnitZ()));
         m = m * Eigen::AngleAxisd(rot_angle, Eigen::Vector3d::UnitZ());
-        m_orients.push_back(m);
       }
 
       m_orients.push_back(m);
     }
-
-    return m_orients;
   }
 } // end utility function ns
 
@@ -55,7 +53,7 @@ boost::function<descartes_planner::ConstrainedSegment (const Eigen::Vector3d &, 
 std::vector<descartes_planner::ConstrainedSegment>
 framefab_process_planning::toDescartesConstrainedPath(const std::vector<framefab_msgs::ElementCandidatePoses>& process_path,
                                                       const int index,
-                                                      const double process_speed, const TransitionParameters& transition_params)
+                                                      const double process_speed, const ConstrainedSegParameters& seg_params)
 {
   using ConstrainedSegment = descartes_planner::ConstrainedSegment;
 
@@ -63,24 +61,22 @@ framefab_process_planning::toDescartesConstrainedPath(const std::vector<framefab
   std::vector<ConstrainedSegment> segs(selected_path_num);
 
   // Inline function for adding a sequence of motions
-  auto add_segment = [process_speed, transition_params]
+  auto add_segment = [process_speed, seg_params]
       (ConstrainedSegment& seg, const framefab_msgs::ElementCandidatePoses path_pose)
   {
-      tf::pointMsgToEigen(path_pose.start_pt, seg.start);
-      tf::pointMsgToEigen(path_pose.end_pt, seg.end);
+    tf::pointMsgToEigen(path_pose.start_pt, seg.start);
+    tf::pointMsgToEigen(path_pose.end_pt, seg.end);
+    convertOrientationVector(path_pose.feasible_orients, seg.orientations);
+
+    seg.linear_vel = seg_params.linear_vel;
+    seg.linear_disc = seg_params.linear_disc;
+    seg.z_axis_disc = seg_params.angular_disc;
   };
 
-//  for (std::size_t i = 0; i < selected_path_num; ++i)
-//  {
-//    add_segment(trajs[i].connect_path, process_path_poses[i].connect, false);
-//
-//    add_segment(trajs[i].approach_path, process_path_poses[i].approach, false);
-//
-//    add_segment(trajs[i].print_path, process_path_poses[i].print, false);
-//
-//    add_segment(trajs[i].depart_path, process_path_poses[i].depart, false);
-//
-//  } // end segments
+  for (std::size_t i = 0; i < selected_path_num; ++i)
+  {
+    add_segment(segs[i], process_path[i]);
+  } // end segments
 
   return segs;
 }

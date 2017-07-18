@@ -20,8 +20,9 @@ namespace framefab_process_planning
 {
 
 
-struct TransitionParameters
+struct ConstrainedSegParameters
 {
+  double linear_vel;
   double linear_disc;
   double angular_disc;
   double retract_dist;
@@ -31,7 +32,7 @@ std::vector<descartes_planner::ConstrainedSegment>
 toDescartesConstrainedPath(
     const std::vector<framefab_msgs::ElementCandidatePoses>& process_path,
     const int selected_path_id,
-    const double process_speed, const TransitionParameters& transition_params);
+    const double process_speed, const ConstrainedSegParameters& transition_params);
 
 }
 

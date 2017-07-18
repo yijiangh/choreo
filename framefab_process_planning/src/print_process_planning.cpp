@@ -51,21 +51,24 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
     return true;
   }
 
+  const static double LINEAR_VEL = 0.01; // (m/s)
   const static double LINEAR_DISCRETIZATION = 0.01; // meters
+  // the distance between angular steps about z for each orientation
   const static double ANGULAR_DISCRETIZATION = 0.1; // radians
   const static double RETRACT_DISTANCE = 0.005; // meters
 
-  TransitionParameters transition_params;
-  transition_params.linear_disc = LINEAR_DISCRETIZATION;
-  transition_params.angular_disc = ANGULAR_DISCRETIZATION;
-  transition_params.retract_dist = RETRACT_DISTANCE;
+  ConstrainedSegParameters constrained_seg_params;
+  constrained_seg_params.linear_vel = LINEAR_VEL;
+  constrained_seg_params.linear_disc = LINEAR_DISCRETIZATION;
+  constrained_seg_params.angular_disc = ANGULAR_DISCRETIZATION;
+  constrained_seg_params.retract_dist = RETRACT_DISTANCE;
 
   Eigen::Affine3d start_home_pose;
   std::vector<double> current_joints = getCurrentJointState(JOINT_TOPIC_NAME);
   hotend_model_->getFK(current_joints, start_home_pose);
 
-//  std::vector<framefab_process_planning::DescartesUnitProcess> process_points =
-//      toDescartesTraj(req.process_path, index, start_home_pose, 0.01, transition_params, toDescartesPrintPt);
+  std::vector<descartes_planner::ConstrainedSegment> constrained_segs =
+      toDescartesConstrainedPath(req.process_path, index, 0.01, constrained_seg_params);
 
 //  // extract collision objs from process_path
 //  std::vector<moveit_msgs::CollisionObject> collision_objs;
