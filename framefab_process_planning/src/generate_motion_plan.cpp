@@ -178,40 +178,37 @@ bool framefab_process_planning::generateMotionPlan(
       return false;
     }
 
-//    // fill in result trajectory
-//    int connection_size = trajs[i].connect_path.size();
-//    int approach_size = trajs[i].approach_path.size();
-//    int process_size = trajs[i].print_path.size();
-//    int depart_size = trajs[i].depart_path.size();
-//
-//    for(std::size_t j = 0; j < ros_traj.points.size(); j++)
-//    {
-//      if(0 <= j && j <= connection_size - 1)
-//      {
-//        plan[i].trajectory_connection.points.push_back(ros_traj.points[j]);
-//      }
-//      if(connection_size <= j && j <= connection_size + approach_size - 1)
-//      {
-//        plan[i].trajectory_approach.points.push_back(ros_traj.points[j]);
-//      }
-//      if(connection_size + approach_size <= j && j <= connection_size + approach_size + process_size - 1)
-//      {
-//        plan[i].trajectory_process.points.push_back(ros_traj.points[j]);
-//      }
-//      if(connection_size + approach_size + process_size <= j && j <= connection_size + approach_size + process_size + depart_size - 1)
-//      {
-//        plan[i].trajectory_depart.points.push_back(ros_traj.points[j]);
-//      }
-//    }
-//
-//    // Fill in result header information
-//    framefab_process_planning::fillTrajectoryHeaders(joint_names, plan[i].trajectory_connection);
-//    framefab_process_planning::fillTrajectoryHeaders(joint_names, plan[i].trajectory_approach);
-//    framefab_process_planning::fillTrajectoryHeaders(joint_names, plan[i].trajectory_process);
-//    framefab_process_planning::fillTrajectoryHeaders(joint_names, plan[i].trajectory_depart);
-//
-//    // update last pose (joint)
-//    last_pose = extractJoints(*model, *solution.back());
+    // fill in result trajectory
+    int approach_size = segs[i].retract_start_pt_num;
+    int process_size = segs[i].process_pt_num;
+    int depart_size = segs[i].retract_end_pt_num;
+
+    plan[i].trajectory_connection = connection;
+
+    for(std::size_t j = 0; j < ros_traj.points.size(); j++)
+    {
+      if(0 <= j && j <= approach_size - 1)
+      {
+        plan[i].trajectory_approach.points.push_back(ros_traj.points[j]);
+      }
+      if(approach_size <= j && j <= approach_size + process_size - 1)
+      {
+        plan[i].trajectory_process.points.push_back(ros_traj.points[j]);
+      }
+      if(approach_size + process_size <= j && j <= approach_size + process_size + depart_size - 1)
+      {
+        plan[i].trajectory_depart.points.push_back(ros_traj.points[j]);
+      }
+    }
+
+    // Fill in result header information
+    framefab_process_planning::fillTrajectoryHeaders(joint_names, plan[i].trajectory_connection);
+    framefab_process_planning::fillTrajectoryHeaders(joint_names, plan[i].trajectory_approach);
+    framefab_process_planning::fillTrajectoryHeaders(joint_names, plan[i].trajectory_process);
+    framefab_process_planning::fillTrajectoryHeaders(joint_names, plan[i].trajectory_depart);
+
+    // update last pose (joint)
+    last_pose = extractJoints(*model, *output.back());
   }
 
   return true;

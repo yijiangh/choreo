@@ -279,10 +279,12 @@ trajectory_msgs::JointTrajectory framefab_process_planning::planFreeMove(
   // otherwise let moveit try
   if (collision_free)
   {
+    ROS_INFO_STREAM("[PlanFreeMove] Intepolated Plan used.");
     return toROSTrajectory(joint_approach, model);
   }
   else
   {
+    ROS_INFO_STREAM("[PlanFreeMove] Moveit Plan used");
     return framefab_process_planning::getMoveitPlan(group_name, start, stop, moveit_model);
   }
 }
