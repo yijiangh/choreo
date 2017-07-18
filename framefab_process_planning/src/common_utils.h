@@ -23,13 +23,6 @@ namespace framefab_process_planning
 {
 typedef std::vector<descartes_core::TrajectoryPtPtr> DescartesTraj;
 
-struct DescartesUnitProcess
-{
-  DescartesTraj connect_path;
-  DescartesTraj approach_path;
-  DescartesTraj print_path;
-  DescartesTraj depart_path;};
-
 Eigen::Affine3d createNominalTransform(const geometry_msgs::Pose& ref_pose,
                                        const geometry_msgs::Point& pt);
 

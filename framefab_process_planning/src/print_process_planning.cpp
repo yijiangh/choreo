@@ -30,13 +30,30 @@ const double PRINT_ANGLE_DISCRETIZATION =
 const static std::string JOINT_TOPIC_NAME =
     "joint_states"; // ROS topic to subscribe to for current robot state info
 
-descartes_core::TrajectoryPtPtr toDescartesPrintPt(const Eigen::Affine3d &pose, double dt)
+const double SEG_LINEAR_DISC = 0.02; // approx linear discretization (m)
+const double SEG_LINEAR_VEL = 0.01; // approximate linear velocity (m/s)
+const double SEG_Z_AXIS_DISC = 0.1; // angle discretization about z (radians)
+
+// conversion func: convert vector into matrix3d
+
+descartes_planner::ConstrainedSegment toDescartesConstrainedSegment(
+    const Eigen::Vector3d& start_pt, const Eigen::Vector3d& end_pt,
+    const std::vector<Eigen::Vector3d>& feasible_orients)
 {
-  using namespace descartes_trajectory;
-  using namespace descartes_core;
-  const TimingConstraint tm(dt);
-  return boost::make_shared<AxialSymmetricPt>(pose, PRINT_ANGLE_DISCRETIZATION,
-                                              AxialSymmetricPt::Z_AXIS, tm);
+  descartes_planner::ConstrainedSegment segment;
+  segment.start = start_pt;
+  segment.end = end_pt;
+
+  segment.linear_disc = SEG_LINEAR_DISC;
+  segment.linear_vel = SEG_LINEAR_VEL;
+  segment.z_axis_disc = SEG_Z_AXIS_DISC;
+
+//  for(auto v : feasible_orients)
+//  {
+//    segment.orientations.push_back(v);
+//  }
+
+  return segment;
 }
 
 bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning::Request &req,
@@ -69,25 +86,25 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
   std::vector<double> current_joints = getCurrentJointState(JOINT_TOPIC_NAME);
   hotend_model_->getFK(current_joints, start_home_pose);
 
-  std::vector<framefab_process_planning::DescartesUnitProcess> process_points =
-      toDescartesTraj(req.process_path, index, start_home_pose, 0.01, transition_params, toDescartesPrintPt);
+//  std::vector<framefab_process_planning::DescartesUnitProcess> process_points =
+//      toDescartesTraj(req.process_path, index, start_home_pose, 0.01, transition_params, toDescartesPrintPt);
 
-  // extract collision objs from process_path
-  std::vector<moveit_msgs::CollisionObject> collision_objs;
-  for (auto v : process_path)
-  {
-    collision_objs.push_back(v.collision_cylinder);
-  }
-
-  if(generateMotionPlan(hotend_model_, process_points, collision_objs, moveit_model_, planning_scene_diff_client_,
-                        hotend_group_name_, current_joints, res.plan))
-  {
-    return true;
-  }
-  else
-  {
-    return false;
-  }
+//  // extract collision objs from process_path
+//  std::vector<moveit_msgs::CollisionObject> collision_objs;
+//  for (auto v : process_path)
+//  {
+//    collision_objs.push_back(v.collision_cylinder);
+//  }
+//
+//  if(generateMotionPlan(hotend_model_, process_points, collision_objs, moveit_model_, planning_scene_diff_client_,
+//                        hotend_group_name_, current_joints, res.plan))
+//  {
+//    return true;
+//  }
+//  else
+//  {
+//    return false;
+//  }
 }
 
 }// end namespace

@@ -7,6 +7,8 @@
 
 #include <descartes_core/robot_model.h>
 #include <descartes_core/trajectory_pt.h>
+#include <descartes_planner/graph_builder.h>
+
 #include <framefab_msgs/UnitProcessPlan.h>
 
 #include "common_utils.h"
@@ -15,7 +17,7 @@ namespace framefab_process_planning
 {
 
 bool generateMotionPlan(const descartes_core::RobotModelPtr model,
-                        const std::vector<DescartesUnitProcess>& trajs,
+                        const std::vector<descartes_planner::ConstrainedSegment>& trajs,
                         const std::vector<moveit_msgs::CollisionObject>& collision_objs,
                         moveit::core::RobotModelConstPtr moveit_model,
                         ros::ServiceClient& planning_scene_diff_client,

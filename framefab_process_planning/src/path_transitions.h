@@ -14,16 +14,11 @@
 #include <framefab_msgs/ElementCandidatePoses.h>
 #include "eigen_conversions/eigen_msg.h"
 
+#include <descartes_planner/graph_builder.h>
+
 namespace framefab_process_planning
 {
 
-struct ProcessPathPose
-{
-  EigenSTL::vector_Affine3d connect;
-  EigenSTL::vector_Affine3d approach;
-  EigenSTL::vector_Affine3d print; // start & end node
-  EigenSTL::vector_Affine3d depart;
-};
 
 struct TransitionParameters
 {
@@ -32,19 +27,13 @@ struct TransitionParameters
   double retract_dist;
 };
 
-void generatePrintPoses(const std::vector<framefab_msgs::ElementCandidatePoses>& process_path,
-                          std::vector<ProcessPathPose>& process_path_poses);
-void generateTransitions(std::vector<ProcessPathPose>& process_path_poses,
-                         const TransitionParameters& params);
-void generateConnectPoses(std::vector<ProcessPathPose>& process_path_poses,
-                          const Eigen::Affine3d& start_pose,
-                          const TransitionParameters& params);
-
-std::vector<framefab_process_planning::DescartesUnitProcess>
-toDescartesTraj(const std::vector<framefab_msgs::ElementCandidatePoses>& process_path,
-                const int selected_path_id, const Eigen::Affine3d& start_pose,
-                const double process_speed, const TransitionParameters& transition_params,
-                boost::function<descartes_core::TrajectoryPtPtr(const Eigen::Affine3d&, const double)> conversion_fn);
+std::vector<descartes_planner::ConstrainedSegment>
+toDescartesConstrainedPath(
+    const std::vector<framefab_msgs::ElementCandidatePoses>& process_path,
+    const int selected_path_id,
+    const double process_speed, const TransitionParameters& transition_params,
+    boost::function<descartes_planner::ConstrainedSegment (const Eigen::Vector3d &, const Eigen::Vector3d &,
+                                                           const std::vector<Eigen::Vector3d> &)> conversion_fn);
 
 }
 
