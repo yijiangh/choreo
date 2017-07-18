@@ -65,27 +65,27 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
 
   Eigen::Affine3d start_home_pose;
   std::vector<double> current_joints = getCurrentJointState(JOINT_TOPIC_NAME);
-  hotend_model_->getFK(current_joints, start_home_pose);
+//  hotend_model_->getFK(current_joints, start_home_pose);
 
   std::vector<descartes_planner::ConstrainedSegment> constrained_segs =
       toDescartesConstrainedPath(req.process_path, index, 0.01, constrained_seg_params);
 
-//  // extract collision objs from process_path
-//  std::vector<moveit_msgs::CollisionObject> collision_objs;
-//  for (auto v : process_path)
-//  {
-//    collision_objs.push_back(v.collision_cylinder);
-//  }
-//
-//  if(generateMotionPlan(hotend_model_, process_points, collision_objs, moveit_model_, planning_scene_diff_client_,
-//                        hotend_group_name_, current_joints, res.plan))
-//  {
-//    return true;
-//  }
-//  else
-//  {
-//    return false;
-//  }
+  // extract collision objs from process_path
+  std::vector<moveit_msgs::CollisionObject> collision_objs;
+  for (auto v : process_path)
+  {
+    collision_objs.push_back(v.collision_cylinder);
+  }
+
+  if(generateMotionPlan(hotend_model_, constrained_segs, collision_objs, moveit_model_, planning_scene_diff_client_,
+                        hotend_group_name_, current_joints, res.plan))
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
 }
 
 }// end namespace

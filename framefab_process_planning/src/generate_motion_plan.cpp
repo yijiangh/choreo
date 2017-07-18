@@ -13,6 +13,7 @@
 
 #include <descartes_planner/ladder_graph_dag_search.h>
 #include <descartes_planner/dense_planner.h>
+#include <descartes_planner/graph_builder.h>
 
 // msg
 #include <geometry_msgs/Pose.h>
@@ -118,7 +119,7 @@ static framefab_process_planning::DescartesTraj generateUnitProcessMotionPlan(
 
 bool framefab_process_planning::generateMotionPlan(
     const descartes_core::RobotModelPtr model,
-    const std::vector<descartes_planner::ConstrainedSegment>& trajs,
+    std::vector<descartes_planner::ConstrainedSegment>& segs,
     const std::vector<moveit_msgs::CollisionObject>& collision_objs,
     moveit::core::RobotModelConstPtr moveit_model,
     ros::ServiceClient& planning_scene_diff_client,
@@ -126,46 +127,53 @@ bool framefab_process_planning::generateMotionPlan(
     const std::vector<double>& start_state,
     std::vector<framefab_msgs::UnitProcessPlan>& plan)
 {
-//  plan.resize(trajs.size());
-//  std::vector<double> last_pose = start_state;
+  plan.resize(segs.size());
+  std::vector<double> last_pose = start_state;
 //
-//  const std::vector<std::string>& joint_names =
-//      moveit_model->getJointModelGroup(move_group_name)->getActiveJointModelNames();
-//
-//  for(std::size_t i = 0; i < trajs.size(); i++)
-//  {
-//    ROS_INFO_STREAM("Process Planning #" << i);
-//
-//    // update collision objects
-//    addCollisionObject(planning_scene_diff_client, collision_objs[i]);
-//
-//    // try descartes planning with connect + unit process
-//    DescartesTraj traj;
-//    traj.insert(traj.end(), trajs[i].connect_path.begin(), trajs[i].connect_path.end());
-//    traj.insert(traj.end(), trajs[i].approach_path.begin(), trajs[i].approach_path.end());
-//    traj.insert(traj.end(), trajs[i].print_path.begin(), trajs[i].print_path.end());
-//    traj.insert(traj.end(), trajs[i].depart_path.begin(), trajs[i].depart_path.end());
-//
-//    DescartesTraj solution = generateUnitProcessMotionPlan(model, traj, last_pose, moveit_model, move_group_name);
-//    if(0 == solution.size())
-//    {
-//      ROS_ERROR_STREAM("No Descartes Solution Found in process #" << i);
-//      break;
-//    }
-//
-//    // if no solution found, descartes planning with unit process
-//    // and get free plan for connect path
-//
-//    trajectory_msgs::JointTrajectory ros_traj = toROSTrajectory(solution, *model);
-//
-//    const static double SMALLEST_VALID_SEGMENT = 0.05;
-//    if (!validateTrajectory(ros_traj, *model, SMALLEST_VALID_SEGMENT))
-//    {
-//      ROS_ERROR_STREAM("%s: Computed path contains joint configuration changes that would result in a collision.",
-//                       __FUNCTION__);
-//      return false;
-//    }
-//
+  const std::vector<std::string>& joint_names =
+      moveit_model->getJointModelGroup(move_group_name)->getActiveJointModelNames();
+
+  for(std::size_t i = 0; i < segs.size(); i++)
+  {
+    ROS_INFO_STREAM("Process Planning #" << i);
+
+    // update collision objects
+    addCollisionObject(planning_scene_diff_client, collision_objs[i]);
+
+    // build graph
+    auto graph = descartes_planner::sampleConstrainedPaths(*model, segs[i]);
+
+    // Create a planning graph (it has a solve method - you could use the DagSearch class yourself if you wanted)
+    descartes_planner::PlanningGraph plan_graph (kin_model);
+    plan_graph.setGraph(graph); // set the graph we built earlier (instead of calling insertGraph)
+
+    // Retrieve the solution
+    std::list<descartes_trajectory::JointTrajectoryPt> sol;
+    double cost=  -1.0;
+    plan_graph.getShortestPath(cost, sol);
+
+    ROS_WARN_STREAM("SEARCH COMPLETE: Cost = " << cost << " and length = " << sol.size());
+
+    std::for_each(sol.begin(), sol.end(), [&output] (const descartes_trajectory::JointTrajectoryPt& pt)
+    {
+      // and we convert it to a shared pointer
+      auto it = boost::make_shared<descartes_trajectory::JointTrajectoryPt>(pt);
+      output.push_back(it);
+    });
+
+    trajectory_msgs::JointTrajectory ros_traj = toROSTrajectory(solution, *model);
+
+    // and get free plan for connect path
+
+
+    const static double SMALLEST_VALID_SEGMENT = 0.05;
+    if (!validateTrajectory(ros_traj, *model, SMALLEST_VALID_SEGMENT))
+    {
+      ROS_ERROR_STREAM("%s: Computed path contains joint configuration changes that would result in a collision.",
+                       __FUNCTION__);
+      return false;
+    }
+
 //    // fill in result trajectory
 //    int connection_size = trajs[i].connect_path.size();
 //    int approach_size = trajs[i].approach_path.size();
@@ -200,7 +208,7 @@ bool framefab_process_planning::generateMotionPlan(
 //
 //    // update last pose (joint)
 //    last_pose = extractJoints(*model, *solution.back());
-//  }
+  }
 
   return true;
 }
