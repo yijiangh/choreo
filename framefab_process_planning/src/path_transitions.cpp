@@ -7,13 +7,46 @@
 
 #include <Eigen/Geometry>
 
-// rviz visual debug
+// msgs
+#include <geometry_msgs/Vector3.h>
+
 #include <rviz_visual_tools/rviz_visual_tools.h>
 
 #include <eigen_conversions/eigen_msg.h>
 
 // for extra descartes graph building feature
 #include <descartes_planner/graph_builder.h>
+
+namespace // anon namespace to hide utility functions
+{
+  // convert orientations representing by Eigen3d::vector into Eigen::Matrix3d
+  std::vector<Eigen::Matrix3d> convertOrientationVector(
+      const std::vector<geometry_msgs::Vector3>& orients_msg)
+  {
+    std::vector<Eigen::Matrix3d> m_orients;
+
+    for(auto v : orients_msg)
+    {
+      Eigen::Vector3d eigen_vec;
+      tf::vectorMsgToEigen(v, eigen_vec);
+      eigen_vec.normalize();
+
+      const Eigen::Vector3d& x_vec = eigen_vec.cross(Eigen::Vector3d::UnitZ());
+
+      Eigen::Matrix3d m = Eigen::Matrix3d::Identity();
+      if(0 != x_vec.norm())
+      {
+        double rot_angle = acos(eigen_vec.dot(Eigen::Vector3d::UnitZ()));
+        m = m * Eigen::AngleAxisd(rot_angle, Eigen::Vector3d::UnitZ());
+        m_orients.push_back(m);
+      }
+
+      m_orients.push_back(m);
+    }
+
+    return m_orients;
+  }
+} // end utility function ns
 
 using DescartesConstrainedPathConversionFunc =
 boost::function<descartes_planner::ConstrainedSegment (const Eigen::Vector3d &, const Eigen::Vector3d &,
@@ -22,8 +55,7 @@ boost::function<descartes_planner::ConstrainedSegment (const Eigen::Vector3d &, 
 std::vector<descartes_planner::ConstrainedSegment>
 framefab_process_planning::toDescartesConstrainedPath(const std::vector<framefab_msgs::ElementCandidatePoses>& process_path,
                                                       const int index,
-                                                      const double process_speed, const TransitionParameters& transition_params,
-                                                      DescartesConstrainedPathConversionFunc conversion_fn)
+                                                      const double process_speed, const TransitionParameters& transition_params)
 {
   using ConstrainedSegment = descartes_planner::ConstrainedSegment;
 
@@ -31,17 +63,11 @@ framefab_process_planning::toDescartesConstrainedPath(const std::vector<framefab
   std::vector<ConstrainedSegment> segs(selected_path_num);
 
   // Inline function for adding a sequence of motions
-  auto add_segment = [process_speed, conversion_fn, transition_params]
-      (ConstrainedSegment& seg, const framefab_msgs::ElementCandidatePoses)
+  auto add_segment = [process_speed, transition_params]
+      (ConstrainedSegment& seg, const framefab_msgs::ElementCandidatePoses path_pose)
   {
-    // Create Descartes trajectory for the segment path
-//    for (std::size_t j = 0; j < poses.size(); ++j)
-    {
-
-
-//      double dt = 0;
-//      traj.push_back(conversion_fn(this_pose, dt));
-    }
+      tf::pointMsgToEigen(path_pose.start_pt, seg.start);
+      tf::pointMsgToEigen(path_pose.end_pt, seg.end);
   };
 
 //  for (std::size_t i = 0; i < selected_path_num; ++i)

@@ -34,28 +34,6 @@ const double SEG_LINEAR_DISC = 0.02; // approx linear discretization (m)
 const double SEG_LINEAR_VEL = 0.01; // approximate linear velocity (m/s)
 const double SEG_Z_AXIS_DISC = 0.1; // angle discretization about z (radians)
 
-// conversion func: convert vector into matrix3d
-
-descartes_planner::ConstrainedSegment toDescartesConstrainedSegment(
-    const Eigen::Vector3d& start_pt, const Eigen::Vector3d& end_pt,
-    const std::vector<Eigen::Vector3d>& feasible_orients)
-{
-  descartes_planner::ConstrainedSegment segment;
-  segment.start = start_pt;
-  segment.end = end_pt;
-
-  segment.linear_disc = SEG_LINEAR_DISC;
-  segment.linear_vel = SEG_LINEAR_VEL;
-  segment.z_axis_disc = SEG_Z_AXIS_DISC;
-
-//  for(auto v : feasible_orients)
-//  {
-//    segment.orientations.push_back(v);
-//  }
-
-  return segment;
-}
-
 bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning::Request &req,
                                                  framefab_msgs::ProcessPlanning::Response &res)
 {

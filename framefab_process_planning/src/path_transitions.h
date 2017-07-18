@@ -31,9 +31,7 @@ std::vector<descartes_planner::ConstrainedSegment>
 toDescartesConstrainedPath(
     const std::vector<framefab_msgs::ElementCandidatePoses>& process_path,
     const int selected_path_id,
-    const double process_speed, const TransitionParameters& transition_params,
-    boost::function<descartes_planner::ConstrainedSegment (const Eigen::Vector3d &, const Eigen::Vector3d &,
-                                                           const std::vector<Eigen::Vector3d> &)> conversion_fn);
+    const double process_speed, const TransitionParameters& transition_params);
 
 }
 
