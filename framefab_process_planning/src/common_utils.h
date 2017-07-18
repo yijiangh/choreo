@@ -50,6 +50,20 @@ static inline std::vector<double> extractJoints(const descartes_core::RobotModel
   return result;
 }
 
+DescartesTraj createJointPath(const std::vector<double>& start, const std::vector<double>& stop,
+                              double dtheta = M_PI / 180.0);
+
+trajectory_msgs::JointTrajectory getMoveitPlan(const std::string& group_name,
+                                               const std::vector<double>& joints_start,
+                                               const std::vector<double>& joints_stop,
+                                               moveit::core::RobotModelConstPtr model);
+
+trajectory_msgs::JointTrajectory planFreeMove(descartes_core::RobotModel& model,
+                                              const std::string& group_name,
+                                              moveit::core::RobotModelConstPtr moveit_model,
+                                              const std::vector<double>& start,
+                                              const std::vector<double>& stop);
+
 
 double freeSpaceCostFunction(const std::vector<double>& source,
                              const std::vector<double>& target);

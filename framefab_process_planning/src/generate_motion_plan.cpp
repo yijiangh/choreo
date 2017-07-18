@@ -144,7 +144,7 @@ bool framefab_process_planning::generateMotionPlan(
     auto graph = descartes_planner::sampleConstrainedPaths(*model, segs[i]);
 
     // Create a planning graph (it has a solve method - you could use the DagSearch class yourself if you wanted)
-    descartes_planner::PlanningGraph plan_graph (kin_model);
+    descartes_planner::PlanningGraph plan_graph (model);
     plan_graph.setGraph(graph); // set the graph we built earlier (instead of calling insertGraph)
 
     // Retrieve the solution
@@ -154,6 +154,8 @@ bool framefab_process_planning::generateMotionPlan(
 
     ROS_WARN_STREAM("SEARCH COMPLETE: Cost = " << cost << " and length = " << sol.size());
 
+    // for historical reason, we have to convert sol (std::list) into std::vector
+    DescartesTraj output;
     std::for_each(sol.begin(), sol.end(), [&output] (const descartes_trajectory::JointTrajectoryPt& pt)
     {
       // and we convert it to a shared pointer
@@ -161,16 +163,18 @@ bool framefab_process_planning::generateMotionPlan(
       output.push_back(it);
     });
 
-    trajectory_msgs::JointTrajectory ros_traj = toROSTrajectory(solution, *model);
+    trajectory_msgs::JointTrajectory ros_traj = toROSTrajectory(output, *model);
 
     // and get free plan for connect path
-
+    trajectory_msgs::JointTrajectory connection =
+        planFreeMove(*model, move_group_name, moveit_model,
+                     last_pose,
+                     extractJoints(*model, *output.front()));
 
     const static double SMALLEST_VALID_SEGMENT = 0.05;
     if (!validateTrajectory(ros_traj, *model, SMALLEST_VALID_SEGMENT))
     {
-      ROS_ERROR_STREAM("%s: Computed path contains joint configuration changes that would result in a collision.",
-                       __FUNCTION__);
+      ROS_ERROR_STREAM("%s: Computed path contains joint configuration changes that would result in a collision.");
       return false;
     }
 
