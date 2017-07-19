@@ -147,29 +147,39 @@ bool framefab_process_planning::generateMotionPlan(
     descartes_planner::PlanningGraph plan_graph (model);
     plan_graph.setGraph(graph); // set the graph we built earlier (instead of calling insertGraph)
 
-    // Retrieve the solution
-    std::list<descartes_trajectory::JointTrajectoryPt> sol;
-    double cost=  -1.0;
-    plan_graph.getShortestPath(cost, sol);
+    const auto dof = graph.dof();
 
-    ROS_WARN_STREAM("SEARCH COMPLETE: Cost = " << cost << " and length = " << sol.size());
-
-    // for historical reason, we have to convert sol (std::list) into std::vector
-    DescartesTraj output;
-    std::for_each(sol.begin(), sol.end(), [&output] (const descartes_trajectory::JointTrajectoryPt& pt)
+    // Now we perform the search using the starting costs from our estimation above
+    descartes_planner::DAGSearch search (graph);
+    double cost = search.run();
+    if (cost == std::numeric_limits<double>::max())
     {
-      // and we convert it to a shared pointer
-      auto it = boost::make_shared<descartes_trajectory::JointTrajectoryPt>(pt);
-      output.push_back(it);
-    });
+      ROS_ERROR("%s: Failed to search graph. All points have IK, but process constraints (e.g velocity) "
+                    "prevent a solution", __FUNCTION__);
+      return false;
+    }
 
-    trajectory_msgs::JointTrajectory ros_traj = toROSTrajectory(output, *model);
+    // Here we search the graph for the shortest path and build a descartes trajectory of it!
+    auto path_idxs = search.shortestPath();
+    ROS_WARN("%s: Descartes computed path with cost %lf", __FUNCTION__, cost);
+    DescartesTraj sol;
+    for (size_t j = 0; j < path_idxs.size(); ++j)
+    {
+      const auto idx = path_idxs[j];
+      const auto* data = graph.vertex(j, idx);
+      const auto& tm = graph.getRung(j).timing;
+      auto pt = descartes_core::TrajectoryPtPtr(new descartes_trajectory::JointTrajectoryPt(
+          std::vector<double>(data, data + dof), tm));
+      sol.push_back(pt);
+    }
+
+    trajectory_msgs::JointTrajectory ros_traj = toROSTrajectory(sol, *model);
 
     // and get free plan for connect path
     trajectory_msgs::JointTrajectory connection =
         planFreeMove(*model, move_group_name, moveit_model,
                      last_pose,
-                     extractJoints(*model, *output.front()));
+                     extractJoints(*model, *sol.front()));
 
     const static double SMALLEST_VALID_SEGMENT = 0.05;
     if (!validateTrajectory(ros_traj, *model, SMALLEST_VALID_SEGMENT))
@@ -183,6 +193,7 @@ bool framefab_process_planning::generateMotionPlan(
     int process_size = segs[i].process_pt_num;
     int depart_size = segs[i].retract_end_pt_num;
 
+    ROS_INFO_STREAM("connection traj size: " << connection.points.size());
     plan[i].trajectory_connection = connection;
 
     for(std::size_t j = 0; j < ros_traj.points.size(); j++)
@@ -208,7 +219,7 @@ bool framefab_process_planning::generateMotionPlan(
     framefab_process_planning::fillTrajectoryHeaders(joint_names, plan[i].trajectory_depart);
 
     // update last pose (joint)
-    last_pose = extractJoints(*model, *output.back());
+    last_pose = extractJoints(*model, *sol.back());
   }
 
   return true;

@@ -41,6 +41,7 @@ namespace // anon namespace to hide utility functions
         m = m * Eigen::AngleAxisd(rot_angle, Eigen::Vector3d::UnitZ());
       }
 
+      m = m * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitY());
       m_orients.push_back(m);
     }
   }
@@ -71,6 +72,7 @@ framefab_process_planning::toDescartesConstrainedPath(const std::vector<framefab
     seg.linear_vel = seg_params.linear_vel;
     seg.linear_disc = seg_params.linear_disc;
     seg.z_axis_disc = seg_params.angular_disc;
+    seg.retract_dist = seg_params.retract_dist;
   };
 
   for (std::size_t i = 0; i < selected_path_num; ++i)
