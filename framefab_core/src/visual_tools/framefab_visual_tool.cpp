@@ -65,7 +65,7 @@ void framefab_visual_tools::FrameFabVisualTool::visualizeAllPaths()
 
 //  ROS_INFO_STREAM("publishing all paths...");
 
-  for(int i=0; i < visual_path_array_.size(); i++)
+  for(std::size_t i = 0; i < visual_path_array_.size(); i++)
   {
     rviz_visual_tools::colors type_color;
 
@@ -84,16 +84,11 @@ void framefab_visual_tools::FrameFabVisualTool::visualizeAllPaths()
       type_color = rviz_visual_tools::RED;
     }
 
-//    visual_tools_->publishCylinder(visual_path_array_[i].start_pt,
-//                                   visual_path_array_[i].end_pt,
-//                                   type_color, visual_path_array_[i].diameter, "Cylinder");
-
     visual_tools_->publishArrow(
         visual_tools_->getVectorBetweenPoints(visual_path_array_[i].start_pt,
                                               visual_path_array_[i].end_pt),
         type_color, rviz_visual_tools::XXXXSMALL,
-        (visual_path_array_[i].start_pt - visual_path_array_[i].end_pt).norm(),
-        i);
+        (visual_path_array_[i].start_pt - visual_path_array_[i].end_pt).norm());
   }
 
   visual_tools_->trigger();
@@ -109,34 +104,21 @@ void framefab_visual_tools::FrameFabVisualTool::visualizePath(int i)
 
   if(0 != i)
   {
-    for(int j=0; j < i; j++)
+    for(std::size_t j = 0; j < i; j++)
     {
-//      visual_tools_->publishCylinder(visual_path_array_[j].start_pt,
-//                                     visual_path_array_[j].end_pt,
-//                                     rviz_visual_tools::GREY,
-//                                     visual_path_array_[i].diameter,
-//                                     "Cylinder");
-
       visual_tools_->publishArrow(
           visual_tools_->getVectorBetweenPoints(visual_path_array_[j].start_pt,
                                                 visual_path_array_[j].end_pt),
           rviz_visual_tools::GREY, rviz_visual_tools::XXXXSMALL,
-          (visual_path_array_[j].start_pt - visual_path_array_[j].end_pt).norm(),
-          j);
+          (visual_path_array_[j].start_pt - visual_path_array_[j].end_pt).norm());
     }
   }
 
-//  visual_tools_->publishCylinder(visual_path_array_[i].start_pt,
-//                                 visual_path_array_[i].end_pt,
-//                                 rviz_visual_tools::TRANSLUCENT,
-//                                 visual_path_array_[i].diameter,
-//                                 "Cylinder");
   visual_tools_->publishArrow(
       visual_tools_->getVectorBetweenPoints(visual_path_array_[i].start_pt,
                                             visual_path_array_[i].end_pt),
       rviz_visual_tools::TRANSLUCENT, rviz_visual_tools::XXXXSMALL,
-      (visual_path_array_[i].start_pt - visual_path_array_[i].end_pt).norm(),
-      i);
+      (visual_path_array_[i].start_pt - visual_path_array_[i].end_pt).norm());
 
   visual_tools_->trigger();
 }
