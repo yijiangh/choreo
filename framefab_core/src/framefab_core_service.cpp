@@ -274,6 +274,7 @@ void FrameFabCoreService::pathPlanningActionCallback(const framefab_msgs::PathPl
 
         // import data into process_planning_visualizer
         process_paths_ = srv.response.process;
+        env_objs_ = srv.response.env_collision_objs;
 
         path_planning_result_.succeeded = true;
         path_planning_server_.setSucceeded(path_planning_result_);

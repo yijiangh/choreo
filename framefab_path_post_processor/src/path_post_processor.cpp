@@ -9,6 +9,8 @@
 #include <rapidjson/document.h>
 #include "rapidjson/filereadstream.h"
 
+#include <tf_conversions/tf_eigen.h>
+#include <eigen_conversions/eigen_msg.h>
 
 Eigen::Vector3d transformPoint(const Eigen::Vector3d& pt, const double& scale, const Eigen::Vector3d& ref_transf)
 {
@@ -157,6 +159,47 @@ bool framefab_path_post_processing::PathPostProcessor::createCandidatePoses()
   }
 
   ROS_INFO_STREAM("path json Parsing succeeded.");
+  return true;
+}
+
+bool framefab_path_post_processing::PathPostProcessor::createEnvCollisionObjs()
+{
+  // for now, only a simple flat box, representing the build plate, is added.
+  // TODO: might need to use load mesh approach for user-customized scene collision setup
+  // https://github.com/JeroenDM/descartes_tutorials/blob/indigo-devel/tutorial_utilities/src/collision_object_utils.cpp
+
+  moveit_msgs::CollisionObject collision_env_obj;
+  std::string env_obj_id = "env_obj_table";
+
+  // table box's dimension
+  double dx = 1;
+  double dy = 1;
+  double dz = 0.03;
+
+  // pose
+  Eigen::Affine3d rtn = Eigen::Translation3d(ref_pt_[0] * unit_scale_,
+                                             ref_pt_[1] * unit_scale_,
+                                             ref_pt_[2] * unit_scale_ - dz/2)
+      * Eigen::AngleAxisd(0, Eigen::Vector3d::UnitX())
+      * Eigen::AngleAxisd(0, Eigen::Vector3d::UnitY())
+      * Eigen::AngleAxisd(0, Eigen::Vector3d::UnitZ());
+  geometry_msgs::Pose pose;
+  tf::poseEigenToMsg(rtn, pose);
+
+  collision_env_obj.id = env_obj_id;
+  collision_env_obj.header.frame_id = "world_frame";
+  collision_env_obj.operation = moveit_msgs::CollisionObject::ADD;
+
+  shape_msgs::SolidPrimitive env_obj_solid;
+  env_obj_solid.type = shape_msgs::SolidPrimitive::BOX;
+  env_obj_solid.dimensions.resize(3);
+  env_obj_solid.dimensions[0] = dx;
+  env_obj_solid.dimensions[1] = dy;
+  env_obj_solid.dimensions[2] = dz;
+  collision_env_obj.primitives.push_back(env_obj_solid);
+  collision_env_obj.primitive_poses.push_back(pose);
+
+  env_collision_objs_.push_back(collision_env_obj);
   return true;
 }
 

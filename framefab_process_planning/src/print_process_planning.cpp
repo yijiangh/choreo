@@ -43,7 +43,8 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
   // Enable Collision Checks
   hotend_model_->setCheckCollisions(true);
 
-  std::vector <framefab_msgs::ElementCandidatePoses> process_path = req.process_path;
+  std::vector<framefab_msgs::ElementCandidatePoses> process_path = req.process_path;
+  std::vector<moveit_msgs::CollisionObject> env_objs = req.env_collision_objs;
 
   if (process_path.empty())
   {
@@ -75,6 +76,13 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
   for (auto v : process_path)
   {
     collision_objs.push_back(v.collision_cylinder);
+  }
+
+  // add working env collision objs (table etc.)
+  for (auto obj : env_objs)
+  {
+    addCollisionObject(planning_scene_diff_client_, obj);
+    ROS_INFO_STREAM("collision object added: " << obj.id);
   }
 
   if(generateMotionPlan(hotend_model_, constrained_segs, collision_objs, moveit_model_, planning_scene_diff_client_,

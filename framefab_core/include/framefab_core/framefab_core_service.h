@@ -102,7 +102,9 @@ class FrameFabCoreService
   // Core Service Instances
   framefab_visual_tools::FrameFabVisualTool visual_tool_;
 
-  // results
+  // working environment collision objects
+  std::vector<moveit_msgs::CollisionObject> env_objs_;
+  // path results
   std::vector<framefab_msgs::ElementCandidatePoses> process_paths_;
 
   // Trajectory library

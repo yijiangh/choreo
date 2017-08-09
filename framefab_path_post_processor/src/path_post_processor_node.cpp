@@ -17,7 +17,7 @@ bool processPathCallback(framefab_msgs::PathPostProcessingRequest& req,
   {
     case framefab_msgs::PathPostProcessing::Request::PROCESS_PATH_AND_MARKER:
     {
-      if(!path_pprocessor.createCandidatePoses())
+      if(!(path_pprocessor.createCandidatePoses() && path_pprocessor.createEnvCollisionObjs()))
       {
         ROS_ERROR("Could not post process input path!");
         res.succeeded = false;
@@ -37,9 +37,17 @@ bool processPathCallback(framefab_msgs::PathPostProcessingRequest& req,
   std::vector<framefab_utils::UnitProcessPath> path_array =
       path_pprocessor.getCandidatePoses();
 
-  for(int i = 0; i < path_array.size(); i++)
+  std::vector<moveit_msgs::CollisionObject> env_objs =
+      path_pprocessor.getEnvCollisionObjs();
+
+  for(auto unit_path : path_array)
   {
-    res.process.push_back(path_array[i].asElementCandidatePoses());
+    res.process.push_back(unit_path.asElementCandidatePoses());
+  }
+
+  for(auto env_obj : env_objs)
+  {
+    res.env_collision_objs.push_back(env_obj);
   }
 
   res.succeeded = true;

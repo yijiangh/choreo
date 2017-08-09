@@ -137,9 +137,6 @@ bool framefab_process_planning::generateMotionPlan(
   {
     ROS_INFO_STREAM("Process Planning #" << i);
 
-    // update collision objects
-    addCollisionObject(planning_scene_diff_client, collision_objs[i]);
-
     // build graph
     auto graph = descartes_planner::sampleConstrainedPaths(*model, segs[i]);
 
@@ -220,6 +217,9 @@ bool framefab_process_planning::generateMotionPlan(
 
     // update last pose (joint)
     last_pose = extractJoints(*model, *sol.back());
+
+    // update collision objects (built model elements)
+    addCollisionObject(planning_scene_diff_client, collision_objs[i]);
   }
 
   return true;
