@@ -15,6 +15,8 @@
 #include <descartes_planner/dense_planner.h>
 #include <descartes_planner/graph_builder.h>
 
+#include <swri_profiler/profiler.h>
+
 // msg
 #include <geometry_msgs/Pose.h>
 
@@ -127,6 +129,8 @@ bool framefab_process_planning::generateMotionPlan(
     const std::vector<double>& start_state,
     std::vector<framefab_msgs::UnitProcessPlan>& plan)
 {
+  SWRI_PROFILE("generate-Motion-Plan");
+
   plan.resize(segs.size());
   std::vector<double> last_pose = start_state;
 //

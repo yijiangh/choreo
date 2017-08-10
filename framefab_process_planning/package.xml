@@ -23,6 +23,7 @@
   <depend>moveit_ros_planning_interface</depend>
   <depend>roscpp</depend>
 
+  <depend>swri_profiler</depend>
   <depend>rviz_visual_tools</depend>
 
 </package>
