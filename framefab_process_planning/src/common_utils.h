@@ -23,13 +23,6 @@ namespace framefab_process_planning
 {
 typedef std::vector<descartes_core::TrajectoryPtPtr> DescartesTraj;
 
-struct DescartesUnitProcess
-{
-  DescartesTraj connect_path;
-  DescartesTraj approach_path;
-  DescartesTraj print_path;
-  DescartesTraj depart_path;};
-
 Eigen::Affine3d createNominalTransform(const geometry_msgs::Pose& ref_pose,
                                        const geometry_msgs::Point& pt);
 
@@ -56,6 +49,20 @@ static inline std::vector<double> extractJoints(const descartes_core::RobotModel
   pt.getNominalJointPose(dummy, model, result);
   return result;
 }
+
+DescartesTraj createJointPath(const std::vector<double>& start, const std::vector<double>& stop,
+                              double dtheta = M_PI / 180.0);
+
+trajectory_msgs::JointTrajectory getMoveitPlan(const std::string& group_name,
+                                               const std::vector<double>& joints_start,
+                                               const std::vector<double>& joints_stop,
+                                               moveit::core::RobotModelConstPtr model);
+
+trajectory_msgs::JointTrajectory planFreeMove(descartes_core::RobotModel& model,
+                                              const std::string& group_name,
+                                              moveit::core::RobotModelConstPtr moveit_model,
+                                              const std::vector<double>& start,
+                                              const std::vector<double>& stop);
 
 
 double freeSpaceCostFunction(const std::vector<double>& source,

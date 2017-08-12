@@ -6,6 +6,9 @@ int32 index
 # process planning parameters
 framefab_msgs/ProcessPlanningParameters params
 
+# working env collision objs
+moveit_msgs/CollisionObject[] env_collision_objs
+
 # the actual path the tool will follow
 framefab_msgs/ElementCandidatePoses[] process_path
 

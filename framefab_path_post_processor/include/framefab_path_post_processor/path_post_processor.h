@@ -9,6 +9,8 @@
 #include <framefab_msgs/PathInputParameters.h>
 #include <framefab_msgs/ElementCandidatePoses.h>
 
+#include <moveit_msgs/CollisionObject.h>
+
 #include <framefab_path_post_processor/process_path.h>
 
 namespace framefab_path_post_processing
@@ -23,7 +25,9 @@ class PathPostProcessor
   virtual ~PathPostProcessor() {}
 
   bool createCandidatePoses();
+  bool createEnvCollisionObjs();
   const std::vector<framefab_utils::UnitProcessPath>& getCandidatePoses() const { return path_array_; }
+  const std::vector<moveit_msgs::CollisionObject>&     getEnvCollisionObjs() const { return env_collision_objs_; }
 
   // data setting
   void setParams(framefab_msgs::ModelInputParameters model_params,
@@ -51,6 +55,7 @@ class PathPostProcessor
   framefab_msgs::PathInputParameters path_input_params_;
 
   std::vector<framefab_utils::UnitProcessPath> path_array_;
+  std::vector<moveit_msgs::CollisionObject> env_collision_objs_;
 
   double unit_scale_;
   double element_diameter_;

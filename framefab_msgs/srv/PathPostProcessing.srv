@@ -14,3 +14,6 @@ bool succeeded
 # joint pose for reset position
 
 framefab_msgs/ElementCandidatePoses[] process
+
+# working env objects
+moveit_msgs/CollisionObject[] env_collision_objs

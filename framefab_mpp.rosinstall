@@ -3,5 +3,6 @@
 
 # customized kuka for ikfast component
 - git: {local-name: kuka_experimental, uri: 'https://github.com/yijiangh/kuka_experimental.git', version: indigo-devel}
-# Custom descartes until we get changes merged in
-- git: {local-name: descartes, uri: 'https://github.com/Jmeyer1292/descartes.git', version: godel_refactor_omp}
+# Custom descartes for customized graph building method
+- git: {local-name: descartes, uri: 'https://github.com/yijiangh/descartes.git', version: yijiangh/graph}
+
