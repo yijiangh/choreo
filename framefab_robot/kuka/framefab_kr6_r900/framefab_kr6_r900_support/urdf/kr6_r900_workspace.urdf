@@ -217,7 +217,20 @@
   <joint name="eef_to_hotend_tcp_frame" type="fixed">
     <parent link="eef_frame"/>
     <child link="tcp_frame"/>
-    <origin rpy="0 1.57079632679 0" xyz="0.15045 0.000282 0.121277"/>
+    <origin rpy="0 1.57079632679 0" xyz="0.15045 0.000283 0.121277"/>
+  </joint>
+  <link name="workspace_base_link"/>
+  <link name="workspace_objects">
+    <collision>
+      <geometry>
+        <mesh filename="package://framefab_kr6_r900_support/meshes/collision/MIT_3-412_workspace_simplified.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="workspace_baselink_to_objects" type="fixed">
+    <parent link="workspace_base_link"/>
+    <child link="workspace_objects"/>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
   </joint>
   <!-- Attach the end effector to the end of the robot arm (tool0) -->
   <joint name="link_t_to_eef" type="fixed">
@@ -229,6 +242,11 @@
   <joint name="world_to_base" type="fixed">
     <parent link="world_frame"/>
     <child link="base_link"/>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+  </joint>
+  <joint name="world_to_workspace" type="fixed">
+    <parent link="world_frame"/>
+    <child link="workspace_base_link"/>
     <origin rpy="0 0 0" xyz="0 0 0"/>
   </joint>
 </robot>
