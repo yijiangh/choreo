@@ -2,6 +2,7 @@
 <robot name="kr6_r900_workspace" xmlns:xacro="http://ros.org/wiki/xacro">
   <xacro:include filename="$(find kuka_kr6_support)/urdf/kr6r900sixx_macro.xacro"/>
   <xacro:include filename="$(find asw_end_effector)/urdf/asw_eef_macro.xacro"/>
+	<xacro:include filename="$(find framefab_kr6_r900_support)/urdf/mit_3-412_workspace_micro.xacro"/>
   
   <link name="world_frame"/>
 
@@ -9,6 +10,8 @@
   <xacro:kuka_kr6r900sixx prefix=""/>
   <!-- instantiating end effector  -->
   <xacro:asw_eef_definition prefix=""/>
+
+	<xacro:mit_workspace prefix=""/>
 
   <!-- Attach the end effector to the end of the robot arm (tool0) -->
   <joint name="link_t_to_eef" type="fixed">
@@ -21,6 +24,12 @@
   <joint name="world_to_base" type="fixed">
     <parent link="world_frame"/>
     <child link="base_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <joint name="world_to_workspace" type="fixed">
+    <parent link="world_frame"/>
+    <child link="workspace_base_link"/>
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </joint>
   
