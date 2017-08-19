@@ -10,6 +10,14 @@
 	<link name="${prefix}workspace_base_link" />
 
   <link name="${prefix}workspace_objects">
+    <visual>
+      <geometry>
+				<mesh filename="package://framefab_kr6_r900_support/meshes/visual/MIT_3-412_workspace_full.stl"/>
+      </geometry>
+      <material name="grey">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
     <collision>
       <geometry>
 				<mesh filename="package://framefab_kr6_r900_support/meshes/collision/MIT_3-412_workspace_simplified.stl"/>
