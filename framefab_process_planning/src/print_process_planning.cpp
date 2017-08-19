@@ -78,12 +78,12 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
     collision_objs.push_back(v.collision_cylinder);
   }
 
-  // add working env collision objs (table etc.)
-  for (auto obj : env_objs)
-  {
-    addCollisionObject(planning_scene_diff_client_, obj);
-    ROS_INFO_STREAM("collision object added: " << obj.id);
-  }
+//  // add working env collision objs (table etc.)
+//  for (auto obj : env_objs)
+//  {
+//    addCollisionObject(planning_scene_diff_client_, obj);
+//    ROS_INFO_STREAM("collision object added: " << obj.id);
+//  }
 
   if(generateMotionPlan(hotend_model_, constrained_segs, collision_objs, moveit_model_, planning_scene_diff_client_,
                         hotend_group_name_, current_joints, res.plan))

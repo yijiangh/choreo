@@ -158,7 +158,7 @@ static bool generateUnitProcessMotionPlan(
 }
 
 bool framefab_process_planning::generateMotionPlan(
-    const descartes_core::RobotModelPtr model,
+    descartes_core::RobotModelPtr model,
     std::vector<descartes_planner::ConstrainedSegment>& segs,
     const std::vector<moveit_msgs::CollisionObject>& collision_objs,
     moveit::core::RobotModelConstPtr moveit_model,
@@ -177,6 +177,8 @@ bool framefab_process_planning::generateMotionPlan(
 
   for(std::size_t i = 0; i < segs.size(); i++)
   {
+    model->updateInternals();
+
     ROS_INFO_STREAM("Process Planning #" << i);
 
     if(!generateUnitProcessMotionPlan(i, model, segs[i], last_pose,
