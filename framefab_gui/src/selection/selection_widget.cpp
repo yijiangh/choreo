@@ -28,8 +28,8 @@ framefab_gui::SelectionWidget::SelectionWidget(QWidget* parent) : QWidget(parent
   connect(ui_->pushbutton_select_forward, SIGNAL(clicked()), this, SLOT(buttonForwardUpdateOrderValue()));
   connect(ui_->pushbutton_accept, SIGNAL(clicked()), this, SIGNAL(acceptSelection()));
 
-  connect(ui_->pushbutton_simulate_single, SIGNAL(clicked()), this, SIGNAL(simulateTypeChange(true)));
-  connect(ui_->pushbutton_simulate_until, SIGNAL(clicked()), this, SIGNAL(simulateTypeChange(false)));
+  connect(ui_->pushbutton_simulate_single, SIGNAL(clicked()), this, SLOT(buttonSimulateSingle()));
+  connect(ui_->pushbutton_simulate_until, SIGNAL(clicked()), this, SLOT(buttonSimulateUntil()));
   connect(this, SIGNAL(simulateTypeChange(bool)), this, SLOT(buttonSimulate(bool)));
 
   connect(ui_->pushbutton_select_all, SIGNAL(clicked()), this, SLOT(buttonSelectAll()));
@@ -199,6 +199,16 @@ void framefab_gui::SelectionWidget::buttonSimulate(bool single)
   simulate_single_ = single;
 
   Q_EMIT acceptSelection();
+}
+
+void framefab_gui::SelectionWidget::buttonSimulateSingle()
+{
+  Q_EMIT simulateTypeChange(true);
+}
+
+void framefab_gui::SelectionWidget::buttonSimulateUntil()
+{
+  Q_EMIT simulateTypeChange(false);
 }
 
 void framefab_gui::SelectionWidget::sliderUpdateOrderValue(int value)

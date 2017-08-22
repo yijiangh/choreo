@@ -45,21 +45,23 @@ class SelectionWidget : public QWidget
 
   void setInputEnabled(bool enabled);
 
-  int   getSelectedValue() { return print_order_; }
-  bool  getSimulateType() {return simulate_single_; }
+  int  getSelectedValue() { return print_order_; }
+  bool getSimulateType() { return simulate_single_; }
 
   // send srv to clean up visualization markers
   void cleanUpVisual();
 
-  Q_SIGNALS:
+ Q_SIGNALS:
   void acceptSelection();
-  void simulateTypeChange(bool);
+  void simulateTypeChange(bool type);
 
  protected Q_SLOTS:
   // different source that changes order_value
   void buttonForwardUpdateOrderValue();
   void buttonBackwardUpdateOrderValue();
   void buttonSelectAll();
+  void buttonSimulateSingle();
+  void buttonSimulateUntil();
   void buttonSimulate(bool single);
   void sliderUpdateOrderValue(int value);
   void lineeditUpdateOrderValue();

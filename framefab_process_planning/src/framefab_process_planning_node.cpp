@@ -34,6 +34,7 @@ int main(int argc, char** argv)
   // all required initialization. It exposes member functions to handle each kind of processing
   // event.
   ProcessPlanningManager manager(world_frame, hotend_group, hotend_tcp, robot_model_plugin);
+
   // Plumb in the appropriate ros services
   ros::ServiceServer print_server = nh.advertiseService(
       DEFAULT_PRINT_PLANNING_SERVICE, &ProcessPlanningManager::handlePrintPlanning, &manager);
