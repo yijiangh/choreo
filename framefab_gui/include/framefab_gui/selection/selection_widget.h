@@ -24,6 +24,7 @@ class SelectionWidget : public QWidget
   enum MODE
   {
     PATH_SELECTION,
+    ZOOM_IN_SELECTION,
     PLAN_SELECTION
   };
 
@@ -44,6 +45,9 @@ class SelectionWidget : public QWidget
   void orderValueChanged();
 
   void setInputEnabled(bool enabled);
+  void setInputIDEnabled(bool);
+  void setInputLocaAxisEnabled(bool);
+  void setInputIKSolutionEnabled(bool);
 
   int  getSelectedValue() { return print_order_; }
   bool getSimulateType() { return simulate_single_; }
@@ -54,6 +58,7 @@ class SelectionWidget : public QWidget
  Q_SIGNALS:
   void acceptSelection();
   void simulateTypeChange(bool type);
+  void closeWidgetAndContinue();
 
  protected Q_SLOTS:
   // different source that changes order_value
@@ -63,6 +68,8 @@ class SelectionWidget : public QWidget
   void buttonSimulateSingle();
   void buttonSimulateUntil();
   void buttonSimulate(bool single);
+  void buttonCloseWidget();
+  void buttonAcceptSelection();
   void sliderUpdateOrderValue(int value);
   void lineeditUpdateOrderValue();
 

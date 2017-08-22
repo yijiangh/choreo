@@ -123,7 +123,7 @@
     <item>
      <widget class="QPushButton" name="pushbutton_accept">
       <property name="text">
-       <string>Plan</string>
+       <string>Select for Plan</string>
       </property>
      </widget>
     </item>
@@ -237,7 +237,7 @@
     <string>Local Axis</string>
    </property>
   </widget>
-  <widget class="QSlider" name="slider_select_ik_solution">
+  <widget class="QSlider" name="slider_select_local_axis">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -305,7 +305,7 @@
     <string>IK Solutions</string>
    </property>
   </widget>
-  <widget class="QSlider" name="slider_select_ik_solution_2">
+  <widget class="QSlider" name="slider_select_ik_solution">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -385,8 +385,20 @@
      <height>27</height>
     </rect>
    </property>
+   <property name="autoFillBackground">
+    <bool>false</bool>
+   </property>
    <property name="text">
-    <string>Close Widget</string>
+    <string>Close Widget, Continue</string>
+   </property>
+   <property name="autoDefault">
+    <bool>false</bool>
+   </property>
+   <property name="default">
+    <bool>true</bool>
+   </property>
+   <property name="flat">
+    <bool>false</bool>
    </property>
   </widget>
  </widget>

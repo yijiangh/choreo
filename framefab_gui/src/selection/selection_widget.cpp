@@ -26,13 +26,15 @@ framefab_gui::SelectionWidget::SelectionWidget(QWidget* parent) : QWidget(parent
   // Wire in buttons
   connect(ui_->pushbutton_select_backward, SIGNAL(clicked()), this, SLOT(buttonBackwardUpdateOrderValue()));
   connect(ui_->pushbutton_select_forward, SIGNAL(clicked()), this, SLOT(buttonForwardUpdateOrderValue()));
-  connect(ui_->pushbutton_accept, SIGNAL(clicked()), this, SIGNAL(acceptSelection()));
+  connect(ui_->pushbutton_accept, SIGNAL(clicked()), this, SLOT(buttonAcceptSelection()));
 
   connect(ui_->pushbutton_simulate_single, SIGNAL(clicked()), this, SLOT(buttonSimulateSingle()));
   connect(ui_->pushbutton_simulate_until, SIGNAL(clicked()), this, SLOT(buttonSimulateUntil()));
   connect(this, SIGNAL(simulateTypeChange(bool)), this, SLOT(buttonSimulate(bool)));
 
   connect(ui_->pushbutton_select_all, SIGNAL(clicked()), this, SLOT(buttonSelectAll()));
+
+  connect(ui_->pushbutton_close_widget, SIGNAL(clicked()), this, SLOT(buttonCloseWidget()));
 
   // Wire in slider
   connect(ui_->slider_select_number, SIGNAL(valueChanged(int)), this, SLOT(sliderUpdateOrderValue(int)));
@@ -154,6 +156,27 @@ void framefab_gui::SelectionWidget::setInputEnabled(bool enabled)
     ui_->pushbutton_accept->setEnabled(enabled);
     ui_->pushbutton_simulate_single->setEnabled(false);
     ui_->pushbutton_simulate_until->setEnabled(false);
+
+    setInputIDEnabled(false);
+    setInputLocaAxisEnabled(false);
+    setInputIKSolutionEnabled(false);
+
+    ui_->pushbutton_simulate_single_process->setEnabled(false);
+    ui_->pushbutton_close_widget->setEnabled(false);
+  }
+
+  if(mode_ == ZOOM_IN_SELECTION)
+  {
+    ui_->pushbutton_accept->setEnabled(false);
+    ui_->pushbutton_simulate_single->setEnabled(false);
+    ui_->pushbutton_simulate_until->setEnabled(false);
+
+    setInputIDEnabled(enabled);
+    setInputLocaAxisEnabled(enabled);
+    setInputIKSolutionEnabled(enabled);
+
+    ui_->pushbutton_simulate_single_process->setEnabled(enabled);
+    ui_->pushbutton_close_widget->setEnabled(enabled);
   }
 
   if(mode_ == PLAN_SELECTION)
@@ -161,10 +184,35 @@ void framefab_gui::SelectionWidget::setInputEnabled(bool enabled)
     ui_->pushbutton_accept->setEnabled(false);
     ui_->pushbutton_simulate_single->setEnabled(enabled);
     ui_->pushbutton_simulate_until->setEnabled(enabled);
+
+    setInputIDEnabled(false);
+    setInputLocaAxisEnabled(false);
+    setInputIKSolutionEnabled(false);
+
+    ui_->pushbutton_simulate_single_process->setEnabled(false);
+    ui_->pushbutton_close_widget->setEnabled(false);
   }
 
   ui_->slider_select_number->setEnabled(enabled);
   ui_->lineedit_select_number->setEnabled(enabled);
+}
+
+void framefab_gui::SelectionWidget::setInputIDEnabled(bool enabled)
+{
+  ui_->slider_select_orient->setEnabled(enabled);
+  ui_->lineedit_select_orient->setEnabled(enabled);
+}
+
+void framefab_gui::SelectionWidget::setInputLocaAxisEnabled(bool enabled)
+{
+  ui_->slider_select_local_axis->setEnabled(enabled);
+  ui_->lineedit_select_local_axis->setEnabled(enabled);
+}
+
+void framefab_gui::SelectionWidget::setInputIKSolutionEnabled(bool enabled)
+{
+  ui_->slider_select_ik_solution->setEnabled(enabled);
+  ui_->lineedit_select_ik_solution->setEnabled(enabled);
 }
 
 void framefab_gui::SelectionWidget::buttonForwardUpdateOrderValue()
@@ -198,7 +246,7 @@ void framefab_gui::SelectionWidget::buttonSimulate(bool single)
 {
   simulate_single_ = single;
 
-  Q_EMIT acceptSelection();
+  Q_EMIT closeWidgetAndContinue();
 }
 
 void framefab_gui::SelectionWidget::buttonSimulateSingle()
@@ -209,6 +257,21 @@ void framefab_gui::SelectionWidget::buttonSimulateSingle()
 void framefab_gui::SelectionWidget::buttonSimulateUntil()
 {
   Q_EMIT simulateTypeChange(false);
+}
+
+void framefab_gui::SelectionWidget::buttonCloseWidget()
+{
+  Q_EMIT closeWidgetAndContinue();
+}
+
+void framefab_gui::SelectionWidget::buttonAcceptSelection()
+{
+  setInputEnabled(false);
+
+  Q_EMIT acceptSelection();
+
+  setMode(ZOOM_IN_SELECTION);
+  setInputEnabled(true);
 }
 
 void framefab_gui::SelectionWidget::sliderUpdateOrderValue(int value)
