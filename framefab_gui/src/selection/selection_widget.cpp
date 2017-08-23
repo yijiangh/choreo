@@ -154,6 +154,7 @@ void framefab_gui::SelectionWidget::setInputEnabled(bool enabled)
   if(mode_ == PATH_SELECTION)
   {
     ui_->pushbutton_accept->setEnabled(enabled);
+    ui_->pushbutton_select_all->setEnabled(enabled);
     ui_->pushbutton_simulate_single->setEnabled(false);
     ui_->pushbutton_simulate_until->setEnabled(false);
 
@@ -168,6 +169,7 @@ void framefab_gui::SelectionWidget::setInputEnabled(bool enabled)
   if(mode_ == ZOOM_IN_SELECTION)
   {
     ui_->pushbutton_accept->setEnabled(false);
+    ui_->pushbutton_select_all->setEnabled(false);
     ui_->pushbutton_simulate_single->setEnabled(false);
     ui_->pushbutton_simulate_until->setEnabled(false);
 
@@ -182,6 +184,7 @@ void framefab_gui::SelectionWidget::setInputEnabled(bool enabled)
   if(mode_ == PLAN_SELECTION)
   {
     ui_->pushbutton_accept->setEnabled(false);
+    ui_->pushbutton_select_all->setEnabled(enabled);
     ui_->pushbutton_simulate_single->setEnabled(enabled);
     ui_->pushbutton_simulate_until->setEnabled(enabled);
 
