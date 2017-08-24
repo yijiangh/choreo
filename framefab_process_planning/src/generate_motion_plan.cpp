@@ -14,6 +14,11 @@
 #include <descartes_planner/ladder_graph_dag_search.h>
 #include <descartes_planner/dense_planner.h>
 #include <descartes_planner/graph_builder.h>
+#include <moveit/planning_scene/planning_scene.h>
+
+
+#include <actionlib/client/simple_action_client.h>
+#include <control_msgs/FollowJointTrajectoryAction.h>
 
 #include <swri_profiler/profiler.h>
 
@@ -157,6 +162,8 @@ static bool generateUnitProcessMotionPlan(
   return true;
 }
 
+#define SANITY_CHECK(cond) do { if ( !(cond) ) { throw std::runtime_error(#cond); } } while (false);
+
 bool framefab_process_planning::generateMotionPlan(
     descartes_core::RobotModelPtr model,
     std::vector<descartes_planner::ConstrainedSegment>& segs,
@@ -167,30 +174,135 @@ bool framefab_process_planning::generateMotionPlan(
     const std::vector<double>& start_state,
     std::vector<framefab_msgs::UnitProcessPlan>& plans)
 {
-  SWRI_PROFILE("generate-Motion-Plan");
+  // Step 0: Sanity checks
+  if (segs.size() == 0)
+  {
+    return false;
+  }
 
-  plans.resize(segs.size());
-  std::vector<double> last_pose = start_state;
-//
   const std::vector<std::string>& joint_names =
       moveit_model->getJointModelGroup(move_group_name)->getActiveJointModelNames();
 
-  for(std::size_t i = 0; i < segs.size(); i++)
+  // Step 1: Let's create all of our planning scenes to collision check against
+  std::vector<planning_scene::PlanningScenePtr> planning_scenes;
+  planning_scenes.reserve(segs.size());
+
+  planning_scene::PlanningScenePtr root_scene (new planning_scene::PlanningScene(moveit_model));
+  root_scene->getCurrentStateNonConst().setToDefaultValues();
+  root_scene->getCurrentStateNonConst().update();
+  planning_scenes.push_back(root_scene);
+
+  for (std::size_t i = 0; i < collision_objs.size() - 1; ++i) // We use all but the last collision object
   {
-    model->updateInternals();
-
-    ROS_INFO_STREAM("Process Planning #" << i);
-
-    if(!generateUnitProcessMotionPlan(i, model, segs[i], last_pose,
-                                  moveit_model, move_group_name, joint_names,
-                                  plans[i]))
-    {
-      return false;
-    }
-
+    auto last_scene = planning_scenes.back();
+    auto child = last_scene->diff();
     // update collision objects (built model elements)
     addCollisionObject(planning_scene_diff_client, collision_objs[i]);
+
+    if (!child->processCollisionObjectMsg(collision_objs[i]))
+    {
+      ROS_WARN("Failed to process collision object");
+    }
+    planning_scenes.push_back(child);
   }
+
+//  SANITY_CHECK(planning_scenes.size() == segs.size());
+
+
+  // Next, we want to sample the graph for each segment
+  auto graph_build_start = ros::Time::now();
+  std::vector<descartes_planner::LadderGraph> graphs;
+  graphs.reserve(segs.size());
+
+  for (std::size_t i = 0; i < segs.size(); ++i)
+  {
+    model->setPlanningScene(planning_scenes[i]);
+    if (true)
+    {
+      descartes_planner::ConstrainedSegment& seg = segs[i];
+      ROS_INFO_STREAM("seg " << i << ": " << seg.orientations.size());
+    }
+    graphs.push_back(descartes_planner::sampleConstrainedPaths(*model, segs[i]));
+  }
+  auto graph_build_end = ros::Time::now();
+
+  ROS_INFO_STREAM("Graph building took: " << (graph_build_end - graph_build_start).toSec() << " seconds");
+
+  // Next let's construct a big graph to search through
+  const auto append_start = ros::Time::now();
+  descartes_planner::LadderGraph final_graph (model->getDOF());
+
+  for (const auto graph : graphs)
+  {
+    descartes_planner::appendInTime(final_graph, graph);
+  }
+  const auto append_end = ros::Time::now();
+  ROS_INFO_STREAM("Graph appending took: " << (append_end - append_start).toSec() << " seconds");
+
+  // Next, we build a search for the whole problem
+  const auto search_start = ros::Time::now();
+  descartes_planner::DAGSearch search (final_graph);
+  double cost = search.run();
+  const auto search_end = ros::Time::now();
+  ROS_INFO_STREAM("Search took " << (search_end-search_start).toSec() << " seconds and produced a result with dist = " << cost);
+
+  // Now we have a rough solution for the entire process...
+
+
+  // What?
+  auto path_idxs = search.shortestPath();
+  DescartesTraj sol;
+  for (size_t j = 0; j < path_idxs.size(); ++j)
+  {
+    const auto idx = path_idxs[j];
+    const auto* data = final_graph.vertex(j, idx);
+    const auto& tm = final_graph.getRung(j).timing;
+    auto pt = descartes_core::TrajectoryPtPtr(new descartes_trajectory::JointTrajectoryPt(
+        std::vector<double>(data, data + 6), tm));
+    sol.push_back(pt);
+  }
+
+  trajectory_msgs::JointTrajectory ros_traj = toROSTrajectory(sol, *model);
+  for (auto& pt : ros_traj.points) pt.time_from_start *= 3.0;
+  fillTrajectoryHeaders(joint_names, ros_traj);
+
+  ros::NodeHandle nh;
+  actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction> client (nh, "joint_trajectory_action");
+  if (!client.waitForServer(ros::Duration(1.0)))
+  {
+    ROS_WARN("Exec timed out");
+  }
+  else
+  {
+    ROS_INFO("Found action");
+  }
+  control_msgs::FollowJointTrajectoryGoal goal;
+  goal.trajectory = ros_traj;
+
+  client.sendGoal(goal);
+
+
+
+//  SWRI_PROFILE("generate-Motion-Plan");
+
+//  plans.resize(segs.size());
+//  std::vector<double> last_pose = start_state;
+////
+
+//  for(std::size_t i = 0; i < segs.size(); i++)
+//  {
+//    model->updateInternals();
+
+//    ROS_INFO_STREAM("Process Planning #" << i);
+
+//    if(!generateUnitProcessMotionPlan(i, model, segs[i], last_pose,
+//                                  moveit_model, move_group_name, joint_names,
+//                                  plans[i]))
+//    {
+//      return false;
+//    }
+
+//  }
 
   return true;
 }

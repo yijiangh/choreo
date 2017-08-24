@@ -36,13 +36,21 @@
         <origin xyz="0 0 0" rpy="0 0 0"/>
     </joint>
 
+    <link name="${prefix}tmp_tcp_frame"/> <!--The actual 'useful' work frame-->
     <link name="${prefix}tcp_frame"/> <!--The actual 'useful' work frame-->
 
     <joint name="${prefix}eef_to_hotend_tcp_frame" type="fixed">
         <parent link="${prefix}eef_frame"/>
-        <child link="${prefix}tcp_frame"/>
+        <child link="${prefix}tmp_tcp_frame"/>
         <origin xyz="${hotend_tcp_x} ${hotend_tcp_y} ${hotend_tcp_z}" rpy="0 ${half_pi} 0"/>
     </joint>
+
+    <joint name="${prefix}tmp_to_tcp_frame" type="fixed">
+        <parent link="${prefix}tmp_tcp_frame"/>
+        <child link="${prefix}tcp_frame"/>
+        <origin xyz="0 0 0.002"/>
+    </joint>
+
 
   </xacro:macro>
 </robot>
