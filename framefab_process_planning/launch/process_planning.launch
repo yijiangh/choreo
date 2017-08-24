@@ -5,7 +5,7 @@
   <arg name="robot_model_plugin"/>
 
   <node name="framefab_process_planning" pkg="framefab_process_planning" type="framefab_process_planning_node"
-  output="screen" required="true">
+  output="screen">
     <param name="world_frame" value="$(arg world_frame)"/>
     <param name="hotend_group" value="$(arg hotend_group)"/>
     <param name="hotend_tcp" value="$(arg hotend_tcp)"/>

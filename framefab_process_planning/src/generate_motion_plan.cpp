@@ -71,9 +71,13 @@ static bool generateUnitProcessMotionPlan(
   std::string profile_id = "unit-" + std::to_string(id);
   SWRI_PROFILE(profile_id);
 
-  ROS_INFO_STREAM("start pt: " << seg.start);
-  ROS_INFO_STREAM("end pt: " << seg.end);
-  ROS_INFO_STREAM("feasible orient num " << seg.orientations.size());
+//  ROS_INFO_STREAM("start pt: " << seg.start);
+//  ROS_INFO_STREAM("end pt: " << seg.end);
+//  ROS_INFO_STREAM("feasible orient num " << seg.orientations.size());
+
+  ROS_INFO_STREAM("================================================");
+  ROS_INFO_STREAM("================================================");
+  ROS_INFO_STREAM("================================================");
 
   // build graph
   auto graph = descartes_planner::sampleConstrainedPaths(*model, seg);
@@ -195,7 +199,7 @@ bool framefab_process_planning::generateMotionPlan(
 
   for(std::size_t i = 0; i < segs.size(); i++)
   {
-    model->updateInternals();
+//    model->updateInternals();
 
     ROS_INFO_STREAM("Process Planning #" << i);
 
@@ -207,7 +211,7 @@ bool framefab_process_planning::generateMotionPlan(
     }
 
     // update collision objects (built model elements)
-    addCollisionObject(planning_scene_diff_client, collision_objs[i]);
+//    addCollisionObject(planning_scene_diff_client, collision_objs[i]);
   }
 
   return true;

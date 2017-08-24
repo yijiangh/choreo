@@ -80,11 +80,6 @@ framefab_process_planning::toDescartesConstrainedPath(const std::vector<framefab
     seg.retract_dist = seg_params.retract_dist;
   };
 
-  rviz_visual_tools::RvizVisualToolsPtr visual_tools;
-  visual_tools.reset(new rviz_visual_tools::RvizVisualTools("world_frame", "pose_visualization"));
-  visual_tools->deleteAllMarkers();
-  visual_tools->enableBatchPublishing();
-
   for (std::size_t i = 0; i < selected_path_num; ++i)
   {
     add_segment(segs[i], process_path[i]);
@@ -94,9 +89,6 @@ framefab_process_planning::toDescartesConstrainedPath(const std::vector<framefab
       Eigen::Affine3d m = Eigen::Affine3d::Identity();
       m.matrix().block<3, 3>(0, 0) = v;
       m.matrix().col(3).head<3>() = segs[i].start;
-
-//      visual_tools->publishAxis(m, 0.01, 0.0001, "Axis");
-//      visual_tools->trigger();
     }
   } // end segments
 
