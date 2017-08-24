@@ -11,6 +11,7 @@
 #include <descartes_trajectory/axial_symmetric_pt.h>
 #include <descartes_trajectory/joint_trajectory_pt.h>
 
+#include <descartes_planner/ladder_graph_dag_search_lazy_collision.h>
 #include <descartes_planner/ladder_graph_dag_search.h>
 #include <descartes_planner/dense_planner.h>
 #include <descartes_planner/graph_builder.h>
@@ -214,6 +215,8 @@ bool framefab_process_planning::generateMotionPlan(
   std::vector<descartes_planner::LadderGraph> graphs;
   graphs.reserve(segs.size());
 
+  std::vector<std::size_t> graph_indices;
+
   for (std::size_t i = 0; i < segs.size(); ++i)
   {
     model->setPlanningScene(planning_scenes[i]);
@@ -223,16 +226,18 @@ bool framefab_process_planning::generateMotionPlan(
       ROS_INFO_STREAM("seg " << i << ": " << seg.orientations.size());
     }
     graphs.push_back(descartes_planner::sampleConstrainedPaths(*model, segs[i]));
+    graph_indices.push_back(graphs.back().size());
   }
   auto graph_build_end = ros::Time::now();
 
   ROS_INFO_STREAM("Graph building took: " << (graph_build_end - graph_build_start).toSec() << " seconds");
 
+
   // Next let's construct a big graph to search through
   const auto append_start = ros::Time::now();
   descartes_planner::LadderGraph final_graph (model->getDOF());
 
-  for (const auto graph : graphs)
+  for (const auto& graph : graphs)
   {
     descartes_planner::appendInTime(final_graph, graph);
   }
@@ -241,8 +246,11 @@ bool framefab_process_planning::generateMotionPlan(
 
   // Next, we build a search for the whole problem
   const auto search_start = ros::Time::now();
+//  descartes_planner::DAGSearchLazyCollision search (final_graph);
+//  double cost = search.run(planning_scenes, graph_indices);
   descartes_planner::DAGSearch search (final_graph);
   double cost = search.run();
+
   const auto search_end = ros::Time::now();
   ROS_INFO_STREAM("Search took " << (search_end-search_start).toSec() << " seconds and produced a result with dist = " << cost);
 

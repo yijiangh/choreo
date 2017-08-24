@@ -36,6 +36,10 @@ namespace // anon namespace to hide utility functions
 
       // JM
       Eigen::Vector3d candidate_dir = Eigen::Vector3d::UnitX();
+      if ( std::abs(eigen_vec.dot(Eigen::Vector3d::UnitX())) > 0.8 )
+      {
+        candidate_dir = Eigen::Vector3d::UnitY();
+      }
 
       Eigen::Vector3d y_vec = eigen_vec.cross(candidate_dir).normalized();
 
