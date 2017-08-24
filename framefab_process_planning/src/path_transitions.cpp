@@ -32,16 +32,21 @@ namespace // anon namespace to hide utility functions
       tf::vectorMsgToEigen(v, eigen_vec);
       eigen_vec.normalize();
 
-      const Eigen::Vector3d& x_vec = eigen_vec.cross(Eigen::Vector3d::UnitZ());
+      Eigen::Vector3d x_vec = Eigen::Vector3d::UnitZ().cross(eigen_vec);
 
       Eigen::Matrix3d m = Eigen::Matrix3d::Identity();
       if(0 != x_vec.norm())
       {
+        // eigen_vec != UnitZ
         double rot_angle = acos(eigen_vec.dot(Eigen::Vector3d::UnitZ()));
-        m = m * Eigen::AngleAxisd(rot_angle, Eigen::Vector3d::UnitZ());
+        m = m * Eigen::AngleAxisd(rot_angle, x_vec) * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitY());
+      }
+      else
+      {
+        // eigen_vec = UnitZ, directly reverse it
+        m = m * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitY());
       }
 
-      m = m * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitY());
       m_orients.push_back(m);
     }
   }
@@ -75,9 +80,24 @@ framefab_process_planning::toDescartesConstrainedPath(const std::vector<framefab
     seg.retract_dist = seg_params.retract_dist;
   };
 
+  rviz_visual_tools::RvizVisualToolsPtr visual_tools;
+  visual_tools.reset(new rviz_visual_tools::RvizVisualTools("world_frame", "pose_visualization"));
+  visual_tools->deleteAllMarkers();
+  visual_tools->enableBatchPublishing();
+
   for (std::size_t i = 0; i < selected_path_num; ++i)
   {
     add_segment(segs[i], process_path[i]);
+
+    for (auto v : segs[i].orientations)
+    {
+      Eigen::Affine3d m = Eigen::Affine3d::Identity();
+      m.matrix().block<3, 3>(0, 0) = v;
+      m.matrix().col(3).head<3>() = segs[i].start;
+
+//      visual_tools->publishAxis(m, 0.01, 0.0001, "Axis");
+//      visual_tools->trigger();
+    }
   } // end segments
 
   return segs;

@@ -71,17 +71,28 @@ static bool generateUnitProcessMotionPlan(
   std::string profile_id = "unit-" + std::to_string(id);
   SWRI_PROFILE(profile_id);
 
+  ROS_INFO_STREAM("start pt: " << seg.start);
+  ROS_INFO_STREAM("end pt: " << seg.end);
+  ROS_INFO_STREAM("feasible orient num " << seg.orientations.size());
+
   // build graph
   auto graph = descartes_planner::sampleConstrainedPaths(*model, seg);
+
+  ROS_INFO_STREAM("descartes graph built.");
 
   // Create a planning graph (it has a solve method - you could use the DagSearch class yourself if you wanted)
   descartes_planner::PlanningGraph plan_graph (model);
   plan_graph.setGraph(graph); // set the graph we built earlier (instead of calling insertGraph)
 
+  ROS_INFO_STREAM("planning graph set");
+
   const auto dof = graph.dof();
 
   // Now we perform the search using the starting costs from our estimation above
   descartes_planner::DAGSearch search(graph);
+
+  ROS_INFO_STREAM("DAG search built");
+
   double cost = search.run();
   if (cost == std::numeric_limits<double>::max())
   {
@@ -90,8 +101,13 @@ static bool generateUnitProcessMotionPlan(
     return false;
   }
 
+  ROS_INFO_STREAM("DAG search run finished");
+
   // Here we search the graph for the shortest path and build a descartes trajectory of it!
   auto path_idxs = search.shortestPath();
+
+  ROS_INFO_STREAM("shortest path obtained");
+
   ROS_WARN("%s: Descartes computed path with cost %lf", __FUNCTION__, cost);
   DescartesTraj sol;
   for (size_t j = 0; j < path_idxs.size(); ++j)
@@ -105,6 +121,8 @@ static bool generateUnitProcessMotionPlan(
   }
 
   trajectory_msgs::JointTrajectory ros_traj = toROSTrajectory(sol, *model);
+
+  ROS_INFO_STREAM("descartes solving finished. Proceed to Transition Planning");
 
   // and get free plan for connect path
   trajectory_msgs::JointTrajectory connection =
