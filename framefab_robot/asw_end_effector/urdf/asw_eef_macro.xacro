@@ -22,7 +22,7 @@
       </visual>
       <collision>
         <geometry>
-          <mesh filename="package://asw_end_effector/meshes/collision/asw_hotend_end_effector_hull.stl" scale=".001 .001 .001"/>
+          <mesh filename="package://asw_end_effector/meshes/collision/asw_hotend_end_effector_hull_fine_grained.stl" scale=".001 .001 .001"/>
         </geometry>
         <material name="red">
           <color rgba="1 0 0 1"/>
@@ -48,7 +48,7 @@
     <joint name="${prefix}tmp_to_tcp_frame" type="fixed">
         <parent link="${prefix}tmp_tcp_frame"/>
         <child link="${prefix}tcp_frame"/>
-        <origin xyz="0 0 0.002"/>
+        <origin xyz="0 0 0.0"/>
     </joint>
 
 

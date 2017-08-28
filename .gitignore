@@ -65,3 +65,5 @@ qtcreator-*
 **/cmake-build-debug/*
 
 **.dae
+
+**.orig
