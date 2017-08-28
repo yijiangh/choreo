@@ -30,23 +30,40 @@ namespace // anon namespace to hide utility functions
     {
       Eigen::Vector3d eigen_vec;
       tf::vectorMsgToEigen(v, eigen_vec);
+      eigen_vec *= -1.0;
       eigen_vec.normalize();
+      ROS_INFO_STREAM("Candiate:" << eigen_vec.transpose());
 
-      Eigen::Vector3d x_vec = Eigen::Vector3d::UnitZ().cross(eigen_vec);
+      // JM
+      Eigen::Vector3d candidate_dir = Eigen::Vector3d::UnitX();
+      if ( std::abs(eigen_vec.dot(Eigen::Vector3d::UnitX())) > 0.8 )
+      {
+        candidate_dir = Eigen::Vector3d::UnitY();
+      }
+
+      Eigen::Vector3d y_vec = eigen_vec.cross(candidate_dir).normalized();
+
+      Eigen::Vector3d x_vec = y_vec.cross(eigen_vec).normalized();
+
+
+
+
+      // JM
+
+//      const Eigen::Vector3d& x_vec = eigen_vec.cross(Eigen::Vector3d::UnitZ());
 
       Eigen::Matrix3d m = Eigen::Matrix3d::Identity();
-      if(0 != x_vec.norm())
-      {
-        // eigen_vec != UnitZ
-        double rot_angle = acos(eigen_vec.dot(Eigen::Vector3d::UnitZ()));
-        m = m * Eigen::AngleAxisd(rot_angle, x_vec) * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitY());
-      }
-      else
-      {
-        // eigen_vec = UnitZ, directly reverse it
-        m = m * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitY());
-      }
+      m.col(0) = x_vec;
+      m.col(1) = y_vec;
+      m.col(2) = eigen_vec;
+//      if(0 != x_vec.norm())
+//      {
+//        double rot_angle = acos(eigen_vec.dot(Eigen::Vector3d::UnitZ()));
+//        m = m * Eigen::AngleAxisd(rot_angle, Eigen::Vector3d::UnitZ());
+//      }
 
+//      m = m * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitY());
+      ROS_INFO_STREAM("Output\n" << m << "\n");
       m_orients.push_back(m);
     }
   }
@@ -83,13 +100,6 @@ framefab_process_planning::toDescartesConstrainedPath(const std::vector<framefab
   for (std::size_t i = 0; i < selected_path_num; ++i)
   {
     add_segment(segs[i], process_path[i]);
-
-    for (auto v : segs[i].orientations)
-    {
-      Eigen::Affine3d m = Eigen::Affine3d::Identity();
-      m.matrix().block<3, 3>(0, 0) = v;
-      m.matrix().col(3).head<3>() = segs[i].start;
-    }
   } // end segments
 
   return segs;
