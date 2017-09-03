@@ -17,7 +17,7 @@
 #include <descartes_planner/graph_builder.h>
 #include <moveit/planning_scene/planning_scene.h>
 
-
+// for immediate execution
 #include <actionlib/client/simple_action_client.h>
 #include <control_msgs/FollowJointTrajectoryAction.h>
 
@@ -178,6 +178,7 @@ bool framefab_process_planning::generateMotionPlan(
   // Step 0: Sanity checks
   if (segs.size() == 0)
   {
+    ROS_ERROR("input descartes Constrained Segment size = 0!");
     return false;
   }
 
@@ -198,7 +199,10 @@ bool framefab_process_planning::generateMotionPlan(
     auto last_scene = planning_scenes.back();
     auto child = last_scene->diff();
     // update collision objects (built model elements)
+
+    //TODO: is this needed??
     addCollisionObject(planning_scene_diff_client, collision_objs[i]);
+    //END
 
     if (!child->processCollisionObjectMsg(collision_objs[i]))
     {
@@ -209,8 +213,7 @@ bool framefab_process_planning::generateMotionPlan(
 
 //  SANITY_CHECK(planning_scenes.size() == segs.size());
 
-
-  // Next, we want to sample the graph for each segment
+  // Step 2: sample graph for each segment separately
   auto graph_build_start = ros::Time::now();
   std::vector<descartes_planner::LadderGraph> graphs;
   graphs.reserve(segs.size());
@@ -223,7 +226,7 @@ bool framefab_process_planning::generateMotionPlan(
     if (true)
     {
       descartes_planner::ConstrainedSegment& seg = segs[i];
-      ROS_INFO_STREAM("seg " << i << ": " << seg.orientations.size());
+      ROS_INFO_STREAM("seg #" << i << ": " << seg.orientations.size());
     }
     graphs.push_back(descartes_planner::sampleConstrainedPaths(*model, segs[i]));
     graph_indices.push_back(graphs.back().size());
@@ -232,8 +235,8 @@ bool framefab_process_planning::generateMotionPlan(
 
   ROS_INFO_STREAM("Graph building took: " << (graph_build_end - graph_build_start).toSec() << " seconds");
 
-
-  // Next let's construct a big graph to search through
+  // Step 3: graph construction - one single unified graph
+  // append individual graph together to form one
   const auto append_start = ros::Time::now();
   descartes_planner::LadderGraph final_graph (model->getDOF());
 
@@ -248,16 +251,16 @@ bool framefab_process_planning::generateMotionPlan(
   const auto search_start = ros::Time::now();
 //  descartes_planner::DAGSearchLazyCollision search (final_graph);
 //  double cost = search.run(planning_scenes, graph_indices);
-  descartes_planner::DAGSearch search (final_graph);
+  descartes_planner::DAGSearch search(final_graph);
   double cost = search.run();
 
   const auto search_end = ros::Time::now();
-  ROS_INFO_STREAM("Search took " << (search_end-search_start).toSec() << " seconds and produced a result with dist = " << cost);
+  ROS_INFO_STREAM("Search took " << (search_end-search_start).toSec()
+                                 << " seconds and produced a result with dist = " << cost);
 
   // Now we have a rough solution for the entire process...
 
-
-  // What?
+  // Step 4 : Harvest shortest path in graph to retract trajectory
   auto path_idxs = search.shortestPath();
   DescartesTraj sol;
   for (size_t j = 0; j < path_idxs.size(); ++j)
@@ -274,43 +277,21 @@ bool framefab_process_planning::generateMotionPlan(
   for (auto& pt : ros_traj.points) pt.time_from_start *= 3.0;
   fillTrajectoryHeaders(joint_names, ros_traj);
 
+  // step 5: immediate execution (a quick solution for debugging)
   ros::NodeHandle nh;
   actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction> client (nh, "joint_trajectory_action");
   if (!client.waitForServer(ros::Duration(1.0)))
   {
-    ROS_WARN("Exec timed out");
+    ROS_WARN("[Quick Exe] Exec timed out");
   }
   else
   {
-    ROS_INFO("Found action");
+    ROS_INFO("[Quick Exe] Found action");
   }
   control_msgs::FollowJointTrajectoryGoal goal;
   goal.trajectory = ros_traj;
 
   client.sendGoal(goal);
-
-
-
-//  SWRI_PROFILE("generate-Motion-Plan");
-
-//  plans.resize(segs.size());
-//  std::vector<double> last_pose = start_state;
-////
-
-//  for(std::size_t i = 0; i < segs.size(); i++)
-//  {
-//    model->updateInternals();
-
-//    ROS_INFO_STREAM("Process Planning #" << i);
-
-//    if(!generateUnitProcessMotionPlan(i, model, segs[i], last_pose,
-//                                  moveit_model, move_group_name, joint_names,
-//                                  plans[i]))
-//    {
-//      return false;
-//    }
-
-//  }
 
   return true;
 }

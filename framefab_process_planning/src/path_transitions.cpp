@@ -28,16 +28,19 @@ namespace // anon namespace to hide utility functions
 
     for(auto v : orients_msg)
     {
+      // eigen_vec = local z axis
       Eigen::Vector3d eigen_vec;
       tf::vectorMsgToEigen(v, eigen_vec);
       eigen_vec *= -1.0;
       eigen_vec.normalize();
-      ROS_INFO_STREAM("Candiate:" << eigen_vec.transpose());
+//      ROS_INFO_STREAM("Candiate:" << eigen_vec.transpose());
 
       // JM
+      // construct local x axis & y axis
       Eigen::Vector3d candidate_dir = Eigen::Vector3d::UnitX();
       if ( std::abs(eigen_vec.dot(Eigen::Vector3d::UnitX())) > 0.8 )
       {
+        // if z axis = UnitX,
         candidate_dir = Eigen::Vector3d::UnitY();
       }
 
@@ -45,25 +48,13 @@ namespace // anon namespace to hide utility functions
 
       Eigen::Vector3d x_vec = y_vec.cross(eigen_vec).normalized();
 
-
-
-
       // JM
-
-//      const Eigen::Vector3d& x_vec = eigen_vec.cross(Eigen::Vector3d::UnitZ());
-
       Eigen::Matrix3d m = Eigen::Matrix3d::Identity();
       m.col(0) = x_vec;
       m.col(1) = y_vec;
       m.col(2) = eigen_vec;
-//      if(0 != x_vec.norm())
-//      {
-//        double rot_angle = acos(eigen_vec.dot(Eigen::Vector3d::UnitZ()));
-//        m = m * Eigen::AngleAxisd(rot_angle, Eigen::Vector3d::UnitZ());
-//      }
 
-//      m = m * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitY());
-      ROS_INFO_STREAM("Output\n" << m << "\n");
+//      ROS_INFO_STREAM("Output\n" << m << "\n");
       m_orients.push_back(m);
     }
   }
