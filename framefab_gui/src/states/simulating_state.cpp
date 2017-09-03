@@ -10,6 +10,7 @@
 
 #include "framefab_gui/framefab_widget.h"
 #include <framefab_gui/states/system_init_state.h>
+#include <framefab_gui/states/select_plan_state.h>
 #include "framefab_gui/states/simulating_state.h"
 //#include "framefab_gui/states/wait_to_execute_state.h"
 #include <iostream>
@@ -37,7 +38,7 @@ void framefab_gui::SimulatingState::onNext(FrameFabWidget& gui) {}
 void framefab_gui::SimulatingState::onBack(FrameFabWidget& gui)
 {
   gui.selection_widget().cleanUpVisual();
-  Q_EMIT newStateAvailable(new SystemInitState());
+  Q_EMIT newStateAvailable(new SelectPlanState());
 }
 
 void framefab_gui::SimulatingState::onReset(FrameFabWidget& gui)
@@ -55,6 +56,8 @@ void framefab_gui::SimulatingState::simulateAll(FrameFabWidget& gui)
   }
 
   gui.setButtonsEnabled(true);
+  gui.appendText("\nSimulation finished! Click on <Back> to choose plan and simulate again.");
+
 //  Q_EMIT newStateAvailable(new WaitToExecuteState(plan_names_));
 }
 

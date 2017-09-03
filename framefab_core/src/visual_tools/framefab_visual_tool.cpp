@@ -94,7 +94,7 @@ void framefab_visual_tools::FrameFabVisualTool::visualizeAllPaths()
   visual_tools_->trigger();
 }
 
-void framefab_visual_tools::FrameFabVisualTool::visualizePath(int i)
+void framefab_visual_tools::FrameFabVisualTool::visualizePathUntil(int i)
 {
   visual_tools_->deleteAllMarkers();
 
@@ -117,7 +117,7 @@ void framefab_visual_tools::FrameFabVisualTool::visualizePath(int i)
   visual_tools_->publishArrow(
       visual_tools_->getVectorBetweenPoints(visual_path_array_[i].start_pt,
                                             visual_path_array_[i].end_pt),
-      rviz_visual_tools::TRANSLUCENT, rviz_visual_tools::XXXXSMALL,
+      rviz_visual_tools::CYAN, rviz_visual_tools::XXXXSMALL,
       (visual_path_array_[i].start_pt - visual_path_array_[i].end_pt).norm());
 
   visual_tools_->trigger();

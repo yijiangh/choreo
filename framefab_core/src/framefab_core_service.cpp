@@ -228,7 +228,7 @@ bool FrameFabCoreService::visualize_selected_path_server_callback(
 {
   if(req.index != -1)
   {
-    visual_tool_.visualizePath(req.index);
+    visual_tool_.visualizePathUntil(req.index);
     visual_tool_.visualizeFeasibleOrientations(req.index, true);
     res.succeeded = true;
   }
@@ -303,7 +303,7 @@ void FrameFabCoreService::processPlanningActionCallback(const framefab_msgs::Pro
       selected_path_id_ = goal_in->index;
 
       visual_tool_.cleanUpAllPaths();
-      visual_tool_.visualizePath(goal_in->index);
+      visual_tool_.visualizePathUntil(goal_in->index);
       visual_tool_.visualizeFeasibleOrientations(goal_in->index, false);
 
       // TODO: make a trajectory library and ui for user to choose
@@ -313,7 +313,6 @@ void FrameFabCoreService::processPlanningActionCallback(const framefab_msgs::Pro
       {
         process_planning_feedback_.last_completed = "Finished planning. Visualizing...\n";
         process_planning_server_.publishFeedback(process_planning_feedback_);
-//      visualizePaths();
         process_planning_result_.succeeded = true;
         process_planning_server_.setSucceeded(process_planning_result_);
 
@@ -323,7 +322,6 @@ void FrameFabCoreService::processPlanningActionCallback(const framefab_msgs::Pro
       {
         process_planning_feedback_.last_completed = "Process Planning action failed.\n";
         process_planning_server_.publishFeedback(process_planning_feedback_);
-//      visualizePaths();
         process_planning_result_.succeeded = false;
         process_planning_server_.setAborted(process_planning_result_);
       }
@@ -354,18 +352,38 @@ void FrameFabCoreService::simulateMotionPlansActionCallback(const framefab_msgs:
 
   // Send command to execution server
   framefab_msgs::ProcessExecutionActionGoal goal;
-  goal.goal.trajectory_connection = trajectory_library_.get()[lib_sort_id].trajectory_connection;
-  goal.goal.trajectory_approach = trajectory_library_.get()[lib_sort_id].trajectory_approach;
-  goal.goal.trajectory_process = trajectory_library_.get()[lib_sort_id].trajectory_process;
-  goal.goal.trajectory_depart = trajectory_library_.get()[lib_sort_id].trajectory_depart;
+//  if(0 != trajectory_library_.get()[lib_sort_id].trajectory_connection.points.size())
+//  {
+//    goal.goal.trajectory_connection = trajectory_library_.get()[lib_sort_id].trajectory_connection;
+//  }
+//
+//  if(0 != trajectory_library_.get()[lib_sort_id].trajectory_approach.points.size())
+//  {
+//    goal.goal.trajectory_approach = trajectory_library_.get()[lib_sort_id].trajectory_approach;
+//  }
+
+  if(0 != trajectory_library_.get()[lib_sort_id].trajectory_process.points.size())
+  {
+    goal.goal.trajectory_process = trajectory_library_.get()[lib_sort_id].trajectory_process;
+  }
+
+  ROS_INFO("trajectory process inserted into goal");
+
+//  if(0 != trajectory_library_.get()[lib_sort_id].trajectory_depart.points.size())
+//  {
+//    goal.goal.trajectory_depart = trajectory_library_.get()[lib_sort_id].trajectory_depart;
+//  }
+
   goal.goal.wait_for_execution = goal_in->wait_for_execution;
   goal.goal.simulate = goal_in->simulate;
 
   actionlib::SimpleActionClient<framefab_msgs::ProcessExecutionAction> *exe_client = &framefab_exe_client_;
   exe_client->sendGoal(goal.goal);
 
-  ros::Duration process_time(goal.goal.trajectory_depart.points.back().time_from_start);
+  ros::Duration process_time(goal.goal.trajectory_process.points.back().time_from_start);
   ros::Duration buffer_time(PROCESS_EXE_BUFFER);
+  visual_tool_.visualizePathUntil(goal_in->index);
+
   if(exe_client->waitForResult(process_time + buffer_time))
   {
     res.code = framefab_msgs::SimulateMotionPlanResult::SUCCESS;

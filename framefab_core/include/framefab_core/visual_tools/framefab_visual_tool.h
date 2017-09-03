@@ -61,7 +61,7 @@ class FrameFabVisualTool
   int getPathArraySize() { return visual_path_array_.size(); }
 
   void visualizeAllPaths();
-  void visualizePath(int index);
+  void visualizePathUntil(int index);
 
   void visualizeFeasibleOrientations(int index, bool solid);
 

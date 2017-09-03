@@ -6,7 +6,6 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /MotionPlanning1
         - /MotionPlanning1/Scene Geometry1
         - /MotionPlanning1/Scene Robot1
         - /MotionPlanning1/Planned Path1
@@ -166,6 +165,8 @@ Visualization Manager:
           Value: true
         tcp_frame:
           Value: true
+        tmp_tcp_frame:
+          Value: true
         tool0:
           Value: true
         workspace_base_link:
@@ -194,8 +195,9 @@ Visualization Manager:
                           eef_frame:
                             hotend_tool:
                               {}
-                            tcp_frame:
-                              {}
+                            tmp_tcp_frame:
+                              tcp_frame:
+                                {}
           workspace_base_link:
             workspace_objects:
               {}
@@ -263,6 +265,10 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
+        tmp_tcp_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
         tool0:
           Alpha: 1
           Show Axes: false
@@ -287,7 +293,7 @@ Visualization Manager:
       Value: true
       Visual Enabled: true
     - Class: moveit_rviz_plugin/PlanningScene
-      Enabled: true
+      Enabled: false
       Move Group Namespace: ""
       Name: PlanningScene
       Planning Scene Topic: move_group/monitored_planning_scene
@@ -359,6 +365,10 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+          tmp_tcp_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           tool0:
             Alpha: 1
             Show Axes: false
@@ -379,13 +389,14 @@ Visualization Manager:
         Robot Alpha: 1
         Show Robot Collision: false
         Show Robot Visual: false
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /framefab_core_service/path_visualization
       Name: MarkerArray
       Namespaces:
-        {}
+        Arrow: true
+        Cylinder: true
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -419,7 +430,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 0.636427164
+      Distance: 1.00143051
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
