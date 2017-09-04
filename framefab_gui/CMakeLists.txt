@@ -43,6 +43,7 @@ set(framefab_gui_SRCS
 	src/parameter_window_base.cpp
 	src/params/model_input_config_widget.cpp
 	src/params/path_input_config_widget.cpp
+	src/params/robot_input_config_widget.cpp
 	#selection
 	src/selection/selection_widget.cpp
 	)
@@ -63,6 +64,7 @@ set(framefab_gui_HDRS
 	include/framefab_gui/parameter_window_base.h
 	include/framefab_gui/params/model_input_config_widget.h
 	include/framefab_gui/params/path_input_config_widget.h
+	include/framefab_gui/params/robot_input_config_widget.h
 	#selection
 	include/framefab_gui/selection/selection_widget.h
 	)
@@ -72,7 +74,12 @@ set(framefab_gui_UIS
 	src/uis/params_submenu.ui
 	src/uis/model_input_config.ui
 	src/uis/path_input_config.ui
+	src/uis/robot_input_config.ui
 	src/uis/selection_widget.ui
+	)
+
+set(framefab_gui_RESOURCES
+	src/uis/robot_input_widget_resource.qrc
 	)
 
 set(framefab_gui_INCLUDE_DIRECTORIES
@@ -87,6 +94,7 @@ include_directories(
 )
 
 add_definitions(-DQT_NO_KEYWORDS)
+qt5_add_resources(framefab_gui_RESOURCES_H ${framefab_gui_RESOURCES})
 qt5_wrap_cpp(framefab_gui_MOCS ${framefab_gui_HDRS})
 qt5_wrap_ui(framefab_gui_UIS_H ${framefab_gui_UIS})
 
@@ -95,6 +103,7 @@ add_library(${PROJECT_NAME}
 	${framefab_gui_UIS_H}
 	${framefab_gui_MOCS}
 	${framefab_gui_SRCS}
+	${framefab_gui_RESOURCES_H}
 	)
 
 target_link_libraries(${PROJECT_NAME}

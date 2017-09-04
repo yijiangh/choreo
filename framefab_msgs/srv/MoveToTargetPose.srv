@@ -1,0 +1,10 @@
+int32 JOINT_POSE = 0
+int32 EEF_POSE = 1
+
+int32 type
+
+float64[] pose
+
+---
+
+#empty

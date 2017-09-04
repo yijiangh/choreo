@@ -28,11 +28,7 @@ class ModelInputConfigWidget : public ParameterWindowBase
   virtual void update_internal_fields();
 
  protected:
-  // Maps scan-method enum to a field inside the combo-box display
   virtual int get_unit_combobox_value();
-
-//  // Maps a field in combo-box display to scan-method enum
-//  virtual int get_scan_method_enum_value();
 
  protected Q_SLOTS:
   virtual void get_file_path_handler();
@@ -40,6 +36,7 @@ class ModelInputConfigWidget : public ParameterWindowBase
  private:
   framefab_msgs::ModelInputParameters params_;
   Ui::ModelInputConfigWindow* ui_;
+  std::string last_filepath_;
 };
 }
 

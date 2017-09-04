@@ -11,6 +11,7 @@
 #include <framefab_msgs/FrameFabParameters.h>
 #include <framefab_msgs/ModelInputParameters.h>
 #include <framefab_msgs/PathInputParameters.h>
+#include <framefab_msgs/RobotInputParameters.h>
 #include <framefab_msgs/ElementCandidatePoses.h>
 #include <framefab_msgs/UnitProcessPlan.h>
 
@@ -48,6 +49,8 @@ class FrameFabCoreService
   void save_model_input_parameters(const std::string& filename);
   bool load_path_input_parameters(const std::string& filename);
   void save_path_input_parameters(const std::string& filename);
+  bool load_robot_input_parameters(const std::string& filename);
+  void save_robot_input_parameters(const std::string& filename);
 
   // Service callbacks
   bool framefab_parameters_server_callback(framefab_msgs::FrameFabParameters::Request& req,
@@ -72,6 +75,9 @@ class FrameFabCoreService
 
   ProcessPlanResult generateProcessPlan(const int index);
 
+  // immediate plan & execution
+  bool moveToTargetJointPose(std::vector<double> joint_pose);
+
  private:
   // Services offered by this class
   ros::ServiceServer framefab_parameters_server_;
@@ -81,6 +87,7 @@ class FrameFabCoreService
   // Services subscribed to by this class
   ros::ServiceClient path_post_processing_client_;
   ros::ServiceClient process_planning_client_;
+  ros::ServiceClient move_to_pose_client_;
 
   // Actions offered by this class
   ros::NodeHandle nh_;
@@ -93,6 +100,8 @@ class FrameFabCoreService
   framefab_msgs::ProcessPlanningResult process_planning_result_;
 
   actionlib::SimpleActionServer<framefab_msgs::SimulateMotionPlanAction> simulate_motion_plan_server_;
+  framefab_msgs::SimulateMotionPlanFeedback simulate_motion_plan_feedback_;
+  framefab_msgs::SimulateMotionPlanResult simulate_motion_plan_result_;
 
   // Actions subscribed to by this class
   actionlib::SimpleActionClient<framefab_msgs::ProcessExecutionAction> framefab_exe_client_;
@@ -114,9 +123,11 @@ class FrameFabCoreService
   // Parameters
   framefab_msgs::ModelInputParameters 	model_input_params_;
   framefab_msgs::PathInputParameters 	path_input_params_;
+  framefab_msgs::RobotInputParameters   robot_input_params_;
 
   framefab_msgs::ModelInputParameters 	default_model_input_params_;
   framefab_msgs::PathInputParameters 	default_path_input_params_;
+  framefab_msgs::RobotInputParameters   default_robot_input_params_;
 
   // Parameter loading and saving
   bool save_data_;

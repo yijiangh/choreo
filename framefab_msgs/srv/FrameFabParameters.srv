@@ -13,7 +13,8 @@ int32 action                      # Action to undertake (see Action Enumeration)
 
 # In the case that action is a GET method, then these fields may be left blank
 framefab_msgs/ModelInputParameters model_params
-framefab_msgs/PathInputParameters path_params                 
+framefab_msgs/PathInputParameters path_params
+framefab_msgs/RobotInputParameters robot_params
 framefab_msgs/ProcessPlanningParameters process_plan_params
 
 ---
@@ -24,4 +25,5 @@ bool succeeded
 # If action in request was a SET method, then these fields are not populated.
 framefab_msgs/ModelInputParameters 	model_params
 framefab_msgs/PathInputParameters 	path_params
+framefab_msgs/RobotInputParameters 	robot_params
 framefab_msgs/ProcessPlanningParameters process_plan_params

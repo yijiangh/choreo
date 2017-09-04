@@ -38,9 +38,9 @@
       </widget>
      </item>
      <item row="1" column="0">
-      <widget class="QPushButton" name="pushButtonPathPlanningOptions">
+      <widget class="QPushButton" name="pushbutton_robot_input">
        <property name="enabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="minimumSize">
         <size>
@@ -54,7 +54,7 @@
         </font>
        </property>
        <property name="text">
-        <string>XX Params</string>
+        <string>Robot Params</string>
        </property>
       </widget>
      </item>

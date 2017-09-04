@@ -10,11 +10,6 @@
 #include <framefab_gui/params_submenu.h>
 #include <framefab_gui/selection/selection_widget.h>
 
-#include "actionlib/client/simple_action_client.h"
-
-#include "framefab_msgs/SimulateMotionPlanAction.h"
-#include "framefab_msgs/SimulateMotionPlanActionGoal.h"
-
 namespace Ui
 {
 class FrameFabWidget;
@@ -49,8 +44,6 @@ class FrameFabWidget : public QWidget
 
   void showStatusWindow();
   void setLabelText(const std::string& txt);
-  void sendGoal(const framefab_msgs::SimulateMotionPlanActionGoal& goal);
-  void sendGoalAndWait(const framefab_msgs::SimulateMotionPlanActionGoal& goal);
 
   ros::NodeHandle&  nodeHandle() { return nh_; }
   ParamsSubmenu&    params() { return *params_; }
@@ -86,8 +79,6 @@ class FrameFabWidget : public QWidget
 
   // Params Save
   ros::ServiceClient framefab_parameters_client_;
-
-  actionlib::SimpleActionClient<framefab_msgs::SimulateMotionPlanAction>  simulate_motion_plan_action_client_;
 };
 }
 

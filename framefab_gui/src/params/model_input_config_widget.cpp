@@ -25,6 +25,8 @@ framefab_gui::ModelInputConfigWidget::ModelInputConfigWidget(framefab_msgs::Mode
   ui_->lineedit_ref_pt_z->setValidator(new QDoubleValidator(this));
   ui_->lineedit_element_diameter->setValidator(new QDoubleValidator(this));
   ui_->lineedit_shrink_length->setValidator(new QDoubleValidator(this));
+
+  last_filepath_ = "/home";
 }
 
 void framefab_gui::ModelInputConfigWidget::update_display_fields()
@@ -79,9 +81,11 @@ void framefab_gui::ModelInputConfigWidget::get_file_path_handler()
   QString filename = QFileDialog::getOpenFileName(
       this,
       tr("Open File"),
-      "$HOME/Documents",
+      QString::fromStdString(last_filepath_),
       tr("pwf Files (*.pwf)"));
 
   params_.file_name = filename.toLocal8Bit().constData();
+  last_filepath_ = filename.toLocal8Bit().constData();
+
   update_display_fields();
 }

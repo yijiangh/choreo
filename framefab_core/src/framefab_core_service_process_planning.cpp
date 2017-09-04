@@ -7,6 +7,7 @@
 
 // services
 #include <framefab_msgs/ProcessPlanning.h>
+#include <framefab_msgs/MoveToTargetPose.h>
 
 bool FrameFabCoreService::generateMotionLibrary(
     const int selected_path_index, framefab_core_service::TrajectoryLibrary& traj_lib)
@@ -52,4 +53,14 @@ ProcessPlanResult FrameFabCoreService::generateProcessPlan(const int selected_pa
   }
 
   return result;
+}
+
+bool FrameFabCoreService::moveToTargetJointPose(std::vector<double> joint_pose)
+{
+  framefab_msgs::MoveToTargetPose srv;
+
+  srv.request.type = srv.request.JOINT_POSE;
+  srv.request.pose = joint_pose;
+
+  return move_to_pose_client_.call(srv);
 }

@@ -8,4 +8,4 @@ model_input:
 
  unit_type: 0
 
- file_name: "$HOME"
+ file_name: "/home"
