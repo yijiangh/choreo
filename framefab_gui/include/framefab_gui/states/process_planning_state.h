@@ -11,8 +11,6 @@
 #include <actionlib/client/simple_action_client.h>
 #include <framefab_msgs/ProcessPlanningAction.h>
 
-const static std::string PROCESS_PLANNING_ACTION_CLIENT_NAME = "process_planning_action";
-
 namespace framefab_gui
 {
 
@@ -34,20 +32,21 @@ class ProcessPlanningState : public GuiState
 
  private:
   void makeRequest();
-  void processPlanningDoneCallback(const actionlib::SimpleClientGoalState& state,
-                                   const framefab_msgs::ProcessPlanningResultConstPtr& result);
+  void processPlanningDoneCallback(
+      const actionlib::SimpleClientGoalState& state,
+      const framefab_msgs::ProcessPlanningResultConstPtr& result);
   void processPlanningActiveCallback();
-  void processPlanningFeedbackCallback(const framefab_msgs::ProcessPlanningFeedbackConstPtr& feedback);
+  void processPlanningFeedbackCallback(
+      const framefab_msgs::ProcessPlanningFeedbackConstPtr& feedback);
 
   Q_SIGNALS:
   void feedbackReceived(QString feedback);
 
- protected Q_SLOTS:
+ private Q_SLOTS:
   void setFeedbackText(QString feedback);
 
  private:
   int selected_path_index_;
-  ros::NodeHandle nh_;
   actionlib::SimpleActionClient<framefab_msgs::ProcessPlanningAction> process_planning_action_client_;
   FrameFabWidget* gui_ptr_;
 };

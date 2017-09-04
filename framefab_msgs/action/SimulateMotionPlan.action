@@ -24,6 +24,7 @@ bool wait_for_execution     # If true, the execution service will block until th
 int32 SUCCESS=1
 int32 NO_SUCH_NAME=-1
 int32 TIMEOUT=-2
+int32 RESET_POSE_FAIL=-3
 
 # Error code (see above enum) indicating ability to START the motion plan.
 # This error code does not currently capture all of the things that might
@@ -31,4 +32,6 @@ int32 TIMEOUT=-2
 int32 code
 
 ---
-# Feedback is empty
+
+# Feedback
+string last_completed

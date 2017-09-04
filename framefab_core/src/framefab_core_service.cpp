@@ -5,6 +5,7 @@
 //subscribed services
 #include <framefab_msgs/PathPostProcessing.h>
 #include <framefab_msgs/ProcessPlanning.h>
+#include <framefab_msgs/MoveToTargetPose.h>
 
 // For visualizing in rviz
 #include <rviz_visual_tools/rviz_visual_tools.h>
@@ -21,10 +22,12 @@ const static std::string VISUALIZE_SELECTED_PATH_SERVICE= "visualize_select_path
 // subscribed services
 const static std::string PATH_POST_PROCESSING_SERVICE = "path_post_processing";
 const static std::string PROCESS_PLANNING_SERVICE = "process_planning";
+const static std::string MOVE_TO_TARGET_POSE_SERVICE = "move_to_target_pose";
 
 // Default filepaths and namespaces for caching stored parameters
 const static std::string MODEL_INPUT_PARAMS_FILE = "model_input_parameters.msg";
 const static std::string PATH_INPUT_PARAMS_FILE = "path_input_parameters.msg";
+const static std::string ROBOT_INPUT_PARAMS_FILE = "robot_input_parameters.msg";
 
 // Visualization Maker topics
 const static std::string PATH_VISUAL_TOPIC = "path_visualization";
@@ -44,9 +47,9 @@ FrameFabCoreService::FrameFabCoreService()
       path_planning_server_(nh_, PATH_PLANNING_ACTION_SERVER_NAME,
                             boost::bind(&FrameFabCoreService::pathPlanningActionCallback, this, _1), false),
       process_planning_server_(nh_, PROCESS_PLANNING_ACTION_SERVER_NAME,
-                            boost::bind(&FrameFabCoreService::processPlanningActionCallback, this, _1), false),
+                               boost::bind(&FrameFabCoreService::processPlanningActionCallback, this, _1), false),
       simulate_motion_plan_server_(nh_, SIMULATE_MOTION_PLAN_ACTION_SERVER_NAME,
-                                 boost::bind(&FrameFabCoreService::simulateMotionPlansActionCallback, this, _1), false)
+                                   boost::bind(&FrameFabCoreService::simulateMotionPlansActionCallback, this, _1), false)
 {}
 
 bool FrameFabCoreService::init()
@@ -65,6 +68,9 @@ bool FrameFabCoreService::init()
 
   if (!this->load_path_input_parameters(param_cache_prefix_ + PATH_INPUT_PARAMS_FILE))
     ROS_WARN("Unable to load path input parameters.");
+
+  if (!this->load_robot_input_parameters(param_cache_prefix_ + ROBOT_INPUT_PARAMS_FILE))
+    ROS_WARN("Unable to load robot input parameters.");
 
   // load plugins (if-need-be)
 
@@ -91,6 +97,7 @@ bool FrameFabCoreService::init()
   // service clients
   path_post_processing_client_ = nh_.serviceClient<framefab_msgs::PathPostProcessing>(PATH_POST_PROCESSING_SERVICE);
   process_planning_client_ = nh_.serviceClient<framefab_msgs::ProcessPlanning>(PROCESS_PLANNING_SERVICE);
+  move_to_pose_client_  = nh_.serviceClient<framefab_msgs::MoveToTargetPose>(MOVE_TO_TARGET_POSE_SERVICE);
 
   // publishers
 
@@ -151,7 +158,7 @@ bool FrameFabCoreService::load_path_input_parameters(const std::string & filenam
   }
 
   // otherwise default to the parameter server
-  ros::NodeHandle nh("~/path_input_params");
+  ros::NodeHandle nh("~/path_input");
   return loadParam(nh, "file_path", path_input_params_.file_path);
 }
 
@@ -160,6 +167,29 @@ void FrameFabCoreService::save_path_input_parameters(const std::string & filenam
   if(!framefab_param_helpers::toFile(filename, path_input_params_))
   {
     ROS_WARN_STREAM("Unable to save path input parameters to: " << filename);
+  }
+}
+
+bool FrameFabCoreService::load_robot_input_parameters(const std::string & filename)
+{
+  using framefab_param_helpers::loadParam;
+  using framefab_param_helpers::loadBoolParam;
+
+  if(framefab_param_helpers::fromFile(filename, robot_input_params_))
+  {
+    return true;
+  }
+
+  // otherwise default to the parameter server
+  ros::NodeHandle nh("~/robot_input");
+  return loadParam(nh, "init_pose", robot_input_params_.init_pose);
+}
+
+void FrameFabCoreService::save_robot_input_parameters(const std::string& filename)
+{
+  if (!framefab_param_helpers::toFile(filename, robot_input_params_))
+  {
+    ROS_WARN_STREAM("Unable to save robot input parameters to: " << filename);
   }
 }
 
@@ -172,11 +202,13 @@ bool FrameFabCoreService::framefab_parameters_server_callback(
     case framefab_msgs::FrameFabParameters::Request::GET_CURRENT_PARAMETERS:
       res.model_params = model_input_params_;
       res.path_params  = path_input_params_;
+      res.robot_params = robot_input_params_;
       break;
 
     case framefab_msgs::FrameFabParameters::Request::GET_DEFAULT_PARAMETERS:
       res.model_params = default_model_input_params_;
       res.path_params  = default_path_input_params_;
+      res.robot_params = default_robot_input_params_;
       break;
 
       // Update the current parameters in this service
@@ -184,11 +216,13 @@ bool FrameFabCoreService::framefab_parameters_server_callback(
     case framefab_msgs::FrameFabParameters::Request::SAVE_PARAMETERS:
       model_input_params_ = req.model_params;
       path_input_params_ = req.path_params;
+      robot_input_params_ = req.robot_params;
 
       if (req.action == framefab_msgs::FrameFabParameters::Request::SAVE_PARAMETERS)
       {
         this->save_model_input_parameters(param_cache_prefix_ + MODEL_INPUT_PARAMS_FILE);
         this->save_path_input_parameters(param_cache_prefix_ + PATH_INPUT_PARAMS_FILE);
+        this->save_robot_input_parameters(param_cache_prefix_ + ROBOT_INPUT_PARAMS_FILE);
       }
       break;
   }
@@ -228,7 +262,7 @@ bool FrameFabCoreService::visualize_selected_path_server_callback(
 {
   if(req.index != -1)
   {
-    visual_tool_.visualizePath(req.index);
+    visual_tool_.visualizePathUntil(req.index);
     visual_tool_.visualizeFeasibleOrientations(req.index, true);
     res.succeeded = true;
   }
@@ -302,8 +336,18 @@ void FrameFabCoreService::processPlanningActionCallback(const framefab_msgs::Pro
 
       selected_path_id_ = goal_in->index;
 
+      // reset Robot's pose to init pose
+      if(!moveToTargetJointPose(robot_input_params_.init_pose))
+      {
+        process_planning_feedback_.last_completed = "Reset to init robot's pose planning & execution failed\n";
+        process_planning_server_.publishFeedback(process_planning_feedback_);
+        process_planning_result_.succeeded = false;
+        process_planning_server_.setAborted(process_planning_result_);
+        return;
+      }
+
       visual_tool_.cleanUpAllPaths();
-      visual_tool_.visualizePath(goal_in->index);
+      visual_tool_.visualizePathUntil(goal_in->index);
       visual_tool_.visualizeFeasibleOrientations(goal_in->index, false);
 
       // TODO: make a trajectory library and ui for user to choose
@@ -313,7 +357,6 @@ void FrameFabCoreService::processPlanningActionCallback(const framefab_msgs::Pro
       {
         process_planning_feedback_.last_completed = "Finished planning. Visualizing...\n";
         process_planning_server_.publishFeedback(process_planning_feedback_);
-//      visualizePaths();
         process_planning_result_.succeeded = true;
         process_planning_server_.setSucceeded(process_planning_result_);
 
@@ -323,7 +366,6 @@ void FrameFabCoreService::processPlanningActionCallback(const framefab_msgs::Pro
       {
         process_planning_feedback_.last_completed = "Process Planning action failed.\n";
         process_planning_server_.publishFeedback(process_planning_feedback_);
-//      visualizePaths();
         process_planning_result_.succeeded = false;
         process_planning_server_.setAborted(process_planning_result_);
       }
@@ -339,42 +381,75 @@ void FrameFabCoreService::processPlanningActionCallback(const framefab_msgs::Pro
 
 void FrameFabCoreService::simulateMotionPlansActionCallback(const framefab_msgs::SimulateMotionPlanGoalConstPtr& goal_in)
 {
-  framefab_msgs::SimulateMotionPlanResult res;
-
   std::string lib_sort_id = std::to_string(goal_in->index);
 
   // If plan does not exist, abort and return
   if (trajectory_library_.get().find(lib_sort_id) == trajectory_library_.get().end())
   {
     ROS_WARN_STREAM("Motion plan #" << lib_sort_id << " does not exist. Cannot execute.");
-    res.code = framefab_msgs::SimulateMotionPlanResult::NO_SUCH_NAME;
-    simulate_motion_plan_server_.setAborted(res);
+    simulate_motion_plan_result_.code = framefab_msgs::SimulateMotionPlanResult::NO_SUCH_NAME;
+    simulate_motion_plan_server_.setAborted(simulate_motion_plan_result_);
     return;
-  }
-
-  // Send command to execution server
-  framefab_msgs::ProcessExecutionActionGoal goal;
-  goal.goal.trajectory_connection = trajectory_library_.get()[lib_sort_id].trajectory_connection;
-  goal.goal.trajectory_approach = trajectory_library_.get()[lib_sort_id].trajectory_approach;
-  goal.goal.trajectory_process = trajectory_library_.get()[lib_sort_id].trajectory_process;
-  goal.goal.trajectory_depart = trajectory_library_.get()[lib_sort_id].trajectory_depart;
-  goal.goal.wait_for_execution = goal_in->wait_for_execution;
-  goal.goal.simulate = goal_in->simulate;
-
-  actionlib::SimpleActionClient<framefab_msgs::ProcessExecutionAction> *exe_client = &framefab_exe_client_;
-  exe_client->sendGoal(goal.goal);
-
-  ros::Duration process_time(goal.goal.trajectory_depart.points.back().time_from_start);
-  ros::Duration buffer_time(PROCESS_EXE_BUFFER);
-  if(exe_client->waitForResult(process_time + buffer_time))
-  {
-    res.code = framefab_msgs::SimulateMotionPlanResult::SUCCESS;
-    simulate_motion_plan_server_.setSucceeded(res);
   }
   else
   {
-    res.code = framefab_msgs::SimulateMotionPlanResult::TIMEOUT;
-    simulate_motion_plan_server_.setAborted(res);
+    ROS_INFO_STREAM("Motion plan #" << lib_sort_id << " found");
+  }
+
+  if(0 == goal_in->index)
+  {
+    // reset Robot's pose to init pose
+    if (!moveToTargetJointPose(robot_input_params_.init_pose))
+    {
+      ROS_ERROR("Reset to init robot's pose planning & execution failed");
+      simulate_motion_plan_result_.code = framefab_msgs::SimulateMotionPlanResult::RESET_POSE_FAIL;
+      simulate_motion_plan_server_.setAborted(simulate_motion_plan_result_);
+    }
+  }
+
+  // Send command to execution server
+  framefab_msgs::ProcessExecutionGoal goal;
+//  if(0 != trajectory_library_.get()[lib_sort_id].trajectory_connection.points.size())
+//  {
+//    goal.goal.trajectory_connection = trajectory_library_.get()[lib_sort_id].trajectory_connection;
+//  }
+//
+//  if(0 != trajectory_library_.get()[lib_sort_id].trajectory_approach.points.size())
+//  {
+//    goal.goal.trajectory_approach = trajectory_library_.get()[lib_sort_id].trajectory_approach;
+//  }
+
+  if(0 != trajectory_library_.get()[lib_sort_id].trajectory_process.points.size())
+  {
+    goal.trajectory_process = trajectory_library_.get()[lib_sort_id].trajectory_process;
+  }
+
+  ROS_INFO("trajectory process inserted into goal");
+
+//  if(0 != trajectory_library_.get()[lib_sort_id].trajectory_depart.points.size())
+//  {
+//    goal.goal.trajectory_depart = trajectory_library_.get()[lib_sort_id].trajectory_depart;
+//  }
+
+  goal.wait_for_execution = goal_in->wait_for_execution;
+  goal.simulate = goal_in->simulate;
+
+  actionlib::SimpleActionClient<framefab_msgs::ProcessExecutionAction> *exe_client = &framefab_exe_client_;
+  exe_client->sendGoal(goal);
+
+  ros::Duration process_time(goal.trajectory_process.points.back().time_from_start);
+  ros::Duration buffer_time(PROCESS_EXE_BUFFER);
+  visual_tool_.visualizePathUntil(goal_in->index);
+
+  if(exe_client->waitForResult(process_time + buffer_time))
+  {
+    simulate_motion_plan_result_.code = framefab_msgs::SimulateMotionPlanResult::SUCCESS;
+    simulate_motion_plan_server_.setSucceeded(simulate_motion_plan_result_);
+  }
+  else
+  {
+    simulate_motion_plan_result_.code = framefab_msgs::SimulateMotionPlanResult::TIMEOUT;
+    simulate_motion_plan_server_.setAborted(simulate_motion_plan_result_);
   }
 }
 

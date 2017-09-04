@@ -25,6 +25,7 @@
 
 // msg
 #include <geometry_msgs/Pose.h>
+#include <trajectory_msgs/JointTrajectoryPoint.h>
 
 #include <eigen_conversions/eigen_msg.h>
 
@@ -201,7 +202,7 @@ bool framefab_process_planning::generateMotionPlan(
     // update collision objects (built model elements)
 
     //TODO: is this needed??
-    addCollisionObject(planning_scene_diff_client, collision_objs[i]);
+//    addCollisionObject(planning_scene_diff_client, collision_objs[i]);
     //END
 
     if (!child->processCollisionObjectMsg(collision_objs[i]))
@@ -274,24 +275,43 @@ bool framefab_process_planning::generateMotionPlan(
   }
 
   trajectory_msgs::JointTrajectory ros_traj = toROSTrajectory(sol, *model);
-  for (auto& pt : ros_traj.points) pt.time_from_start *= 3.0;
+  for (auto& pt : ros_traj.points) pt.time_from_start *= 4.0;
   fillTrajectoryHeaders(joint_names, ros_traj);
 
-  // step 5: immediate execution (a quick solution for debugging)
-  ros::NodeHandle nh;
-  actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction> client (nh, "joint_trajectory_action");
-  if (!client.waitForServer(ros::Duration(1.0)))
-  {
-    ROS_WARN("[Quick Exe] Exec timed out");
-  }
-  else
-  {
-    ROS_INFO("[Quick Exe] Found action");
-  }
-  control_msgs::FollowJointTrajectoryGoal goal;
-  goal.trajectory = ros_traj;
+  // step 5': fill generated trajectories in returned plan results.
+  plans.resize(segs.size());
 
-  client.sendGoal(goal);
+  auto it = ros_traj.points.begin();
+  int cnt = 0;
+  for(size_t i = 0; i < segs.size(); i++)
+  {
+    plans[i].trajectory_process.points =
+        std::vector<trajectory_msgs::JointTrajectoryPoint>(it, it + graph_indices[i]);
+    it = it + graph_indices[i];
+    fillTrajectoryHeaders(joint_names, plans[i].trajectory_process);
+    cnt += plans[i].trajectory_process.points.size();
+  }
+
+  ROS_INFO_STREAM("ros traj size: " << ros_traj.points.size() << ", plan size: " << cnt);
+  // fill in transition path
+
+  ROS_INFO("trajectory packing finished");
+
+//  // step 5: immediate execution (a quick solution for debugging)
+//  ros::NodeHandle nh;
+//  actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction> client (nh, "joint_trajectory_action");
+//  if (!client.waitForServer(ros::Duration(1.0)))
+//  {
+//    ROS_WARN("[Quick Exe] Exec timed out");
+//  }
+//  else
+//  {
+//    ROS_INFO("[Quick Exe] Found action");
+//  }
+//  control_msgs::FollowJointTrajectoryGoal goal;
+//  goal.trajectory = ros_traj;
+//
+//  client.sendGoal(goal);
 
   return true;
 }

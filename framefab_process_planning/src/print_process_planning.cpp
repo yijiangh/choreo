@@ -64,9 +64,9 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
   constrained_seg_params.angular_disc = ANGULAR_DISCRETIZATION;
   constrained_seg_params.retract_dist = RETRACT_DISTANCE;
 
-  Eigen::Affine3d start_home_pose;
-  std::vector<double> current_joints = getCurrentJointState(JOINT_TOPIC_NAME);
+//  Eigen::Affine3d start_home_pose;
 //  hotend_model_->getFK(current_joints, start_home_pose);
+  std::vector<double> current_joints = getCurrentJointState(JOINT_TOPIC_NAME);
 
   std::vector<descartes_planner::ConstrainedSegment> constrained_segs =
       toDescartesConstrainedPath(req.process_path, index, 0.01, constrained_seg_params);
@@ -77,13 +77,6 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
   {
     collision_objs.push_back(v.collision_cylinder);
   }
-
-//  // add working env collision objs (table etc.)
-//  for (auto obj : env_objs)
-//  {
-//    addCollisionObject(planning_scene_diff_client_, obj);
-//    ROS_INFO_STREAM("collision object added: " << obj.id);
-//  }
 
   if(generateMotionPlan(hotend_model_, constrained_segs, collision_objs, moveit_model_, planning_scene_diff_client_,
                         hotend_group_name_, current_joints, res.plan))

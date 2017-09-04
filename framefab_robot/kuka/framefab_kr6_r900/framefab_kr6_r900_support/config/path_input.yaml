@@ -1,2 +1,2 @@
 path_input:
- file_path: "$HOME"
+ file_path: "/home"

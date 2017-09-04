@@ -8,6 +8,7 @@
 
 // Globals
 const static std::string DEFAULT_PRINT_PLANNING_SERVICE = "process_planning";
+const static std::string MOVE_TO_TARGET_POSE_SERVICE = "move_to_target_pose";
 
 int main(int argc, char** argv)
 {
@@ -38,6 +39,9 @@ int main(int argc, char** argv)
   // Plumb in the appropriate ros services
   ros::ServiceServer print_server = nh.advertiseService(
       DEFAULT_PRINT_PLANNING_SERVICE, &ProcessPlanningManager::handlePrintPlanning, &manager);
+
+   ros::ServiceServer move_to_target_pose_server = nh.advertiseService(
+       MOVE_TO_TARGET_POSE_SERVICE, &ProcessPlanningManager::handleMoveToTargetPosePlanAndExecution, &manager);
 
   // Serve and wait for shutdown
   ROS_INFO_STREAM("framefab [ProcessPlanning] Server Online");

@@ -3,6 +3,7 @@
 
 // service
 #include <framefab_msgs/ProcessPlanning.h>
+#include <framefab_msgs/MoveToTargetPose.h>
 
 // msg
 #include <framefab_msgs/ElementCandidatePoses.h>
@@ -31,6 +32,10 @@ class ProcessPlanningManager
 
   bool handlePrintPlanning(framefab_msgs::ProcessPlanning::Request& req,
                            framefab_msgs::ProcessPlanning::Response& res);
+
+  bool handleMoveToTargetPosePlanAndExecution(
+      framefab_msgs::MoveToTargetPose::Request& req,
+      framefab_msgs::MoveToTargetPose::Response& res);
 
  private:
   descartes_core::RobotModelPtr hotend_model_;

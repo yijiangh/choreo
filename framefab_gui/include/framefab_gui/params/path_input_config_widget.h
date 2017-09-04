@@ -32,6 +32,7 @@ class PathInputConfigWidget : public ParameterWindowBase
  private:
   framefab_msgs::PathInputParameters params_;
   Ui::PathInputConfigWindow* ui_;
+  std::string last_filepath_;
 };
 }
 

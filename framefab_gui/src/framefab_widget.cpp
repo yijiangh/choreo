@@ -60,9 +60,9 @@ void framefab_gui::FrameFabWidget::setText(const std::string& txt)
 
 void framefab_gui::FrameFabWidget::appendText(const std::string& txt)
 {
-  ui_->textedit_status->moveCursor(QTextCursor::End);
+//  ui_->textedit_status->moveCursor(QTextCursor::End);
   ui_->textedit_status->insertPlainText(QString::fromStdString(txt));
-  ui_->textedit_status->moveCursor(QTextCursor::End);
+//  ui_->textedit_status->moveCursor(QTextCursor::End);
 }
 
 void framefab_gui::FrameFabWidget::onNextButton()
@@ -91,6 +91,7 @@ void framefab_gui::FrameFabWidget::onParamsSave()
   msg.request.action = framefab_msgs::FrameFabParameters::Request::SAVE_PARAMETERS;
   msg.request.model_params = params_->modelInputParams();
   msg.request.path_params = params_->pathInputParams();
+  msg.request.robot_params = params_->robotInputParams();
 
   if (!framefab_parameters_client_.call(msg.request, msg.response))
     ROS_WARN_STREAM("Could not complete service call to save parameters!");
@@ -102,6 +103,7 @@ void framefab_gui::FrameFabWidget::onParamsAccept()
   msg.request.action = framefab_msgs::FrameFabParameters::Request::SET_PARAMETERS;
   msg.request.model_params = params_->modelInputParams();
   msg.request.path_params = params_->pathInputParams();
+  msg.request.robot_params = params_->robotInputParams();
 
   if (!framefab_parameters_client_.call(msg.request, msg.response))
     ROS_WARN_STREAM("Could not complete service call to set parameters!");
@@ -151,6 +153,7 @@ void framefab_gui::FrameFabWidget::loadParameters()
   {
     this->params().setModelInputParams(srv.response.model_params);
     this->params().setPathInputParams(srv.response.path_params);
+    this->params().setRobotInputParams(srv.response.robot_params);
   }
   else
   {
@@ -164,13 +167,13 @@ void framefab_gui::FrameFabWidget::setLabelText(const std::string& txt)
   ui_->label_status->setText( QString::fromStdString(txt));
 }
 
-void framefab_gui::FrameFabWidget::sendGoal(const framefab_msgs::SimulateMotionPlanActionGoal& goal)
+void framefab_gui::FrameFabWidget::sendGoal(const framefab_msgs::SimulateMotionPlanGoal& goal)
 {
-  simulate_motion_plan_action_client_.sendGoal(goal.goal);
+  simulate_motion_plan_action_client_.sendGoal(goal);
 }
 
-void framefab_gui::FrameFabWidget::sendGoalAndWait(const framefab_msgs::SimulateMotionPlanActionGoal& goal)
+void framefab_gui::FrameFabWidget::sendGoalAndWait(const framefab_msgs::SimulateMotionPlanGoal& goal)
 {
   ros::Duration timeout = ros::Duration(60);
-  simulate_motion_plan_action_client_.sendGoalAndWait(goal.goal, timeout, timeout);
+  simulate_motion_plan_action_client_.sendGoalAndWait(goal, timeout, timeout);
 }

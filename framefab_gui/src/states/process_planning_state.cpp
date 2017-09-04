@@ -10,6 +10,8 @@
 #include "framefab_gui/states/select_path_state.h"  // next if fail
 #include "framefab_gui/states/select_plan_state.h" // next if success
 
+const static std::string PROCESS_PLANNING_ACTION_CLIENT_NAME = "process_planning_action";
+
 framefab_gui::ProcessPlanningState::ProcessPlanningState(const int& index)
     : process_planning_action_client_(PROCESS_PLANNING_ACTION_CLIENT_NAME, true),
       selected_path_index_(index)

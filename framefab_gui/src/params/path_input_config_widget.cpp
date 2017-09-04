@@ -18,6 +18,8 @@ framefab_gui::PathInputConfigWidget::PathInputConfigWidget(framefab_msgs::PathIn
   connect(ui_->pushbutton_save, SIGNAL(clicked()), this, SLOT(save_changes_handler()));
 
   connect(ui_->pushbutton_readfile, SIGNAL(clicked()), this, SLOT(get_file_path_handler()));
+
+  last_filepath_ = "/home";
 }
 
 void framefab_gui::PathInputConfigWidget::update_display_fields()
@@ -35,8 +37,10 @@ void framefab_gui::PathInputConfigWidget::get_file_path_handler()
   QString filename = QFileDialog::getOpenFileName(
       this,
       tr("Open File"),
-      "$HOME/Documents");
+      QString::fromStdString(last_filepath_));
 
   params_.file_path = filename.toLocal8Bit().constData();
+  last_filepath_ = filename.toLocal8Bit().constData();
+
   update_display_fields();
 }

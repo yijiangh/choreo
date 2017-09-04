@@ -5,6 +5,7 @@
 
 #include "framefab_gui/params/model_input_config_widget.h"
 #include "framefab_gui/params/path_input_config_widget.h"
+#include "framefab_gui/params/robot_input_config_widget.h"
 
 namespace Ui
 {
@@ -28,8 +29,8 @@ class ParamsSubmenu : public QWidget
   const framefab_msgs::PathInputParameters& pathInputParams() const;
   void setPathInputParams(const framefab_msgs::PathInputParameters& params);
 
-//  const framefab_msgs::PathPlanningParameters& pathPlanningParams() const;
-//  void setPathPlanningParams(const framefab_msgs::PathPlanningParameters& params);
+  const framefab_msgs::RobotInputParameters& robotInputParams() const;
+  void setRobotInputParams(const framefab_msgs::RobotInputParameters& params);
 
   Q_SIGNALS:
   void saveRequested();
@@ -42,9 +43,7 @@ class ParamsSubmenu : public QWidget
   // Configuration components
   ModelInputConfigWidget*   model_input_widget_;
   PathInputConfigWidget*    path_input_widget_;
-
-//  PathPlanningConfigWidget* path_planning_params_;
-//  ScanPlanConfigWidget* scan_params_;
+  RobotInputConfigWidget*   robot_input_widget_;
 };
 
 } // end namespace framefab_gui

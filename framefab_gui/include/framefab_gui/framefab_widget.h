@@ -49,8 +49,8 @@ class FrameFabWidget : public QWidget
 
   void showStatusWindow();
   void setLabelText(const std::string& txt);
-  void sendGoal(const framefab_msgs::SimulateMotionPlanActionGoal& goal);
-  void sendGoalAndWait(const framefab_msgs::SimulateMotionPlanActionGoal& goal);
+  void sendGoal(const framefab_msgs::SimulateMotionPlanGoal& goal);
+  void sendGoalAndWait(const framefab_msgs::SimulateMotionPlanGoal& goal);
 
   ros::NodeHandle&  nodeHandle() { return nh_; }
   ParamsSubmenu&    params() { return *params_; }

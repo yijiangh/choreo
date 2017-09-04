@@ -15,13 +15,19 @@ framefab_gui::ParamsSubmenu::ParamsSubmenu(QWidget* parent) : QWidget(parent)
   path_input_widget_ = new PathInputConfigWidget(framefab_msgs::PathInputParameters());
   connect(ui_->pushbutton_path_input, SIGNAL(clicked()), path_input_widget_, SLOT(show()));
 
+  // Robot Input
+  robot_input_widget_ = new RobotInputConfigWidget(framefab_msgs::RobotInputParameters());
+  connect(ui_->pushbutton_robot_input, SIGNAL(clicked()), robot_input_widget_, SLOT(show()));
+
   // Save Request Connection
   connect(model_input_widget_, SIGNAL(parameters_save_requested()), this, SIGNAL(saveRequested()));
   connect(path_input_widget_, SIGNAL(parameters_save_requested()), this, SIGNAL(saveRequested()));
+  connect(robot_input_widget_, SIGNAL(parameters_save_requested()), this, SIGNAL(saveRequested()));
 
   // Accept Request Connection
   connect(model_input_widget_, SIGNAL(parameters_changed()), this, SIGNAL(acceptRequested()));
   connect(path_input_widget_, SIGNAL(parameters_changed()), this, SIGNAL(acceptRequested()));
+  connect(robot_input_widget_, SIGNAL(parameters_changed()), this, SIGNAL(acceptRequested()));
 }
 
 const framefab_msgs::ModelInputParameters& framefab_gui::ParamsSubmenu::modelInputParams() const
@@ -48,24 +54,13 @@ void framefab_gui::ParamsSubmenu::setPathInputParams(
   path_input_widget_->update_display_fields();
 }
 
-//const framefab_msgs::PathPlanningParameters& framefab_gui::ParamsSubmenu::pathPlanningParams() const
-//{
-//  return path_planning_params_->params();
-//}
+const framefab_msgs::RobotInputParameters& framefab_gui::ParamsSubmenu::robotInputParams() const
+{
+  return robot_input_widget_->params();
+}
 
-//void framefab_gui::ParamsSubmenu::setPathPlanningParams(const framefab_msgs::PathPlanningParameters& params)
-//{
-//  path_planning_params_->params() = params;
-//  path_planning_params_->update_display_fields();
-//}
-
-//const framefab_msgs::ScanPlanParameters& framefab_gui::ParamsSubmenu::scanParams() const
-//{
-//  return scan_params_->params();
-//}
-//
-//void framefab_gui::ParamsSubmenu::setScanParams(const framefab_msgs::ScanPlanParameters& params)
-//{
-//  scan_params_->params() = params;
-//  scan_params_->update_display_fields();
-//}
+void framefab_gui::ParamsSubmenu::setRobotInputParams(const framefab_msgs::RobotInputParameters& params)
+{
+  robot_input_widget_->params() = params;
+  robot_input_widget_->update_display_fields();
+}
