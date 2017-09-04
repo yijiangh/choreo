@@ -337,14 +337,14 @@ void FrameFabCoreService::processPlanningActionCallback(const framefab_msgs::Pro
       selected_path_id_ = goal_in->index;
 
       // reset Robot's pose to init pose
-//      if(!moveToTargetJointPose(robot_input_params_.init_pose))
-//      {
-//        process_planning_feedback_.last_completed = "Reset to init robot's pose planning & execution failed\n";
-//        process_planning_server_.publishFeedback(process_planning_feedback_);
-//        process_planning_result_.succeeded = false;
-//        process_planning_server_.setAborted(process_planning_result_);
-//        return;
-//      }
+      if(!moveToTargetJointPose(robot_input_params_.init_pose))
+      {
+        process_planning_feedback_.last_completed = "Reset to init robot's pose planning & execution failed\n";
+        process_planning_server_.publishFeedback(process_planning_feedback_);
+        process_planning_result_.succeeded = false;
+        process_planning_server_.setAborted(process_planning_result_);
+        return;
+      }
 
       visual_tool_.cleanUpAllPaths();
       visual_tool_.visualizePathUntil(goal_in->index);
@@ -394,23 +394,18 @@ void FrameFabCoreService::simulateMotionPlansActionCallback(const framefab_msgs:
   else
   {
     ROS_INFO_STREAM("Motion plan #" << lib_sort_id << " found");
-//    simulate_motion_plan_feedback_.last_completed = "Motion plan #" + lib_sort_id + " found\n";
-//    simulate_motion_plan_server_.publishFeedback(simulate_motion_plan_feedback_);
   }
 
-//  if(0 == goal_in->index)
-//  {
-//    // reset Robot's pose to init pose
-//    if (!moveToTargetJointPose(robot_input_params_.init_pose))
-//    {
-//      ROS_ERROR("Reset to init robot's pose planning & execution failed");
-//      simulate_motion_plan_feedback_.last_completed = "Reset to init robot's pose planning & execution failed\n";
-//      simulate_motion_plan_server_.publishFeedback(simulate_motion_plan_feedback_);
-//      simulate_motion_plan_result_.code = framefab_msgs::SimulateMotionPlanResult::RESET_POSE_FAIL;
-//      simulate_motion_plan_server_.setAborted(simulate_motion_plan_result_);
-//      return;
-//    }
-//  }
+  if(0 == goal_in->index)
+  {
+    // reset Robot's pose to init pose
+    if (!moveToTargetJointPose(robot_input_params_.init_pose))
+    {
+      ROS_ERROR("Reset to init robot's pose planning & execution failed");
+      simulate_motion_plan_result_.code = framefab_msgs::SimulateMotionPlanResult::RESET_POSE_FAIL;
+      simulate_motion_plan_server_.setAborted(simulate_motion_plan_result_);
+    }
+  }
 
   // Send command to execution server
   framefab_msgs::ProcessExecutionGoal goal;

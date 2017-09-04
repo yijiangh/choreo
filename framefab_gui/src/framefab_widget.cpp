@@ -7,10 +7,12 @@
 #include <ui_framefab_widget.h>
 
 const std::string FRAMEFAB_PARAMETERS_SERVICE = "framefab_parameters";
+const static std::string SIMULATE_MOTION_PLAN_ACTION_SERVER_NAME = "simulate_motion_plan_as";
 
 framefab_gui::FrameFabWidget::FrameFabWidget(QWidget* parent)
     : QWidget(parent),
-      active_state_(NULL)
+      active_state_(NULL),
+      simulate_motion_plan_action_client_(SIMULATE_MOTION_PLAN_ACTION_SERVER_NAME, true)
 {
   // UI setup
   ui_ = new Ui::FrameFabWidget;
@@ -58,9 +60,9 @@ void framefab_gui::FrameFabWidget::setText(const std::string& txt)
 
 void framefab_gui::FrameFabWidget::appendText(const std::string& txt)
 {
-  ui_->textedit_status->moveCursor(QTextCursor::End);
+//  ui_->textedit_status->moveCursor(QTextCursor::End);
   ui_->textedit_status->insertPlainText(QString::fromStdString(txt));
-  ui_->textedit_status->moveCursor(QTextCursor::End);
+//  ui_->textedit_status->moveCursor(QTextCursor::End);
 }
 
 void framefab_gui::FrameFabWidget::onNextButton()
@@ -163,4 +165,15 @@ void framefab_gui::FrameFabWidget::loadParameters()
 void framefab_gui::FrameFabWidget::setLabelText(const std::string& txt)
 {
   ui_->label_status->setText( QString::fromStdString(txt));
+}
+
+void framefab_gui::FrameFabWidget::sendGoal(const framefab_msgs::SimulateMotionPlanGoal& goal)
+{
+  simulate_motion_plan_action_client_.sendGoal(goal);
+}
+
+void framefab_gui::FrameFabWidget::sendGoalAndWait(const framefab_msgs::SimulateMotionPlanGoal& goal)
+{
+  ros::Duration timeout = ros::Duration(60);
+  simulate_motion_plan_action_client_.sendGoalAndWait(goal, timeout, timeout);
 }

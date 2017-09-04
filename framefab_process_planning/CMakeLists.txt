@@ -45,6 +45,7 @@ add_executable(framefab_process_planning_node
 	src/framefab_process_planning_node.cpp
 	src/common_utils.cpp
   src/print_process_planning.cpp
+	src/move_to_target_pose_planning.cpp
   src/trajectory_utils.cpp
   src/generate_motion_plan.cpp
   src/path_transitions.cpp

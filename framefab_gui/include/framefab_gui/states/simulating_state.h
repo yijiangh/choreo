@@ -8,12 +8,6 @@
 #include "framefab_gui/gui_state.h"
 #include <ros/ros.h>
 
-// action
-#include "actionlib/client/simple_action_client.h"
-
-#include "framefab_msgs/SimulateMotionPlanAction.h"
-#include "framefab_msgs/SimulateMotionPlanActionGoal.h"
-
 namespace framefab_gui
 {
 
@@ -34,27 +28,11 @@ class SimulatingState : public GuiState
   virtual void onReset(FrameFabWidget& gui);
 
  protected:
-  void simulateAll();
-  void simulateOne(const int& plan_id);
-
-  void simulateMotionPlanDoneCallback(
-      const actionlib::SimpleClientGoalState& state,
-      const framefab_msgs::SimulateMotionPlanResultConstPtr& result);
-  void simulateMotionPlanActiveCallback();
-  void simulateMotionPlanFeedbackCallback(
-      const framefab_msgs::SimulateMotionPlanFeedbackConstPtr& feedback);
-
-  Q_SIGNALS:
-  void simulateFeedbackReceived(QString feedback);
-
- private Q_SLOTS:
-  void setSimulateFeedbackText(QString feedback);
+  void simulateAll(FrameFabWidget& gui);
+  void simulateOne(const int& plan_id, FrameFabWidget& gui);
 
  private:
   std::vector<int> plan_ids_;
-  FrameFabWidget* gui_ptr_;
-  actionlib::SimpleActionClient<framefab_msgs::SimulateMotionPlanAction>
-      simulate_motion_plan_action_client_;
 };
 }
 
