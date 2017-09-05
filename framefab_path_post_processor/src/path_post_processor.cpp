@@ -6,8 +6,8 @@
 
 #include <framefab_path_post_processor/path_post_processor.h>
 
-#include <rapidjson/document.h>
-#include "rapidjson/filereadstream.h"
+#include <framefab_rapidjson/include/rapidjson/document.h>
+#include <framefab_rapidjson/include/rapidjson/filereadstream.h>
 
 #include <tf_conversions/tf_eigen.h>
 #include <eigen_conversions/eigen_msg.h>

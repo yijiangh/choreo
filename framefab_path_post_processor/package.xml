@@ -24,5 +24,5 @@
 
   <depend>tf_conversions</depend>
   <depend>eigen_conversions</depend>
-
+  <depend>framefab_rapidjson</depend>
 </package>

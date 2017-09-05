@@ -9,6 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
 	framefab_msgs
 	tf_conversions
 	eigen_conversions
+	framefab_rapidjson
 )
 
 find_package(Eigen3 REQUIRED)
@@ -22,6 +23,7 @@ catkin_package(
 	framefab_msgs
 	tf_conversions
 	eigen_conversions
+	framefab_rapidjson
 )
 
 ###########
@@ -30,7 +32,6 @@ catkin_package(
 
 include_directories(
   include
-	ext/rapidjson/include
   ${catkin_INCLUDE_DIRS}
 	${Eigen_INCLUDE_DIRS}
 )
