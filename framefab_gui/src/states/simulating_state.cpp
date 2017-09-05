@@ -20,6 +20,7 @@ framefab_gui::SimulatingState::SimulatingState(const std::vector<int>& plan_ids)
 void framefab_gui::SimulatingState::onStart(FrameFabWidget& gui)
 {
   gui.setText("Simulate State.\nSimulation in progress...");
+  gui.appendText("\nClick <Next> for post processing.\nClick on <Back> to choose plan and simulate again.");
   gui.setButtonsEnabled(false);
   QtConcurrent::run(this, &SimulatingState::simulateAll, boost::ref(gui));
 }
@@ -50,7 +51,6 @@ void framefab_gui::SimulatingState::simulateAll(FrameFabWidget& gui)
   }
 
   gui.setButtonsEnabled(true);
-  gui.appendText("\nSimulation finished! Click on <Back> to choose plan and simulate again.");
 
 //  Q_EMIT newStateAvailable(new WaitToExecuteState(plan_names_));
 }

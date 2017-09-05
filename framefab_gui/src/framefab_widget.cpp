@@ -60,9 +60,9 @@ void framefab_gui::FrameFabWidget::setText(const std::string& txt)
 
 void framefab_gui::FrameFabWidget::appendText(const std::string& txt)
 {
-//  ui_->textedit_status->moveCursor(QTextCursor::End);
+  ui_->textedit_status->moveCursor(QTextCursor::End);
   ui_->textedit_status->insertPlainText(QString::fromStdString(txt));
-//  ui_->textedit_status->moveCursor(QTextCursor::End);
+  ui_->textedit_status->moveCursor(QTextCursor::End);
 }
 
 void framefab_gui::FrameFabWidget::onNextButton()
