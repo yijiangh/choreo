@@ -37,6 +37,8 @@ framefab_gui::FrameFabWidget::FrameFabWidget(QWidget* parent)
 
   // Wire in selection signals
   connect(selection_widget_, SIGNAL(closeWidgetAndContinue()), this, SLOT(onNextButton()));
+  connect(selection_widget_, SIGNAL(enterSelectionWidget()), this, SLOT(onDisableButtons()));
+  connect(selection_widget_, SIGNAL(exitSelectionWidget()), this, SLOT(onEnableButtons()));
 
   // Connect to ROS save params services
   loadParameters();
@@ -109,6 +111,16 @@ void framefab_gui::FrameFabWidget::onParamsAccept()
 
   if (!framefab_parameters_client_.call(msg.request, msg.response))
     ROS_WARN_STREAM("Could not complete service call to set parameters!");
+}
+
+void framefab_gui::FrameFabWidget::onEnableButtons()
+{
+  setButtonsEnabled(true);
+}
+
+void framefab_gui::FrameFabWidget::onDisableButtons()
+{
+  setButtonsEnabled(false);
 }
 
 void framefab_gui::FrameFabWidget::changeState(GuiState* new_state)

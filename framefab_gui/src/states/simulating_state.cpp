@@ -9,7 +9,6 @@
 #include <framefab_gui/states/system_init_state.h>
 #include <framefab_gui/states/select_plan_state.h>
 #include "framefab_gui/states/simulating_state.h"
-//#include "framefab_gui/states/wait_to_execute_state.h"
 #include <iostream>
 
 framefab_gui::SimulatingState::SimulatingState(const std::vector<int>& plan_ids)
@@ -51,8 +50,6 @@ void framefab_gui::SimulatingState::simulateAll(FrameFabWidget& gui)
   }
 
   gui.setButtonsEnabled(true);
-
-//  Q_EMIT newStateAvailable(new WaitToExecuteState(plan_names_));
 }
 
 void framefab_gui::SimulatingState::simulateOne(const int& plan_id, FrameFabWidget& gui)

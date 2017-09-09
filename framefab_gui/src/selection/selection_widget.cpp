@@ -146,6 +146,16 @@ void framefab_gui::SelectionWidget::cleanUpVisual()
   }
 }
 
+void framefab_gui::SelectionWidget::showEvent(QShowEvent *ev)
+{
+  Q_EMIT enterSelectionWidget();
+}
+
+void framefab_gui::SelectionWidget::closeEvent(QCloseEvent *ev)
+{
+  Q_EMIT exitSelectionWidget();
+}
+
 void framefab_gui::SelectionWidget::setInputEnabled(bool enabled)
 {
   ui_->pushbutton_select_backward->setEnabled(enabled);

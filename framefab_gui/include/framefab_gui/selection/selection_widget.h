@@ -55,10 +55,16 @@ class SelectionWidget : public QWidget
   // send srv to clean up visualization markers
   void cleanUpVisual();
 
+ protected:
+  virtual void showEvent(QShowEvent *ev);
+  virtual void closeEvent(QCloseEvent *ev);
+
  Q_SIGNALS:
   void acceptSelection();
   void simulateTypeChange(bool type);
   void closeWidgetAndContinue();
+  void enterSelectionWidget();
+  void exitSelectionWidget();
 
  protected Q_SLOTS:
   // different source that changes order_value
@@ -72,6 +78,8 @@ class SelectionWidget : public QWidget
   void buttonAcceptSelection();
   void sliderUpdateOrderValue(int value);
   void lineeditUpdateOrderValue();
+
+  void widgetStateChanged();
 
  private:
   ros::NodeHandle nh_;
