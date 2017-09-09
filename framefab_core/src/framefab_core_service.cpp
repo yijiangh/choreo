@@ -28,6 +28,7 @@ const static std::string MOVE_TO_TARGET_POSE_SERVICE = "move_to_target_pose";
 const static std::string MODEL_INPUT_PARAMS_FILE = "model_input_parameters.msg";
 const static std::string PATH_INPUT_PARAMS_FILE = "path_input_parameters.msg";
 const static std::string ROBOT_INPUT_PARAMS_FILE = "robot_input_parameters.msg";
+const static std::string OUTPUT_PATH_INPUT_PARAMS_FILE = "output_path_input_parameters.msg";
 
 // Visualization Maker topics
 const static std::string PATH_VISUAL_TOPIC = "path_visualization";
@@ -71,6 +72,9 @@ bool FrameFabCoreService::init()
 
   if (!this->load_robot_input_parameters(param_cache_prefix_ + ROBOT_INPUT_PARAMS_FILE))
     ROS_WARN("Unable to load robot input parameters.");
+
+  if (!this->load_output_path_input_parameters(param_cache_prefix_ + OUTPUT_PATH_INPUT_PARAMS_FILE))
+    ROS_WARN("Unable to load output path input parameters.");
 
   // load plugins (if-need-be)
 
@@ -193,6 +197,29 @@ void FrameFabCoreService::save_robot_input_parameters(const std::string& filenam
   }
 }
 
+bool FrameFabCoreService::load_output_path_input_parameters(const std::string & filename)
+{
+  using framefab_param_helpers::loadParam;
+  using framefab_param_helpers::loadBoolParam;
+
+  if(framefab_param_helpers::fromFile(filename, output_path_input_params_))
+  {
+    return true;
+  }
+
+  // otherwise default to the parameter server
+  ros::NodeHandle nh("~/output_path_input");
+  return loadParam(nh, "file_path", path_input_params_.file_path);
+}
+
+void FrameFabCoreService::save_output_path_input_parameters(const std::string & filename)
+{
+  if(!framefab_param_helpers::toFile(filename, output_path_input_params_))
+  {
+    ROS_WARN_STREAM("Unable to save output path input parameters to: " << filename);
+  }
+}
+
 bool FrameFabCoreService::framefab_parameters_server_callback(
     framefab_msgs::FrameFabParameters::Request& req,
     framefab_msgs::FrameFabParameters::Response& res)
@@ -203,12 +230,14 @@ bool FrameFabCoreService::framefab_parameters_server_callback(
       res.model_params = model_input_params_;
       res.path_params  = path_input_params_;
       res.robot_params = robot_input_params_;
+      res.output_path_params = output_path_input_params_;
       break;
 
     case framefab_msgs::FrameFabParameters::Request::GET_DEFAULT_PARAMETERS:
       res.model_params = default_model_input_params_;
       res.path_params  = default_path_input_params_;
       res.robot_params = default_robot_input_params_;
+      res.output_path_params = default_output_path_input_params_;
       break;
 
       // Update the current parameters in this service
@@ -217,12 +246,14 @@ bool FrameFabCoreService::framefab_parameters_server_callback(
       model_input_params_ = req.model_params;
       path_input_params_ = req.path_params;
       robot_input_params_ = req.robot_params;
+      output_path_input_params_ = req.output_path_params;
 
       if (req.action == framefab_msgs::FrameFabParameters::Request::SAVE_PARAMETERS)
       {
         this->save_model_input_parameters(param_cache_prefix_ + MODEL_INPUT_PARAMS_FILE);
         this->save_path_input_parameters(param_cache_prefix_ + PATH_INPUT_PARAMS_FILE);
         this->save_robot_input_parameters(param_cache_prefix_ + ROBOT_INPUT_PARAMS_FILE);
+        this->save_output_path_input_parameters(param_cache_prefix_ + OUTPUT_PATH_INPUT_PARAMS_FILE);
       }
       break;
   }

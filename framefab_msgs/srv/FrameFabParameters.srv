@@ -15,7 +15,7 @@ int32 action                      # Action to undertake (see Action Enumeration)
 framefab_msgs/ModelInputParameters model_params
 framefab_msgs/PathInputParameters path_params
 framefab_msgs/RobotInputParameters robot_params
-framefab_msgs/ProcessPlanningParameters process_plan_params
+framefab_msgs/OutputPathInputParameters output_path_params
 
 ---
 # The success of the GET/SET method. GET should always succeed. SET may fail if parameters
@@ -26,4 +26,4 @@ bool succeeded
 framefab_msgs/ModelInputParameters 	model_params
 framefab_msgs/PathInputParameters 	path_params
 framefab_msgs/RobotInputParameters 	robot_params
-framefab_msgs/ProcessPlanningParameters process_plan_params
+framefab_msgs/OutputPathInputParameters output_path_params

@@ -92,6 +92,7 @@ void framefab_gui::FrameFabWidget::onParamsSave()
   msg.request.model_params = params_->modelInputParams();
   msg.request.path_params = params_->pathInputParams();
   msg.request.robot_params = params_->robotInputParams();
+  msg.request.output_path_params = params_->outputPathInputParams();
 
   if (!framefab_parameters_client_.call(msg.request, msg.response))
     ROS_WARN_STREAM("Could not complete service call to save parameters!");
@@ -104,6 +105,7 @@ void framefab_gui::FrameFabWidget::onParamsAccept()
   msg.request.model_params = params_->modelInputParams();
   msg.request.path_params = params_->pathInputParams();
   msg.request.robot_params = params_->robotInputParams();
+  msg.request.output_path_params = params_->outputPathInputParams();
 
   if (!framefab_parameters_client_.call(msg.request, msg.response))
     ROS_WARN_STREAM("Could not complete service call to set parameters!");

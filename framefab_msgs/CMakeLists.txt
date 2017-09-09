@@ -38,7 +38,7 @@ add_message_files(
 		ModelInputParameters.msg
 		PathInputParameters.msg
 		RobotInputParameters.msg
-		ProcessPlanningParameters.msg
+		OutputPathInputParameters.msg
 		UnitProcessPlan.msg
 		ElementCandidatePoses.msg
 )

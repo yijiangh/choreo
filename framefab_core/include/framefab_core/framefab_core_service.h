@@ -12,6 +12,7 @@
 #include <framefab_msgs/ModelInputParameters.h>
 #include <framefab_msgs/PathInputParameters.h>
 #include <framefab_msgs/RobotInputParameters.h>
+#include <framefab_msgs/OutputPathInputParameters.h>
 #include <framefab_msgs/ElementCandidatePoses.h>
 #include <framefab_msgs/UnitProcessPlan.h>
 
@@ -25,7 +26,6 @@
 
 // core service instances
 #include <framefab_core/visual_tools/framefab_visual_tool.h>
-
 #include "framefab_core/trajectory_library.h"
 
 /**
@@ -51,6 +51,8 @@ class FrameFabCoreService
   void save_path_input_parameters(const std::string& filename);
   bool load_robot_input_parameters(const std::string& filename);
   void save_robot_input_parameters(const std::string& filename);
+  bool load_output_path_input_parameters(const std::string& filename);
+  void save_output_path_input_parameters(const std::string& filename);
 
   // Service callbacks
   bool framefab_parameters_server_callback(framefab_msgs::FrameFabParameters::Request& req,
@@ -124,10 +126,12 @@ class FrameFabCoreService
   framefab_msgs::ModelInputParameters 	model_input_params_;
   framefab_msgs::PathInputParameters 	path_input_params_;
   framefab_msgs::RobotInputParameters   robot_input_params_;
+  framefab_msgs::OutputPathInputParameters 	output_path_input_params_;
 
   framefab_msgs::ModelInputParameters 	default_model_input_params_;
   framefab_msgs::PathInputParameters 	default_path_input_params_;
   framefab_msgs::RobotInputParameters   default_robot_input_params_;
+  framefab_msgs::OutputPathInputParameters 	default_output_path_input_params_;
 
   // Parameter loading and saving
   bool save_data_;

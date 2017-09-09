@@ -14,7 +14,9 @@ int32 DISCONTINUOUS_TYPE=-2
 # platform (e.g. grasshopper on Rhino) for fine-tuned IO weaving 
 # process.
 
+# process type
 int32 type
+
 
 trajectory_msgs/JointTrajectory trajectory_connection
 trajectory_msgs/JointTrajectory trajectory_approach

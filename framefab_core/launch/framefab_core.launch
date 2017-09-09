@@ -11,6 +11,7 @@
     <rosparam command="load" file="$(arg config_path)/model_input.yaml"/>
     <rosparam command="load" file="$(arg config_path)/path_input.yaml"/>
     <rosparam command="load" file="$(arg config_path)/robot_input.yaml"/>
+    <rosparam command="load" file="$(arg config_path)/output_path_input.yaml"/>
     <param name="save_data" value="$(arg save_data)" />
     <param name="save_location" value="$(arg save_location)"/>
   </node>

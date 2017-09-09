@@ -44,6 +44,7 @@ set(framefab_gui_SRCS
 	src/params/model_input_config_widget.cpp
 	src/params/path_input_config_widget.cpp
 	src/params/robot_input_config_widget.cpp
+	src/params/output_path_input_config_widget.cpp
 	#selection
 	src/selection/selection_widget.cpp
 	)
@@ -65,6 +66,7 @@ set(framefab_gui_HDRS
 	include/framefab_gui/params/model_input_config_widget.h
 	include/framefab_gui/params/path_input_config_widget.h
 	include/framefab_gui/params/robot_input_config_widget.h
+	include/framefab_gui/params/output_path_input_config_widget.h
 	#selection
 	include/framefab_gui/selection/selection_widget.h
 	)
@@ -75,6 +77,7 @@ set(framefab_gui_UIS
 	src/uis/model_input_config.ui
 	src/uis/path_input_config.ui
 	src/uis/robot_input_config.ui
+	src/uis/output_path_input_config.ui
 	src/uis/selection_widget.ui
 	)
 

@@ -6,6 +6,7 @@
 #include "framefab_gui/params/model_input_config_widget.h"
 #include "framefab_gui/params/path_input_config_widget.h"
 #include "framefab_gui/params/robot_input_config_widget.h"
+#include "framefab_gui/params/output_path_input_config_widget.h"
 
 namespace Ui
 {
@@ -22,6 +23,8 @@ class ParamsSubmenu : public QWidget
  public:
   ParamsSubmenu(QWidget* parent = 0);
 
+  void showOutputPathInputConfigWidget(bool enable);
+
   // For every submenu / set of parameters, we have getters/setters
   const framefab_msgs::ModelInputParameters& modelInputParams() const;
   void  setModelInputParams(const framefab_msgs::ModelInputParameters& params);
@@ -31,6 +34,9 @@ class ParamsSubmenu : public QWidget
 
   const framefab_msgs::RobotInputParameters& robotInputParams() const;
   void setRobotInputParams(const framefab_msgs::RobotInputParameters& params);
+
+  const framefab_msgs::OutputPathInputParameters& outputPathInputParams() const;
+  void setOutputPathInputParams(const framefab_msgs::OutputPathInputParameters& params);
 
   Q_SIGNALS:
   void saveRequested();
@@ -44,6 +50,7 @@ class ParamsSubmenu : public QWidget
   ModelInputConfigWidget*   model_input_widget_;
   PathInputConfigWidget*    path_input_widget_;
   RobotInputConfigWidget*   robot_input_widget_;
+  OutputPathInputConfigWidget*   output_path_input_widget_;
 };
 
 } // end namespace framefab_gui
