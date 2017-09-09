@@ -55,6 +55,6 @@ void framefab_gui::OutputPathInputConfigWidget::get_file_path_handler()
   params_.file_path = filename.toLocal8Bit().constData();
   checkFileExtension(params_.file_path);
   last_filepath_ = params_.file_path;
-  
+
   update_display_fields();
 }
