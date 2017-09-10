@@ -28,8 +28,17 @@ class SelectPlanState : public GuiState
  protected:
   void selectPlan(FrameFabWidget& gui);
 
+ protected Q_SLOTS:
+  void triggerSimulation();
+
  private:
-  int selected_plan_id_;
+  void simulateAll();
+  void simulateOne(const int& plan_id);
+
+ private:
+  FrameFabWidget* ptr_gui_;
+
+  std::vector<int> selected_plan_ids_;
 };
 }
 

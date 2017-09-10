@@ -18,6 +18,7 @@ const static std::string SAVE_LOCATION_PARAM = "save_location";
 const static std::string FRAMEFAB_PARAMETERS_SERVICE = "framefab_parameters";
 const static std::string ELEMENT_NUMBER_REQUEST_SERVICE = "element_member_request";
 const static std::string VISUALIZE_SELECTED_PATH_SERVICE= "visualize_select_path";
+const static std::string GET_AVAILABLE_PROCESS_PLANS_SERVICE= "get_available_process_plans";
 
 // subscribed services
 const static std::string PATH_POST_PROCESSING_SERVICE = "path_post_processing";
@@ -28,6 +29,7 @@ const static std::string MOVE_TO_TARGET_POSE_SERVICE = "move_to_target_pose";
 const static std::string MODEL_INPUT_PARAMS_FILE = "model_input_parameters.msg";
 const static std::string PATH_INPUT_PARAMS_FILE = "path_input_parameters.msg";
 const static std::string ROBOT_INPUT_PARAMS_FILE = "robot_input_parameters.msg";
+const static std::string OUTPUT_PATH_INPUT_PARAMS_FILE = "output_path_input_parameters.msg";
 
 // Visualization Maker topics
 const static std::string PATH_VISUAL_TOPIC = "path_visualization";
@@ -63,14 +65,17 @@ bool FrameFabCoreService::init()
   // Load the 'prefix' that will be combined with parameters msg base names to save to disk
   ph.param<std::string>("param_cache_prefix", param_cache_prefix_, "");
 
-  if (!this->load_model_input_parameters(param_cache_prefix_ + MODEL_INPUT_PARAMS_FILE))
+  if (!this->loadModelInputParameters(param_cache_prefix_ + MODEL_INPUT_PARAMS_FILE))
     ROS_WARN("Unable to load model input parameters.");
 
-  if (!this->load_path_input_parameters(param_cache_prefix_ + PATH_INPUT_PARAMS_FILE))
+  if (!this->loadPathInputParameters(param_cache_prefix_ + PATH_INPUT_PARAMS_FILE))
     ROS_WARN("Unable to load path input parameters.");
 
-  if (!this->load_robot_input_parameters(param_cache_prefix_ + ROBOT_INPUT_PARAMS_FILE))
+  if (!this->loadRobotInputParameters(param_cache_prefix_ + ROBOT_INPUT_PARAMS_FILE))
     ROS_WARN("Unable to load robot input parameters.");
+
+  if (!this->loadOutputPathInputParameters(param_cache_prefix_ + OUTPUT_PATH_INPUT_PARAMS_FILE))
+    ROS_WARN("Unable to load output path input parameters.");
 
   // load plugins (if-need-be)
 
@@ -79,15 +84,18 @@ bool FrameFabCoreService::init()
   // service servers
   framefab_parameters_server_ =
       nh_.advertiseService(FRAMEFAB_PARAMETERS_SERVICE,
-                           &FrameFabCoreService::framefab_parameters_server_callback, this);
+                           &FrameFabCoreService::framefabParametersServerCallback, this);
 
   element_number_sequest_server_ =
       nh_.advertiseService(ELEMENT_NUMBER_REQUEST_SERVICE,
-                           &FrameFabCoreService::element_number_sequest_server_callback, this);
+                           &FrameFabCoreService::elementNumberRequestServerCallback, this);
 
   visualize_selected_path_server_ =
       nh_.advertiseService(VISUALIZE_SELECTED_PATH_SERVICE,
-                           &FrameFabCoreService::visualize_selected_path_server_callback, this);
+                           &FrameFabCoreService::visualizeSelectedPathServerCallback, this);
+
+  get_available_process_plans_server_ = nh_.advertiseService(
+      GET_AVAILABLE_PROCESS_PLANS_SERVICE, &FrameFabCoreService::getAvailableProcessPlansCallback, this);
 
   // start local instances
   visual_tool_.init("world_frame", PATH_VISUAL_TOPIC);
@@ -118,7 +126,7 @@ void FrameFabCoreService::run()
   }
 }
 
-bool FrameFabCoreService::load_model_input_parameters(const std::string & filename)
+bool FrameFabCoreService::loadModelInputParameters(const std::string & filename)
 {
   using framefab_param_helpers::loadParam;
   using framefab_param_helpers::loadBoolParam;
@@ -139,7 +147,7 @@ bool FrameFabCoreService::load_model_input_parameters(const std::string & filena
 }
 
 
-void FrameFabCoreService::save_model_input_parameters(const std::string& filename)
+void FrameFabCoreService::saveModelInputParameters(const std::string& filename)
 {
   if (!framefab_param_helpers::toFile(filename, model_input_params_))
   {
@@ -147,7 +155,7 @@ void FrameFabCoreService::save_model_input_parameters(const std::string& filenam
   }
 }
 
-bool FrameFabCoreService::load_path_input_parameters(const std::string & filename)
+bool FrameFabCoreService::loadPathInputParameters(const std::string & filename)
 {
   using framefab_param_helpers::loadParam;
   using framefab_param_helpers::loadBoolParam;
@@ -162,7 +170,7 @@ bool FrameFabCoreService::load_path_input_parameters(const std::string & filenam
   return loadParam(nh, "file_path", path_input_params_.file_path);
 }
 
-void FrameFabCoreService::save_path_input_parameters(const std::string & filename)
+void FrameFabCoreService::savePathInputParameters(const std::string & filename)
 {
   if(!framefab_param_helpers::toFile(filename, path_input_params_))
   {
@@ -170,7 +178,7 @@ void FrameFabCoreService::save_path_input_parameters(const std::string & filenam
   }
 }
 
-bool FrameFabCoreService::load_robot_input_parameters(const std::string & filename)
+bool FrameFabCoreService::loadRobotInputParameters(const std::string & filename)
 {
   using framefab_param_helpers::loadParam;
   using framefab_param_helpers::loadBoolParam;
@@ -185,7 +193,7 @@ bool FrameFabCoreService::load_robot_input_parameters(const std::string & filena
   return loadParam(nh, "init_pose", robot_input_params_.init_pose);
 }
 
-void FrameFabCoreService::save_robot_input_parameters(const std::string& filename)
+void FrameFabCoreService::saveRobotInputParameters(const std::string& filename)
 {
   if (!framefab_param_helpers::toFile(filename, robot_input_params_))
   {
@@ -193,7 +201,30 @@ void FrameFabCoreService::save_robot_input_parameters(const std::string& filenam
   }
 }
 
-bool FrameFabCoreService::framefab_parameters_server_callback(
+bool FrameFabCoreService::loadOutputPathInputParameters(const std::string & filename)
+{
+  using framefab_param_helpers::loadParam;
+  using framefab_param_helpers::loadBoolParam;
+
+  if(framefab_param_helpers::fromFile(filename, output_path_input_params_))
+  {
+    return true;
+  }
+
+  // otherwise default to the parameter server
+  ros::NodeHandle nh("~/output_path_input");
+  return loadParam(nh, "file_path", path_input_params_.file_path);
+}
+
+void FrameFabCoreService::saveOutputPathInputParameters(const std::string & filename)
+{
+  if(!framefab_param_helpers::toFile(filename, output_path_input_params_))
+  {
+    ROS_WARN_STREAM("Unable to save output path input parameters to: " << filename);
+  }
+}
+
+bool FrameFabCoreService::framefabParametersServerCallback(
     framefab_msgs::FrameFabParameters::Request& req,
     framefab_msgs::FrameFabParameters::Response& res)
 {
@@ -203,12 +234,14 @@ bool FrameFabCoreService::framefab_parameters_server_callback(
       res.model_params = model_input_params_;
       res.path_params  = path_input_params_;
       res.robot_params = robot_input_params_;
+      res.output_path_params = output_path_input_params_;
       break;
 
     case framefab_msgs::FrameFabParameters::Request::GET_DEFAULT_PARAMETERS:
       res.model_params = default_model_input_params_;
       res.path_params  = default_path_input_params_;
       res.robot_params = default_robot_input_params_;
+      res.output_path_params = default_output_path_input_params_;
       break;
 
       // Update the current parameters in this service
@@ -217,12 +250,14 @@ bool FrameFabCoreService::framefab_parameters_server_callback(
       model_input_params_ = req.model_params;
       path_input_params_ = req.path_params;
       robot_input_params_ = req.robot_params;
+      output_path_input_params_ = req.output_path_params;
 
       if (req.action == framefab_msgs::FrameFabParameters::Request::SAVE_PARAMETERS)
       {
-        this->save_model_input_parameters(param_cache_prefix_ + MODEL_INPUT_PARAMS_FILE);
-        this->save_path_input_parameters(param_cache_prefix_ + PATH_INPUT_PARAMS_FILE);
-        this->save_robot_input_parameters(param_cache_prefix_ + ROBOT_INPUT_PARAMS_FILE);
+        this->saveModelInputParameters(param_cache_prefix_ + MODEL_INPUT_PARAMS_FILE);
+        this->savePathInputParameters(param_cache_prefix_ + PATH_INPUT_PARAMS_FILE);
+        this->saveRobotInputParameters(param_cache_prefix_ + ROBOT_INPUT_PARAMS_FILE);
+        this->saveOutputPathInputParameters(param_cache_prefix_ + OUTPUT_PATH_INPUT_PARAMS_FILE);
       }
       break;
   }
@@ -231,7 +266,7 @@ bool FrameFabCoreService::framefab_parameters_server_callback(
   return true;
 }
 
-bool FrameFabCoreService::element_number_sequest_server_callback(
+bool FrameFabCoreService::elementNumberRequestServerCallback(
     framefab_msgs::ElementNumberRequest::Request& req,
     framefab_msgs::ElementNumberRequest::Response& res)
 {
@@ -256,7 +291,7 @@ bool FrameFabCoreService::element_number_sequest_server_callback(
   }
 }
 
-bool FrameFabCoreService::visualize_selected_path_server_callback(
+bool FrameFabCoreService::visualizeSelectedPathServerCallback(
     framefab_msgs::VisualizeSelectedPath::Request& req,
     framefab_msgs::VisualizeSelectedPath::Response& res)
 {
@@ -272,6 +307,19 @@ bool FrameFabCoreService::visualize_selected_path_server_callback(
     res.succeeded = true;
   }
 }
+
+bool FrameFabCoreService::getAvailableProcessPlansCallback(
+    framefab_msgs::GetAvailableProcessPlans::Request&,
+    framefab_msgs::GetAvailableProcessPlans::Response& res)
+{
+  typedef framefab_core_service::TrajectoryLibrary::TrajectoryMap::const_iterator MapIter;
+  for (MapIter it = trajectory_library_.get().begin(); it != trajectory_library_.get().end(); ++it)
+  {
+    res.names.push_back(it->first);
+  }
+  return true;
+}
+
 
 void FrameFabCoreService::pathPlanningActionCallback(const framefab_msgs::PathPlanningGoalConstPtr &goal_in)
 {

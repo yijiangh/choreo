@@ -36,7 +36,8 @@ framefab_gui::FrameFabWidget::FrameFabWidget(QWidget* parent)
   connect(params_, SIGNAL(acceptRequested()), this, SLOT(onParamsAccept()));
 
   // Wire in selection signals
-  connect(selection_widget_, SIGNAL(closeWidgetAndContinue()), this, SLOT(onNextButton()));
+  connect(selection_widget_, SIGNAL(enterSelectionWidget()), this, SLOT(onDisableButtons()));
+  connect(selection_widget_, SIGNAL(exitSelectionWidget()), this, SLOT(onEnableButtons()));
 
   // Connect to ROS save params services
   loadParameters();
@@ -60,9 +61,9 @@ void framefab_gui::FrameFabWidget::setText(const std::string& txt)
 
 void framefab_gui::FrameFabWidget::appendText(const std::string& txt)
 {
-//  ui_->textedit_status->moveCursor(QTextCursor::End);
+  ui_->textedit_status->moveCursor(QTextCursor::End);
   ui_->textedit_status->insertPlainText(QString::fromStdString(txt));
-//  ui_->textedit_status->moveCursor(QTextCursor::End);
+  ui_->textedit_status->moveCursor(QTextCursor::End);
 }
 
 void framefab_gui::FrameFabWidget::onNextButton()
@@ -92,6 +93,7 @@ void framefab_gui::FrameFabWidget::onParamsSave()
   msg.request.model_params = params_->modelInputParams();
   msg.request.path_params = params_->pathInputParams();
   msg.request.robot_params = params_->robotInputParams();
+  msg.request.output_path_params = params_->outputPathInputParams();
 
   if (!framefab_parameters_client_.call(msg.request, msg.response))
     ROS_WARN_STREAM("Could not complete service call to save parameters!");
@@ -104,9 +106,20 @@ void framefab_gui::FrameFabWidget::onParamsAccept()
   msg.request.model_params = params_->modelInputParams();
   msg.request.path_params = params_->pathInputParams();
   msg.request.robot_params = params_->robotInputParams();
+  msg.request.output_path_params = params_->outputPathInputParams();
 
   if (!framefab_parameters_client_.call(msg.request, msg.response))
     ROS_WARN_STREAM("Could not complete service call to set parameters!");
+}
+
+void framefab_gui::FrameFabWidget::onEnableButtons()
+{
+  setButtonsEnabled(true);
+}
+
+void framefab_gui::FrameFabWidget::onDisableButtons()
+{
+  setButtonsEnabled(false);
 }
 
 void framefab_gui::FrameFabWidget::changeState(GuiState* new_state)

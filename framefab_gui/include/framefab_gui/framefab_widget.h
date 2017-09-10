@@ -25,12 +25,10 @@ namespace framefab_gui
 /**
  * @brief The FrameFabWidget class works in states:
  * 1. System Init State
- * 2. Path Planning State           (req Model Info)
+ * 2. Path Planning State           (require computed path info from framefab)
  * 3. Select Path State             (user select path for process planning)
- * 4. Process Planning State        (motion planning)
- * 5. Select Plan State             (User selects plans)
- * 6. Simulating State              (simulated robot execution motion)
- * 7. PostProcessing State          (output results to Grasshopper for fine-tuned motion compensation)
+ * 4. Process Planning State        (motion planning and fill in trajectory library)
+ * 5. Select Plan State             (User selects plans, simulate and output)
  */
 class FrameFabWidget : public QWidget
 {
@@ -54,7 +52,7 @@ class FrameFabWidget : public QWidget
 
   ros::NodeHandle&  nodeHandle() { return nh_; }
   ParamsSubmenu&    params() { return *params_; }
-  SelectionWidget& selection_widget() { return *selection_widget_; }
+  SelectionWidget&  selection_widget() { return *selection_widget_; }
 
  protected:
   void loadParameters();
@@ -65,6 +63,9 @@ class FrameFabWidget : public QWidget
   void onBackButton();
   void onResetButton();
   void onParamsButton();
+
+  void onEnableButtons();
+  void onDisableButtons();
 
   void onParamsSave();
   void onParamsAccept();

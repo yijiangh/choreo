@@ -25,11 +25,15 @@ class SelectPathState : public GuiState
   virtual void onBack(FrameFabWidget& gui);
   virtual void onReset(FrameFabWidget& gui);
 
+ protected Q_SLOTS:
+  void toNextState();
+
  protected:
   void selectPath(FrameFabWidget& gui);
 
  private:
-  int selected_path_id_;
+  int selected_id_for_planning_;
+  FrameFabWidget* ptr_gui_;
 };
 }
 

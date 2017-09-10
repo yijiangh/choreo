@@ -38,7 +38,7 @@ add_message_files(
 		ModelInputParameters.msg
 		PathInputParameters.msg
 		RobotInputParameters.msg
-		ProcessPlanningParameters.msg
+		OutputPathInputParameters.msg
 		UnitProcessPlan.msg
 		ElementCandidatePoses.msg
 )
@@ -53,6 +53,7 @@ VisualizeSelectedPath.srv
 ProcessPlanning.srv
 TrajectoryExecution.srv
 MoveToTargetPose.srv
+GetAvailableProcessPlans.srv
 )
 
 ## Generate added messages and services with any dependencies listed here

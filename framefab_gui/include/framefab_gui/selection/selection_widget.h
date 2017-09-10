@@ -28,6 +28,13 @@ class SelectionWidget : public QWidget
     PLAN_SELECTION
   };
 
+  enum SIMULATE_TYPE
+  {
+    SINGLE,
+    ALL_UNTIL,
+    CHOSEN
+  };
+
   Q_OBJECT
  public:
   SelectionWidget(QWidget* parent = 0);
@@ -49,29 +56,50 @@ class SelectionWidget : public QWidget
   void setInputLocaAxisEnabled(bool);
   void setInputIKSolutionEnabled(bool);
 
-  int  getSelectedValue() { return print_order_; }
-  bool getSimulateType() { return simulate_single_; }
+  int  getSelectedValueForPlanning() { return selected_value_; }
+  std::vector<int> getSelectedIdsForSimulation() { return selected_ids_for_sim_; }
+  SIMULATE_TYPE getSimulateType() { return sim_type_; }
+
+  void addFetchedPlans(const std::vector<std::string> &plan_names);
+  void getChosenPlans();
 
   // send srv to clean up visualization markers
   void cleanUpVisual();
 
+ protected:
+  virtual void showEvent(QShowEvent *ev);
+  virtual void closeEvent(QCloseEvent *ev);
+
  Q_SIGNALS:
-  void acceptSelection();
-  void simulateTypeChange(bool type);
-  void closeWidgetAndContinue();
+  // this signal is for "pre-graph construction", after select plan id, enable zoom-in mode
+//  void selectForPlan();
+
+  void simulateOn(SIMULATE_TYPE sim_type);
+
+  // to notify state in gui to start simulation
+  void flushSimulation();
+
+//  void closeWidgetAndContinue();
+  void enterSelectionWidget();
+  void exitSelectionWidget();
 
  protected Q_SLOTS:
   // different source that changes order_value
   void buttonForwardUpdateOrderValue();
   void buttonBackwardUpdateOrderValue();
   void buttonSelectAll();
+
   void buttonSimulateSingle();
   void buttonSimulateUntil();
-  void buttonSimulate(bool single);
+  void buttonSimulateChosen();
+  void buttonSimulate(SIMULATE_TYPE sim_type);
+
   void buttonCloseWidget();
-  void buttonAcceptSelection();
+  void buttonSelectForPlan();
   void sliderUpdateOrderValue(int value);
   void lineeditUpdateOrderValue();
+
+  void widgetStateChanged();
 
  private:
   ros::NodeHandle nh_;
@@ -81,10 +109,12 @@ class SelectionWidget : public QWidget
   Ui::SelectionWidgetWindow* ui_;
 
   int max_value_;
-  int print_order_;
+  int selected_value_;
+  std::vector<int> selected_ids_for_sim_;
+  std::vector<int> chosen_ids_for_sim_;
+  std::vector<int> fetched_plan_ids_;
 
-  bool simulate_single_;
-
+  SIMULATE_TYPE sim_type_;
   MODE mode_;
 };
 }

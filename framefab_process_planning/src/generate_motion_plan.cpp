@@ -21,8 +21,6 @@
 #include <actionlib/client/simple_action_client.h>
 #include <control_msgs/FollowJointTrajectoryAction.h>
 
-#include <swri_profiler/profiler.h>
-
 // msg
 #include <geometry_msgs/Pose.h>
 #include <trajectory_msgs/JointTrajectoryPoint.h>
@@ -76,7 +74,6 @@ static bool generateUnitProcessMotionPlan(
   using framefab_process_planning::extractJoints;
 
   std::string profile_id = "unit-" + std::to_string(id);
-  SWRI_PROFILE(profile_id);
 
   // build graph
   auto graph = descartes_planner::sampleConstrainedPaths(*model, seg);
