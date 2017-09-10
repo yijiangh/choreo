@@ -32,7 +32,6 @@ class SelectPlanState : public GuiState
   void simulateOne(const int& plan_id, FrameFabWidget& gui);
 
  private Q_SLOTS:
-  void finishSelection();
 
  private:
   int selected_plan_id_;

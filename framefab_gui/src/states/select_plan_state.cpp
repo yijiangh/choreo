@@ -20,6 +20,9 @@ void framefab_gui::SelectPlanState::onStart(FrameFabWidget& gui)
   selected_plan_id_ = -1;
 
   selectPlan(gui);
+
+  // wire in simulate signals from selection widget
+//  connect(gui.select_widget(simulateOn(bool)), );
 }
 
 void framefab_gui::SelectPlanState::onExit(FrameFabWidget& gui) {}
@@ -96,7 +99,3 @@ void framefab_gui::SelectPlanState::simulateOne(const int& plan_id, FrameFabWidg
   gui.sendGoalAndWait(goal);
 }
 
-void framefab_gui::SelectPlanState::finishSelection()
-{
-//  ptr_gui_.setButtonsEnabled(true);
-}

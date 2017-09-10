@@ -52,7 +52,7 @@ class FrameFabWidget : public QWidget
 
   ros::NodeHandle&  nodeHandle() { return nh_; }
   ParamsSubmenu&    params() { return *params_; }
-  SelectionWidget& selection_widget() { return *selection_widget_; }
+  SelectionWidget&  selection_widget() { return *selection_widget_; }
 
  protected:
   void loadParameters();

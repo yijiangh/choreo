@@ -26,11 +26,11 @@ framefab_gui::SelectionWidget::SelectionWidget(QWidget* parent) : QWidget(parent
   // Wire in buttons
   connect(ui_->pushbutton_select_backward, SIGNAL(clicked()), this, SLOT(buttonBackwardUpdateOrderValue()));
   connect(ui_->pushbutton_select_forward, SIGNAL(clicked()), this, SLOT(buttonForwardUpdateOrderValue()));
-  connect(ui_->pushbutton_accept, SIGNAL(clicked()), this, SLOT(buttonAcceptSelection()));
+  connect(ui_->pushbutton_select_for_plan, SIGNAL(clicked()), this, SLOT(buttonSelectForPlan()));
 
   connect(ui_->pushbutton_simulate_single, SIGNAL(clicked()), this, SLOT(buttonSimulateSingle()));
   connect(ui_->pushbutton_simulate_until, SIGNAL(clicked()), this, SLOT(buttonSimulateUntil()));
-  connect(this, SIGNAL(simulateTypeChange(bool)), this, SLOT(buttonSimulate(bool)));
+  connect(this, SIGNAL(simulateOn(SIMULATE_TYPE)), this, SLOT(buttonSimulate(SIMULATE_TYPE)));
 
   connect(ui_->pushbutton_select_all, SIGNAL(clicked()), this, SLOT(buttonSelectAll()));
 
@@ -81,7 +81,7 @@ void framefab_gui::SelectionWidget::loadParameters()
   {
     this->setMaxValue(srv.response.element_number);
 
-    ROS_INFO_STREAM("[Selection Widget] select path panel fetch model info successfully.");
+//    ROS_INFO_STREAM("[Selection Widget] select path panel fetch model info successfully.");
   }
   else
   {
@@ -94,6 +94,9 @@ void framefab_gui::SelectionWidget::loadParameters()
   ui_->lineedit_select_number->setText(QString::number(0));
 
   setInputEnabled(true);
+
+  // update visualization
+  orderValueChanged();
 }
 
 void framefab_gui::SelectionWidget::setMaxValue(int m)
@@ -163,7 +166,7 @@ void framefab_gui::SelectionWidget::setInputEnabled(bool enabled)
 
   if(mode_ == PATH_SELECTION)
   {
-    ui_->pushbutton_accept->setEnabled(enabled);
+    ui_->pushbutton_select_for_plan->setEnabled(enabled);
     ui_->pushbutton_select_all->setEnabled(enabled);
     ui_->pushbutton_simulate_single->setEnabled(false);
     ui_->pushbutton_simulate_until->setEnabled(false);
@@ -174,11 +177,13 @@ void framefab_gui::SelectionWidget::setInputEnabled(bool enabled)
 
     ui_->pushbutton_simulate_single_process->setEnabled(false);
     ui_->pushbutton_close_widget->setEnabled(false);
+
+    ui_->tab_widget->setEnabled(false);
   }
 
   if(mode_ == ZOOM_IN_SELECTION)
   {
-    ui_->pushbutton_accept->setEnabled(false);
+    ui_->pushbutton_select_for_plan->setEnabled(false);
     ui_->pushbutton_select_all->setEnabled(false);
     ui_->pushbutton_simulate_single->setEnabled(false);
     ui_->pushbutton_simulate_until->setEnabled(false);
@@ -189,11 +194,16 @@ void framefab_gui::SelectionWidget::setInputEnabled(bool enabled)
 
     ui_->pushbutton_simulate_single_process->setEnabled(enabled);
     ui_->pushbutton_close_widget->setEnabled(enabled);
+
+    ui_->tab_widget->setEnabled(true);
+    ui_->tab_widget->setTabEnabled(0, true);
+    ui_->tab_widget->setTabEnabled(1, false);
+    ui_->tab_widget->setCurrentIndex(0);
   }
 
   if(mode_ == PLAN_SELECTION)
   {
-    ui_->pushbutton_accept->setEnabled(false);
+    ui_->pushbutton_select_for_plan->setEnabled(false);
     ui_->pushbutton_select_all->setEnabled(enabled);
     ui_->pushbutton_simulate_single->setEnabled(enabled);
     ui_->pushbutton_simulate_until->setEnabled(enabled);
@@ -204,6 +214,11 @@ void framefab_gui::SelectionWidget::setInputEnabled(bool enabled)
 
     ui_->pushbutton_simulate_single_process->setEnabled(false);
     ui_->pushbutton_close_widget->setEnabled(false);
+
+    ui_->tab_widget->setEnabled(true);
+    ui_->tab_widget->setTabEnabled(0, false);
+    ui_->tab_widget->setTabEnabled(1, true);
+    ui_->tab_widget->setCurrentIndex(1);
   }
 
   ui_->slider_select_number->setEnabled(enabled);
@@ -252,36 +267,41 @@ void framefab_gui::SelectionWidget::buttonSelectAll()
   orderValueChanged();
   simulate_single_ = false;
 
-  Q_EMIT acceptSelection();
+//  Q_EMIT acceptSelection();
 }
 
-void framefab_gui::SelectionWidget::buttonSimulate(bool single)
+void framefab_gui::SelectionWidget::buttonSimulate(SIMULATE_TYPE sim_type)
 {
-  simulate_single_ = single;
-
-  Q_EMIT closeWidgetAndContinue();
+//  simulate_single_ = single;
+  ROS_INFO("simulate button pressed!");
 }
 
 void framefab_gui::SelectionWidget::buttonSimulateSingle()
 {
-  Q_EMIT simulateTypeChange(true);
+  Q_EMIT simulateOn(SIMULATE_TYPE::SINGLE);
 }
 
 void framefab_gui::SelectionWidget::buttonSimulateUntil()
 {
-  Q_EMIT simulateTypeChange(false);
+  Q_EMIT simulateOn(SIMULATE_TYPE::ALL_UNTIL);
+}
+
+void framefab_gui::SelectionWidget::buttonSimulateChosen()
+{
+  Q_EMIT simulateOn(SIMULATE_TYPE::CHOSEN);
 }
 
 void framefab_gui::SelectionWidget::buttonCloseWidget()
 {
-  Q_EMIT closeWidgetAndContinue();
+  this->close();
 }
 
-void framefab_gui::SelectionWidget::buttonAcceptSelection()
+void framefab_gui::SelectionWidget::buttonSelectForPlan()
 {
   setInputEnabled(false);
 
-  Q_EMIT acceptSelection();
+  // send service to core to enable pre-graph construction
+//  Q_EMIT acceptSelection();
 
   setMode(ZOOM_IN_SELECTION);
   setInputEnabled(true);

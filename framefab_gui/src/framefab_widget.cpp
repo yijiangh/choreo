@@ -36,7 +36,6 @@ framefab_gui::FrameFabWidget::FrameFabWidget(QWidget* parent)
   connect(params_, SIGNAL(acceptRequested()), this, SLOT(onParamsAccept()));
 
   // Wire in selection signals
-  connect(selection_widget_, SIGNAL(closeWidgetAndContinue()), this, SLOT(onNextButton()));
   connect(selection_widget_, SIGNAL(enterSelectionWidget()), this, SLOT(onDisableButtons()));
   connect(selection_widget_, SIGNAL(exitSelectionWidget()), this, SLOT(onEnableButtons()));
 

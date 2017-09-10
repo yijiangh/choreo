@@ -28,6 +28,13 @@ class SelectionWidget : public QWidget
     PLAN_SELECTION
   };
 
+  enum SIMULATE_TYPE
+  {
+    SINGLE,
+    ALL_UNTIL,
+    CHOSEN
+  };
+
   Q_OBJECT
  public:
   SelectionWidget(QWidget* parent = 0);
@@ -60,9 +67,11 @@ class SelectionWidget : public QWidget
   virtual void closeEvent(QCloseEvent *ev);
 
  Q_SIGNALS:
-  void acceptSelection();
-  void simulateTypeChange(bool type);
-  void closeWidgetAndContinue();
+  // this signal is for "pre-graph construction", after select plan id, enable zoom-in mode
+//  void selectForPlan();
+
+  void simulateOn(SIMULATE_TYPE sim_type);
+//  void closeWidgetAndContinue();
   void enterSelectionWidget();
   void exitSelectionWidget();
 
@@ -71,11 +80,14 @@ class SelectionWidget : public QWidget
   void buttonForwardUpdateOrderValue();
   void buttonBackwardUpdateOrderValue();
   void buttonSelectAll();
+
   void buttonSimulateSingle();
   void buttonSimulateUntil();
-  void buttonSimulate(bool single);
+  void buttonSimulateChosen();
+  void buttonSimulate(SIMULATE_TYPE sim_type);
+
   void buttonCloseWidget();
-  void buttonAcceptSelection();
+  void buttonSelectForPlan();
   void sliderUpdateOrderValue(int value);
   void lineeditUpdateOrderValue();
 
