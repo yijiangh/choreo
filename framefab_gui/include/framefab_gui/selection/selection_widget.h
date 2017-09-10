@@ -60,7 +60,8 @@ class SelectionWidget : public QWidget
   std::vector<int> getSelectedIdsForSimulation() { return selected_ids_for_sim_; }
   SIMULATE_TYPE getSimulateType() { return sim_type_; }
 
-  void addChosenPlans(const std::vector<std::string> &plan_names);
+  void addFetchedPlans(const std::vector<std::string> &plan_names);
+  void getChosenPlans();
 
   // send srv to clean up visualization markers
   void cleanUpVisual();

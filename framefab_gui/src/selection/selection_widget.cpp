@@ -2,7 +2,11 @@
 // Created by yijiangh on 6/27/17.
 //
 
+#include <algorithm>
+
 #include <ros/console.h>
+
+#include <QListWidgetItem>
 
 #include <ui_selection_widget.h>
 #include <framefab_gui/selection/selection_widget.h>
@@ -138,7 +142,7 @@ void framefab_gui::SelectionWidget::orderValueChanged()
   setInputEnabled(true);
 }
 
-int getIntFromString(const std::string &str)
+static int getIntFromString(const std::string &str)
 {
   std::string::size_type sz;   // alias of size_t
 
@@ -147,7 +151,7 @@ int getIntFromString(const std::string &str)
   return i_dec;
 }
 
-void framefab_gui::SelectionWidget::addChosenPlans(const std::vector<std::string> &plan_names)
+void framefab_gui::SelectionWidget::addFetchedPlans(const std::vector<std::string> &plan_names)
 {
   ui_->plan_list_widget->clear();
   fetched_plan_ids_.clear();
@@ -161,6 +165,21 @@ void framefab_gui::SelectionWidget::addChosenPlans(const std::vector<std::string
     // add it in fetched_plans for available plan database
     fetched_plan_ids_.push_back(getIntFromString(plan));
   }
+}
+
+void framefab_gui::SelectionWidget::getChosenPlans()
+{
+  chosen_ids_for_sim_.clear();
+
+  QList<QListWidgetItem*> qt_chosen_items = ui_->plan_list_widget->selectedItems();
+
+  for(auto q_item : qt_chosen_items)
+  {
+    chosen_ids_for_sim_.push_back(getIntFromString(q_item->text().toStdString()));
+  }
+
+  // sort in increasing index order
+  std::sort(chosen_ids_for_sim_.begin(), chosen_ids_for_sim_.end());
 }
 
 void framefab_gui::SelectionWidget::cleanUpVisual()
@@ -307,16 +326,14 @@ void framefab_gui::SelectionWidget::buttonSimulate(SIMULATE_TYPE sim_type)
   {
     case SIMULATE_TYPE::SINGLE:
     {
-      ROS_INFO("single sim!");
-
+//      ROS_INFO("single sim!");
       selected_ids_for_sim_.push_back(selected_value_);
 
       break;
     }
     case SIMULATE_TYPE::ALL_UNTIL:
     {
-      ROS_INFO("all until sim!");
-
+//      ROS_INFO("all until sim!");
       for(int i = 0; i <= selected_value_; i++)
       {
         selected_ids_for_sim_.push_back(i);
@@ -326,14 +343,13 @@ void framefab_gui::SelectionWidget::buttonSimulate(SIMULATE_TYPE sim_type)
     }
     case SIMULATE_TYPE::CHOSEN:
     {
-      ROS_INFO("chosen sim!");
+//      ROS_INFO("chosen sim!");
+      getChosenPlans();
 
-      // fetch all chosen ids from ui_->plan_list_widget
-
-
-      if(0 == chosen_ids_for_sim_.size())
+      if(0 == selected_ids_for_sim_.size())
       {
         ROS_WARN("No ids is chosen!");
+        return;
       }
 
       selected_ids_for_sim_ = chosen_ids_for_sim_;

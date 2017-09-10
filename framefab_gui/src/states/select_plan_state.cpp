@@ -46,7 +46,7 @@ void framefab_gui::SelectPlanState::onStart(FrameFabWidget& gui)
   }
   else
   {
-    gui.selection_widget().addChosenPlans(plan_names);
+    gui.selection_widget().addFetchedPlans(plan_names);
   }
 
   gui.setButtonsEnabled(false);
