@@ -93,7 +93,7 @@ void framefab_gui::SelectPlanState::simulateAll()
   for (std::size_t i = 0; i < selected_plan_ids_.size(); ++i)
   {
     simulateOne(selected_plan_ids_[i]);
-    ROS_INFO_STREAM("[ui] simulate #" << i);
+    ROS_INFO_STREAM("[ui] simulate #" << selected_plan_ids_[i]);
   }
 
   ptr_gui_->selection_widget().setInputEnabled(true);

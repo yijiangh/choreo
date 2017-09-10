@@ -175,6 +175,7 @@ void framefab_gui::SelectionWidget::getChosenPlans()
 
   for(auto q_item : qt_chosen_items)
   {
+    ROS_INFO_STREAM("chosen: " << q_item->text().toStdString());
     chosen_ids_for_sim_.push_back(getIntFromString(q_item->text().toStdString()));
   }
 
@@ -345,6 +346,7 @@ void framefab_gui::SelectionWidget::buttonSimulate(SIMULATE_TYPE sim_type)
     {
 //      ROS_INFO("chosen sim!");
       getChosenPlans();
+      selected_ids_for_sim_ = chosen_ids_for_sim_;
 
       if(0 == selected_ids_for_sim_.size())
       {
