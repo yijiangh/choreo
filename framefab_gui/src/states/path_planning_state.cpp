@@ -22,7 +22,9 @@ framefab_gui::PathPlanningState::~PathPlanningState()
 
 void framefab_gui::PathPlanningState::onStart(FrameFabWidget& gui)
 {
-  gui.setText("PathPlanning State.\nPlease input data in parameter widget.\nClick 'Next' to continue after finished.\n");
+  gui.setText("PathPlanning State.\n"
+                  "Please input data in parameter widget.\n"
+                  "Click 'Next' to continue after finished.\n");
 //  gui.setButtonsEnabled(false);
 
   gui_ptr_ = &gui;
@@ -61,15 +63,15 @@ void framefab_gui::PathPlanningState::makeRequest(
   goal.model_params = model_params;
   goal.path_params  = path_params;
 
-  ROS_INFO("Waiting for path planning action server to start.");
+//  ROS_INFO("Waiting for path planning action server to start.");
   path_planning_action_client_.waitForServer();
   if(path_planning_action_client_.isServerConnected())
   {
-    ROS_INFO_STREAM("path planning action server connected!");
+//    ROS_INFO_STREAM("path planning action server connected!");
   }
   else
   {
-    ROS_WARN_STREAM("action path planning server not connected");
+    ROS_ERROR_STREAM("action path planning server not connected");
   }
 
   path_planning_action_client_.sendGoal(
@@ -77,7 +79,7 @@ void framefab_gui::PathPlanningState::makeRequest(
       boost::bind(&framefab_gui::PathPlanningState::pathPlanningDoneCallback, this, _1, _2),
       boost::bind(&framefab_gui::PathPlanningState::pathPlanningActiveCallback, this),
       boost::bind(&framefab_gui::PathPlanningState::pathPlanningFeedbackCallback, this, _1));
-  ROS_INFO_STREAM("Goal sent from path planning state");
+//  ROS_INFO_STREAM("Goal sent from path planning state");
 }
 
 void framefab_gui::PathPlanningState::setFeedbackText(QString feedback)
@@ -92,7 +94,7 @@ void framefab_gui::PathPlanningState::pathPlanningDoneCallback(
 {
   if(result->succeeded)
   {
-    ROS_INFO_STREAM("path planning action succeeded");
+//    ROS_INFO_STREAM("path planning action succeeded");
 //    Q_EMIT newStateAvailable(new SelectPathState());
     gui_ptr_->setButtonsEnabled(true);
   }
@@ -104,7 +106,7 @@ void framefab_gui::PathPlanningState::pathPlanningDoneCallback(
 
 void framefab_gui::PathPlanningState::pathPlanningActiveCallback()
 {
-  ROS_INFO_STREAM("Path Planning Goal is active");
+//  ROS_INFO_STREAM("Path Planning Goal is active");
 }
 
 void framefab_gui::PathPlanningState::pathPlanningFeedbackCallback(

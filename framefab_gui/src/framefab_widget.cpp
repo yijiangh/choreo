@@ -38,6 +38,7 @@ framefab_gui::FrameFabWidget::FrameFabWidget(QWidget* parent)
   // Wire in selection signals
   connect(selection_widget_, SIGNAL(enterSelectionWidget()), this, SLOT(onDisableButtons()));
   connect(selection_widget_, SIGNAL(exitSelectionWidget()), this, SLOT(onEnableButtons()));
+  connect(selection_widget_, SIGNAL(setOutputPathOn()), this, SLOT(showOutputPathParams()));
 
   // Connect to ROS save params services
   loadParameters();
@@ -138,6 +139,11 @@ void framefab_gui::FrameFabWidget::changeState(GuiState* new_state)
   connect(new_state, SIGNAL(newStateAvailable(GuiState*)), this, SLOT(changeState(GuiState*)));
 
   new_state->onStart(*this);
+}
+
+void framefab_gui::FrameFabWidget::showOutputPathParams()
+{
+  this->params().showOutputPathInputConfigWidget(true);
 }
 
 void framefab_gui::FrameFabWidget::setButtonsEnabled(bool enabled)

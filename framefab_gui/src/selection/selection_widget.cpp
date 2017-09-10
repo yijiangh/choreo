@@ -33,12 +33,16 @@ framefab_gui::SelectionWidget::SelectionWidget(QWidget* parent) : QWidget(parent
   connect(ui_->pushbutton_select_forward, SIGNAL(clicked()), this, SLOT(buttonForwardUpdateOrderValue()));
   connect(ui_->pushbutton_select_for_plan, SIGNAL(clicked()), this, SLOT(buttonSelectForPlan()));
 
+  connect(ui_->pushbutton_select_all, SIGNAL(clicked()), this, SLOT(buttonSelectAll()));
+
   connect(ui_->pushbutton_simulate_single, SIGNAL(clicked()), this, SLOT(buttonSimulateSingle()));
   connect(ui_->pushbutton_simulate_until, SIGNAL(clicked()), this, SLOT(buttonSimulateUntil()));
   connect(ui_->pushbutton_simulate_chosen, SIGNAL(clicked()), this, SLOT(buttonSimulateChosen()));
   connect(this, SIGNAL(simulateOn(SIMULATE_TYPE)), this, SLOT(buttonSimulate(SIMULATE_TYPE)));
 
-  connect(ui_->pushbutton_select_all, SIGNAL(clicked()), this, SLOT(buttonSelectAll()));
+  connect(ui_->pushbutton_clear_chosen, SIGNAL(clicked()), this, SLOT(buttonClearSelection()));
+  connect(ui_->pushbutton_set_output_path, SIGNAL(clicked()), this, SIGNAL(setOutputPathOn()));
+  connect(ui_->pushbutton_output_generate_chosen, SIGNAL(clicked()), this, SLOT(buttonOutputChosen()));
 
   connect(ui_->pushbutton_close_widget, SIGNAL(clicked()), this, SLOT(buttonCloseWidget()));
 
@@ -126,10 +130,40 @@ void framefab_gui::SelectionWidget::orderValueChanged()
 {
   ui_->slider_select_number->setValue(selected_value_);
   ui_->lineedit_select_number->setText(QString::number(selected_value_));
+  ui_->plan_list_widget->clearSelection();
 
   // call visualization srv
   framefab_msgs::VisualizeSelectedPath srv;
   srv.request.index = selected_value_;
+
+  if(mode_ == PLAN_SELECTION)
+  {
+    std::vector<int> not_found_index;
+    std::vector<int>::iterator it;
+
+    // update list widget selection, all until selected_value_
+    for(std::size_t i=0; i <= selected_value_; i++)
+    {
+      std::vector<int>::iterator it =
+          std::find(fetched_plan_ids_.begin(), fetched_plan_ids_.end(), i);
+
+      if(it != fetched_plan_ids_.end())
+      {
+        ui_->plan_list_widget->item(it - fetched_plan_ids_.begin())->setSelected(true);
+      }
+      else
+      {
+        not_found_index.push_back(i);
+      }
+    }
+
+    if(0 != not_found_index.size())
+    {
+      std::string error_msg = std::to_string(not_found_index.size()) + " plans not found";
+      ui_->status_bar->setStyleSheet("QLabel { color : red; }");
+      ui_->status_bar->setText(QString::fromStdString(error_msg));
+    }
+  }
 
   setInputEnabled(false);
 
@@ -181,6 +215,20 @@ void framefab_gui::SelectionWidget::getChosenPlans()
 
   // sort in increasing index order
   std::sort(chosen_ids_for_sim_.begin(), chosen_ids_for_sim_.end());
+}
+
+void framefab_gui::SelectionWidget::setStatusBar(std::string string, bool state)
+{
+  if(state)
+  {
+    ui_->status_bar->setStyleSheet("QLabel { color : green; }");
+  }
+  else
+  {
+    ui_->status_bar->setStyleSheet("QLabel { color : red; }");
+  }
+
+  ui_->status_bar->setText(QString::fromStdString(string));
 }
 
 void framefab_gui::SelectionWidget::cleanUpVisual()
@@ -327,14 +375,13 @@ void framefab_gui::SelectionWidget::buttonSimulate(SIMULATE_TYPE sim_type)
   {
     case SIMULATE_TYPE::SINGLE:
     {
-//      ROS_INFO("single sim!");
       selected_ids_for_sim_.push_back(selected_value_);
+
 
       break;
     }
     case SIMULATE_TYPE::ALL_UNTIL:
     {
-//      ROS_INFO("all until sim!");
       for(int i = 0; i <= selected_value_; i++)
       {
         selected_ids_for_sim_.push_back(i);
@@ -344,7 +391,6 @@ void framefab_gui::SelectionWidget::buttonSimulate(SIMULATE_TYPE sim_type)
     }
     case SIMULATE_TYPE::CHOSEN:
     {
-//      ROS_INFO("chosen sim!");
       getChosenPlans();
       selected_ids_for_sim_ = chosen_ids_for_sim_;
 
@@ -363,6 +409,17 @@ void framefab_gui::SelectionWidget::buttonSimulate(SIMULATE_TYPE sim_type)
   // wait for simulation to be completed
   setInputEnabled(false);
   Q_EMIT flushSimulation();
+}
+
+void framefab_gui::SelectionWidget::buttonOutputChosen()
+{
+  getChosenPlans();
+  Q_EMIT flushOutputProcess();
+}
+
+void framefab_gui::SelectionWidget::buttonClearSelection()
+{
+  ui_->plan_list_widget->clearSelection();
 }
 
 void framefab_gui::SelectionWidget::buttonSimulateSingle()

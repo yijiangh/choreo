@@ -18,4 +18,6 @@
 
   <node name="path_post_processor_node" pkg="framefab_path_post_processor" type="path_post_processor_node" output="screen" required="true"/>
 
+  <node name="framefab_output_processor_node" pkg="framefab_output_processor" type="framefab_output_processor_node" output="screen" required="true"/>
+
 </launch>

@@ -6,6 +6,7 @@
 #include <framefab_msgs/PathPostProcessing.h>
 #include <framefab_msgs/ProcessPlanning.h>
 #include <framefab_msgs/MoveToTargetPose.h>
+#include <framefab_msgs/OutputProcessing.h>
 
 // For visualizing in rviz
 #include <rviz_visual_tools/rviz_visual_tools.h>
@@ -19,11 +20,13 @@ const static std::string FRAMEFAB_PARAMETERS_SERVICE = "framefab_parameters";
 const static std::string ELEMENT_NUMBER_REQUEST_SERVICE = "element_member_request";
 const static std::string VISUALIZE_SELECTED_PATH_SERVICE= "visualize_select_path";
 const static std::string GET_AVAILABLE_PROCESS_PLANS_SERVICE= "get_available_process_plans";
+const static std::string OUTPUT_PROCESS_PLANS_SERVICE= "output_process_plans";
 
 // subscribed services
 const static std::string PATH_POST_PROCESSING_SERVICE = "path_post_processing";
 const static std::string PROCESS_PLANNING_SERVICE = "process_planning";
 const static std::string MOVE_TO_TARGET_POSE_SERVICE = "move_to_target_pose";
+const static std::string OUTPUT_PROCESSING_SERVICE = "output_processing";
 
 // Default filepaths and namespaces for caching stored parameters
 const static std::string MODEL_INPUT_PARAMS_FILE = "model_input_parameters.msg";
@@ -97,6 +100,9 @@ bool FrameFabCoreService::init()
   get_available_process_plans_server_ = nh_.advertiseService(
       GET_AVAILABLE_PROCESS_PLANS_SERVICE, &FrameFabCoreService::getAvailableProcessPlansCallback, this);
 
+  output_process_plans_server_ = nh_.advertiseService(
+      OUTPUT_PROCESS_PLANS_SERVICE, &FrameFabCoreService::outputProcessPlansCallback, this);
+
   // start local instances
   visual_tool_.init("world_frame", PATH_VISUAL_TOPIC);
 
@@ -106,6 +112,7 @@ bool FrameFabCoreService::init()
   path_post_processing_client_ = nh_.serviceClient<framefab_msgs::PathPostProcessing>(PATH_POST_PROCESSING_SERVICE);
   process_planning_client_ = nh_.serviceClient<framefab_msgs::ProcessPlanning>(PROCESS_PLANNING_SERVICE);
   move_to_pose_client_  = nh_.serviceClient<framefab_msgs::MoveToTargetPose>(MOVE_TO_TARGET_POSE_SERVICE);
+  output_processing_client_  = nh_.serviceClient<framefab_msgs::OutputProcessing>(OUTPUT_PROCESSING_SERVICE);
 
   // publishers
 
@@ -320,6 +327,40 @@ bool FrameFabCoreService::getAvailableProcessPlansCallback(
   return true;
 }
 
+bool FrameFabCoreService::outputProcessPlansCallback(
+    framefab_msgs::OutputProcessPlans::Request& req,
+    framefab_msgs::OutputProcessPlans::Response& res)
+{
+  // call output_processing srv
+  framefab_msgs::OutputProcessing srv;
+
+  // fill in file_path
+  srv.request.file_path = output_path_input_params_.file_path;
+
+  // fill in plans
+  for(auto id : req.names)
+  {
+    if (trajectory_library_.get().find(id) == trajectory_library_.get().end())
+    {
+      ROS_ERROR_STREAM("Plan #" << id << " does not exist. Cannot output.");
+      return false;
+    }
+    else
+    {
+      srv.request.plans.push_back(trajectory_library_.get()[id]);
+    }
+  }
+
+  if(!output_processing_client_.call(srv))
+  {
+    ROS_WARN_STREAM("[framefab_core_service] Unable to call output processing service");
+    return false;
+  }
+  else
+  {
+    return true;
+  }
+}
 
 void FrameFabCoreService::pathPlanningActionCallback(const framefab_msgs::PathPlanningGoalConstPtr &goal_in)
 {

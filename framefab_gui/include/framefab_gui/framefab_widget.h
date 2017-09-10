@@ -45,7 +45,6 @@ class FrameFabWidget : public QWidget
   void setButtonsEnabled(bool enabled);
   void setParamsButtonEnabled(bool enabled);
 
-  void showStatusWindow();
   void setLabelText(const std::string& txt);
   void sendGoal(const framefab_msgs::SimulateMotionPlanGoal& goal);
   void sendGoalAndWait(const framefab_msgs::SimulateMotionPlanGoal& goal);
@@ -72,6 +71,8 @@ class FrameFabWidget : public QWidget
 
   // State Change
   void changeState(GuiState* new_state);
+
+  void showOutputPathParams();
 
  protected:
   // UI

@@ -9,7 +9,9 @@
 #include <framefab_gui/states/system_init_state.h>
 #include <QtConcurrent/QtConcurrentRun>
 
+//
 #include <framefab_msgs/GetAvailableProcessPlans.h>
+#include <framefab_msgs/OutputProcessPlans.h>
 
 const static std::string GET_AVAILABLE_PROCESS_PLANS_SERVICE = "get_available_process_plans";
 
@@ -53,6 +55,7 @@ void framefab_gui::SelectPlanState::onStart(FrameFabWidget& gui)
   selected_plan_ids_.clear();
 
   connect(&gui.selection_widget(), SIGNAL(flushSimulation()), this, SLOT(triggerSimulation()));
+  connect(&gui.selection_widget(), SIGNAL(flushOutputProcess()), this, SLOT(triggerOutputProcess()));
 
   selectPlan(gui);
 }
@@ -85,6 +88,11 @@ void framefab_gui::SelectPlanState::triggerSimulation()
   QtConcurrent::run(this, &SelectPlanState::simulateAll);
 }
 
+void framefab_gui::SelectPlanState::triggerOutputProcess()
+{
+  QtConcurrent::run(this, &SelectPlanState::makeOutputProcessRequest);
+}
+
 void framefab_gui::SelectPlanState::simulateAll()
 {
   selected_plan_ids_.clear();
@@ -109,3 +117,35 @@ void framefab_gui::SelectPlanState::simulateOne(const int& plan_id)
   ptr_gui_->sendGoalAndWait(goal);
 }
 
+void framefab_gui::SelectPlanState::makeOutputProcessRequest()
+{
+  framefab_msgs::OutputProcessPlans srv;
+
+  std::vector<int> int_ids = ptr_gui_->selection_widget().getChosenIds();
+  for(auto id : int_ids)
+  {
+    srv.request.names.push_back(std::to_string(id));
+  }
+
+  ros::ServiceClient output_process_client =
+      ptr_gui_->nodeHandle().serviceClient<framefab_msgs::OutputProcessPlans>(
+          "output_process_plans");
+
+  ptr_gui_->setButtonsEnabled(false);
+  ptr_gui_->selection_widget().setInputEnabled(false);
+
+  output_process_client.waitForExistence();
+
+  if (output_process_client.call(srv))
+  {
+    ptr_gui_->selection_widget().setStatusBar("output plans done.", true);
+  }
+  else
+  {
+    ptr_gui_->selection_widget().setStatusBar("output plans failed!", false);
+    ROS_ERROR_STREAM("unable to output process");
+  }
+
+  ptr_gui_->setButtonsEnabled(true);
+  ptr_gui_->selection_widget().setInputEnabled(true);
+}
