@@ -6,6 +6,7 @@
 // service
 #include <framefab_msgs/ElementNumberRequest.h>
 #include <framefab_msgs/VisualizeSelectedPath.h>
+#include <framefab_msgs/GetAvailableProcessPlans.h>
 
 // msgs
 #include <framefab_msgs/FrameFabParameters.h>
@@ -45,24 +46,27 @@ class FrameFabCoreService
   void run();
 
  private:
-  bool load_model_input_parameters(const std::string& filename);
-  void save_model_input_parameters(const std::string& filename);
-  bool load_path_input_parameters(const std::string& filename);
-  void save_path_input_parameters(const std::string& filename);
-  bool load_robot_input_parameters(const std::string& filename);
-  void save_robot_input_parameters(const std::string& filename);
-  bool load_output_path_input_parameters(const std::string& filename);
-  void save_output_path_input_parameters(const std::string& filename);
+  bool loadModelInputParameters(const std::string &filename);
+  void saveModelInputParameters(const std::string &filename);
+  bool loadPathInputParameters(const std::string& filename);
+  void savePathInputParameters(const std::string& filename);
+  bool loadRobotInputParameters(const std::string& filename);
+  void saveRobotInputParameters(const std::string& filename);
+  bool loadOutputPathInputParameters(const std::string& filename);
+  void saveOutputPathInputParameters(const std::string& filename);
 
   // Service callbacks
-  bool framefab_parameters_server_callback(framefab_msgs::FrameFabParameters::Request& req,
+  bool framefabParametersServerCallback(framefab_msgs::FrameFabParameters::Request& req,
                                            framefab_msgs::FrameFabParameters::Response& res);
 
-  bool element_number_sequest_server_callback(framefab_msgs::ElementNumberRequest::Request& req,
+  bool elementNumberRequestServerCallback(framefab_msgs::ElementNumberRequest::Request& req,
                                               framefab_msgs::ElementNumberRequest::Response& res);
 
-  bool visualize_selected_path_server_callback(framefab_msgs::VisualizeSelectedPath::Request& req,
+  bool visualizeSelectedPathServerCallback(framefab_msgs::VisualizeSelectedPath::Request& req,
                                                framefab_msgs::VisualizeSelectedPath::Response& res);
+
+  bool getAvailableProcessPlansCallback(framefab_msgs::GetAvailableProcessPlans::Request& req,
+                                            framefab_msgs::GetAvailableProcessPlans::Response& res);
 
   // Action callbacks
   void pathPlanningActionCallback(const framefab_msgs::PathPlanningGoalConstPtr &goal);
@@ -85,6 +89,7 @@ class FrameFabCoreService
   ros::ServiceServer framefab_parameters_server_;
   ros::ServiceServer element_number_sequest_server_;
   ros::ServiceServer visualize_selected_path_server_;
+  ros::ServiceServer get_available_process_plans_server_;
 
   // Services subscribed to by this class
   ros::ServiceClient path_post_processing_client_;

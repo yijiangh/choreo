@@ -53,6 +53,7 @@ VisualizeSelectedPath.srv
 ProcessPlanning.srv
 TrajectoryExecution.srv
 MoveToTargetPose.srv
+GetAvailableProcessPlans.srv
 )
 
 ## Generate added messages and services with any dependencies listed here

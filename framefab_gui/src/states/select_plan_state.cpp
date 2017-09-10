@@ -2,23 +2,55 @@
 // Created by yijiangh on 7/10/17.
 //
 
-//
-// Created by yijiangh on 6/28/17.
-//
-//#include "framefab_gui/states/scanning_state.h"
-
+#include <ros/ros.h>
 #include <ros/console.h>
+
 #include <framefab_gui/states/select_plan_state.h>
 #include <framefab_gui/states/system_init_state.h>
 #include <QtConcurrent/QtConcurrentRun>
 
+#include <framefab_msgs/GetAvailableProcessPlans.h>
+
+const static std::string GET_AVAILABLE_PROCESS_PLANS_SERVICE = "get_available_process_plans";
+
 void framefab_gui::SelectPlanState::onStart(FrameFabWidget& gui)
 {
+  gui.setText("Select Plan State.\n"
+                  "Please select the desired plan to be simulated in selection window.\n"
+                  "Click <Simulate> to continue. ");
+
   ptr_gui_ = &gui;
 
-  gui.setText("Select Plan State.\nPlease select the desired plan to be simulated in selection window.\nClick <Simulate> to continue. ");
+  ros::ServiceClient client = gui.nodeHandle().serviceClient<framefab_msgs::GetAvailableProcessPlans>(
+      GET_AVAILABLE_PROCESS_PLANS_SERVICE);
+
+  framefab_msgs::GetAvailableProcessPlans srv;
+  std::vector<std::string> plan_names;
+
+  // fetch all computed plans from core at start
+  if (client.call(srv))
+  {
+    plan_names = srv.response.names;
+  }
+  else
+  {
+    ROS_ERROR_STREAM("[Select Plan State] Could not fetch plan names");
+  }
+
+  if (plan_names.empty())
+  {
+    gui.appendText("failed to fetch any computed plan.\n"
+                       "Return to Init State");
+    Q_EMIT newStateAvailable(new SystemInitState());
+    return;
+  }
+  else
+  {
+    gui.selection_widget().addChosenPlans(plan_names);
+  }
+
   gui.setButtonsEnabled(false);
-  plan_ids_.clear();
+  selected_plan_ids_.clear();
 
   connect(&gui.selection_widget(), SIGNAL(flushSimulation()), this, SLOT(triggerSimulation()));
 
@@ -55,12 +87,12 @@ void framefab_gui::SelectPlanState::triggerSimulation()
 
 void framefab_gui::SelectPlanState::simulateAll()
 {
-  plan_ids_.clear();
-  plan_ids_ = ptr_gui_->selection_widget().getSelectedIdsForSimulation();
+  selected_plan_ids_.clear();
+  selected_plan_ids_ = ptr_gui_->selection_widget().getSelectedIdsForSimulation();
 
-  for (std::size_t i = 0; i < plan_ids_.size(); ++i)
+  for (std::size_t i = 0; i < selected_plan_ids_.size(); ++i)
   {
-    simulateOne(plan_ids_[i]);
+    simulateOne(selected_plan_ids_[i]);
     ROS_INFO_STREAM("[ui] simulate #" << i);
   }
 

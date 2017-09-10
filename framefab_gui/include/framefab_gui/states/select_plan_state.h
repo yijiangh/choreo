@@ -38,7 +38,7 @@ class SelectPlanState : public GuiState
  private:
   FrameFabWidget* ptr_gui_;
 
-  std::vector<int> plan_ids_;
+  std::vector<int> selected_plan_ids_;
 };
 }
 

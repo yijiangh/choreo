@@ -31,6 +31,7 @@ framefab_gui::SelectionWidget::SelectionWidget(QWidget* parent) : QWidget(parent
 
   connect(ui_->pushbutton_simulate_single, SIGNAL(clicked()), this, SLOT(buttonSimulateSingle()));
   connect(ui_->pushbutton_simulate_until, SIGNAL(clicked()), this, SLOT(buttonSimulateUntil()));
+  connect(ui_->pushbutton_simulate_chosen, SIGNAL(clicked()), this, SLOT(buttonSimulateChosen()));
   connect(this, SIGNAL(simulateOn(SIMULATE_TYPE)), this, SLOT(buttonSimulate(SIMULATE_TYPE)));
 
   connect(ui_->pushbutton_select_all, SIGNAL(clicked()), this, SLOT(buttonSelectAll()));
@@ -135,6 +136,31 @@ void framefab_gui::SelectionWidget::orderValueChanged()
   }
 
   setInputEnabled(true);
+}
+
+int getIntFromString(const std::string &str)
+{
+  std::string::size_type sz;   // alias of size_t
+
+  int i_dec = std::stoi(str, &sz);
+
+  return i_dec;
+}
+
+void framefab_gui::SelectionWidget::addChosenPlans(const std::vector<std::string> &plan_names)
+{
+  ui_->plan_list_widget->clear();
+  fetched_plan_ids_.clear();
+
+  for(const auto& plan : plan_names)
+  {
+    QListWidgetItem* item = new QListWidgetItem();
+    item->setText(QString::fromStdString(plan));
+    ui_->plan_list_widget->addItem(item);
+
+    // add it in fetched_plans for available plan database
+    fetched_plan_ids_.push_back(getIntFromString(plan));
+  }
 }
 
 void framefab_gui::SelectionWidget::cleanUpVisual()
@@ -301,6 +327,9 @@ void framefab_gui::SelectionWidget::buttonSimulate(SIMULATE_TYPE sim_type)
     case SIMULATE_TYPE::CHOSEN:
     {
       ROS_INFO("chosen sim!");
+
+      // fetch all chosen ids from ui_->plan_list_widget
+
 
       if(0 == chosen_ids_for_sim_.size())
       {
