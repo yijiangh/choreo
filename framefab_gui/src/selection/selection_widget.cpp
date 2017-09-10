@@ -15,7 +15,8 @@ const static std::string ELEMENT_NUMBER_REQUEST_SERVICE = "element_member_reques
 const static std::string VISUALIZE_SELECTED_PATH = "visualize_select_path";
 
 framefab_gui::SelectionWidget::SelectionWidget(QWidget* parent) : QWidget(parent),
-                                                                  mode_(PATH_SELECTION), simulate_single_(true)
+                                                                  mode_(PATH_SELECTION),
+                                                                  sim_type_(SIMULATE_TYPE::SINGLE)
 {
   // UI setup
   ui_ = new Ui::SelectionWidgetWindow;
@@ -89,7 +90,7 @@ void framefab_gui::SelectionWidget::loadParameters()
   }
 
   // reset display value
-  print_order_ = 0;
+  selected_value_ = 0;
   ui_->slider_select_number->setValue(0);
   ui_->lineedit_select_number->setText(QString::number(0));
 
@@ -118,12 +119,12 @@ void framefab_gui::SelectionWidget::setMaxValue(int m)
 
 void framefab_gui::SelectionWidget::orderValueChanged()
 {
-  ui_->slider_select_number->setValue(print_order_);
-  ui_->lineedit_select_number->setText(QString::number(print_order_));
+  ui_->slider_select_number->setValue(selected_value_);
+  ui_->lineedit_select_number->setText(QString::number(selected_value_));
 
   // call visualization srv
   framefab_msgs::VisualizeSelectedPath srv;
-  srv.request.index = print_order_;
+  srv.request.index = selected_value_;
 
   setInputEnabled(false);
 
@@ -195,7 +196,7 @@ void framefab_gui::SelectionWidget::setInputEnabled(bool enabled)
     ui_->pushbutton_simulate_single_process->setEnabled(enabled);
     ui_->pushbutton_close_widget->setEnabled(enabled);
 
-    ui_->tab_widget->setEnabled(true);
+    ui_->tab_widget->setEnabled(enabled);
     ui_->tab_widget->setTabEnabled(0, true);
     ui_->tab_widget->setTabEnabled(1, false);
     ui_->tab_widget->setCurrentIndex(0);
@@ -215,7 +216,7 @@ void framefab_gui::SelectionWidget::setInputEnabled(bool enabled)
     ui_->pushbutton_simulate_single_process->setEnabled(false);
     ui_->pushbutton_close_widget->setEnabled(false);
 
-    ui_->tab_widget->setEnabled(true);
+    ui_->tab_widget->setEnabled(enabled);
     ui_->tab_widget->setTabEnabled(0, false);
     ui_->tab_widget->setTabEnabled(1, true);
     ui_->tab_widget->setCurrentIndex(1);
@@ -245,35 +246,76 @@ void framefab_gui::SelectionWidget::setInputIKSolutionEnabled(bool enabled)
 
 void framefab_gui::SelectionWidget::buttonForwardUpdateOrderValue()
 {
-  if((print_order_+1) <= max_value_)
+  if((selected_value_+1) <= max_value_)
   {
-    print_order_++;
+    selected_value_++;
     orderValueChanged();
   }
 }
 
 void framefab_gui::SelectionWidget::buttonBackwardUpdateOrderValue()
 {
-  if((print_order_-1) >= 0)
+  if((selected_value_-1) >= 0)
   {
-    print_order_--;
+    selected_value_--;
     orderValueChanged();
   }
 }
 
 void framefab_gui::SelectionWidget::buttonSelectAll()
 {
-  print_order_ = max_value_;
+  selected_value_ = max_value_;
   orderValueChanged();
-  simulate_single_ = false;
 
 //  Q_EMIT acceptSelection();
 }
 
 void framefab_gui::SelectionWidget::buttonSimulate(SIMULATE_TYPE sim_type)
 {
-//  simulate_single_ = single;
-  ROS_INFO("simulate button pressed!");
+  // update internal simulate type
+  sim_type_ = sim_type;
+  selected_ids_for_sim_.clear();
+
+  // update selected_ids for simulation
+  switch (sim_type_)
+  {
+    case SIMULATE_TYPE::SINGLE:
+    {
+      ROS_INFO("single sim!");
+
+      selected_ids_for_sim_.push_back(selected_value_);
+
+      break;
+    }
+    case SIMULATE_TYPE::ALL_UNTIL:
+    {
+      ROS_INFO("all until sim!");
+
+      for(int i = 0; i <= selected_value_; i++)
+      {
+        selected_ids_for_sim_.push_back(i);
+      }
+
+      break;
+    }
+    case SIMULATE_TYPE::CHOSEN:
+    {
+      ROS_INFO("chosen sim!");
+
+      if(0 == chosen_ids_for_sim_.size())
+      {
+        ROS_WARN("No ids is chosen!");
+      }
+
+      selected_ids_for_sim_ = chosen_ids_for_sim_;
+
+      break;
+    }
+  }
+
+  // wait for simulation to be completed
+  setInputEnabled(false);
+  Q_EMIT flushSimulation();
 }
 
 void framefab_gui::SelectionWidget::buttonSimulateSingle()
@@ -309,12 +351,12 @@ void framefab_gui::SelectionWidget::buttonSelectForPlan()
 
 void framefab_gui::SelectionWidget::sliderUpdateOrderValue(int value)
 {
-  print_order_ = value;
+  selected_value_ = value;
   orderValueChanged();
 }
 
 void framefab_gui::SelectionWidget::lineeditUpdateOrderValue()
 {
-  print_order_ = ui_->lineedit_select_number->text().toInt();
+  selected_value_ = ui_->lineedit_select_number->text().toInt();
   orderValueChanged();
 }

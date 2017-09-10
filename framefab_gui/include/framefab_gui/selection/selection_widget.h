@@ -56,8 +56,9 @@ class SelectionWidget : public QWidget
   void setInputLocaAxisEnabled(bool);
   void setInputIKSolutionEnabled(bool);
 
-  int  getSelectedValue() { return print_order_; }
-  bool getSimulateType() { return simulate_single_; }
+  int  getSelectedValueForPlanning() { return selected_value_; }
+  std::vector<int> getSelectedIdsForSimulation() { return selected_ids_for_sim_; }
+  SIMULATE_TYPE getSimulateType() { return sim_type_; }
 
   // send srv to clean up visualization markers
   void cleanUpVisual();
@@ -71,6 +72,10 @@ class SelectionWidget : public QWidget
 //  void selectForPlan();
 
   void simulateOn(SIMULATE_TYPE sim_type);
+
+  // to notify state in gui to start simulation
+  void flushSimulation();
+
 //  void closeWidgetAndContinue();
   void enterSelectionWidget();
   void exitSelectionWidget();
@@ -101,10 +106,11 @@ class SelectionWidget : public QWidget
   Ui::SelectionWidgetWindow* ui_;
 
   int max_value_;
-  int print_order_;
+  int selected_value_;
+  std::vector<int> selected_ids_for_sim_;
+  std::vector<int> chosen_ids_for_sim_;
 
-  bool simulate_single_;
-
+  SIMULATE_TYPE sim_type_;
   MODE mode_;
 };
 }

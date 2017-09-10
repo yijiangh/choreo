@@ -37,7 +37,6 @@ set(framefab_gui_SRCS
 	src/states/select_path_state.cpp
 	src/states/process_planning_state.cpp
 	src/states/select_plan_state.cpp
-	src/states/simulating_state.cpp
 	#params
 	src/params_submenu.cpp
 	src/parameter_window_base.cpp
@@ -59,7 +58,6 @@ set(framefab_gui_HDRS
 	include/framefab_gui/states/select_path_state.h
 	include/framefab_gui/states/process_planning_state.h
 	include/framefab_gui/states/select_plan_state.h
-	include/framefab_gui/states/simulating_state.h
 	#params
 	include/framefab_gui/params_submenu.h
 	include/framefab_gui/parameter_window_base.h
