@@ -29,7 +29,7 @@
     <item row="0" column="2">
      <widget class="QPushButton" name="pushbutton_output_path">
       <property name="text">
-       <string>input dir</string>
+       <string>save dir</string>
       </property>
      </widget>
     </item>
