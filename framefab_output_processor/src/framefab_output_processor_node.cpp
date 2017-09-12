@@ -13,10 +13,21 @@
 const static std::string OUTPUT_PROCESSING_SERVICE = "output_processing";
 
 bool outputProcessingCallback(framefab_msgs::OutputProcessingRequest& req,
-                         framefab_msgs::OutputProcessingResponse& res)
+                              framefab_msgs::OutputProcessingResponse& res)
 {
-  res.succeeded = true;
-  return true;
+  framefab_output_processor::OutputProcessor op;
+  op.setSaveFilePath(req.file_path);
+
+  if(op.outputJson(req.plans))
+  {
+    res.succeeded = true;
+    return true;
+  }
+  else
+  {
+    res.succeeded = false;
+    return false;
+  }
 }
 
 int main(int argc, char** argv)

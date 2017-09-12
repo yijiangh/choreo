@@ -12,3 +12,8 @@
 
 #include <tf_conversions/tf_eigen.h>
 #include <eigen_conversions/eigen_msg.h>
+
+bool framefab_output_processor::OutputProcessor::outputJson(std::vector<framefab_msgs::UnitProcessPlan> &plans)
+{
+  return true;
+}
