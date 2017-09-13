@@ -58,6 +58,10 @@ class SelectionWidget : public QWidget
 
   int  getSelectedValueForPlanning() { return selected_value_; }
   std::vector<int> getSelectedIdsForSimulation() { return selected_ids_for_sim_; }
+  std::vector<int> getChosenIds() { return chosen_ids_for_sim_; }
+
+  void setStatusBar(std::string string, bool state);
+
   SIMULATE_TYPE getSimulateType() { return sim_type_; }
 
   void addFetchedPlans(const std::vector<std::string> &plan_names);
@@ -75,9 +79,12 @@ class SelectionWidget : public QWidget
 //  void selectForPlan();
 
   void simulateOn(SIMULATE_TYPE sim_type);
+//  void outputProcessOn(OUTPUT_TYPE output_type);
+  void setOutputPathOn();
 
   // to notify state in gui to start simulation
   void flushSimulation();
+  void flushOutputProcess();
 
 //  void closeWidgetAndContinue();
   void enterSelectionWidget();
@@ -93,6 +100,10 @@ class SelectionWidget : public QWidget
   void buttonSimulateUntil();
   void buttonSimulateChosen();
   void buttonSimulate(SIMULATE_TYPE sim_type);
+
+  void buttonOutputChosen();
+
+  void buttonClearSelection();
 
   void buttonCloseWidget();
   void buttonSelectForPlan();

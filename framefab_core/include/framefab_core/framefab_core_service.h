@@ -3,10 +3,11 @@
 
 #include <ros/ros.h>
 
-// service
+// served service
 #include <framefab_msgs/ElementNumberRequest.h>
 #include <framefab_msgs/VisualizeSelectedPath.h>
 #include <framefab_msgs/GetAvailableProcessPlans.h>
+#include <framefab_msgs/OutputProcessPlans.h>
 
 // msgs
 #include <framefab_msgs/FrameFabParameters.h>
@@ -57,16 +58,19 @@ class FrameFabCoreService
 
   // Service callbacks
   bool framefabParametersServerCallback(framefab_msgs::FrameFabParameters::Request& req,
-                                           framefab_msgs::FrameFabParameters::Response& res);
+                                        framefab_msgs::FrameFabParameters::Response& res);
 
   bool elementNumberRequestServerCallback(framefab_msgs::ElementNumberRequest::Request& req,
-                                              framefab_msgs::ElementNumberRequest::Response& res);
+                                          framefab_msgs::ElementNumberRequest::Response& res);
 
   bool visualizeSelectedPathServerCallback(framefab_msgs::VisualizeSelectedPath::Request& req,
-                                               framefab_msgs::VisualizeSelectedPath::Response& res);
+                                           framefab_msgs::VisualizeSelectedPath::Response& res);
 
   bool getAvailableProcessPlansCallback(framefab_msgs::GetAvailableProcessPlans::Request& req,
-                                            framefab_msgs::GetAvailableProcessPlans::Response& res);
+                                        framefab_msgs::GetAvailableProcessPlans::Response& res);
+
+  bool outputProcessPlansCallback(framefab_msgs::OutputProcessPlans::Request& req,
+                                  framefab_msgs::OutputProcessPlans::Response& res);
 
   // Action callbacks
   void pathPlanningActionCallback(const framefab_msgs::PathPlanningGoalConstPtr &goal);
@@ -90,11 +94,13 @@ class FrameFabCoreService
   ros::ServiceServer element_number_sequest_server_;
   ros::ServiceServer visualize_selected_path_server_;
   ros::ServiceServer get_available_process_plans_server_;
+  ros::ServiceServer output_process_plans_server_;
 
   // Services subscribed to by this class
   ros::ServiceClient path_post_processing_client_;
   ros::ServiceClient process_planning_client_;
   ros::ServiceClient move_to_pose_client_;
+  ros::ServiceClient output_processing_client_;
 
   // Actions offered by this class
   ros::NodeHandle nh_;

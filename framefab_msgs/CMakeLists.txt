@@ -54,6 +54,8 @@ ProcessPlanning.srv
 TrajectoryExecution.srv
 MoveToTargetPose.srv
 GetAvailableProcessPlans.srv
+OutputProcessPlans.srv
+OutputProcessing.srv
 )
 
 ## Generate added messages and services with any dependencies listed here

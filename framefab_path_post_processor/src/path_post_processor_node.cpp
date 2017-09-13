@@ -64,7 +64,7 @@ int main(int argc, char** argv)
       nh.advertiseService<framefab_msgs::PathPostProcessingRequest, framefab_msgs::PathPostProcessingResponse>(
           "path_post_processing", boost::bind(processPathCallback, _1, _2));
 
-  ROS_INFO("%s ready to service requests.", path_post_process_server.getService().c_str());
+  ROS_INFO("%s server ready to service requests.", path_post_process_server.getService().c_str());
   ros::spin();
 
   return 0;

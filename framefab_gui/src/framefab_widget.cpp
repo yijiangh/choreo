@@ -38,6 +38,7 @@ framefab_gui::FrameFabWidget::FrameFabWidget(QWidget* parent)
   // Wire in selection signals
   connect(selection_widget_, SIGNAL(enterSelectionWidget()), this, SLOT(onDisableButtons()));
   connect(selection_widget_, SIGNAL(exitSelectionWidget()), this, SLOT(onEnableButtons()));
+  connect(selection_widget_, SIGNAL(setOutputPathOn()), this, SLOT(showOutputPathParams()));
 
   // Connect to ROS save params services
   loadParameters();
@@ -140,6 +141,11 @@ void framefab_gui::FrameFabWidget::changeState(GuiState* new_state)
   new_state->onStart(*this);
 }
 
+void framefab_gui::FrameFabWidget::showOutputPathParams()
+{
+  this->params().showOutputPathInputConfigWidget(true);
+}
+
 void framefab_gui::FrameFabWidget::setButtonsEnabled(bool enabled)
 {
   ui_->pushbutton_next->setEnabled(enabled);
@@ -167,6 +173,7 @@ void framefab_gui::FrameFabWidget::loadParameters()
     this->params().setModelInputParams(srv.response.model_params);
     this->params().setPathInputParams(srv.response.path_params);
     this->params().setRobotInputParams(srv.response.robot_params);
+    this->params().setOutputPathInputParams(srv.response.output_path_params);
   }
   else
   {

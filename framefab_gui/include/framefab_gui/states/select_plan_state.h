@@ -30,10 +30,13 @@ class SelectPlanState : public GuiState
 
  protected Q_SLOTS:
   void triggerSimulation();
+  void triggerOutputProcess();
 
  private:
   void simulateAll();
   void simulateOne(const int& plan_id);
+
+  void makeOutputProcessRequest();
 
  private:
   FrameFabWidget* ptr_gui_;

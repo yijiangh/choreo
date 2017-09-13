@@ -431,7 +431,7 @@
       <enum>QListView::ListMode</enum>
      </property>
     </widget>
-    <widget class="QWidget" name="verticalLayoutWidget_2">
+    <widget class="QWidget" name="verticalLayoutWidget_3">
      <property name="geometry">
       <rect>
        <x>250</x>
@@ -440,11 +440,33 @@
        <height>128</height>
       </rect>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_2">
+     <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
        <widget class="QPushButton" name="pushbutton_simulate_chosen">
         <property name="text">
          <string>Simulate Chosen Paths</string>
+        </property>
+        <property name="checkable">
+         <bool>false</bool>
+        </property>
+        <property name="autoRepeat">
+         <bool>false</bool>
+        </property>
+        <property name="autoDefault">
+         <bool>false</bool>
+        </property>
+        <property name="default">
+         <bool>false</bool>
+        </property>
+        <property name="flat">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushbutton_clear_chosen">
+        <property name="text">
+         <string>Clear Chosen Paths</string>
         </property>
         <property name="checkable">
          <bool>false</bool>
@@ -474,13 +496,6 @@
        <widget class="QPushButton" name="pushbutton_output_generate_chosen">
         <property name="text">
          <string>Output Chosen Paths</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="pushbutton_output_generate_all">
-        <property name="text">
-         <string>Output All Paths</string>
         </property>
        </widget>
       </item>
@@ -523,7 +538,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>TextLabel</string>
+    <string/>
    </property>
   </widget>
  </widget>

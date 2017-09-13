@@ -17,7 +17,6 @@ int32 DISCONTINUOUS_TYPE=-2
 # process type
 int32 type
 
-
 trajectory_msgs/JointTrajectory trajectory_connection
 trajectory_msgs/JointTrajectory trajectory_approach
 trajectory_msgs/JointTrajectory trajectory_process
