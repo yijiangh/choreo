@@ -173,6 +173,7 @@ void framefab_gui::FrameFabWidget::loadParameters()
     this->params().setModelInputParams(srv.response.model_params);
     this->params().setPathInputParams(srv.response.path_params);
     this->params().setRobotInputParams(srv.response.robot_params);
+    this->params().setOutputPathInputParams(srv.response.output_path_params);
   }
   else
   {

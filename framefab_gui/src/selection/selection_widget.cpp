@@ -209,7 +209,7 @@ void framefab_gui::SelectionWidget::getChosenPlans()
 
   for(auto q_item : qt_chosen_items)
   {
-    ROS_INFO_STREAM("chosen: " << q_item->text().toStdString());
+//    ROS_INFO_STREAM("chosen: " << q_item->text().toStdString());
     chosen_ids_for_sim_.push_back(getIntFromString(q_item->text().toStdString()));
   }
 
@@ -229,6 +229,7 @@ void framefab_gui::SelectionWidget::setStatusBar(std::string string, bool state)
   }
 
   ui_->status_bar->setText(QString::fromStdString(string));
+  setInputEnabled(true);
 }
 
 void framefab_gui::SelectionWidget::cleanUpVisual()
@@ -308,7 +309,7 @@ void framefab_gui::SelectionWidget::setInputEnabled(bool enabled)
     setInputIKSolutionEnabled(false);
 
     ui_->pushbutton_simulate_single_process->setEnabled(false);
-    ui_->pushbutton_close_widget->setEnabled(false);
+    ui_->pushbutton_close_widget->setEnabled(true);
 
     ui_->tab_widget->setEnabled(enabled);
     ui_->tab_widget->setTabEnabled(0, false);

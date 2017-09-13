@@ -6,6 +6,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
 	geometry_msgs
 	moveit_msgs
+	trajectory_msgs
 	framefab_msgs
 	tf_conversions
 	eigen_conversions
@@ -20,6 +21,7 @@ catkin_package(
   CATKIN_DEPENDS
 	geometry_msgs
 	moveit_msgs
+	trajectory_msgs
 	framefab_msgs
 	tf_conversions
 	eigen_conversions

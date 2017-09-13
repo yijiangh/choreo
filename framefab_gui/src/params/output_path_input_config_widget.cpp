@@ -23,25 +23,30 @@ framefab_gui::OutputPathInputConfigWidget::OutputPathInputConfigWidget(framefab_
   last_filepath_ = "/home";
 }
 
+static void checkFileExtension(std::string& str)
+{
+  std::string json_suffix = ".json";
+  std::size_t found = str.find_last_of(json_suffix);
+
+  while(str.size()-1 == found)
+  {
+    str = str.substr(0, found - json_suffix.size() + 1);
+    found = str.find_last_of(json_suffix);
+  }
+
+  str = str + json_suffix;
+}
+
 void framefab_gui::OutputPathInputConfigWidget::update_display_fields()
 {
+  checkFileExtension(params_.file_path);
   ui_->lineedit_filepath->setText(QString(params_.file_path.c_str()));
 }
 
 void framefab_gui::OutputPathInputConfigWidget::update_internal_fields()
 {
   params_.file_path = ui_->lineedit_filepath->text().toLocal8Bit().constData();
-}
-
-void checkFileExtension (std::string& str)
-{
-  std::string json_suffix = ".json";
-  std::size_t found = str.find_last_of(json_suffix);
-
-  if(str.size() != found)
-  {
-    str = str.substr(0, found + json_suffix.size()) + ".json";
-  }
+  checkFileExtension(params_.file_path);
 }
 
 void framefab_gui::OutputPathInputConfigWidget::get_file_path_handler()
