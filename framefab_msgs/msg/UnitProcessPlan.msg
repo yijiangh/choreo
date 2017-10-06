@@ -17,6 +17,12 @@ int32 DISCONTINUOUS_TYPE=-2
 # process type
 int32 type
 
+# sub_processes
+framefab_msgs/SubProcess[] sub_processes
+
+# ---------------------------------------
+
+# to-be removed
 trajectory_msgs/JointTrajectory trajectory_connection
 trajectory_msgs/JointTrajectory trajectory_approach
 trajectory_msgs/JointTrajectory trajectory_process
@@ -28,4 +34,5 @@ geometry_msgs/Pose start
 geometry_msgs/Pose end
 geometry_msgs/Pose near_end
 
+# to-be removed
 geometry_msgs/Pose[] cart_process_poses

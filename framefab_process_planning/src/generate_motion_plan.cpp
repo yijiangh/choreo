@@ -57,110 +57,6 @@ const static bool validateTrajectory(const trajectory_msgs::JointTrajectory& pts
   return true;
 }
 
-static bool generateUnitProcessMotionPlan(
-    const int& id,
-    const descartes_core::RobotModelPtr model,
-    descartes_planner::ConstrainedSegment& seg,
-    std::vector<double>& last_pose,
-    moveit::core::RobotModelConstPtr moveit_model,
-    const std::string& move_group_name,
-    const std::vector<std::string>& joint_names,
-    framefab_msgs::UnitProcessPlan& plan)
-{
-  using framefab_process_planning::DescartesTraj;
-  using framefab_process_planning::toROSTrajectory;
-  using framefab_process_planning::planFreeMove;
-  using framefab_process_planning::fillTrajectoryHeaders;
-  using framefab_process_planning::extractJoints;
-
-  std::string profile_id = "unit-" + std::to_string(id);
-
-  // build graph
-  auto graph = descartes_planner::sampleConstrainedPaths(*model, seg);
-
-  // Create a planning graph (it has a solve method - you could use the DagSearch class yourself if you wanted)
-  descartes_planner::PlanningGraph plan_graph (model);
-  plan_graph.setGraph(graph); // set the graph we built earlier (instead of calling insertGraph)
-
-  const auto dof = graph.dof();
-
-  // Now we perform the search using the starting costs from our estimation above
-  descartes_planner::DAGSearch search(graph);
-  double cost = search.run();
-  if (cost == std::numeric_limits<double>::max())
-  {
-    ROS_ERROR("%s: Failed to search graph. All points have IK, but process constraints (e.g velocity) "
-                  "prevent a solution", __FUNCTION__);
-    return false;
-  }
-
-  // Here we search the graph for the shortest path and build a descartes trajectory of it!
-  auto path_idxs = search.shortestPath();
-  ROS_WARN("%s: Descartes computed path with cost %lf", __FUNCTION__, cost);
-  DescartesTraj sol;
-  for (size_t j = 0; j < path_idxs.size(); ++j)
-  {
-    const auto idx = path_idxs[j];
-    const auto* data = graph.vertex(j, idx);
-    const auto& tm = graph.getRung(j).timing;
-    auto pt = descartes_core::TrajectoryPtPtr(new descartes_trajectory::JointTrajectoryPt(
-        std::vector<double>(data, data + dof), tm));
-    sol.push_back(pt);
-  }
-
-  trajectory_msgs::JointTrajectory ros_traj = toROSTrajectory(sol, *model);
-
-  // and get free plan for connect path
-  trajectory_msgs::JointTrajectory connection =
-      planFreeMove(*model, move_group_name, moveit_model,
-                   last_pose,
-                   extractJoints(*model, *sol.front()));
-
-  const static double SMALLEST_VALID_SEGMENT = 0.05;
-  if (!validateTrajectory(ros_traj, *model, SMALLEST_VALID_SEGMENT))
-  {
-    ROS_ERROR_STREAM("%s: Computed path contains joint configuration changes that would result in a collision.");
-    return false;
-  }
-
-  // record process path size for later process identification
-  int approach_size = seg.retract_start_pt_num;
-  int process_size = seg.process_pt_num;
-  int depart_size = seg.retract_end_pt_num;
-
-  // fill in connection traj
-  ROS_INFO_STREAM("connection traj size: " << connection.points.size());
-  plan.trajectory_connection = connection;
-
-  // fill in process traj from descartes computed result
-  for(std::size_t j = 0; j < ros_traj.points.size(); j++)
-  {
-    if(0 <= j && j <= approach_size - 1)
-    {
-      plan.trajectory_approach.points.push_back(ros_traj.points[j]);
-    }
-    if(approach_size <= j && j <= approach_size + process_size - 1)
-    {
-      plan.trajectory_process.points.push_back(ros_traj.points[j]);
-    }
-    if(approach_size + process_size <= j && j <= approach_size + process_size + depart_size - 1)
-    {
-      plan.trajectory_depart.points.push_back(ros_traj.points[j]);
-    }
-  }
-
-  // Fill in result header information
-  fillTrajectoryHeaders(joint_names, plan.trajectory_connection);
-  fillTrajectoryHeaders(joint_names, plan.trajectory_approach);
-  fillTrajectoryHeaders(joint_names, plan.trajectory_process);
-  fillTrajectoryHeaders(joint_names, plan.trajectory_depart);
-
-  // update last pose (joint)
-  last_pose = extractJoints(*model, *sol.back());
-
-  return true;
-}
-
 #define SANITY_CHECK(cond) do { if ( !(cond) ) { throw std::runtime_error(#cond); } } while (false);
 
 bool framefab_process_planning::generateMotionPlan(
@@ -256,8 +152,6 @@ bool framefab_process_planning::generateMotionPlan(
   ROS_INFO_STREAM("Search took " << (search_end-search_start).toSec()
                                  << " seconds and produced a result with dist = " << cost);
 
-  // Now we have a rough solution for the entire process...
-
   // Step 4 : Harvest shortest path in graph to retract trajectory
   auto path_idxs = search.shortestPath();
   DescartesTraj sol;
@@ -271,11 +165,18 @@ bool framefab_process_planning::generateMotionPlan(
     sol.push_back(pt);
   }
 
+  // Step 5 : Plan for transition between each pair of sequential path
+
+  // Step 6 : Process each transition plan to extract "near-process" segmentation
+
+  // Step 7 : fill in trajectory's time headers and pack into sub_process_plans
+  // for each unit_process
+
   trajectory_msgs::JointTrajectory ros_traj = toROSTrajectory(sol, *model);
   for (auto& pt : ros_traj.points) pt.time_from_start *= 4.0;
   fillTrajectoryHeaders(joint_names, ros_traj);
 
-  // step 5': fill generated trajectories in returned plan results.
+  // step 5': fill generated trajectories in returned plan results (srv).
   plans.resize(segs.size());
 
   auto it = ros_traj.points.begin();

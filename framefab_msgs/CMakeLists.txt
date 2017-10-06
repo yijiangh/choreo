@@ -40,6 +40,7 @@ add_message_files(
 		RobotInputParameters.msg
 		OutputPathInputParameters.msg
 		UnitProcessPlan.msg
+		SubProcess.msg
 		ElementCandidatePoses.msg
 )
 
