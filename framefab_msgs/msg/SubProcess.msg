@@ -8,16 +8,16 @@ int32 JOINT=-1
 int32 CART=-2
 
 # hosting unit_process's id
-int unit_process_id
+int32 unit_process_id
 
 # id (order) in the subprocess list under the host
-int sub_process_id
+int32 sub_process_id
 
 # process type, see above
-int process_type
+int32 process_type
 
 # main data type, see above
-int main_data_type
+int32 main_data_type
 
 # joint_array
 trajectory_msgs/JointTrajectory joint_array

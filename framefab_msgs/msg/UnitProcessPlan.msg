@@ -18,7 +18,7 @@ int32 DISCONTINUOUS_TYPE=-2
 int32 type
 
 # sub_processes
-framefab_msgs/SubProcess[] sub_processes
+framefab_msgs/SubProcess[] sub_process_array
 
 # ---------------------------------------
 

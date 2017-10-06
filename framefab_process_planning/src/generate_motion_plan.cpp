@@ -24,6 +24,7 @@
 // msg
 #include <geometry_msgs/Pose.h>
 #include <trajectory_msgs/JointTrajectoryPoint.h>
+#include <framefab_msgs/SubProcess.h>
 
 #include <eigen_conversions/eigen_msg.h>
 
@@ -92,11 +93,6 @@ bool framefab_process_planning::generateMotionPlan(
   {
     auto last_scene = planning_scenes.back();
     auto child = last_scene->diff();
-    // update collision objects (built model elements)
-
-    //TODO: is this needed??
-//    addCollisionObject(planning_scene_diff_client, collision_objs[i]);
-    //END
 
     if (!child->processCollisionObjectMsg(collision_objs[i]))
     {
@@ -104,8 +100,6 @@ bool framefab_process_planning::generateMotionPlan(
     }
     planning_scenes.push_back(child);
   }
-
-//  SANITY_CHECK(planning_scenes.size() == segs.size());
 
   // Step 2: sample graph for each segment separately
   auto graph_build_start = ros::Time::now();
@@ -165,30 +159,50 @@ bool framefab_process_planning::generateMotionPlan(
     sol.push_back(pt);
   }
 
-  // Step 5 : Plan for transition between each pair of sequential path
-
-  // Step 6 : Process each transition plan to extract "near-process" segmentation
-
-  // Step 7 : fill in trajectory's time headers and pack into sub_process_plans
-  // for each unit_process
-
   trajectory_msgs::JointTrajectory ros_traj = toROSTrajectory(sol, *model);
+  // sim speed tuning
   for (auto& pt : ros_traj.points) pt.time_from_start *= 4.0;
-  fillTrajectoryHeaders(joint_names, ros_traj);
 
-  // step 5': fill generated trajectories in returned plan results (srv).
   plans.resize(segs.size());
 
   auto it = ros_traj.points.begin();
   int cnt = 0;
   for(size_t i = 0; i < segs.size(); i++)
   {
+    framefab_msgs::SubProcess sub_process;
+
+    // -- legacy to make it running
     plans[i].trajectory_process.points =
         std::vector<trajectory_msgs::JointTrajectoryPoint>(it, it + graph_indices[i]);
-    it = it + graph_indices[i];
     fillTrajectoryHeaders(joint_names, plans[i].trajectory_process);
+    // ---
+
+    sub_process.process_type = framefab_msgs::SubProcess::PROCESS;
+    sub_process.main_data_type = framefab_msgs::SubProcess::CART;
+    sub_process.joint_array.points =  std::vector<trajectory_msgs::JointTrajectoryPoint>(it, it + graph_indices[i]);
+
+    plans[i].sub_process_array.push_back(sub_process);
+
+    it = it + graph_indices[i];
     cnt += plans[i].trajectory_process.points.size();
   }
+
+  // Step 5 : Plan for transition between each pair of sequential path
+  std::vector<double> last_joint_pose = start_state;
+  for(size_t i = 0; i < segs.size(); i++)
+  {
+    if(0 != i)
+    {
+      last_joint_pose = plans[i-1].joint_array.points;
+    }
+  }
+
+  // Step 6 : Process each transition plan to extract "near-process" segmentation
+
+  // Step 7 : fill in trajectory's time headers and pack into sub_process_plans
+  // for each unit_process
+
+
 
   ROS_INFO_STREAM("ros traj size: " << ros_traj.points.size() << ", plan size: " << cnt);
   // fill in transition path
