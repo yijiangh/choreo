@@ -131,7 +131,7 @@ bool framefab_process_planning::generateMotionPlan(
 
   trajectory_msgs::JointTrajectory ros_traj = toROSTrajectory(sol, *model);
   // sim speed tuning
-  for (auto& pt : ros_traj.points) pt.time_from_start *= 4.0;
+  for (auto& pt : ros_traj.points) pt.time_from_start *= 2.0;
 
   plans.resize(segs.size());
 
@@ -193,8 +193,22 @@ bool framefab_process_planning::generateMotionPlan(
       appendTrajectoryHeaders(last_filled_jts, sp.joint_array);
       last_filled_jts = sp.joint_array;
 
+      if(sp.process_type == framefab_msgs::SubProcess::TRANSITION)
+      {
+        ROS_INFO_STREAM("-----");
+        ROS_INFO_STREAM("process #" << i << "_sp " << "transition");
+      }
+
+      if(sp.process_type == framefab_msgs::SubProcess::PROCESS)
+      {
+        ROS_INFO_STREAM("-----");
+        ROS_INFO_STREAM("process #" << i << "_sp " << "process");
+      }
+
       ROS_INFO_STREAM("time stamp: " << sp.joint_array.header.stamp
-                                     << ", time from start: "
+                                     << ", first time from st:"
+                                     << sp.joint_array.points.front().time_from_start
+                                     << ", last time from st: "
                                      << sp.joint_array.points.back().time_from_start);
     }
   }

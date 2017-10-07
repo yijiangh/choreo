@@ -22,7 +22,7 @@
 
 // Constants
 const static double DEFAULT_TIME_UNDEFINED_VELOCITY =
-    1.0; // When a Descartes trajectory point has no timing info associated
+    0.0; // When a Descartes trajectory point has no timing info associated
 // with it, this value (in seconds) is used instead
 const static std::string DEFAULT_FRAME_ID =
     "world_frame"; // The default frame_id used for trajectories generated
@@ -120,7 +120,9 @@ trajectory_msgs::JointTrajectory framefab_process_planning::toROSTrajectory(
     if (time_step == 0.0)
     {
       if (i == 0)
+      {
         from_start += ros::Duration(DEFAULT_TIME_UNDEFINED_VELOCITY); // default time
+      }
       else
       {
         // If we have a previous point then it makes more sense to set the time of the
@@ -133,7 +135,9 @@ trajectory_msgs::JointTrajectory framefab_process_planning::toROSTrajectory(
       }
     }
     else
+    {
       from_start += ros::Duration(time_step);
+    }
 
     pt.time_from_start = from_start;
 
