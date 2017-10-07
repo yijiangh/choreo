@@ -24,142 +24,9 @@
 // msg
 #include <geometry_msgs/Pose.h>
 #include <trajectory_msgs/JointTrajectoryPoint.h>
+#include <framefab_msgs/SubProcess.h>
 
 #include <eigen_conversions/eigen_msg.h>
-
-const static bool validateTrajectory(const trajectory_msgs::JointTrajectory& pts,
-                                     const descartes_core::RobotModel& model,
-                                     const double min_segment_size)
-{
-  for (std::size_t i = 1; i < pts.points.size(); ++i)
-  {
-    const auto& pt_a = pts.points[i - 1].positions;
-    const auto& pt_b = pts.points[i].positions;
-
-    auto interpolate = framefab_process_planning::interpolateJoint(pt_a, pt_b, min_segment_size);
-
-    // The thought here is that the graph building process already checks the waypoints in the
-    // trajectory for collisions. What we want to do is check between these waypoints when they
-    // move a lot. 'interpolateJoint()' returns a list of positions where the maximum joint motion
-    // between them is no more 'than min_segment_size' and its inclusive. So if there are only two
-    // solutions, then we just have the start & end which are already checked.
-    if (interpolate.size() > 2)
-    {
-      for (std::size_t j = 1; j < interpolate.size() - 1; ++j)
-      {
-        if (!model.isValid(interpolate[j]))
-        {
-          return false;
-        }
-      }
-    }
-  }
-  return true;
-}
-
-static bool generateUnitProcessMotionPlan(
-    const int& id,
-    const descartes_core::RobotModelPtr model,
-    descartes_planner::ConstrainedSegment& seg,
-    std::vector<double>& last_pose,
-    moveit::core::RobotModelConstPtr moveit_model,
-    const std::string& move_group_name,
-    const std::vector<std::string>& joint_names,
-    framefab_msgs::UnitProcessPlan& plan)
-{
-  using framefab_process_planning::DescartesTraj;
-  using framefab_process_planning::toROSTrajectory;
-  using framefab_process_planning::planFreeMove;
-  using framefab_process_planning::fillTrajectoryHeaders;
-  using framefab_process_planning::extractJoints;
-
-  std::string profile_id = "unit-" + std::to_string(id);
-
-  // build graph
-  auto graph = descartes_planner::sampleConstrainedPaths(*model, seg);
-
-  // Create a planning graph (it has a solve method - you could use the DagSearch class yourself if you wanted)
-  descartes_planner::PlanningGraph plan_graph (model);
-  plan_graph.setGraph(graph); // set the graph we built earlier (instead of calling insertGraph)
-
-  const auto dof = graph.dof();
-
-  // Now we perform the search using the starting costs from our estimation above
-  descartes_planner::DAGSearch search(graph);
-  double cost = search.run();
-  if (cost == std::numeric_limits<double>::max())
-  {
-    ROS_ERROR("%s: Failed to search graph. All points have IK, but process constraints (e.g velocity) "
-                  "prevent a solution", __FUNCTION__);
-    return false;
-  }
-
-  // Here we search the graph for the shortest path and build a descartes trajectory of it!
-  auto path_idxs = search.shortestPath();
-  ROS_WARN("%s: Descartes computed path with cost %lf", __FUNCTION__, cost);
-  DescartesTraj sol;
-  for (size_t j = 0; j < path_idxs.size(); ++j)
-  {
-    const auto idx = path_idxs[j];
-    const auto* data = graph.vertex(j, idx);
-    const auto& tm = graph.getRung(j).timing;
-    auto pt = descartes_core::TrajectoryPtPtr(new descartes_trajectory::JointTrajectoryPt(
-        std::vector<double>(data, data + dof), tm));
-    sol.push_back(pt);
-  }
-
-  trajectory_msgs::JointTrajectory ros_traj = toROSTrajectory(sol, *model);
-
-  // and get free plan for connect path
-  trajectory_msgs::JointTrajectory connection =
-      planFreeMove(*model, move_group_name, moveit_model,
-                   last_pose,
-                   extractJoints(*model, *sol.front()));
-
-  const static double SMALLEST_VALID_SEGMENT = 0.05;
-  if (!validateTrajectory(ros_traj, *model, SMALLEST_VALID_SEGMENT))
-  {
-    ROS_ERROR_STREAM("%s: Computed path contains joint configuration changes that would result in a collision.");
-    return false;
-  }
-
-  // record process path size for later process identification
-  int approach_size = seg.retract_start_pt_num;
-  int process_size = seg.process_pt_num;
-  int depart_size = seg.retract_end_pt_num;
-
-  // fill in connection traj
-  ROS_INFO_STREAM("connection traj size: " << connection.points.size());
-  plan.trajectory_connection = connection;
-
-  // fill in process traj from descartes computed result
-  for(std::size_t j = 0; j < ros_traj.points.size(); j++)
-  {
-    if(0 <= j && j <= approach_size - 1)
-    {
-      plan.trajectory_approach.points.push_back(ros_traj.points[j]);
-    }
-    if(approach_size <= j && j <= approach_size + process_size - 1)
-    {
-      plan.trajectory_process.points.push_back(ros_traj.points[j]);
-    }
-    if(approach_size + process_size <= j && j <= approach_size + process_size + depart_size - 1)
-    {
-      plan.trajectory_depart.points.push_back(ros_traj.points[j]);
-    }
-  }
-
-  // Fill in result header information
-  fillTrajectoryHeaders(joint_names, plan.trajectory_connection);
-  fillTrajectoryHeaders(joint_names, plan.trajectory_approach);
-  fillTrajectoryHeaders(joint_names, plan.trajectory_process);
-  fillTrajectoryHeaders(joint_names, plan.trajectory_depart);
-
-  // update last pose (joint)
-  last_pose = extractJoints(*model, *sol.back());
-
-  return true;
-}
 
 #define SANITY_CHECK(cond) do { if ( !(cond) ) { throw std::runtime_error(#cond); } } while (false);
 
@@ -196,11 +63,6 @@ bool framefab_process_planning::generateMotionPlan(
   {
     auto last_scene = planning_scenes.back();
     auto child = last_scene->diff();
-    // update collision objects (built model elements)
-
-    //TODO: is this needed??
-//    addCollisionObject(planning_scene_diff_client, collision_objs[i]);
-    //END
 
     if (!child->processCollisionObjectMsg(collision_objs[i]))
     {
@@ -208,8 +70,6 @@ bool framefab_process_planning::generateMotionPlan(
     }
     planning_scenes.push_back(child);
   }
-
-//  SANITY_CHECK(planning_scenes.size() == segs.size());
 
   // Step 2: sample graph for each segment separately
   auto graph_build_start = ros::Time::now();
@@ -256,8 +116,6 @@ bool framefab_process_planning::generateMotionPlan(
   ROS_INFO_STREAM("Search took " << (search_end-search_start).toSec()
                                  << " seconds and produced a result with dist = " << cost);
 
-  // Now we have a rough solution for the entire process...
-
   // Step 4 : Harvest shortest path in graph to retract trajectory
   auto path_idxs = search.shortestPath();
   DescartesTraj sol;
@@ -272,43 +130,90 @@ bool framefab_process_planning::generateMotionPlan(
   }
 
   trajectory_msgs::JointTrajectory ros_traj = toROSTrajectory(sol, *model);
-  for (auto& pt : ros_traj.points) pt.time_from_start *= 4.0;
-  fillTrajectoryHeaders(joint_names, ros_traj);
+  // sim speed tuning
+  for (auto& pt : ros_traj.points) pt.time_from_start *= 2.0;
 
-  // step 5': fill generated trajectories in returned plan results.
   plans.resize(segs.size());
 
   auto it = ros_traj.points.begin();
-  int cnt = 0;
   for(size_t i = 0; i < segs.size(); i++)
   {
-    plans[i].trajectory_process.points =
-        std::vector<trajectory_msgs::JointTrajectoryPoint>(it, it + graph_indices[i]);
+    framefab_msgs::SubProcess sub_process;
+
+    sub_process.process_type = framefab_msgs::SubProcess::PROCESS;
+    sub_process.main_data_type = framefab_msgs::SubProcess::CART;
+    sub_process.joint_array.points =  std::vector<trajectory_msgs::JointTrajectoryPoint>(it, it + graph_indices[i]);
+
+    plans[i].sub_process_array.push_back(sub_process);
+
     it = it + graph_indices[i];
-    fillTrajectoryHeaders(joint_names, plans[i].trajectory_process);
-    cnt += plans[i].trajectory_process.points.size();
   }
 
-  ROS_INFO_STREAM("ros traj size: " << ros_traj.points.size() << ", plan size: " << cnt);
-  // fill in transition path
+  // Step 5 : Plan for transition between each pair of sequential path
+  std::vector<double> last_joint_pose = start_state;
+  std::vector<double> current_first_joint_pose;
+
+  for(size_t i = 0; i < segs.size(); i++)
+  {
+    if(0 != i)
+    {
+      last_joint_pose = plans[i-1].sub_process_array.back().joint_array.points.back().positions;
+    }
+
+    current_first_joint_pose = plans[i].sub_process_array[0].joint_array.points.front().positions;
+
+    trajectory_msgs::JointTrajectory ros_trans_traj = getMoveitPlan(move_group_name,
+                                                              last_joint_pose,
+                                                              current_first_joint_pose,
+                                                              moveit_model);
+
+    // sim speed tuning
+    for (auto& pt : ros_trans_traj.points) pt.time_from_start *= 2.0;
+
+    framefab_msgs::SubProcess sub_process;
+
+    sub_process.process_type = framefab_msgs::SubProcess::TRANSITION;
+    sub_process.main_data_type = framefab_msgs::SubProcess::JOINT;
+    sub_process.joint_array = ros_trans_traj;
+
+    plans[i].sub_process_array.insert(plans[i].sub_process_array.begin(), sub_process);
+  }
+
+  // Step 6 : Process each transition plan to extract "near-process" segmentation
+
+  // Step 7 : fill in trajectory's time headers and pack into sub_process_plans
+  // for each unit_process
+  fillTrajectoryHeaders(joint_names, plans[0].sub_process_array[0].joint_array);
+  auto last_filled_jts = plans[0].sub_process_array[0].joint_array;
+
+  for(size_t i = 0; i < segs.size(); i++)
+  {
+    for (auto sp : plans[i].sub_process_array)
+    {
+      appendTrajectoryHeaders(last_filled_jts, sp.joint_array);
+      last_filled_jts = sp.joint_array;
+
+      if(sp.process_type == framefab_msgs::SubProcess::TRANSITION)
+      {
+        ROS_INFO_STREAM("-----");
+        ROS_INFO_STREAM("process #" << i << "_sp " << "transition");
+      }
+
+      if(sp.process_type == framefab_msgs::SubProcess::PROCESS)
+      {
+        ROS_INFO_STREAM("-----");
+        ROS_INFO_STREAM("process #" << i << "_sp " << "process");
+      }
+
+      ROS_INFO_STREAM("time stamp: " << sp.joint_array.header.stamp
+                                     << ", first time from st:"
+                                     << sp.joint_array.points.front().time_from_start
+                                     << ", last time from st: "
+                                     << sp.joint_array.points.back().time_from_start);
+    }
+  }
 
   ROS_INFO("trajectory packing finished");
-
-//  // step 5: immediate execution (a quick solution for debugging)
-//  ros::NodeHandle nh;
-//  actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction> client (nh, "joint_trajectory_action");
-//  if (!client.waitForServer(ros::Duration(1.0)))
-//  {
-//    ROS_WARN("[Quick Exe] Exec timed out");
-//  }
-//  else
-//  {
-//    ROS_INFO("[Quick Exe] Found action");
-//  }
-//  control_msgs::FollowJointTrajectoryGoal goal;
-//  goal.trajectory = ros_traj;
-//
-//  client.sendGoal(goal);
 
   return true;
 }

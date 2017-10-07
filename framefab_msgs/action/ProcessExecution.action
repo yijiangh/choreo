@@ -5,11 +5,10 @@ int32 ALL_PATHS_UNTIL_SELECTED_RUN=1
 
 int32 action
 
+# TODO: simulation speed
+
 # Joint trajectory
-trajectory_msgs/JointTrajectory trajectory_connection
-trajectory_msgs/JointTrajectory trajectory_approach
-trajectory_msgs/JointTrajectory trajectory_process
-trajectory_msgs/JointTrajectory trajectory_depart
+trajectory_msgs/JointTrajectory[] joint_traj_array
 
 # wait for execution to finish before returning
 bool wait_for_execution

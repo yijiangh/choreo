@@ -37,6 +37,9 @@ trajectory_msgs::JointTrajectory toROSTrajectory(const DescartesTraj& solution,
 void fillTrajectoryHeaders(const std::vector<std::string>& joints,
                            trajectory_msgs::JointTrajectory& traj);
 
+void appendTrajectoryHeaders(const trajectory_msgs::JointTrajectory& orig_traj,
+                             trajectory_msgs::JointTrajectory& traj);
+
 std::vector<double> getCurrentJointState(const std::string& topic);
 
 bool addCollisionObject(

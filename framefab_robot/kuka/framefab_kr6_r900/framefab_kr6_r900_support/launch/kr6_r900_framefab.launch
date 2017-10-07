@@ -8,13 +8,13 @@
   <arg name="save_data" default="false" />
   <arg name="save_location" default="$(env HOME)/.ros/" />
 
-  <!-- Brings up action interface for simple trajectory execution -->
-  <node name="path_execution_service" pkg="framefab_path_execution" type="path_execution_service_node"/>
-
   <!-- Launches process planners: requires descartes plugin for the robot model -->
   <include file="$(find framefab_process_planning)/launch/process_planning.launch">
     <arg name="robot_model_plugin" value="$(arg robot_model_plugin)"/>
   </include>
+
+  <!-- Brings up action interface for simple trajectory execution -->
+  <node name="path_execution_service" pkg="framefab_path_execution" type="path_execution_service_node" output="screen"/>
 
 <!-- Process execution nodes: These monitor the state of robot's execution of the planned path. They can be, and in this case are, robot or vendor specific -->
   <group>
@@ -23,7 +23,7 @@
 
     <!-- Choose between 'execution' handlers based on whether we're connected to a real robot -->
     <group if="$(arg sim_robot)">
-      <node name="framefab_process_execution" pkg="framefab_process_execution" type="framefab_process_execution_service_node"/>
+      <node name="framefab_process_execution" pkg="framefab_process_execution" type="framefab_process_execution_service_node" output="screen"/>
     </group>
 
     <group unless="$(arg sim_robot)">
