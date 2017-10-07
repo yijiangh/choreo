@@ -498,27 +498,11 @@ void FrameFabCoreService::simulateMotionPlansActionCallback(const framefab_msgs:
 
   // Send command to execution server
   framefab_msgs::ProcessExecutionGoal goal;
-//  if(0 != trajectory_library_.get()[lib_sort_id].trajectory_connection.points.size())
-//  {
-//    goal.goal.trajectory_connection = trajectory_library_.get()[lib_sort_id].trajectory_connection;
-//  }
-//
-//  if(0 != trajectory_library_.get()[lib_sort_id].trajectory_approach.points.size())
-//  {
-//    goal.goal.trajectory_approach = trajectory_library_.get()[lib_sort_id].trajectory_approach;
-//  }
 
-  if(0 != trajectory_library_.get()[lib_sort_id].trajectory_process.points.size())
+  for(auto sp : trajectory_library_.get()[lib_sort_id].sub_process_array)
   {
-    goal.trajectory_process = trajectory_library_.get()[lib_sort_id].trajectory_process;
+    goal.joint_traj_array.push_back(sp.joint_array);
   }
-
-  ROS_INFO("trajectory process inserted into goal");
-
-//  if(0 != trajectory_library_.get()[lib_sort_id].trajectory_depart.points.size())
-//  {
-//    goal.goal.trajectory_depart = trajectory_library_.get()[lib_sort_id].trajectory_depart;
-//  }
 
   goal.wait_for_execution = goal_in->wait_for_execution;
   goal.simulate = goal_in->simulate;
@@ -526,8 +510,9 @@ void FrameFabCoreService::simulateMotionPlansActionCallback(const framefab_msgs:
   actionlib::SimpleActionClient<framefab_msgs::ProcessExecutionAction> *exe_client = &framefab_exe_client_;
   exe_client->sendGoal(goal);
 
-  ros::Duration process_time(goal.trajectory_process.points.back().time_from_start);
+  ros::Duration process_time(goal.joint_traj_array.back().points.back().time_from_start);
   ros::Duration buffer_time(PROCESS_EXE_BUFFER);
+
   visual_tool_.visualizePathUntil(goal_in->index);
 
   if(exe_client->waitForResult(process_time + buffer_time))

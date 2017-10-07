@@ -52,72 +52,18 @@ void framefab_process_execution::FrameFabProcessExecutionService::executionCallb
 bool framefab_process_execution::FrameFabProcessExecutionService::executeProcess(
     const framefab_msgs::ProcessExecutionGoalConstPtr &goal)
 {
-  if(0 != goal->trajectory_connection.points.size())
-  {
-    framefab_msgs::TrajectoryExecution srv_connection;
-    srv_connection.request.wait_for_execution = true;
-    srv_connection.request.trajectory = goal->trajectory_connection;
+  framefab_msgs::TrajectoryExecution exe_srv;
+  exe_srv.request.wait_for_execution = true;
 
-    if (!real_client_.call(srv_connection))
-    {
-      ROS_ERROR("Execution client unavailable or unable to execute connection trajectory.");
-      return false;
-    }
-  }
-  else
+  for(auto jts : goal->joint_traj_array)
   {
-    ROS_WARN("no connection path found!");
+    appendTrajectory(exe_srv.request.trajectory, jts);
   }
 
-  if(0 != goal->trajectory_approach.points.size())
+  if (!real_client_.call(exe_srv))
   {
-    framefab_msgs::TrajectoryExecution srv_approach;
-    srv_approach.request.wait_for_execution = true;
-    srv_approach.request.trajectory = goal->trajectory_approach;
-
-    if (!real_client_.call(srv_approach))
-    {
-      ROS_ERROR("Execution client unavailable or unable to execute approach trajectory.");
-      return false;
-    }
-  }
-  else
-  {
-    ROS_WARN("no approach path found!");
-  }
-
-  if(0 != goal->trajectory_process.points.size())
-  {
-    framefab_msgs::TrajectoryExecution srv_process;
-    srv_process.request.wait_for_execution = true;
-    srv_process.request.trajectory = goal->trajectory_process;
-
-    if (!real_client_.call(srv_process))
-    {
-      ROS_ERROR("Execution client unavailable or unable to execute process trajectory.");
-      return false;
-    }
-  }
-  else
-  {
-    ROS_WARN("no process path found!");
-  }
-
-  if(0 != goal->trajectory_depart.points.size())
-  {
-    framefab_msgs::TrajectoryExecution srv_depart;
-    srv_depart.request.wait_for_execution = true;
-    srv_depart.request.trajectory = goal->trajectory_depart;
-
-    if (!real_client_.call(srv_depart))
-    {
-      ROS_ERROR("Execution client unavailable or unable to execute departure trajectory.");
-      return false;
-    }
-  }
-  else
-  {
-    ROS_WARN("no departure path found!");
+    ROS_ERROR("Execution client unavailable or unable to execute trajectory.");
+    return false;
   }
 
   return true;
@@ -130,19 +76,18 @@ bool framefab_process_execution::FrameFabProcessExecutionService::simulateProces
 
   // The simulation server doesn't support any I/O visualizations, so we aggregate the
   // trajectory components and send them all at once
-  trajectory_msgs::JointTrajectory aggregate_traj;
-  aggregate_traj = goal->trajectory_connection;
-  appendTrajectory(aggregate_traj, goal->trajectory_approach);
-  appendTrajectory(aggregate_traj, goal->trajectory_process);
-  appendTrajectory(aggregate_traj, goal->trajectory_depart);
 
   // Pass the trajectory to the simulation service
-  SimulateTrajectory srv;
-  srv.request.wait_for_execution = goal->wait_for_execution;
-  srv.request.trajectory = aggregate_traj;
+  SimulateTrajectory sim_srv;
+  sim_srv.request.wait_for_execution = goal->wait_for_execution;
+
+  for(auto jts : goal->joint_traj_array)
+  {
+    appendTrajectory(sim_srv.request.trajectory, jts);
+  }
 
   // Call simulation service
-  if (!sim_client_.call(srv))
+  if (!sim_client_.call(sim_srv))
   {
     ROS_ERROR("[process execution] Simulation client unavailable or unable to simulate trajectory.");
     return false;
