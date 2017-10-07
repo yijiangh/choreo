@@ -28,36 +28,6 @@
 
 #include <eigen_conversions/eigen_msg.h>
 
-const static bool validateTrajectory(const trajectory_msgs::JointTrajectory& pts,
-                                     const descartes_core::RobotModel& model,
-                                     const double min_segment_size)
-{
-  for (std::size_t i = 1; i < pts.points.size(); ++i)
-  {
-    const auto& pt_a = pts.points[i - 1].positions;
-    const auto& pt_b = pts.points[i].positions;
-
-    auto interpolate = framefab_process_planning::interpolateJoint(pt_a, pt_b, min_segment_size);
-
-    // The thought here is that the graph building process already checks the waypoints in the
-    // trajectory for collisions. What we want to do is check between these waypoints when they
-    // move a lot. 'interpolateJoint()' returns a list of positions where the maximum joint motion
-    // between them is no more 'than min_segment_size' and its inclusive. So if there are only two
-    // solutions, then we just have the start & end which are already checked.
-    if (interpolate.size() > 2)
-    {
-      for (std::size_t j = 1; j < interpolate.size() - 1; ++j)
-      {
-        if (!model.isValid(interpolate[j]))
-        {
-          return false;
-        }
-      }
-    }
-  }
-  return true;
-}
-
 #define SANITY_CHECK(cond) do { if ( !(cond) ) { throw std::runtime_error(#cond); } } while (false);
 
 bool framefab_process_planning::generateMotionPlan(
@@ -171,15 +141,10 @@ bool framefab_process_planning::generateMotionPlan(
   {
     framefab_msgs::SubProcess sub_process;
 
-    // -- legacy to make it running
-    plans[i].trajectory_process.points =
-        std::vector<trajectory_msgs::JointTrajectoryPoint>(it, it + graph_indices[i]);
-    fillTrajectoryHeaders(joint_names, plans[i].trajectory_process);
-    // ---
-
     sub_process.process_type = framefab_msgs::SubProcess::PROCESS;
     sub_process.main_data_type = framefab_msgs::SubProcess::CART;
     sub_process.joint_array.points =  std::vector<trajectory_msgs::JointTrajectoryPoint>(it, it + graph_indices[i]);
+    fillTrajectoryHeaders(joint_names, sub_process.joint_array);
 
     plans[i].sub_process_array.push_back(sub_process);
 
@@ -189,20 +154,35 @@ bool framefab_process_planning::generateMotionPlan(
 
   // Step 5 : Plan for transition between each pair of sequential path
   std::vector<double> last_joint_pose = start_state;
+  std::vector<double> current_first_joint_pose;
+
   for(size_t i = 0; i < segs.size(); i++)
   {
     if(0 != i)
     {
-      last_joint_pose = plans[i-1].joint_array.points;
+      last_joint_pose = plans[i-1].sub_process_array[0].joint_array.points.back().positions;
     }
+
+    current_first_joint_pose = plans[i].sub_process_array[0].joint_array.points.front().positions;
+
+    trajectory_msgs::JointTrajectory ros_trans_traj = getMoveitPlan(move_group_name,
+                                                              last_joint_pose,
+                                                              current_first_joint_pose,
+                                                              moveit_model);
+
+    framefab_msgs::SubProcess sub_process;
+
+    sub_process.process_type = framefab_msgs::SubProcess::TRANSITION;
+    sub_process.main_data_type = framefab_msgs::SubProcess::JOINT;
+    sub_process.joint_array = ros_trans_traj;
+
+    plans[i].sub_process_array.insert(plans[i].sub_process_array.begin(), sub_process);
   }
 
   // Step 6 : Process each transition plan to extract "near-process" segmentation
 
   // Step 7 : fill in trajectory's time headers and pack into sub_process_plans
   // for each unit_process
-
-
 
   ROS_INFO_STREAM("ros traj size: " << ros_traj.points.size() << ", plan size: " << cnt);
   // fill in transition path
