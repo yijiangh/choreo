@@ -501,7 +501,6 @@ void FrameFabCoreService::simulateMotionPlansActionCallback(const framefab_msgs:
 
   for(auto sp : trajectory_library_.get()[lib_sort_id].sub_process_array)
   {
-    ROS_INFO_STREAM("[core-simluateMPlans] sp jt_array - " << sp.joint_array.points.size());
     goal.joint_traj_array.push_back(sp.joint_array);
   }
 

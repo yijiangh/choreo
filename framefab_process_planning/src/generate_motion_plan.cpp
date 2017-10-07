@@ -143,7 +143,6 @@ bool framefab_process_planning::generateMotionPlan(
     sub_process.process_type = framefab_msgs::SubProcess::PROCESS;
     sub_process.main_data_type = framefab_msgs::SubProcess::CART;
     sub_process.joint_array.points =  std::vector<trajectory_msgs::JointTrajectoryPoint>(it, it + graph_indices[i]);
-    fillTrajectoryHeaders(joint_names, sub_process.joint_array);
 
     plans[i].sub_process_array.push_back(sub_process);
 
@@ -154,34 +153,51 @@ bool framefab_process_planning::generateMotionPlan(
   std::vector<double> last_joint_pose = start_state;
   std::vector<double> current_first_joint_pose;
 
-//  for(size_t i = 0; i < segs.size(); i++)
-//  {
-//    if(0 != i)
-//    {
-//      last_joint_pose = plans[i-1].sub_process_array[0].joint_array.points.back().positions;
-//    }
-//
-//    current_first_joint_pose = plans[i].sub_process_array[0].joint_array.points.front().positions;
-//
-//    trajectory_msgs::JointTrajectory ros_trans_traj = getMoveitPlan(move_group_name,
-//                                                              last_joint_pose,
-//                                                              current_first_joint_pose,
-//                                                              moveit_model);
-//
-//    framefab_msgs::SubProcess sub_process;
-//
-//    sub_process.process_type = framefab_msgs::SubProcess::TRANSITION;
-//    sub_process.main_data_type = framefab_msgs::SubProcess::JOINT;
-//    sub_process.joint_array = ros_trans_traj;
-//    fillTrajectoryHeaders(joint_names, sub_process.joint_array);
-//
-//    plans[i].sub_process_array.insert(plans[i].sub_process_array.begin(), sub_process);
-//  }
+  for(size_t i = 0; i < segs.size(); i++)
+  {
+    if(0 != i)
+    {
+      last_joint_pose = plans[i-1].sub_process_array.back().joint_array.points.back().positions;
+    }
+
+    current_first_joint_pose = plans[i].sub_process_array[0].joint_array.points.front().positions;
+
+    trajectory_msgs::JointTrajectory ros_trans_traj = getMoveitPlan(move_group_name,
+                                                              last_joint_pose,
+                                                              current_first_joint_pose,
+                                                              moveit_model);
+
+    // sim speed tuning
+    for (auto& pt : ros_trans_traj.points) pt.time_from_start *= 2.0;
+
+    framefab_msgs::SubProcess sub_process;
+
+    sub_process.process_type = framefab_msgs::SubProcess::TRANSITION;
+    sub_process.main_data_type = framefab_msgs::SubProcess::JOINT;
+    sub_process.joint_array = ros_trans_traj;
+
+    plans[i].sub_process_array.insert(plans[i].sub_process_array.begin(), sub_process);
+  }
 
   // Step 6 : Process each transition plan to extract "near-process" segmentation
 
   // Step 7 : fill in trajectory's time headers and pack into sub_process_plans
   // for each unit_process
+  fillTrajectoryHeaders(joint_names, plans[0].sub_process_array[0].joint_array);
+  auto last_filled_jts = plans[0].sub_process_array[0].joint_array;
+
+  for(size_t i = 0; i < segs.size(); i++)
+  {
+    for (auto sp : plans[i].sub_process_array)
+    {
+      appendTrajectoryHeaders(last_filled_jts, sp.joint_array);
+      last_filled_jts = sp.joint_array;
+
+      ROS_INFO_STREAM("time stamp: " << sp.joint_array.header.stamp
+                                     << ", time from start: "
+                                     << sp.joint_array.points.back().time_from_start);
+    }
+  }
 
   ROS_INFO("trajectory packing finished");
 

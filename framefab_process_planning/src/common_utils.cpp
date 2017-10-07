@@ -144,11 +144,19 @@ trajectory_msgs::JointTrajectory framefab_process_planning::toROSTrajectory(
 }
 
 void framefab_process_planning::fillTrajectoryHeaders(const std::vector<std::string>& joints,
-                                                   trajectory_msgs::JointTrajectory& traj)
+                                                      trajectory_msgs::JointTrajectory& traj)
 {
   traj.joint_names = joints;
   traj.header.frame_id = DEFAULT_FRAME_ID;
   traj.header.stamp = ros::Time::now();
+}
+
+void framefab_process_planning::appendTrajectoryHeaders(const trajectory_msgs::JointTrajectory& orig_traj,
+                                                      trajectory_msgs::JointTrajectory& traj)
+{
+  traj.joint_names = orig_traj.joint_names;
+  traj.header.frame_id = orig_traj.header.frame_id;
+  traj.header.stamp = orig_traj.header.stamp + orig_traj.points.back().time_from_start;
 }
 
 std::vector<double> framefab_process_planning::getCurrentJointState(const std::string& topic)
