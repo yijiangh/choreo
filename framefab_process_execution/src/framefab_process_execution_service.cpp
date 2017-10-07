@@ -55,8 +55,12 @@ bool framefab_process_execution::FrameFabProcessExecutionService::executeProcess
   framefab_msgs::TrajectoryExecution exe_srv;
   exe_srv.request.wait_for_execution = true;
 
+  ROS_INFO_STREAM("[Execute Traj] jt_array size - " << goal->joint_traj_array.size());
+
   for(auto jts : goal->joint_traj_array)
   {
+    ROS_INFO_STREAM("[Execute Traj] joint_traj - " << jts.points.size());
+    ROS_INFO_STREAM(jts);
     appendTrajectory(exe_srv.request.trajectory, jts);
   }
 
@@ -83,6 +87,7 @@ bool framefab_process_execution::FrameFabProcessExecutionService::simulateProces
 
   for(auto jts : goal->joint_traj_array)
   {
+    ROS_INFO_STREAM("[Simulate Traj] joint_traj - " << jts.points.size());
     appendTrajectory(sim_srv.request.trajectory, jts);
   }
 

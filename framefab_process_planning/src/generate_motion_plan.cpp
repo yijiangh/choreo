@@ -136,7 +136,6 @@ bool framefab_process_planning::generateMotionPlan(
   plans.resize(segs.size());
 
   auto it = ros_traj.points.begin();
-  int cnt = 0;
   for(size_t i = 0; i < segs.size(); i++)
   {
     framefab_msgs::SubProcess sub_process;
@@ -149,61 +148,42 @@ bool framefab_process_planning::generateMotionPlan(
     plans[i].sub_process_array.push_back(sub_process);
 
     it = it + graph_indices[i];
-    cnt += plans[i].trajectory_process.points.size();
   }
 
   // Step 5 : Plan for transition between each pair of sequential path
   std::vector<double> last_joint_pose = start_state;
   std::vector<double> current_first_joint_pose;
 
-  for(size_t i = 0; i < segs.size(); i++)
-  {
-    if(0 != i)
-    {
-      last_joint_pose = plans[i-1].sub_process_array[0].joint_array.points.back().positions;
-    }
-
-    current_first_joint_pose = plans[i].sub_process_array[0].joint_array.points.front().positions;
-
-    trajectory_msgs::JointTrajectory ros_trans_traj = getMoveitPlan(move_group_name,
-                                                              last_joint_pose,
-                                                              current_first_joint_pose,
-                                                              moveit_model);
-
-    framefab_msgs::SubProcess sub_process;
-
-    sub_process.process_type = framefab_msgs::SubProcess::TRANSITION;
-    sub_process.main_data_type = framefab_msgs::SubProcess::JOINT;
-    sub_process.joint_array = ros_trans_traj;
-
-    plans[i].sub_process_array.insert(plans[i].sub_process_array.begin(), sub_process);
-  }
+//  for(size_t i = 0; i < segs.size(); i++)
+//  {
+//    if(0 != i)
+//    {
+//      last_joint_pose = plans[i-1].sub_process_array[0].joint_array.points.back().positions;
+//    }
+//
+//    current_first_joint_pose = plans[i].sub_process_array[0].joint_array.points.front().positions;
+//
+//    trajectory_msgs::JointTrajectory ros_trans_traj = getMoveitPlan(move_group_name,
+//                                                              last_joint_pose,
+//                                                              current_first_joint_pose,
+//                                                              moveit_model);
+//
+//    framefab_msgs::SubProcess sub_process;
+//
+//    sub_process.process_type = framefab_msgs::SubProcess::TRANSITION;
+//    sub_process.main_data_type = framefab_msgs::SubProcess::JOINT;
+//    sub_process.joint_array = ros_trans_traj;
+//    fillTrajectoryHeaders(joint_names, sub_process.joint_array);
+//
+//    plans[i].sub_process_array.insert(plans[i].sub_process_array.begin(), sub_process);
+//  }
 
   // Step 6 : Process each transition plan to extract "near-process" segmentation
 
   // Step 7 : fill in trajectory's time headers and pack into sub_process_plans
   // for each unit_process
 
-  ROS_INFO_STREAM("ros traj size: " << ros_traj.points.size() << ", plan size: " << cnt);
-  // fill in transition path
-
   ROS_INFO("trajectory packing finished");
-
-//  // step 5: immediate execution (a quick solution for debugging)
-//  ros::NodeHandle nh;
-//  actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction> client (nh, "joint_trajectory_action");
-//  if (!client.waitForServer(ros::Duration(1.0)))
-//  {
-//    ROS_WARN("[Quick Exe] Exec timed out");
-//  }
-//  else
-//  {
-//    ROS_INFO("[Quick Exe] Found action");
-//  }
-//  control_msgs::FollowJointTrajectoryGoal goal;
-//  goal.trajectory = ros_traj;
-//
-//  client.sendGoal(goal);
 
   return true;
 }
