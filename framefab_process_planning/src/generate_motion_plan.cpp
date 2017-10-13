@@ -26,6 +26,9 @@
 #include <trajectory_msgs/JointTrajectoryPoint.h>
 #include <framefab_msgs/SubProcess.h>
 
+// srv
+#include <moveit_msgs/ApplyPlanningScene.h>
+
 #include <eigen_conversions/eigen_msg.h>
 
 #define SANITY_CHECK(cond) do { if ( !(cond) ) { throw std::runtime_error(#cond); } } while (false);
@@ -162,10 +165,23 @@ bool framefab_process_planning::generateMotionPlan(
 
     current_first_joint_pose = plans[i].sub_process_array[0].joint_array.points.front().positions;
 
+    // update the planning scene
+    if(!planning_scene_diff_client.waitForExistence())
+    {
+      ROS_ERROR_STREAM("[Transition Planning] cannot connect with planning scene diff server...");
+    }
+
+    moveit_msgs::ApplyPlanningScene srv;
+    planning_scenes[i]->getPlanningSceneMsg(srv.request.scene);
+    if(!planning_scene_diff_client.call(srv))
+    {
+      ROS_ERROR_STREAM("Failed to publish planning scene diff srv!");
+    }
+
     trajectory_msgs::JointTrajectory ros_trans_traj = getMoveitPlan(move_group_name,
-                                                              last_joint_pose,
-                                                              current_first_joint_pose,
-                                                              moveit_model);
+                                                                    last_joint_pose,
+                                                                    current_first_joint_pose,
+                                                                    moveit_model);
 
     // sim speed tuning
     for (auto& pt : ros_trans_traj.points) pt.time_from_start *= 2.0;
