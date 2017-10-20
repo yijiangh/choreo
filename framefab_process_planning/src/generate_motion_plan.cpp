@@ -165,6 +165,12 @@ bool framefab_process_planning::generateMotionPlan(
 
     current_first_joint_pose = plans[i].sub_process_array[0].joint_array.points.front().positions;
 
+    if(last_joint_pose == current_first_joint_pose)
+    {
+      // skip transition planning
+      continue;
+    }
+
     // update the planning scene
     if(!planning_scene_diff_client.waitForExistence())
     {
@@ -178,10 +184,20 @@ bool framefab_process_planning::generateMotionPlan(
       ROS_ERROR_STREAM("Failed to publish planning scene diff srv!");
     }
 
-    trajectory_msgs::JointTrajectory ros_trans_traj = getMoveitPlan(move_group_name,
-                                                                    last_joint_pose,
-                                                                    current_first_joint_pose,
-                                                                    moveit_model);
+    trajectory_msgs::JointTrajectory ros_trans_traj = getMoveitTransitionPlan(move_group_name,
+                                                                              last_joint_pose,
+                                                                              current_first_joint_pose,
+                                                                              start_state,
+                                                                              moveit_model);
+
+    ROS_INFO_STREAM("[PP] process #" << i);
+    ROS_INFO_STREAM("last end pose: " << last_joint_pose[0] << ", " << last_joint_pose[1] << ", "
+                                      << last_joint_pose[2] << ", " << last_joint_pose[3] << ", "
+                                      << last_joint_pose[4] << ", " << last_joint_pose[5]);
+    ROS_INFO_STREAM("this st  pose: " << current_first_joint_pose[0] << ", " << current_first_joint_pose[1] << ", "
+                                      << current_first_joint_pose[2] << ", " << current_first_joint_pose[3] << ", "
+                                      << current_first_joint_pose[4] << ", " << current_first_joint_pose[5]);
+    ROS_INFO_STREAM("---------");
 
     // sim speed tuning
     for (auto& pt : ros_trans_traj.points) pt.time_from_start *= 2.0;
@@ -206,6 +222,7 @@ bool framefab_process_planning::generateMotionPlan(
   {
     for (auto sp : plans[i].sub_process_array)
     {
+      ROS_INFO_STREAM("[PP] process #" << i << ", subprocess - jt array size: " << sp.joint_array.points.size());
       appendTrajectoryHeaders(last_filled_jts, sp.joint_array);
       last_filled_jts = sp.joint_array;
 
@@ -229,7 +246,7 @@ bool framefab_process_planning::generateMotionPlan(
     }
   }
 
-  ROS_INFO("trajectory packing finished");
+  ROS_INFO("[Process Planning] trajectory packing finished");
 
   return true;
 }

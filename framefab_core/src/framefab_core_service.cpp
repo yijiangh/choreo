@@ -439,7 +439,6 @@ void FrameFabCoreService::processPlanningActionCallback(const framefab_msgs::Pro
       visual_tool_.visualizePathUntil(goal_in->index);
       visual_tool_.visualizeFeasibleOrientations(goal_in->index, false);
 
-      // TODO: make a trajectory library and ui for user to choose
       bool success = generateMotionLibrary(goal_in->index, trajectory_library_);
 
       if(success)
