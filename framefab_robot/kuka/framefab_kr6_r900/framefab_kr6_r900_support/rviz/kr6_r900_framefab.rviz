@@ -313,79 +313,6 @@ Visualization Manager:
           Expand Link Details: false
           Expand Tree: false
           Link Tree Style: Links in Alphabetic Order
-          base:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          base_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          eef_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          hotend_tool:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          link_1:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          link_2:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          link_3:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          link_4:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          link_5:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          link_6:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          tcp_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tmp_tcp_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tool0:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          workspace_base_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          workspace_objects:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          world_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
         Robot Alpha: 1
         Show Robot Collision: false
         Show Robot Visual: false
@@ -396,7 +323,6 @@ Visualization Manager:
       Name: MarkerArray
       Namespaces:
         Arrow: true
-        Cylinder: true
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -417,7 +343,7 @@ Visualization Manager:
       Value: true
   Enabled: true
   Global Options:
-    Background Color: 140; 140; 140
+    Background Color: 255; 255; 255
     Fixed Frame: world_frame
     Frame Rate: 60
   Name: root
@@ -430,7 +356,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 1.00143051
+      Distance: 1.55307925
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
@@ -444,10 +370,10 @@ Visualization Manager:
       Focal Shape Size: 0.0500000007
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: -0.0897962674
+      Pitch: 0.105203681
       Target Frame: arm_base_link
       Value: XYOrbit (rviz)
-      Yaw: 6.13675785
+      Yaw: 5.62175655
     Saved: ~
 Window Geometry:
   Displays:
@@ -461,7 +387,7 @@ Window Geometry:
     collapsed: false
   MotionPlanning - Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000100000000000001be00000452fc020000000cfb0000001a004600720061006d006500460061006200500061006e0065006c01000000280000026e000001ea00fffffffb000000100044006900730070006c006100790073010000029c000001de000000dd00fffffffb0000000800480065006c00700000000342000000bb0000000000000000fb0000000a005600690065007700730000000028000000ea000000b000fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000028000002110000000000000000fb00000022004600720061006d0065004600610062005200760069007a00500061006e0065006c0000000028000002180000000000000000fb0000001200530065006c0065006300740069006f006e00000003bb000000bf0000006400fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007300000003d8000000a20000006400fffffffb0000002e004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d00200053006c00690064006500720000000000ffffffff0000004a00fffffffb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670000000028000001cc000001cc00fffffffb000000100044006900730070006c006100790073000000027a00000200000000dd00ffffff000005bc0000045200000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000100000000000001be00000452fc020000000cfb0000001a004600720061006d006500460061006200500061006e0065006c01000000280000026e0000005c00fffffffb000000100044006900730070006c006100790073010000029c000001de000000dd00fffffffb0000000800480065006c00700000000342000000bb0000000000000000fb0000000a005600690065007700730000000028000000ea000000b000fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000028000002110000000000000000fb00000022004600720061006d0065004600610062005200760069007a00500061006e0065006c0000000028000002180000000000000000fb0000001200530065006c0065006300740069006f006e00000003bb000000bf0000006400fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007300000003d8000000a20000006400fffffffb0000002e004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d00200053006c00690064006500720000000000ffffffff0000004a00fffffffb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670000000028000001cc000001cc00fffffffb000000100044006900730070006c006100790073000000027a00000200000000dd00ffffff000005bc0000045200000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Tool Properties:

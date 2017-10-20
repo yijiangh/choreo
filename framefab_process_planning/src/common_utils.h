@@ -61,6 +61,12 @@ trajectory_msgs::JointTrajectory getMoveitPlan(const std::string& group_name,
                                                const std::vector<double>& joints_stop,
                                                moveit::core::RobotModelConstPtr model);
 
+trajectory_msgs::JointTrajectory getMoveitTransitionPlan(const std::string& group_name,
+                                                         const std::vector<double>& joints_start,
+                                                         const std::vector<double>& joints_stop,
+                                                         const std::vector<double>& initial_pose,
+                                                         moveit::core::RobotModelConstPtr model);
+
 trajectory_msgs::JointTrajectory planFreeMove(descartes_core::RobotModel& model,
                                               const std::string& group_name,
                                               moveit::core::RobotModelConstPtr moveit_model,

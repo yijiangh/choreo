@@ -156,11 +156,18 @@ void framefab_process_planning::fillTrajectoryHeaders(const std::vector<std::str
 }
 
 void framefab_process_planning::appendTrajectoryHeaders(const trajectory_msgs::JointTrajectory& orig_traj,
-                                                      trajectory_msgs::JointTrajectory& traj)
+                                                        trajectory_msgs::JointTrajectory& traj)
 {
   traj.joint_names = orig_traj.joint_names;
   traj.header.frame_id = orig_traj.header.frame_id;
   traj.header.stamp = orig_traj.header.stamp + orig_traj.points.back().time_from_start;
+
+  // set time_from_start relative to first point
+  auto base_time = traj.points.front().time_from_start;
+  for (auto jt_pt : traj.points)
+  {
+    jt_pt.time_from_start -= base_time;
+  }
 }
 
 std::vector<double> framefab_process_planning::getCurrentJointState(const std::string& topic)
@@ -264,6 +271,81 @@ trajectory_msgs::JointTrajectory framefab_process_planning::getMoveitPlan(
     ROS_ERROR("%s: Unable to call MoveIt path planning service: '%s' or planning failed",
               __FUNCTION__, DEFAULT_MOVEIT_PLANNING_SERVICE_NAME.c_str());
     throw std::runtime_error("Unable to generate MoveIt path plan");
+  }
+  return jt;
+}
+
+trajectory_msgs::JointTrajectory framefab_process_planning::getMoveitTransitionPlan(
+    const std::string& group_name,
+    const std::vector<double>& joints_start,
+    const std::vector<double>& joints_stop,
+    const std::vector<double>& initial_pose,
+    moveit::core::RobotModelConstPtr model)
+{
+  const moveit::core::JointModelGroup* group = model->getJointModelGroup(group_name);
+  robot_state::RobotState goal_state(model);
+  goal_state.setJointGroupPositions(group, joints_stop);
+
+  moveit_msgs::GetMotionPlan::Request req;
+  req.motion_plan_request.group_name = group_name;
+  req.motion_plan_request.num_planning_attempts = DEFAULT_MOVEIT_NUM_PLANNING_ATTEMPTS;
+  req.motion_plan_request.max_velocity_scaling_factor = DEFAULT_MOVEIT_VELOCITY_SCALING;
+  req.motion_plan_request.allowed_planning_time = DEFAULT_MOVEIT_PLANNING_TIME;
+  req.motion_plan_request.planner_id = DEFAULT_MOVEIT_PLANNER_ID;
+
+  req.motion_plan_request.workspace_parameters.header.frame_id = model->getRootLinkName();
+  req.motion_plan_request.workspace_parameters.header.stamp = ros::Time::now();
+
+  // Set the start state
+  // Will want to add options here to start from a state that's not the start state
+  moveit_msgs::RobotState start_state;
+  start_state.is_diff = false;
+  sensor_msgs::JointState joint_state;
+  joint_state.name = group->getActiveJointModelNames();
+  joint_state.position = joints_start;
+  start_state.joint_state = joint_state;
+  req.motion_plan_request.start_state = start_state;
+
+  // Set the goal state
+  moveit_msgs::Constraints c = kinematic_constraints::constructGoalConstraints(goal_state, group);
+  req.motion_plan_request.goal_constraints.push_back(c);
+
+  // Make connection the planning-service offered by the MoveIt MoveGroup node
+  ros::NodeHandle nh;
+  ros::ServiceClient client =
+      nh.serviceClient<moveit_msgs::GetMotionPlan>(DEFAULT_MOVEIT_PLANNING_SERVICE_NAME);
+
+  trajectory_msgs::JointTrajectory jt;
+  moveit_msgs::GetMotionPlan::Response res;
+  if (client.call(req, res))
+  {
+    jt = res.motion_plan_response.trajectory.joint_trajectory;
+  }
+  else
+  {
+    ROS_ERROR("%s: Unable to call MoveIt path planning service: '%s' or planning failed",
+              __FUNCTION__, DEFAULT_MOVEIT_PLANNING_SERVICE_NAME.c_str());
+    ROS_WARN("try resetting robot to intial pose and replan");
+
+    robot_state::RobotState reset_goal_state(model);
+    reset_goal_state.setJointGroupPositions(group, initial_pose);
+
+    // interpolate the reset goal state
+    moveit_msgs::Constraints c = kinematic_constraints::constructGoalConstraints(reset_goal_state, group);
+    auto it = req.motion_plan_request.goal_constraints.begin();
+
+    req.motion_plan_request.goal_constraints.insert(it, c);
+
+    if(client.call(req, res))
+    {
+      jt = res.motion_plan_response.trajectory.joint_trajectory;
+    }
+    else
+    {
+     ROS_ERROR("%s: Unable to call MoveIt path planning service: '%s' or planning failed, AFTER RESETTING POSE",
+              __FUNCTION__, DEFAULT_MOVEIT_PLANNING_SERVICE_NAME.c_str());
+      throw std::runtime_error("Unable to generate MoveIt path plan");
+    }
   }
   return jt;
 }
