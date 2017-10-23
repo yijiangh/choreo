@@ -134,7 +134,7 @@ bool framefab_process_planning::generateMotionPlan(
 
   trajectory_msgs::JointTrajectory ros_traj = toROSTrajectory(sol, *model);
   // sim speed tuning
-  for (auto& pt : ros_traj.points) pt.time_from_start *= 2.0;
+  for (auto& pt : ros_traj.points) pt.time_from_start *= 3.0;
 
   plans.resize(segs.size());
 
@@ -200,7 +200,7 @@ bool framefab_process_planning::generateMotionPlan(
     ROS_INFO_STREAM("---------");
 
     // sim speed tuning
-    for (auto& pt : ros_trans_traj.points) pt.time_from_start *= 2.0;
+    for (auto& pt : ros_trans_traj.points) pt.time_from_start *= 3.0;
 
     framefab_msgs::SubProcess sub_process;
 
@@ -218,31 +218,39 @@ bool framefab_process_planning::generateMotionPlan(
   fillTrajectoryHeaders(joint_names, plans[0].sub_process_array[0].joint_array);
   auto last_filled_jts = plans[0].sub_process_array[0].joint_array;
 
+  // inline function for append trajectory headers (adjust time frame)
+  auto adjustTrajectoryHeaders = [](trajectory_msgs::JointTrajectory& last_filled_jts, framefab_msgs::SubProcess& sp)
+  {
+    ROS_INFO_STREAM("[PP] subprocess - jt array size: " << sp.joint_array.points.size());
+    appendTrajectoryHeaders(last_filled_jts, sp.joint_array);
+    last_filled_jts = sp.joint_array;
+
+    // screen display
+    if(sp.process_type == framefab_msgs::SubProcess::TRANSITION)
+    {
+      ROS_INFO_STREAM("sp " << "transition");
+    }
+
+    if(sp.process_type == framefab_msgs::SubProcess::PROCESS)
+    {
+      ROS_INFO_STREAM("sp " << "process");
+    }
+
+    ROS_INFO_STREAM("time stamp: " << sp.joint_array.header.stamp
+                                   << ", first time from st:"
+                                   << sp.joint_array.points.front().time_from_start
+                                   << ", last time from st: "
+                                   << sp.joint_array.points.back().time_from_start);
+    ROS_INFO_STREAM("*****");
+  };
+
   for(size_t i = 0; i < segs.size(); i++)
   {
-    for (auto sp : plans[i].sub_process_array)
+    ROS_INFO_STREAM("=============================");
+    ROS_INFO_STREAM("process #" << i);
+    for (size_t j = 0; j < plans[i].sub_process_array.size(); j++)
     {
-      ROS_INFO_STREAM("[PP] process #" << i << ", subprocess - jt array size: " << sp.joint_array.points.size());
-      appendTrajectoryHeaders(last_filled_jts, sp.joint_array);
-      last_filled_jts = sp.joint_array;
-
-      if(sp.process_type == framefab_msgs::SubProcess::TRANSITION)
-      {
-        ROS_INFO_STREAM("-----");
-        ROS_INFO_STREAM("process #" << i << "_sp " << "transition");
-      }
-
-      if(sp.process_type == framefab_msgs::SubProcess::PROCESS)
-      {
-        ROS_INFO_STREAM("-----");
-        ROS_INFO_STREAM("process #" << i << "_sp " << "process");
-      }
-
-      ROS_INFO_STREAM("time stamp: " << sp.joint_array.header.stamp
-                                     << ", first time from st:"
-                                     << sp.joint_array.points.front().time_from_start
-                                     << ", last time from st: "
-                                     << sp.joint_array.points.back().time_from_start);
+      adjustTrajectoryHeaders(last_filled_jts, plans[i].sub_process_array[j]);
     }
   }
 
