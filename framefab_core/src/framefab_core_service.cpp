@@ -486,6 +486,7 @@ void FrameFabCoreService::simulateMotionPlansActionCallback(const framefab_msgs:
 
   if(0 == goal_in->index)
   {
+    ROS_WARN_STREAM("Current pose not in initial pose. Resetting.");
     // reset Robot's pose to init pose
     if (!moveToTargetJointPose(robot_input_params_.init_pose))
     {

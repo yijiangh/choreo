@@ -163,10 +163,12 @@ void framefab_process_planning::appendTrajectoryHeaders(const trajectory_msgs::J
   traj.header.stamp = orig_traj.header.stamp + orig_traj.points.back().time_from_start;
 
   // set time_from_start relative to first point
-  auto base_time = traj.points.front().time_from_start;
-  for (auto jt_pt : traj.points)
+  ros::Duration base_time = traj.points[0].time_from_start;
+  ROS_INFO_STREAM("base time: " << base_time);
+  for (int i = 0; i < traj.points.size(); i++)
   {
-    jt_pt.time_from_start -= base_time;
+    traj.points[i].time_from_start -= base_time;
+    ROS_INFO_STREAM("following pt time: " << traj.points[i].time_from_start);
   }
 }
 
