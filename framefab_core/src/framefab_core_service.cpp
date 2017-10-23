@@ -23,7 +23,7 @@ const static std::string GET_AVAILABLE_PROCESS_PLANS_SERVICE= "get_available_pro
 const static std::string OUTPUT_PROCESS_PLANS_SERVICE= "output_process_plans";
 
 // subscribed services
-const static std::string PATH_POST_PROCESSING_SERVICE = "path_post_processing";
+const static std::string TASK_SEQUENCE_PROCESSING_SERVICE = "task_sequence_processing";
 const static std::string PROCESS_PLANNING_SERVICE = "process_planning";
 const static std::string MOVE_TO_TARGET_POSE_SERVICE = "move_to_target_pose";
 const static std::string OUTPUT_PROCESSING_SERVICE = "output_processing";
@@ -39,7 +39,7 @@ const static std::string PATH_VISUAL_TOPIC = "path_visualization";
 
 // action server name - note: must be same to client's name
 const static std::string FRAMEFAB_EXE_ACTION_SERVER_NAME = "framefab_process_execution_as";
-const static std::string PATH_PLANNING_ACTION_SERVER_NAME = "path_planning_action";
+const static std::string TASK_SEQUENCE_PROCESSING_ACTION_SERVER_NAME = "task_sequence_process_action";
 const static std::string PROCESS_PLANNING_ACTION_SERVER_NAME = "process_planning_action";
 const static std::string SIMULATE_MOTION_PLAN_ACTION_SERVER_NAME = "simulate_motion_plan_as";
 
@@ -49,8 +49,8 @@ FrameFabCoreService::FrameFabCoreService()
     : save_data_(false),
       selected_path_id_(0),
       framefab_exe_client_(FRAMEFAB_EXE_ACTION_SERVER_NAME, true),
-      path_planning_server_(nh_, PATH_PLANNING_ACTION_SERVER_NAME,
-                            boost::bind(&FrameFabCoreService::pathPlanningActionCallback, this, _1), false),
+      task_sequence_processing_server_(nh_, TASK_SEQUENCE_PROCESSING_ACTION_SERVER_NAME,
+                            boost::bind(&FrameFabCoreService::taskSequenceProcessingActionCallback, this, _1), false),
       process_planning_server_(nh_, PROCESS_PLANNING_ACTION_SERVER_NAME,
                                boost::bind(&FrameFabCoreService::processPlanningActionCallback, this, _1), false),
       simulate_motion_plan_server_(nh_, SIMULATE_MOTION_PLAN_ACTION_SERVER_NAME,
@@ -109,7 +109,7 @@ bool FrameFabCoreService::init()
   // start server
 
   // service clients
-  path_post_processing_client_ = nh_.serviceClient<framefab_msgs::PathPostProcessing>(PATH_POST_PROCESSING_SERVICE);
+  task_sequence_processing_client_ = nh_.serviceClient<framefab_msgs::TaskSequenceProcessing>(TASK_SEQUENCE_PROCESSING_SERVICE);
   process_planning_client_ = nh_.serviceClient<framefab_msgs::ProcessPlanning>(PROCESS_PLANNING_SERVICE);
   move_to_pose_client_  = nh_.serviceClient<framefab_msgs::MoveToTargetPose>(MOVE_TO_TARGET_POSE_SERVICE);
   output_processing_client_  = nh_.serviceClient<framefab_msgs::OutputProcessing>(OUTPUT_PROCESSING_SERVICE);
@@ -117,7 +117,7 @@ bool FrameFabCoreService::init()
   // publishers
 
   // action servers
-  path_planning_server_.start();
+  task_sequence_processing_server_.start();
   process_planning_server_.start();
   simulate_motion_plan_server_.start();
 
@@ -362,34 +362,34 @@ bool FrameFabCoreService::outputProcessPlansCallback(
   }
 }
 
-void FrameFabCoreService::pathPlanningActionCallback(const framefab_msgs::PathPlanningGoalConstPtr &goal_in)
+void FrameFabCoreService::taskSequenceProcessingActionCallback(const framefab_msgs::PathPlanningGoalConstPtr &goal_in)
 {
   switch (goal_in->action)
   {
     case framefab_msgs::PathPlanningGoal::FIND_AND_PROCESS:
     {
-      path_planning_feedback_.last_completed = "Recieved request to post process plan\n";
-      path_planning_server_.publishFeedback(path_planning_feedback_);
+      task_sequence_processing_feedback_.last_completed = "[Core] Recieved request to process task sequence plan\n";
+      task_sequence_processing_server_.publishFeedback(task_sequence_processing_feedback_);
 
-      // call path_post_processing srv
-      framefab_msgs::PathPostProcessing srv;
+      // call task_sequence_processing srv
+      framefab_msgs::TaskSequenceProcessing srv;
       srv.request.action = srv.request.PROCESS_PATH_AND_MARKER;
       srv.request.model_params = model_input_params_;
       srv.request.path_params = path_input_params_;
 
-      if(!path_post_processing_client_.call(srv))
+      if(!task_sequence_processing_server_.call(srv))
       {
-        ROS_WARN_STREAM("Unable to call path post processing service");
-        path_planning_feedback_.last_completed = "Failed to call Path Post Processing Service!\n";
-        path_planning_server_.publishFeedback(path_planning_feedback_);
-        path_planning_result_.succeeded = false;
-        path_planning_server_.setAborted(path_planning_result_);
+        ROS_WARN_STREAM("[Core] Unable to call task sequence processing service");
+        task_sequence_processing_feedback_.last_completed = "[Core] Failed to call Task Sequence Processing Service!\n";
+        task_sequence_processing_server_.publishFeedback(task_sequence_processing_feedback_);
+        task_sequence_processing_result_.succeeded = false;
+        task_sequence_processing_server_.setAborted(task_sequence_processing_result_);
       }
       else
       {
         // take srv output, save them
-        path_planning_feedback_.last_completed = "Finished path post processing. Visualizing...\n";
-        path_planning_server_.publishFeedback(path_planning_feedback_);
+        task_sequence_processing_feedback_.last_completed = "Finished task sequence processing. Visualizing...\n";
+        task_sequence_processing_server_.publishFeedback(task_sequence_processing_feedback_);
 
         // import data into visual_tools
         visual_tool_.setProcessPath(srv.response.process);
@@ -399,8 +399,8 @@ void FrameFabCoreService::pathPlanningActionCallback(const framefab_msgs::PathPl
         process_paths_ = srv.response.process;
         env_objs_ = srv.response.env_collision_objs;
 
-        path_planning_result_.succeeded = true;
-        path_planning_server_.setSucceeded(path_planning_result_);
+        task_sequence_processing_result_.succeeded = true;
+        task_sequence_processing_server_.setSucceeded(task_sequence_processing_result_);
       }
       break;
     }
@@ -411,7 +411,7 @@ void FrameFabCoreService::pathPlanningActionCallback(const framefab_msgs::PathPl
       break;
     }
   }
-  path_planning_result_.succeeded = false;
+  task_sequence_processing_result_.succeeded = false;
 }
 
 void FrameFabCoreService::processPlanningActionCallback(const framefab_msgs::ProcessPlanningGoalConstPtr &goal_in)

@@ -73,7 +73,7 @@ class FrameFabCoreService
                                   framefab_msgs::OutputProcessPlans::Response& res);
 
   // Action callbacks
-  void pathPlanningActionCallback(const framefab_msgs::PathPlanningGoalConstPtr &goal);
+  void taskSequenceProcessingActionCallback(const framefab_msgs::TaskSequenceProcessingGoalConstPtr &goal);
   void processPlanningActionCallback(const framefab_msgs::ProcessPlanningGoalConstPtr &goal);
   void simulateMotionPlansActionCallback(const framefab_msgs::SimulateMotionPlanGoalConstPtr& goal_in);
 
@@ -97,16 +97,16 @@ class FrameFabCoreService
   ros::ServiceServer output_process_plans_server_;
 
   // Services subscribed to by this class
-  ros::ServiceClient path_post_processing_client_;
+  ros::ServiceClient task_sequence_processing_client_;
   ros::ServiceClient process_planning_client_;
   ros::ServiceClient move_to_pose_client_;
   ros::ServiceClient output_processing_client_;
 
   // Actions offered by this class
   ros::NodeHandle nh_;
-  actionlib::SimpleActionServer<framefab_msgs::PathPlanningAction> path_planning_server_;
-  framefab_msgs::PathPlanningFeedback path_planning_feedback_;
-  framefab_msgs::PathPlanningResult path_planning_result_;
+  actionlib::SimpleActionServer<framefab_msgs::TaskSequenceProcessingAction> task_sequence_processing_server_;
+  framefab_msgs::PathPlanningFeedback task_sequence_processing_feedback_;
+  framefab_msgs::PathPlanningResult task_sequence_processing_result_;
 
   actionlib::SimpleActionServer<framefab_msgs::ProcessPlanningAction> process_planning_server_;
   framefab_msgs::ProcessPlanningFeedback process_planning_feedback_;

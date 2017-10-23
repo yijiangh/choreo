@@ -25,7 +25,8 @@ namespace framefab_gui
 /**
  * @brief The FrameFabWidget class works in states:
  * 1. System Init State
- * 2. Path Planning State           (require computed path info from framefab)
+ * 2. Task Sequence Planning State  (require computed path info from framefab)
+ * 2' Task Sequence Processing State
  * 3. Select Path State             (user select path for process planning)
  * 4. Process Planning State        (motion planning and fill in trajectory library)
  * 5. Select Plan State             (User selects plans, simulate and output)

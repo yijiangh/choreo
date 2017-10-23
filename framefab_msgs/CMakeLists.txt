@@ -23,7 +23,7 @@ add_action_files(
     DIRECTORY
     action
     FILES
-    PathPlanning.action
+		TaskSequenceProcessing.action
     ProcessPlanning.action
     SimulateMotionPlan.action
     ProcessExecution.action
@@ -48,7 +48,7 @@ add_message_files(
 add_service_files(
 FILES
 FrameFabParameters.srv
-PathPostProcessing.srv
+TaskSequenceProcessing.srv
 ElementNumberRequest.srv
 VisualizeSelectedPath.srv
 ProcessPlanning.srv
@@ -68,6 +68,7 @@ generate_messages(DEPENDENCIES
   trajectory_msgs
   moveit_msgs
 )
+
 ###################################
 ## catkin specific configuration ##
 ###################################

@@ -9,13 +9,13 @@
 #include <moveit_msgs/CollisionObject.h>
 #include <Eigen/Core>
 
-namespace framefab_utils
+namespace framefab_task_sequence_processing_utils
 {
 
-class UnitProcessPath
+class UnitProcess
 {
  public:
-  UnitProcessPath(int index,
+  UnitProcess(int index,
                   Eigen::Vector3d st_pt, Eigen::Vector3d end_pt,
                   std::vector<Eigen::Vector3d> feasible_orients,
                   std::string type_str,
@@ -30,7 +30,7 @@ class UnitProcessPath
     element_diameter_ = element_diameter;
     shrink_length_ = shrink_length;
   }
-  virtual ~UnitProcessPath(){}
+  virtual ~UnitProcess(){}
 
   Eigen::Vector3d getStartPt() { return st_pt_; }
   Eigen::Vector3d getEndPt() { return end_pt_; }

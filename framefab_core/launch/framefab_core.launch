@@ -7,6 +7,7 @@
   <arg name="save_data" default="false" />
   <arg name="save_location" default="$(env HOME)/.ros/" />
 
+	<!--core coordinating service-->
   <node name="framefab_core_service" pkg="framefab_core" type="framefab_core_service" output="screen" required="true" launch-prefix="$(arg launch_prefix)">
     <rosparam command="load" file="$(arg config_path)/model_input.yaml"/>
     <rosparam command="load" file="$(arg config_path)/path_input.yaml"/>
@@ -16,8 +17,10 @@
     <param name="save_location" value="$(arg save_location)"/>
   </node>
 
-  <node name="path_post_processor_node" pkg="framefab_path_post_processor" type="path_post_processor_node" output="screen" required="true"/>
+	<!--task sequence formatting service-->
+  <node name="framefab_task_sequence_processor_node" pkg="framefab_task_sequence_processor" type="task_sequence_processor_node" output="screen" required="true"/>
 
+	<!--output trajectory formatting service-->
   <node name="framefab_output_processor_node" pkg="framefab_output_processor" type="framefab_output_processor_node" output="screen" required="true"/>
 
 </launch>

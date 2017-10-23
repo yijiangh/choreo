@@ -4,7 +4,7 @@
 #include <ros/ros.h>
 #include <ros/console.h>
 
-#include <framefab_path_post_processor/path_post_processor.h>
+#include <framefab_task_sequence_processor/path_post_processor.h>
 
 #include <framefab_rapidjson/include/rapidjson/document.h>
 #include <framefab_rapidjson/include/rapidjson/filereadstream.h>
@@ -17,7 +17,7 @@ Eigen::Vector3d transformPoint(const Eigen::Vector3d& pt, const double& scale, c
   return (pt * scale + ref_transf);
 }
 
-framefab_path_post_processing::PathPostProcessor::PathPostProcessor()
+framefab_task_sequence_processing::PathPostProcessor::PathPostProcessor()
 {
   unit_scale_ = 1;
   ref_pt_ = Eigen::Vector3d(0, 0, 0);
@@ -25,7 +25,7 @@ framefab_path_post_processing::PathPostProcessor::PathPostProcessor()
   verbose_ = false;
 }
 
-void framefab_path_post_processing::PathPostProcessor::setParams(
+void framefab_task_sequence_processing::PathPostProcessor::setParams(
     framefab_msgs::ModelInputParameters model_params,
     framefab_msgs::PathInputParameters path_params)
 {
@@ -74,7 +74,7 @@ void framefab_path_post_processing::PathPostProcessor::setParams(
   ref_pt_ = Eigen::Vector3d(model_input_params_.ref_pt_x, model_input_params_.ref_pt_y, model_input_params_.ref_pt_z);
 }
 
-bool framefab_path_post_processing::PathPostProcessor::createCandidatePoses()
+bool framefab_task_sequence_processing::PathPostProcessor::createCandidatePoses()
 {
   using namespace rapidjson;
 
@@ -153,7 +153,7 @@ bool framefab_path_post_processing::PathPostProcessor::createCandidatePoses()
       }
     }
 
-    // create UnitProcessPath & Add UnitProcessPath into ProcessPath
+    // create UnitProcess & Add UnitProcess into ProcessPath
     path_array_.push_back(createScaledUnitProcessPath(i, st_pt, end_pt, feasible_orients,
                                                       type_str, element_diameter_, shrink_length_));
   }
@@ -162,7 +162,7 @@ bool framefab_path_post_processing::PathPostProcessor::createCandidatePoses()
   return true;
 }
 
-bool framefab_path_post_processing::PathPostProcessor::createEnvCollisionObjs()
+bool framefab_task_sequence_processing::PathPostProcessor::createEnvCollisionObjs()
 {
   // for now, only a simple flat box, representing the build plate, is added.
   // TODO: might need to use load mesh approach for user-customized scene collision setup
@@ -203,14 +203,15 @@ bool framefab_path_post_processing::PathPostProcessor::createEnvCollisionObjs()
   return true;
 }
 
-framefab_utils::UnitProcessPath framefab_path_post_processing::PathPostProcessor::createScaledUnitProcessPath(
+framefab_task_squence_processing_utils::UnitProcess
+framefab_task_sequence_processing::PathPostProcessor::createScaledUnitProcessPath(
     int index, Eigen::Vector3d st_pt, Eigen::Vector3d end_pt,
     std::vector<Eigen::Vector3d> feasible_orients,
     std::string type_str,
     double element_diameter,
     double shrink_length)
 {
-  framefab_utils::UnitProcessPath upp(
+  framefab_task_squence_processing_utils::UnitProcess upp(
       index,
       transformPoint(st_pt, unit_scale_, transf_vec_),
       transformPoint(end_pt, unit_scale_, transf_vec_),

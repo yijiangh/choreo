@@ -7,10 +7,10 @@
 #include <actionlib/client/simple_action_client.h>
 #include <framefab_msgs/ModelInputParameters.h>
 #include <framefab_msgs/PathInputParameters.h>
-#include <framefab_msgs/PathPlanningAction.h>
+#include <framefab_msgs/TaskSequenceProcessingAction.h>
 
 // note: this action client's name MUST be the same to server's name
-const static std::string PATH_PLANNING_ACTION_CLIENT_NAME = "path_planning_action";
+const static std::string TASK_SEQUENCE_PROCESSING_ACTION_CLIENT_NAME = "task_sequence_processing_action";
 
 namespace framefab_gui
 {
@@ -33,10 +33,10 @@ class PathPlanningState : public GuiState
   virtual void onReset(FrameFabWidget& gui);
 
  private:
-  void pathPlanningDoneCallback(const actionlib::SimpleClientGoalState& state,
-                                const framefab_msgs::PathPlanningResultConstPtr& result);
-  void pathPlanningActiveCallback();
-  void pathPlanningFeedbackCallback(const framefab_msgs::PathPlanningFeedbackConstPtr& feedback);
+  void taskSequenceProcessingDoneCallback(const actionlib::SimpleClientGoalState& state,
+                                const framefab_msgs::taskSequenceProcessingResultConstPtr& result);
+  void taskSequenceProcessingActiveCallback();
+  void taskSequenceProcessingFeedbackCallback(const framefab_msgs::taskSequenceProcessingFeedbackConstPtr& feedback);
 
  private:
   void makeRequest(framefab_msgs::ModelInputParameters model_params,
@@ -50,7 +50,7 @@ class PathPlanningState : public GuiState
 
  private:
   ros::NodeHandle nh_;
-  actionlib::SimpleActionClient<framefab_msgs::PathPlanningAction> path_planning_action_client_;
+  actionlib::SimpleActionClient<framefab_msgs::TaskSequenceProcessingAction> task_sequence_processing_action_client_;
   FrameFabWidget* gui_ptr_;
 };
 }

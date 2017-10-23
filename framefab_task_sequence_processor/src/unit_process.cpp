@@ -4,7 +4,7 @@
 #include <ros/ros.h>
 #include <ros/console.h>
 
-#include <framefab_path_post_processor/process_path.h>
+#include <framefab_task_sequence_processor/unit_process.h>
 #include <tf_conversions/tf_eigen.h>
 #include <eigen_conversions/eigen_msg.h>
 
@@ -13,7 +13,7 @@ double dist(const Eigen::Vector3d& from, const Eigen::Vector3d& to)
   return (from - to).norm();
 }
 
-geometry_msgs::Pose framefab_utils::UnitProcessPath::computeCylinderPose(
+geometry_msgs::Pose framefab_task_sequence_processing_utils::UnitProcessPath::computeCylinderPose(
     const Eigen::Vector3d& st_pt, const Eigen::Vector3d& end_pt) const
 {
   geometry_msgs::Pose cylinder_pose;
@@ -51,7 +51,7 @@ geometry_msgs::Pose framefab_utils::UnitProcessPath::computeCylinderPose(
   return cylinder_pose;
 }
 
-moveit_msgs::CollisionObject framefab_utils::UnitProcessPath::createCollisionObject(
+moveit_msgs::CollisionObject framefab_task_sequence_processing_utils::UnitProcessPath::createCollisionObject(
     const int& id, const Eigen::Vector3d& st_pt, const Eigen::Vector3d& end_pt,
     const double& element_diameter) const
 {
@@ -74,7 +74,7 @@ moveit_msgs::CollisionObject framefab_utils::UnitProcessPath::createCollisionObj
   return collision_cylinder;
 }
 
-void framefab_utils::UnitProcessPath::createShrinkedEndPoint(Eigen::Vector3d& st_pt, Eigen::Vector3d& end_pt,
+void framefab_task_sequence_processing_utils::UnitProcessPath::createShrinkedEndPoint(Eigen::Vector3d& st_pt, Eigen::Vector3d& end_pt,
                     const double& shrink_length)
 {
   Eigen::Vector3d translation_vec = end_pt - st_pt;
