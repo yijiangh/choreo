@@ -62,15 +62,14 @@ void framefab_gui::TaskSequenceProcessingState::makeRequest(
   goal.model_params = model_params;
   goal.task_sequence_params  = task_sequence_params;
 
-//  ROS_INFO("Waiting for path planning action server to start.");
   task_sequence_processing_action_client_.waitForServer();
   if(task_sequence_processing_action_client_.isServerConnected())
   {
-    ROS_INFO_STREAM("path planning action server connected!");
+    ROS_INFO_STREAM("[UI] task sequence processing action server connected!");
   }
   else
   {
-    ROS_ERROR_STREAM("action path planning server not connected");
+    ROS_ERROR_STREAM("[UI] action task sequence processing server not connected");
   }
 
   task_sequence_processing_action_client_.sendGoal(

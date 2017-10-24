@@ -44,7 +44,7 @@ int main(int argc, char** argv)
        MOVE_TO_TARGET_POSE_SERVICE, &ProcessPlanningManager::handleMoveToTargetPosePlanAndExecution, &manager);
 
   // Serve and wait for shutdown
-  ROS_INFO_STREAM("framefab [ProcessPlanning] Server Online");
+  ROS_INFO_STREAM("[PP] process planning server online");
   ros::spin();
 
   return 0;

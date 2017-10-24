@@ -166,7 +166,14 @@ void framefab_gui::FrameFabWidget::loadParameters()
       nodeHandle().serviceClient<framefab_msgs::FrameFabParameters>(FRAMEFAB_PARAMETERS_SERVICE);
 
   setButtonsEnabled(false);
-  param_client.waitForExistence();
+  if(!param_client.waitForExistence(ros::Duration(10)))
+  {
+    ROS_ERROR("[UI] Unable to connect to parameter server in core service!");
+  }
+  else
+  {
+    ROS_INFO_STREAM("[UI] Connected to parameter server in core service.");
+  }
 
   if (param_client.call(srv))
   {
@@ -177,7 +184,7 @@ void framefab_gui::FrameFabWidget::loadParameters()
   }
   else
   {
-    ROS_WARN_STREAM("Unable to fetch framefab parameters");
+    ROS_WARN_STREAM("[UI] Unable to fetch framefab parameters");
   }
   setButtonsEnabled(true);
 }

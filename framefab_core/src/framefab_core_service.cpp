@@ -220,7 +220,7 @@ bool FrameFabCoreService::loadOutputSaveDirInputParameters(const std::string & f
 
   // otherwise default to the parameter server
   ros::NodeHandle nh("~/output_save_dir_input");
-  return loadParam(nh, "file_path", task_sequence_input_params_.file_path);
+  return loadParam(nh, "file_path", output_save_dir_input_params_.file_path);
 }
 
 void FrameFabCoreService::saveOutputSaveDirInputParameters(const std::string & filename)
@@ -284,7 +284,7 @@ bool FrameFabCoreService::elementNumberRequestServerCallback(
       res.element_number = visual_tool_.getPathArraySize();
       break;
     }
-    case framefab_msgs::ElementNumberRequest::Request::REQUEST_SELECTED_PATH_NUMBER:
+    case framefab_msgs::ElementNumberRequest::Request::REQUEST_SELECTED_TASK_NUMBER:
     {
       res.element_number = selected_task_id_;
       break;
@@ -373,7 +373,7 @@ void FrameFabCoreService::taskSequenceProcessingActionCallback(const framefab_ms
 
       // call task_sequence_processing srv
       framefab_msgs::TaskSequenceProcessing srv;
-      srv.request.action = srv.request.PROCESS_PATH_AND_MARKER;
+      srv.request.action = srv.request.PROCESS_TASK_AND_MARKER;
       srv.request.model_params = model_input_params_;
       srv.request.task_sequence_params = task_sequence_input_params_;
 

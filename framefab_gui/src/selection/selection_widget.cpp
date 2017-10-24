@@ -70,7 +70,7 @@ void framefab_gui::SelectionWidget::loadParameters()
     }
     case PLAN_SELECTION:
     {
-      srv.request.action = framefab_msgs::ElementNumberRequest::Request::REQUEST_SELECTED_PATH_NUMBER;
+      srv.request.action = framefab_msgs::ElementNumberRequest::Request::REQUEST_SELECTED_TASK_NUMBER;
       break;
     }
     default:

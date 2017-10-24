@@ -15,7 +15,7 @@ bool processTaskSequenceCallback(framefab_msgs::TaskSequenceProcessingRequest& r
 
   switch (req.action)
   {
-    case framefab_msgs::TaskSequenceProcessing::Request::PROCESS_PATH_AND_MARKER:
+    case framefab_msgs::TaskSequenceProcessing::Request::PROCESS_TASK_AND_MARKER:
     {
       if(!(ts_processor.createCandidatePoses() && ts_processor.createEnvCollisionObjs()))
       {

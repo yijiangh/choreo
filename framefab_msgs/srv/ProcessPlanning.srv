@@ -1,6 +1,6 @@
 int32 ALL=-1
 
-# selected path id
+# selected task id
 int32 index
 
 # working env collision objs

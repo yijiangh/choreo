@@ -25,6 +25,11 @@ framefab_gui::OutputSaveDirInputConfigWidget::OutputSaveDirInputConfigWidget(fra
 
 static void checkFileExtension(std::string& str)
 {
+  if(str.empty())
+  {
+    return;
+  }
+
   std::string json_suffix = ".json";
   std::size_t found = str.find_last_of(json_suffix);
 

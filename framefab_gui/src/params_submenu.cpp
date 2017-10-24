@@ -53,8 +53,7 @@ const framefab_msgs::ModelInputParameters& framefab_gui::ParamsSubmenu::modelInp
   return model_input_widget_->params();
 }
 
-void framefab_gui::ParamsSubmenu::setModelInputParams(
-    const framefab_msgs::ModelInputParameters& params)
+void framefab_gui::ParamsSubmenu::setModelInputParams(const framefab_msgs::ModelInputParameters& params)
 {
   model_input_widget_->params() = params;
   model_input_widget_->update_display_fields();
@@ -65,8 +64,7 @@ const framefab_msgs::TaskSequenceInputParameters& framefab_gui::ParamsSubmenu::t
   return task_sequence_input_widget_->params();
 }
 
-void framefab_gui::ParamsSubmenu::setTaskSequenceInputParams(
-    const framefab_msgs::TaskSequenceInputParameters& params)
+void framefab_gui::ParamsSubmenu::setTaskSequenceInputParams(const framefab_msgs::TaskSequenceInputParameters& params)
 {
   task_sequence_input_widget_->params() = params;
   task_sequence_input_widget_->update_display_fields();
