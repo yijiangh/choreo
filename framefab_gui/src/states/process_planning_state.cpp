@@ -7,7 +7,7 @@
 #include "framefab_gui/framefab_widget.h"
 #include "framefab_gui/states/system_init_state.h"
 #include "framefab_gui/states/process_planning_state.h"  // previous
-#include "framefab_gui/states/select_path_state.h"  // next if fail
+#include "framefab_gui/states/select_tasks_state.h"  // next if fail
 #include "framefab_gui/states/select_plan_state.h" // next if success
 
 const static std::string PROCESS_PLANNING_ACTION_CLIENT_NAME = "process_planning_action";
@@ -38,7 +38,7 @@ void framefab_gui::ProcessPlanningState::onNext(FrameFabWidget& gui)
 void framefab_gui::ProcessPlanningState::onBack(FrameFabWidget& gui)
 {
   gui.selection_widget().cleanUpVisual();
-  Q_EMIT newStateAvailable(new SelectPathState());
+  Q_EMIT newStateAvailable(new SelectTasksState());
 }
 
 void framefab_gui::ProcessPlanningState::onReset(FrameFabWidget& gui)
@@ -90,7 +90,7 @@ void framefab_gui::ProcessPlanningState::processPlanningDoneCallback(
   }
   else
   {
-//    Q_EMIT newStateAvailable(new SelectPathState());
+//    Q_EMIT newStateAvailable(new SelectTasksState());
   }
 }
 

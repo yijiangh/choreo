@@ -6,7 +6,7 @@
 
 #include <actionlib/client/simple_action_client.h>
 #include <framefab_msgs/ModelInputParameters.h>
-#include <framefab_msgs/PathInputParameters.h>
+#include <framefab_msgs/TaskSequenceInputParameters.h>
 #include <framefab_msgs/TaskSequenceProcessingAction.h>
 
 // note: this action client's name MUST be the same to server's name
@@ -15,12 +15,12 @@ const static std::string TASK_SEQUENCE_PROCESSING_ACTION_CLIENT_NAME = "task_seq
 namespace framefab_gui
 {
 
-class PathPlanningState : public GuiState
+class TaskSequenceProcessingState : public GuiState
 {
   Q_OBJECT
  public:
-  PathPlanningState();
-  ~PathPlanningState();
+  TaskSequenceProcessingState();
+  ~TaskSequenceProcessingState();
 
  public:
   // Entry and exit classes
@@ -34,13 +34,13 @@ class PathPlanningState : public GuiState
 
  private:
   void taskSequenceProcessingDoneCallback(const actionlib::SimpleClientGoalState& state,
-                                const framefab_msgs::taskSequenceProcessingResultConstPtr& result);
+                                const framefab_msgs::TaskSequenceProcessingResultConstPtr& result);
   void taskSequenceProcessingActiveCallback();
-  void taskSequenceProcessingFeedbackCallback(const framefab_msgs::taskSequenceProcessingFeedbackConstPtr& feedback);
+  void taskSequenceProcessingFeedbackCallback(const framefab_msgs::TaskSequenceProcessingFeedbackConstPtr& feedback);
 
  private:
   void makeRequest(framefab_msgs::ModelInputParameters model_params,
-                   framefab_msgs::PathInputParameters path_params);
+                   framefab_msgs::TaskSequenceInputParameters task_sequence_params);
 
   Q_SIGNALS:
   void feedbackReceived(QString feedback);

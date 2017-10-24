@@ -6,22 +6,24 @@
 #define FRAMEFAB_GUI_OUTPUT_PATH_INPUT_CONFIG_WIDGET_H
 
 #include <framefab_gui/parameter_window_base.h>
-#include <framefab_msgs/OutputPathInputParameters.h>
+#include <framefab_msgs/OutputSaveDirInputParameters.h>
 
 namespace Ui
 {
-class OutputPathInputConfigWindow;
+class OutputSaveDirInputConfigWindow;
 }
 
 namespace framefab_gui
 {
 
-class OutputPathInputConfigWidget : public ParameterWindowBase
+class OutputSaveDirInputConfigWidget : public ParameterWindowBase
+
+
 {
   Q_OBJECT
  public:
-  OutputPathInputConfigWidget(framefab_msgs::OutputPathInputParameters params);
-  framefab_msgs::OutputPathInputParameters& params() { return params_; }
+  OutputSaveDirInputConfigWidget(framefab_msgs::OutputSaveDirInputParameters params);
+  framefab_msgs::OutputSaveDirInputParameters& params() { return params_; }
 
   virtual void update_display_fields();
   virtual void update_internal_fields();
@@ -30,8 +32,8 @@ class OutputPathInputConfigWidget : public ParameterWindowBase
   virtual void get_file_path_handler();
 
  private:
-  framefab_msgs::OutputPathInputParameters params_;
-  Ui::OutputPathInputConfigWindow* ui_;
+  framefab_msgs::OutputSaveDirInputParameters params_;
+  Ui::OutputSaveDirInputConfigWindow* ui_;
   std::string last_filepath_;
 };
 }

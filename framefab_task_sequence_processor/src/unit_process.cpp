@@ -13,7 +13,7 @@ double dist(const Eigen::Vector3d& from, const Eigen::Vector3d& to)
   return (from - to).norm();
 }
 
-geometry_msgs::Pose framefab_task_sequence_processing_utils::UnitProcessPath::computeCylinderPose(
+geometry_msgs::Pose framefab_task_sequence_processing_utils::UnitProcess::computeCylinderPose(
     const Eigen::Vector3d& st_pt, const Eigen::Vector3d& end_pt) const
 {
   geometry_msgs::Pose cylinder_pose;
@@ -51,7 +51,7 @@ geometry_msgs::Pose framefab_task_sequence_processing_utils::UnitProcessPath::co
   return cylinder_pose;
 }
 
-moveit_msgs::CollisionObject framefab_task_sequence_processing_utils::UnitProcessPath::createCollisionObject(
+moveit_msgs::CollisionObject framefab_task_sequence_processing_utils::UnitProcess::createCollisionObject(
     const int& id, const Eigen::Vector3d& st_pt, const Eigen::Vector3d& end_pt,
     const double& element_diameter) const
 {
@@ -74,7 +74,7 @@ moveit_msgs::CollisionObject framefab_task_sequence_processing_utils::UnitProces
   return collision_cylinder;
 }
 
-void framefab_task_sequence_processing_utils::UnitProcessPath::createShrinkedEndPoint(Eigen::Vector3d& st_pt, Eigen::Vector3d& end_pt,
+void framefab_task_sequence_processing_utils::UnitProcess::createShrinkedEndPoint(Eigen::Vector3d& st_pt, Eigen::Vector3d& end_pt,
                     const double& shrink_length)
 {
   Eigen::Vector3d translation_vec = end_pt - st_pt;
@@ -84,7 +84,7 @@ void framefab_task_sequence_processing_utils::UnitProcessPath::createShrinkedEnd
   end_pt = end_pt - shrink_length * translation_vec;
 }
 
-framefab_msgs::ElementCandidatePoses framefab_utils::UnitProcessPath::asElementCandidatePoses()
+framefab_msgs::ElementCandidatePoses framefab_task_sequence_processing_utils::UnitProcess::asElementCandidatePoses()
 {
   framefab_msgs::ElementCandidatePoses msg;
 

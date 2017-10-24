@@ -4,14 +4,14 @@
 #include <boost/tuple/tuple.hpp>
 
 #include <framefab_msgs/TaskSequenceProcessing.h>
-#include <framefab_task_sequence_processor/process_path.h>
+#include <framefab_task_sequence_processor/unit_process.h>
 #include <framefab_task_sequence_processor/task_sequence_processor.h>
 
 bool processTaskSequenceCallback(framefab_msgs::TaskSequenceProcessingRequest& req,
              framefab_msgs::TaskSequenceProcessingResponse& res)
 {
   framefab_task_sequence_processing::TaskSequenceProcessor ts_processor;
-  ts_processor.setParams(req.model_params, req.path_params);
+  ts_processor.setParams(req.model_params, req.task_sequence_params);
 
   switch (req.action)
   {
@@ -34,7 +34,7 @@ bool processTaskSequenceCallback(framefab_msgs::TaskSequenceProcessingRequest& r
     }
   }
 
-  std::vector<framefab_utils::UnitProcessPath> process_array =
+  std::vector<framefab_task_sequence_processing_utils::UnitProcess> process_array =
       ts_processor.getCandidatePoses();
 
   std::vector<moveit_msgs::CollisionObject> env_objs =

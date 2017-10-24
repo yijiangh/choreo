@@ -10,9 +10,9 @@
 	<!--core coordinating service-->
   <node name="framefab_core_service" pkg="framefab_core" type="framefab_core_service" output="screen" required="true" launch-prefix="$(arg launch_prefix)">
     <rosparam command="load" file="$(arg config_path)/model_input.yaml"/>
-    <rosparam command="load" file="$(arg config_path)/path_input.yaml"/>
+    <rosparam command="load" file="$(arg config_path)/task_sequence_input.yaml"/>
     <rosparam command="load" file="$(arg config_path)/robot_input.yaml"/>
-    <rosparam command="load" file="$(arg config_path)/output_path_input.yaml"/>
+    <rosparam command="load" file="$(arg config_path)/output_save_dir_input.yaml"/>
     <param name="save_data" value="$(arg save_data)" />
     <param name="save_location" value="$(arg save_location)"/>
   </node>

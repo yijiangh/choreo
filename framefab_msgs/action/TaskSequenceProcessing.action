@@ -7,7 +7,7 @@ int32 action
 
 bool use_default_parameters
 framefab_msgs/ModelInputParameters model_params
-framefab_msgs/PathInputParameters path_params
+framefab_msgs/TaskSequenceInputParameters task_sequence_params
 
 ---
 

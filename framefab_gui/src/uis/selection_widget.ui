@@ -486,9 +486,9 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="pushbutton_set_output_path">
+       <widget class="QPushButton" name="pushbutton_set_output_save_dir">
         <property name="text">
-         <string>Set Output File Path</string>
+         <string>Set Output File Save Dir</string>
         </property>
        </widget>
       </item>

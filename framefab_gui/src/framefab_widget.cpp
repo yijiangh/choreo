@@ -38,7 +38,7 @@ framefab_gui::FrameFabWidget::FrameFabWidget(QWidget* parent)
   // Wire in selection signals
   connect(selection_widget_, SIGNAL(enterSelectionWidget()), this, SLOT(onDisableButtons()));
   connect(selection_widget_, SIGNAL(exitSelectionWidget()), this, SLOT(onEnableButtons()));
-  connect(selection_widget_, SIGNAL(setOutputPathOn()), this, SLOT(showOutputPathParams()));
+  connect(selection_widget_, SIGNAL(setOutputSaveDirOn()), this, SLOT(showOutputSaveDirParams()));
 
   // Connect to ROS save params services
   loadParameters();
@@ -92,9 +92,9 @@ void framefab_gui::FrameFabWidget::onParamsSave()
   framefab_msgs::FrameFabParameters msg;
   msg.request.action = framefab_msgs::FrameFabParameters::Request::SAVE_PARAMETERS;
   msg.request.model_params = params_->modelInputParams();
-  msg.request.path_params = params_->pathInputParams();
+  msg.request.task_sequence_params = params_->taskSequenceInputParams();
   msg.request.robot_params = params_->robotInputParams();
-  msg.request.output_path_params = params_->outputPathInputParams();
+  msg.request.output_save_dir_params = params_->outputSaveDirInputParams();
 
   if (!framefab_parameters_client_.call(msg.request, msg.response))
     ROS_WARN_STREAM("Could not complete service call to save parameters!");
@@ -105,9 +105,9 @@ void framefab_gui::FrameFabWidget::onParamsAccept()
   framefab_msgs::FrameFabParameters msg;
   msg.request.action = framefab_msgs::FrameFabParameters::Request::SET_PARAMETERS;
   msg.request.model_params = params_->modelInputParams();
-  msg.request.path_params = params_->pathInputParams();
+  msg.request.task_sequence_params = params_->taskSequenceInputParams();
   msg.request.robot_params = params_->robotInputParams();
-  msg.request.output_path_params = params_->outputPathInputParams();
+  msg.request.output_save_dir_params = params_->outputSaveDirInputParams();
 
   if (!framefab_parameters_client_.call(msg.request, msg.response))
     ROS_WARN_STREAM("Could not complete service call to set parameters!");
@@ -141,9 +141,9 @@ void framefab_gui::FrameFabWidget::changeState(GuiState* new_state)
   new_state->onStart(*this);
 }
 
-void framefab_gui::FrameFabWidget::showOutputPathParams()
+void framefab_gui::FrameFabWidget::showOutputSaveDirParams()
 {
-  this->params().showOutputPathInputConfigWidget(true);
+  this->params().showOutputSaveDirInputConfigWidget(true);
 }
 
 void framefab_gui::FrameFabWidget::setButtonsEnabled(bool enabled)
@@ -171,9 +171,9 @@ void framefab_gui::FrameFabWidget::loadParameters()
   if (param_client.call(srv))
   {
     this->params().setModelInputParams(srv.response.model_params);
-    this->params().setPathInputParams(srv.response.path_params);
+    this->params().setTaskSequenceInputParams(srv.response.task_sequence_params);
     this->params().setRobotInputParams(srv.response.robot_params);
-    this->params().setOutputPathInputParams(srv.response.output_path_params);
+    this->params().setOutputSaveDirInputParams(srv.response.output_save_dir_params);
   }
   else
   {

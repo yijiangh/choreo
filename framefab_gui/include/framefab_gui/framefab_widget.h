@@ -73,7 +73,7 @@ class FrameFabWidget : public QWidget
   // State Change
   void changeState(GuiState* new_state);
 
-  void showOutputPathParams();
+  void showOutputSaveDirParams();
 
  protected:
   // UI

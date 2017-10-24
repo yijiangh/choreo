@@ -6,22 +6,22 @@
 #define FRAMEFAB_GUI_TEST_PROCESS_CONFIG_WIDGET_H
 
 #include <framefab_gui/parameter_window_base.h>
-#include <framefab_msgs/PathInputParameters.h>
+#include <framefab_msgs/TaskSequenceInputParameters.h>
 
 namespace Ui
 {
-class PathInputConfigWindow;
+class TaskSequenceInputConfigWindow;
 }
 
 namespace framefab_gui
 {
 
-class PathInputConfigWidget : public ParameterWindowBase
+class TaskSequenceInputConfigWidget : public ParameterWindowBase
 {
   Q_OBJECT
  public:
-  PathInputConfigWidget(framefab_msgs::PathInputParameters params);
-  framefab_msgs::PathInputParameters& params() { return params_; }
+  TaskSequenceInputConfigWidget(framefab_msgs::TaskSequenceInputParameters params);
+  framefab_msgs::TaskSequenceInputParameters& params() { return params_; }
 
   virtual void update_display_fields();
   virtual void update_internal_fields();
@@ -30,8 +30,8 @@ class PathInputConfigWidget : public ParameterWindowBase
   virtual void get_file_path_handler();
 
  private:
-  framefab_msgs::PathInputParameters params_;
-  Ui::PathInputConfigWindow* ui_;
+  framefab_msgs::TaskSequenceInputParameters params_;
+  Ui::TaskSequenceInputConfigWindow* ui_;
   std::string last_filepath_;
 };
 }

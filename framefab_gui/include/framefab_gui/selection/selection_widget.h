@@ -80,7 +80,7 @@ class SelectionWidget : public QWidget
 
   void simulateOn(SIMULATE_TYPE sim_type);
 //  void outputProcessOn(OUTPUT_TYPE output_type);
-  void setOutputPathOn();
+  void setOutputSaveDirOn();
 
   // to notify state in gui to start simulation
   void flushSimulation();
