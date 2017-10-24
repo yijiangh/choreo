@@ -2,9 +2,9 @@
 // Created by yijiangh on 7/10/17.
 //
 
-#include "process_utils.h"
+#include "execution_utils.h"
 
-void framefab_process_execution::appendTrajectory(trajectory_msgs::JointTrajectory& original,
+void framefab_execution_gatekeeper::appendTrajectory(trajectory_msgs::JointTrajectory& original,
                                                const trajectory_msgs::JointTrajectory& next)
 {
   ros::Duration last_t =
