@@ -1,0 +1,5 @@
+<?xml version="1.0" ?>
+
+<launch>
+  <node pkg="framefab_execution_gatekeeper" type="framefab_execution_gatekeeper_service_node" name="framefab_execution_gatekeeper"/>
+</launch>

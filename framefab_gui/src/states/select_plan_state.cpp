@@ -111,8 +111,8 @@ void framefab_gui::SelectPlanState::simulateOne(const int& plan_id)
 {
   framefab_msgs::SimulateMotionPlanGoal goal;
   goal.index = plan_id;
-  goal.simulate = false;
-  goal.wait_for_execution = false;
+  goal.simulate = true;
+  goal.wait_for_execution = true;
 
   ptr_gui_->sendGoalAndWait(goal);
 }

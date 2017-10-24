@@ -37,10 +37,12 @@ const static std::string OUTPUT_SAVE_DIR_INPUT_PARAMS_FILE = "output_save_dir_in
 // Visualization Maker topics
 const static std::string PATH_VISUAL_TOPIC = "path_visualization";
 
-// action server name - note: must be same to client's name
-const static std::string FRAMEFAB_EXE_ACTION_SERVER_NAME = "framefab_process_execution_as";
-const static std::string TASK_SEQUENCE_PROCESSING_ACTION_SERVER_NAME = "task_sequence_processing_action";
-const static std::string PROCESS_PLANNING_ACTION_SERVER_NAME = "process_planning_action";
+// subscribed action server name - note: must be same to client's name
+const static std::string FRAMEFAB_EXE_ACTION_SERVER_NAME =              "framefab_execution_as";
+const static std::string TASK_SEQUENCE_PROCESSING_ACTION_SERVER_NAME =  "task_sequence_processing_action";
+const static std::string PROCESS_PLANNING_ACTION_SERVER_NAME =          "process_planning_action";
+
+// serving action
 const static std::string SIMULATE_MOTION_PLAN_ACTION_SERVER_NAME = "simulate_motion_plan_as";
 
 const static int PROCESS_EXE_BUFFER = 5;  // Additional time [s] buffer between when blending should end and timeout
@@ -461,7 +463,7 @@ void FrameFabCoreService::processPlanningActionCallback(const framefab_msgs::Pro
     }
     default:
     {
-      ROS_ERROR_STREAM("Unknown action code '" << goal_in->action << "' request");
+      ROS_ERROR_STREAM("[Core] Unknown action code '" << goal_in->action << "' request");
       break;
     }
   }
@@ -474,23 +476,22 @@ void FrameFabCoreService::simulateMotionPlansActionCallback(const framefab_msgs:
   // If plan does not exist, abort and return
   if (trajectory_library_.get().find(lib_sort_id) == trajectory_library_.get().end())
   {
-    ROS_WARN_STREAM("Motion plan #" << lib_sort_id << " does not exist. Cannot execute.");
+    ROS_WARN_STREAM("[Core] Motion plan #" << lib_sort_id << " does not exist. Cannot execute.");
     simulate_motion_plan_result_.code = framefab_msgs::SimulateMotionPlanResult::NO_SUCH_NAME;
     simulate_motion_plan_server_.setAborted(simulate_motion_plan_result_);
     return;
   }
   else
   {
-    ROS_INFO_STREAM("Motion plan #" << lib_sort_id << " found");
+    ROS_INFO_STREAM("[Core] Motion plan #" << lib_sort_id << " found");
   }
 
   if(0 == goal_in->index)
   {
-    ROS_WARN_STREAM("Current pose not in initial pose. Resetting.");
     // reset Robot's pose to init pose
     if (!moveToTargetJointPose(robot_input_params_.init_pose))
     {
-      ROS_ERROR("Reset to init robot's pose planning & execution failed");
+      ROS_ERROR("[Core] Reset to init robot's pose planning & execution failed");
       simulate_motion_plan_result_.code = framefab_msgs::SimulateMotionPlanResult::RESET_POSE_FAIL;
       simulate_motion_plan_server_.setAborted(simulate_motion_plan_result_);
     }
@@ -498,10 +499,12 @@ void FrameFabCoreService::simulateMotionPlansActionCallback(const framefab_msgs:
 
   // Send command to execution server
   framefab_msgs::ProcessExecutionGoal goal;
+  ros::Duration process_time(0);
 
   for(auto sp : trajectory_library_.get()[lib_sort_id].sub_process_array)
   {
     goal.joint_traj_array.push_back(sp.joint_array);
+    process_time += sp.joint_array.points.back().time_from_start;
   }
 
   goal.wait_for_execution = goal_in->wait_for_execution;
@@ -510,10 +513,12 @@ void FrameFabCoreService::simulateMotionPlansActionCallback(const framefab_msgs:
   actionlib::SimpleActionClient<framefab_msgs::ProcessExecutionAction> *exe_client = &framefab_exe_client_;
   exe_client->sendGoal(goal);
 
-  ros::Duration process_time(goal.joint_traj_array.back().points.back().time_from_start);
+//  ros::Duration process_time(goal.joint_traj_array.back().points.back().time_from_start);
   ros::Duration buffer_time(PROCESS_EXE_BUFFER);
 
   visual_tool_.visualizePathUntil(goal_in->index);
+
+  ROS_INFO_STREAM("Simulation time: " << process_time);
 
   if(exe_client->waitForResult(process_time + buffer_time))
   {
@@ -536,7 +541,7 @@ int main(int argc, char** argv)
 
   if (core_srv.init())
   {
-    ROS_INFO("FrameFab Core Service successfully initialized and now running");
+    ROS_INFO("[Core] framefab core service online.");
     core_srv.run();
   }
 
