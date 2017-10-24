@@ -17,7 +17,7 @@
    <item>
     <layout class="QGridLayout" name="gridLayout_2">
      <item row="1" column="1">
-      <widget class="QPushButton" name="pushbutton_output_path_input">
+      <widget class="QPushButton" name="pushbutton_output_save_dir_input">
        <property name="enabled">
         <bool>true</bool>
        </property>
@@ -59,7 +59,7 @@
       </widget>
      </item>
      <item row="0" column="1">
-      <widget class="QPushButton" name="pushbutton_path_input">
+      <widget class="QPushButton" name="pushbutton_task_sequence_input">
        <property name="minimumSize">
         <size>
          <width>0</width>
@@ -72,7 +72,7 @@
         </font>
        </property>
        <property name="text">
-        <string>Path Input</string>
+        <string>Task Sequence Input</string>
        </property>
       </widget>
      </item>

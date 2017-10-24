@@ -7,20 +7,20 @@
 
 framefab_gui::FrameFabPanel::FrameFabPanel(QWidget* parent) : rviz::Panel(parent)
 {
-  ROS_INFO("Loaded framefab rviz panel");
-
   QVBoxLayout* layout = new QVBoxLayout(this);
   widget_ = new FrameFabWidget();
 
   layout->addWidget(widget_);
   setLayout(layout);
+
+  ROS_INFO("[UI] Loaded framefab rviz panel");
 }
 
 framefab_gui::FrameFabPanel::~FrameFabPanel() {}
 
 void framefab_gui::FrameFabPanel::onInitialize()
 {
-  ROS_INFO("Initializng framefab panel");
+  ROS_INFO("[UI] Initializing framefab panel");
 }
 
 #include <pluginlib/class_list_macros.h>

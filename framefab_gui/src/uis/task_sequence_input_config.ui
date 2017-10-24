@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>OutputPathInputConfigWindow</class>
- <widget class="QWidget" name="OutputPathInputConfigWindow">
+ <class>TaskSequenceInputConfigWindow</class>
+ <widget class="QWidget" name="TaskSequenceInputConfigWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Output File Path Configuration</string>
+   <string>Path Input Configuration</string>
   </property>
   <widget class="QWidget" name="gridLayoutWidget">
    <property name="geometry">
@@ -27,9 +27,9 @@
      <widget class="QLineEdit" name="lineedit_filepath"/>
     </item>
     <item row="0" column="2">
-     <widget class="QPushButton" name="pushbutton_output_path">
+     <widget class="QPushButton" name="pushbutton_readfile">
       <property name="text">
-       <string>save dir</string>
+       <string>input dir</string>
       </property>
      </widget>
     </item>

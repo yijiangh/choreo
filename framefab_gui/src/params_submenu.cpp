@@ -12,39 +12,39 @@ framefab_gui::ParamsSubmenu::ParamsSubmenu(QWidget* parent) : QWidget(parent)
   connect(ui_->pushbutton_model_input, SIGNAL(clicked()), model_input_widget_, SLOT(show()));
 
   // Path Input
-  path_input_widget_ = new PathInputConfigWidget(framefab_msgs::PathInputParameters());
-  connect(ui_->pushbutton_path_input, SIGNAL(clicked()), path_input_widget_, SLOT(show()));
+  task_sequence_input_widget_ = new TaskSequenceInputConfigWidget(framefab_msgs::TaskSequenceInputParameters());
+  connect(ui_->pushbutton_task_sequence_input, SIGNAL(clicked()), task_sequence_input_widget_, SLOT(show()));
 
   // Robot Input
   robot_input_widget_ = new RobotInputConfigWidget(framefab_msgs::RobotInputParameters());
   connect(ui_->pushbutton_robot_input, SIGNAL(clicked()), robot_input_widget_, SLOT(show()));
 
   // Output Path Input
-  output_path_input_widget_ = new OutputPathInputConfigWidget(framefab_msgs::OutputPathInputParameters());
-  connect(ui_->pushbutton_output_path_input, SIGNAL(clicked()), output_path_input_widget_, SLOT(show()));
+  output_save_dir_input_widget_ = new OutputSaveDirInputConfigWidget(framefab_msgs::OutputSaveDirInputParameters());
+  connect(ui_->pushbutton_output_save_dir_input, SIGNAL(clicked()), output_save_dir_input_widget_, SLOT(show()));
 
   // Save Request Connection
   connect(model_input_widget_, SIGNAL(parameters_save_requested()), this, SIGNAL(saveRequested()));
-  connect(path_input_widget_, SIGNAL(parameters_save_requested()), this, SIGNAL(saveRequested()));
+  connect(task_sequence_input_widget_, SIGNAL(parameters_save_requested()), this, SIGNAL(saveRequested()));
   connect(robot_input_widget_, SIGNAL(parameters_save_requested()), this, SIGNAL(saveRequested()));
-  connect(output_path_input_widget_, SIGNAL(parameters_save_requested()), this, SIGNAL(saveRequested()));
+  connect(output_save_dir_input_widget_, SIGNAL(parameters_save_requested()), this, SIGNAL(saveRequested()));
 
   // Accept Request Connection
   connect(model_input_widget_, SIGNAL(parameters_changed()), this, SIGNAL(acceptRequested()));
-  connect(path_input_widget_, SIGNAL(parameters_changed()), this, SIGNAL(acceptRequested()));
+  connect(task_sequence_input_widget_, SIGNAL(parameters_changed()), this, SIGNAL(acceptRequested()));
   connect(robot_input_widget_, SIGNAL(parameters_changed()), this, SIGNAL(acceptRequested()));
-  connect(output_path_input_widget_, SIGNAL(parameters_changed()), this, SIGNAL(acceptRequested()));
+  connect(output_save_dir_input_widget_, SIGNAL(parameters_changed()), this, SIGNAL(acceptRequested()));
 }
 
-void framefab_gui::ParamsSubmenu::showOutputPathInputConfigWidget(bool enable)
+void framefab_gui::ParamsSubmenu::showOutputSaveDirInputConfigWidget(bool enable)
 {
   if(enable)
   {
-    output_path_input_widget_->show();
+    output_save_dir_input_widget_->show();
   }
   else
   {
-    output_path_input_widget_->hide();
+    output_save_dir_input_widget_->hide();
   }
 }
 
@@ -53,23 +53,21 @@ const framefab_msgs::ModelInputParameters& framefab_gui::ParamsSubmenu::modelInp
   return model_input_widget_->params();
 }
 
-void framefab_gui::ParamsSubmenu::setModelInputParams(
-    const framefab_msgs::ModelInputParameters& params)
+void framefab_gui::ParamsSubmenu::setModelInputParams(const framefab_msgs::ModelInputParameters& params)
 {
   model_input_widget_->params() = params;
   model_input_widget_->update_display_fields();
 }
 
-const framefab_msgs::PathInputParameters& framefab_gui::ParamsSubmenu::pathInputParams() const
+const framefab_msgs::TaskSequenceInputParameters& framefab_gui::ParamsSubmenu::taskSequenceInputParams() const
 {
-  return path_input_widget_->params();
+  return task_sequence_input_widget_->params();
 }
 
-void framefab_gui::ParamsSubmenu::setPathInputParams(
-    const framefab_msgs::PathInputParameters& params)
+void framefab_gui::ParamsSubmenu::setTaskSequenceInputParams(const framefab_msgs::TaskSequenceInputParameters& params)
 {
-  path_input_widget_->params() = params;
-  path_input_widget_->update_display_fields();
+  task_sequence_input_widget_->params() = params;
+  task_sequence_input_widget_->update_display_fields();
 }
 
 const framefab_msgs::RobotInputParameters& framefab_gui::ParamsSubmenu::robotInputParams() const
@@ -83,13 +81,13 @@ void framefab_gui::ParamsSubmenu::setRobotInputParams(const framefab_msgs::Robot
   robot_input_widget_->update_display_fields();
 }
 
-const framefab_msgs::OutputPathInputParameters& framefab_gui::ParamsSubmenu::outputPathInputParams() const
+const framefab_msgs::OutputSaveDirInputParameters& framefab_gui::ParamsSubmenu::outputSaveDirInputParams() const
 {
-  return output_path_input_widget_->params();
+  return output_save_dir_input_widget_->params();
 }
 
-void framefab_gui::ParamsSubmenu::setOutputPathInputParams(const framefab_msgs::OutputPathInputParameters& params)
+void framefab_gui::ParamsSubmenu::setOutputSaveDirInputParams(const framefab_msgs::OutputSaveDirInputParameters& params)
 {
-  output_path_input_widget_->params() = params;
-  output_path_input_widget_->update_display_fields();
+  output_save_dir_input_widget_->params() = params;
+  output_save_dir_input_widget_->update_display_fields();
 }

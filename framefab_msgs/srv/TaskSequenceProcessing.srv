@@ -1,18 +1,16 @@
-int32 PROCESS_PATH_AND_MARKER=0
+int32 PROCESS_TASK_AND_MARKER=0
 
 int32 action
 
 framefab_msgs/ModelInputParameters model_params
-framefab_msgs/PathInputParameters path_params
+framefab_msgs/TaskSequenceInputParameters task_sequence_params
 
 ---
 
 #result
-
 bool succeeded
 
 # joint pose for reset position
-
 framefab_msgs/ElementCandidatePoses[] process
 
 # working env objects

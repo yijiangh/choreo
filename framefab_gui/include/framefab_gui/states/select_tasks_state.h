@@ -12,7 +12,7 @@
 namespace framefab_gui
 {
 
-class SelectPathState : public GuiState
+class SelectTasksState : public GuiState
 {
   Q_OBJECT
  public:
@@ -29,7 +29,7 @@ class SelectPathState : public GuiState
   void toNextState();
 
  protected:
-  void selectPath(FrameFabWidget& gui);
+  void selectTask(FrameFabWidget& gui);
 
  private:
   int selected_id_for_planning_;

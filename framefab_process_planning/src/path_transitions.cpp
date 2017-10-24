@@ -65,7 +65,7 @@ boost::function<descartes_planner::ConstrainedSegment (const Eigen::Vector3d &, 
                                                        const std::vector<Eigen::Vector3d> &)>;
 
 std::vector<descartes_planner::ConstrainedSegment>
-framefab_process_planning::toDescartesConstrainedPath(const std::vector<framefab_msgs::ElementCandidatePoses>& process_path,
+framefab_process_planning::toDescartesConstrainedPath(const std::vector<framefab_msgs::ElementCandidatePoses>& task_sequence,
                                                       const int index,
                                                       const double process_speed, const ConstrainedSegParameters& seg_params)
 {
@@ -90,7 +90,7 @@ framefab_process_planning::toDescartesConstrainedPath(const std::vector<framefab
 
   for (std::size_t i = 0; i < selected_path_num; ++i)
   {
-    add_segment(segs[i], process_path[i]);
+    add_segment(segs[i], task_sequence[i]);
   } // end segments
 
   return segs;

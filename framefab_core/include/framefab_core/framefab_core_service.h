@@ -12,14 +12,14 @@
 // msgs
 #include <framefab_msgs/FrameFabParameters.h>
 #include <framefab_msgs/ModelInputParameters.h>
-#include <framefab_msgs/PathInputParameters.h>
+#include <framefab_msgs/TaskSequenceInputParameters.h>
 #include <framefab_msgs/RobotInputParameters.h>
-#include <framefab_msgs/OutputPathInputParameters.h>
+#include <framefab_msgs/OutputSaveDirInputParameters.h>
 #include <framefab_msgs/ElementCandidatePoses.h>
 #include <framefab_msgs/UnitProcessPlan.h>
 
 // actions
-#include <framefab_msgs/PathPlanningAction.h>
+#include <framefab_msgs/TaskSequenceProcessingAction.h>
 #include <framefab_msgs/ProcessPlanningAction.h>
 #include <framefab_msgs/ProcessExecutionAction.h>
 #include <framefab_msgs/SimulateMotionPlanAction.h>
@@ -49,12 +49,12 @@ class FrameFabCoreService
  private:
   bool loadModelInputParameters(const std::string &filename);
   void saveModelInputParameters(const std::string &filename);
-  bool loadPathInputParameters(const std::string& filename);
-  void savePathInputParameters(const std::string& filename);
+  bool loadTaskSequenceInputParameters(const std::string& filename);
+  void saveTaskSequenceInputParameters(const std::string& filename);
   bool loadRobotInputParameters(const std::string& filename);
   void saveRobotInputParameters(const std::string& filename);
-  bool loadOutputPathInputParameters(const std::string& filename);
-  void saveOutputPathInputParameters(const std::string& filename);
+  bool loadOutputSaveDirInputParameters(const std::string& filename);
+  void saveOutputSaveDirInputParameters(const std::string& filename);
 
   // Service callbacks
   bool framefabParametersServerCallback(framefab_msgs::FrameFabParameters::Request& req,
@@ -73,7 +73,7 @@ class FrameFabCoreService
                                   framefab_msgs::OutputProcessPlans::Response& res);
 
   // Action callbacks
-  void pathPlanningActionCallback(const framefab_msgs::PathPlanningGoalConstPtr &goal);
+  void taskSequenceProcessingActionCallback(const framefab_msgs::TaskSequenceProcessingGoalConstPtr &goal);
   void processPlanningActionCallback(const framefab_msgs::ProcessPlanningGoalConstPtr &goal);
   void simulateMotionPlansActionCallback(const framefab_msgs::SimulateMotionPlanGoalConstPtr& goal_in);
 
@@ -97,16 +97,16 @@ class FrameFabCoreService
   ros::ServiceServer output_process_plans_server_;
 
   // Services subscribed to by this class
-  ros::ServiceClient path_post_processing_client_;
+  ros::ServiceClient task_sequence_processing_srv_client_;
   ros::ServiceClient process_planning_client_;
   ros::ServiceClient move_to_pose_client_;
   ros::ServiceClient output_processing_client_;
 
   // Actions offered by this class
   ros::NodeHandle nh_;
-  actionlib::SimpleActionServer<framefab_msgs::PathPlanningAction> path_planning_server_;
-  framefab_msgs::PathPlanningFeedback path_planning_feedback_;
-  framefab_msgs::PathPlanningResult path_planning_result_;
+  actionlib::SimpleActionServer<framefab_msgs::TaskSequenceProcessingAction> task_sequence_processing_server_;
+  framefab_msgs::TaskSequenceProcessingFeedback task_sequence_processing_feedback_;
+  framefab_msgs::TaskSequenceProcessingResult task_sequence_processing_result_;
 
   actionlib::SimpleActionServer<framefab_msgs::ProcessPlanningAction> process_planning_server_;
   framefab_msgs::ProcessPlanningFeedback process_planning_feedback_;
@@ -126,23 +126,23 @@ class FrameFabCoreService
 
   // working environment collision objects
   std::vector<moveit_msgs::CollisionObject> env_objs_;
-  // path results
-  std::vector<framefab_msgs::ElementCandidatePoses> process_paths_;
+  // formulated task sequence results
+  std::vector<framefab_msgs::ElementCandidatePoses> task_sequence_;
 
   // Trajectory library
-  int selected_path_id_;
+  int selected_task_id_;
   framefab_core_service::TrajectoryLibrary trajectory_library_;
 
   // Parameters
   framefab_msgs::ModelInputParameters 	model_input_params_;
-  framefab_msgs::PathInputParameters 	path_input_params_;
+  framefab_msgs::TaskSequenceInputParameters 	task_sequence_input_params_;
   framefab_msgs::RobotInputParameters   robot_input_params_;
-  framefab_msgs::OutputPathInputParameters 	output_path_input_params_;
+  framefab_msgs::OutputSaveDirInputParameters 	output_save_dir_input_params_;
 
   framefab_msgs::ModelInputParameters 	default_model_input_params_;
-  framefab_msgs::PathInputParameters 	default_path_input_params_;
+  framefab_msgs::TaskSequenceInputParameters 	default_task_sequence_input_params_;
   framefab_msgs::RobotInputParameters   default_robot_input_params_;
-  framefab_msgs::OutputPathInputParameters 	default_output_path_input_params_;
+  framefab_msgs::OutputSaveDirInputParameters 	default_output_save_dir_input_params_;
 
   // Parameter loading and saving
   bool save_data_;

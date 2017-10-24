@@ -41,7 +41,7 @@ framefab_gui::SelectionWidget::SelectionWidget(QWidget* parent) : QWidget(parent
   connect(this, SIGNAL(simulateOn(SIMULATE_TYPE)), this, SLOT(buttonSimulate(SIMULATE_TYPE)));
 
   connect(ui_->pushbutton_clear_chosen, SIGNAL(clicked()), this, SLOT(buttonClearSelection()));
-  connect(ui_->pushbutton_set_output_path, SIGNAL(clicked()), this, SIGNAL(setOutputPathOn()));
+  connect(ui_->pushbutton_set_output_save_dir, SIGNAL(clicked()), this, SIGNAL(setOutputSaveDirOn()));
   connect(ui_->pushbutton_output_generate_chosen, SIGNAL(clicked()), this, SLOT(buttonOutputChosen()));
 
   connect(ui_->pushbutton_close_widget, SIGNAL(clicked()), this, SLOT(buttonCloseWidget()));
@@ -70,7 +70,7 @@ void framefab_gui::SelectionWidget::loadParameters()
     }
     case PLAN_SELECTION:
     {
-      srv.request.action = framefab_msgs::ElementNumberRequest::Request::REQUEST_SELECTED_PATH_NUMBER;
+      srv.request.action = framefab_msgs::ElementNumberRequest::Request::REQUEST_SELECTED_TASK_NUMBER;
       break;
     }
     default:

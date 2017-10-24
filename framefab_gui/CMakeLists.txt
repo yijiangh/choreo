@@ -33,17 +33,17 @@ set(framefab_gui_SRCS
 	src/framefab_widget.cpp
 	#state
 	src/states/system_init_state.cpp
-	src/states/path_planning_state.cpp
-	src/states/select_path_state.cpp
+	src/states/task_sequence_processing_state.cpp
+	src/states/select_tasks_state.cpp
 	src/states/process_planning_state.cpp
 	src/states/select_plan_state.cpp
 	#params
 	src/params_submenu.cpp
 	src/parameter_window_base.cpp
 	src/params/model_input_config_widget.cpp
-	src/params/path_input_config_widget.cpp
+	src/params/task_sequence_input_config_widget.cpp
 	src/params/robot_input_config_widget.cpp
-	src/params/output_path_input_config_widget.cpp
+	src/params/output_save_dir_input_config_widget.cpp
 	#selection
 	src/selection/selection_widget.cpp
 	)
@@ -54,17 +54,17 @@ set(framefab_gui_HDRS
 	#states
 	include/framefab_gui/gui_state.h
 	include/framefab_gui/states/system_init_state.h
-	include/framefab_gui/states/path_planning_state.h
-	include/framefab_gui/states/select_path_state.h
+	include/framefab_gui/states/task_sequence_processing_state.h
+	include/framefab_gui/states/select_tasks_state.h
 	include/framefab_gui/states/process_planning_state.h
 	include/framefab_gui/states/select_plan_state.h
 	#params
 	include/framefab_gui/params_submenu.h
 	include/framefab_gui/parameter_window_base.h
 	include/framefab_gui/params/model_input_config_widget.h
-	include/framefab_gui/params/path_input_config_widget.h
+	include/framefab_gui/params/task_sequence_input_config_widget.h
 	include/framefab_gui/params/robot_input_config_widget.h
-	include/framefab_gui/params/output_path_input_config_widget.h
+	include/framefab_gui/params/output_save_dir_input_config_widget.h
 	#selection
 	include/framefab_gui/selection/selection_widget.h
 	)
@@ -73,9 +73,9 @@ set(framefab_gui_UIS
 	src/uis/framefab_widget.ui
 	src/uis/params_submenu.ui
 	src/uis/model_input_config.ui
-	src/uis/path_input_config.ui
+	src/uis/task_sequence_input_config.ui
 	src/uis/robot_input_config.ui
-	src/uis/output_path_input_config.ui
+	src/uis/output_save_dir_input_config.ui
 	src/uis/selection_widget.ui
 	)
 

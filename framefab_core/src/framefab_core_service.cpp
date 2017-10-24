@@ -3,7 +3,7 @@
 #include <framefab_param_helpers/framefab_param_helpers.h>
 
 //subscribed services
-#include <framefab_msgs/PathPostProcessing.h>
+#include <framefab_msgs/TaskSequenceProcessing.h>
 #include <framefab_msgs/ProcessPlanning.h>
 #include <framefab_msgs/MoveToTargetPose.h>
 #include <framefab_msgs/OutputProcessing.h>
@@ -23,23 +23,23 @@ const static std::string GET_AVAILABLE_PROCESS_PLANS_SERVICE= "get_available_pro
 const static std::string OUTPUT_PROCESS_PLANS_SERVICE= "output_process_plans";
 
 // subscribed services
-const static std::string PATH_POST_PROCESSING_SERVICE = "path_post_processing";
+const static std::string TASK_SEQUENCE_PROCESSING_SERVICE = "task_sequence_processing";
 const static std::string PROCESS_PLANNING_SERVICE = "process_planning";
 const static std::string MOVE_TO_TARGET_POSE_SERVICE = "move_to_target_pose";
 const static std::string OUTPUT_PROCESSING_SERVICE = "output_processing";
 
 // Default filepaths and namespaces for caching stored parameters
 const static std::string MODEL_INPUT_PARAMS_FILE = "model_input_parameters.msg";
-const static std::string PATH_INPUT_PARAMS_FILE = "path_input_parameters.msg";
+const static std::string TASK_SEQUENCE_INPUT_PARAMS_FILE = "task_sequence_input_parameters.msg";
 const static std::string ROBOT_INPUT_PARAMS_FILE = "robot_input_parameters.msg";
-const static std::string OUTPUT_PATH_INPUT_PARAMS_FILE = "output_path_input_parameters.msg";
+const static std::string OUTPUT_SAVE_DIR_INPUT_PARAMS_FILE = "output_save_dir_input_parameters.msg";
 
 // Visualization Maker topics
 const static std::string PATH_VISUAL_TOPIC = "path_visualization";
 
 // action server name - note: must be same to client's name
 const static std::string FRAMEFAB_EXE_ACTION_SERVER_NAME = "framefab_process_execution_as";
-const static std::string PATH_PLANNING_ACTION_SERVER_NAME = "path_planning_action";
+const static std::string TASK_SEQUENCE_PROCESSING_ACTION_SERVER_NAME = "task_sequence_processing_action";
 const static std::string PROCESS_PLANNING_ACTION_SERVER_NAME = "process_planning_action";
 const static std::string SIMULATE_MOTION_PLAN_ACTION_SERVER_NAME = "simulate_motion_plan_as";
 
@@ -47,10 +47,10 @@ const static int PROCESS_EXE_BUFFER = 5;  // Additional time [s] buffer between 
 
 FrameFabCoreService::FrameFabCoreService()
     : save_data_(false),
-      selected_path_id_(0),
+      selected_task_id_(0),
       framefab_exe_client_(FRAMEFAB_EXE_ACTION_SERVER_NAME, true),
-      path_planning_server_(nh_, PATH_PLANNING_ACTION_SERVER_NAME,
-                            boost::bind(&FrameFabCoreService::pathPlanningActionCallback, this, _1), false),
+      task_sequence_processing_server_(nh_, TASK_SEQUENCE_PROCESSING_ACTION_SERVER_NAME,
+                            boost::bind(&FrameFabCoreService::taskSequenceProcessingActionCallback, this, _1), false),
       process_planning_server_(nh_, PROCESS_PLANNING_ACTION_SERVER_NAME,
                                boost::bind(&FrameFabCoreService::processPlanningActionCallback, this, _1), false),
       simulate_motion_plan_server_(nh_, SIMULATE_MOTION_PLAN_ACTION_SERVER_NAME,
@@ -71,13 +71,13 @@ bool FrameFabCoreService::init()
   if (!this->loadModelInputParameters(param_cache_prefix_ + MODEL_INPUT_PARAMS_FILE))
     ROS_WARN("Unable to load model input parameters.");
 
-  if (!this->loadPathInputParameters(param_cache_prefix_ + PATH_INPUT_PARAMS_FILE))
+  if (!this->loadTaskSequenceInputParameters(param_cache_prefix_ + TASK_SEQUENCE_INPUT_PARAMS_FILE))
     ROS_WARN("Unable to load path input parameters.");
 
   if (!this->loadRobotInputParameters(param_cache_prefix_ + ROBOT_INPUT_PARAMS_FILE))
     ROS_WARN("Unable to load robot input parameters.");
 
-  if (!this->loadOutputPathInputParameters(param_cache_prefix_ + OUTPUT_PATH_INPUT_PARAMS_FILE))
+  if (!this->loadOutputSaveDirInputParameters(param_cache_prefix_ + OUTPUT_SAVE_DIR_INPUT_PARAMS_FILE))
     ROS_WARN("Unable to load output path input parameters.");
 
   // load plugins (if-need-be)
@@ -109,7 +109,7 @@ bool FrameFabCoreService::init()
   // start server
 
   // service clients
-  path_post_processing_client_ = nh_.serviceClient<framefab_msgs::PathPostProcessing>(PATH_POST_PROCESSING_SERVICE);
+  task_sequence_processing_srv_client_ = nh_.serviceClient<framefab_msgs::TaskSequenceProcessing>(TASK_SEQUENCE_PROCESSING_SERVICE);
   process_planning_client_ = nh_.serviceClient<framefab_msgs::ProcessPlanning>(PROCESS_PLANNING_SERVICE);
   move_to_pose_client_  = nh_.serviceClient<framefab_msgs::MoveToTargetPose>(MOVE_TO_TARGET_POSE_SERVICE);
   output_processing_client_  = nh_.serviceClient<framefab_msgs::OutputProcessing>(OUTPUT_PROCESSING_SERVICE);
@@ -117,7 +117,7 @@ bool FrameFabCoreService::init()
   // publishers
 
   // action servers
-  path_planning_server_.start();
+  task_sequence_processing_server_.start();
   process_planning_server_.start();
   simulate_motion_plan_server_.start();
 
@@ -162,24 +162,24 @@ void FrameFabCoreService::saveModelInputParameters(const std::string& filename)
   }
 }
 
-bool FrameFabCoreService::loadPathInputParameters(const std::string & filename)
+bool FrameFabCoreService::loadTaskSequenceInputParameters(const std::string & filename)
 {
   using framefab_param_helpers::loadParam;
   using framefab_param_helpers::loadBoolParam;
 
-  if(framefab_param_helpers::fromFile(filename, path_input_params_))
+  if(framefab_param_helpers::fromFile(filename, task_sequence_input_params_))
   {
     return true;
   }
 
   // otherwise default to the parameter server
-  ros::NodeHandle nh("~/path_input");
-  return loadParam(nh, "file_path", path_input_params_.file_path);
+  ros::NodeHandle nh("~/task_sequence_input");
+  return loadParam(nh, "file_path", task_sequence_input_params_.file_path);
 }
 
-void FrameFabCoreService::savePathInputParameters(const std::string & filename)
+void FrameFabCoreService::saveTaskSequenceInputParameters(const std::string & filename)
 {
-  if(!framefab_param_helpers::toFile(filename, path_input_params_))
+  if(!framefab_param_helpers::toFile(filename, task_sequence_input_params_))
   {
     ROS_WARN_STREAM("Unable to save path input parameters to: " << filename);
   }
@@ -208,24 +208,24 @@ void FrameFabCoreService::saveRobotInputParameters(const std::string& filename)
   }
 }
 
-bool FrameFabCoreService::loadOutputPathInputParameters(const std::string & filename)
+bool FrameFabCoreService::loadOutputSaveDirInputParameters(const std::string & filename)
 {
   using framefab_param_helpers::loadParam;
   using framefab_param_helpers::loadBoolParam;
 
-  if(framefab_param_helpers::fromFile(filename, output_path_input_params_))
+  if(framefab_param_helpers::fromFile(filename, output_save_dir_input_params_))
   {
     return true;
   }
 
   // otherwise default to the parameter server
-  ros::NodeHandle nh("~/output_path_input");
-  return loadParam(nh, "file_path", path_input_params_.file_path);
+  ros::NodeHandle nh("~/output_save_dir_input");
+  return loadParam(nh, "file_path", output_save_dir_input_params_.file_path);
 }
 
-void FrameFabCoreService::saveOutputPathInputParameters(const std::string & filename)
+void FrameFabCoreService::saveOutputSaveDirInputParameters(const std::string & filename)
 {
-  if(!framefab_param_helpers::toFile(filename, output_path_input_params_))
+  if(!framefab_param_helpers::toFile(filename, output_save_dir_input_params_))
   {
     ROS_WARN_STREAM("Unable to save output path input parameters to: " << filename);
   }
@@ -239,32 +239,32 @@ bool FrameFabCoreService::framefabParametersServerCallback(
   {
     case framefab_msgs::FrameFabParameters::Request::GET_CURRENT_PARAMETERS:
       res.model_params = model_input_params_;
-      res.path_params  = path_input_params_;
+      res.task_sequence_params  = task_sequence_input_params_;
       res.robot_params = robot_input_params_;
-      res.output_path_params = output_path_input_params_;
+      res.output_save_dir_params = output_save_dir_input_params_;
       break;
 
     case framefab_msgs::FrameFabParameters::Request::GET_DEFAULT_PARAMETERS:
       res.model_params = default_model_input_params_;
-      res.path_params  = default_path_input_params_;
+      res.task_sequence_params  = default_task_sequence_input_params_;
       res.robot_params = default_robot_input_params_;
-      res.output_path_params = default_output_path_input_params_;
+      res.output_save_dir_params = default_output_save_dir_input_params_;
       break;
 
       // Update the current parameters in this service
     case framefab_msgs::FrameFabParameters::Request::SET_PARAMETERS:
     case framefab_msgs::FrameFabParameters::Request::SAVE_PARAMETERS:
       model_input_params_ = req.model_params;
-      path_input_params_ = req.path_params;
+      task_sequence_input_params_ = req.task_sequence_params;
       robot_input_params_ = req.robot_params;
-      output_path_input_params_ = req.output_path_params;
+      output_save_dir_input_params_ = req.output_save_dir_params;
 
       if (req.action == framefab_msgs::FrameFabParameters::Request::SAVE_PARAMETERS)
       {
         this->saveModelInputParameters(param_cache_prefix_ + MODEL_INPUT_PARAMS_FILE);
-        this->savePathInputParameters(param_cache_prefix_ + PATH_INPUT_PARAMS_FILE);
+        this->saveTaskSequenceInputParameters(param_cache_prefix_ + TASK_SEQUENCE_INPUT_PARAMS_FILE);
         this->saveRobotInputParameters(param_cache_prefix_ + ROBOT_INPUT_PARAMS_FILE);
-        this->saveOutputPathInputParameters(param_cache_prefix_ + OUTPUT_PATH_INPUT_PARAMS_FILE);
+        this->saveOutputSaveDirInputParameters(param_cache_prefix_ + OUTPUT_SAVE_DIR_INPUT_PARAMS_FILE);
       }
       break;
   }
@@ -284,9 +284,9 @@ bool FrameFabCoreService::elementNumberRequestServerCallback(
       res.element_number = visual_tool_.getPathArraySize();
       break;
     }
-    case framefab_msgs::ElementNumberRequest::Request::REQUEST_SELECTED_PATH_NUMBER:
+    case framefab_msgs::ElementNumberRequest::Request::REQUEST_SELECTED_TASK_NUMBER:
     {
-      res.element_number = selected_path_id_;
+      res.element_number = selected_task_id_;
       break;
     }
     default:
@@ -335,7 +335,7 @@ bool FrameFabCoreService::outputProcessPlansCallback(
   framefab_msgs::OutputProcessing srv;
 
   // fill in file_path
-  srv.request.file_path = output_path_input_params_.file_path;
+  srv.request.file_path = output_save_dir_input_params_.file_path;
 
   // fill in plans
   for(auto id : req.names)
@@ -362,45 +362,45 @@ bool FrameFabCoreService::outputProcessPlansCallback(
   }
 }
 
-void FrameFabCoreService::pathPlanningActionCallback(const framefab_msgs::PathPlanningGoalConstPtr &goal_in)
+void FrameFabCoreService::taskSequenceProcessingActionCallback(const framefab_msgs::TaskSequenceProcessingGoalConstPtr &goal_in)
 {
   switch (goal_in->action)
   {
-    case framefab_msgs::PathPlanningGoal::FIND_AND_PROCESS:
+    case framefab_msgs::TaskSequenceProcessingGoal::FIND_AND_PROCESS:
     {
-      path_planning_feedback_.last_completed = "Recieved request to post process plan\n";
-      path_planning_server_.publishFeedback(path_planning_feedback_);
+      task_sequence_processing_feedback_.last_completed = "[Core] Recieved request to process task sequence plan\n";
+      task_sequence_processing_server_.publishFeedback(task_sequence_processing_feedback_);
 
-      // call path_post_processing srv
-      framefab_msgs::PathPostProcessing srv;
-      srv.request.action = srv.request.PROCESS_PATH_AND_MARKER;
+      // call task_sequence_processing srv
+      framefab_msgs::TaskSequenceProcessing srv;
+      srv.request.action = srv.request.PROCESS_TASK_AND_MARKER;
       srv.request.model_params = model_input_params_;
-      srv.request.path_params = path_input_params_;
+      srv.request.task_sequence_params = task_sequence_input_params_;
 
-      if(!path_post_processing_client_.call(srv))
+      if(!task_sequence_processing_srv_client_.call(srv))
       {
-        ROS_WARN_STREAM("Unable to call path post processing service");
-        path_planning_feedback_.last_completed = "Failed to call Path Post Processing Service!\n";
-        path_planning_server_.publishFeedback(path_planning_feedback_);
-        path_planning_result_.succeeded = false;
-        path_planning_server_.setAborted(path_planning_result_);
+        ROS_WARN_STREAM("[Core] Unable to call task sequence processing service");
+        task_sequence_processing_feedback_.last_completed = "[Core] Failed to call Task Sequence Processing Service!\n";
+        task_sequence_processing_server_.publishFeedback(task_sequence_processing_feedback_);
+        task_sequence_processing_result_.succeeded = false;
+        task_sequence_processing_server_.setAborted(task_sequence_processing_result_);
       }
       else
       {
         // take srv output, save them
-        path_planning_feedback_.last_completed = "Finished path post processing. Visualizing...\n";
-        path_planning_server_.publishFeedback(path_planning_feedback_);
+        task_sequence_processing_feedback_.last_completed = "Finished task sequence processing. Visualizing...\n";
+        task_sequence_processing_server_.publishFeedback(task_sequence_processing_feedback_);
 
         // import data into visual_tools
         visual_tool_.setProcessPath(srv.response.process);
         visual_tool_.visualizeAllPaths();
 
         // import data into process_planning_visualizer
-        process_paths_ = srv.response.process;
+        task_sequence_ = srv.response.process;
         env_objs_ = srv.response.env_collision_objs;
 
-        path_planning_result_.succeeded = true;
-        path_planning_server_.setSucceeded(path_planning_result_);
+        task_sequence_processing_result_.succeeded = true;
+        task_sequence_processing_server_.setSucceeded(task_sequence_processing_result_);
       }
       break;
     }
@@ -411,7 +411,7 @@ void FrameFabCoreService::pathPlanningActionCallback(const framefab_msgs::PathPl
       break;
     }
   }
-  path_planning_result_.succeeded = false;
+  task_sequence_processing_result_.succeeded = false;
 }
 
 void FrameFabCoreService::processPlanningActionCallback(const framefab_msgs::ProcessPlanningGoalConstPtr &goal_in)
@@ -423,7 +423,7 @@ void FrameFabCoreService::processPlanningActionCallback(const framefab_msgs::Pro
       process_planning_feedback_.last_completed = "Recieved request to generate motion plan\n";
       process_planning_server_.publishFeedback(process_planning_feedback_);
 
-      selected_path_id_ = goal_in->index;
+      selected_task_id_ = goal_in->index;
 
       // reset Robot's pose to init pose
       if(!moveToTargetJointPose(robot_input_params_.init_pose))

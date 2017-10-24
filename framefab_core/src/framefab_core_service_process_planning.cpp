@@ -34,7 +34,7 @@ ProcessPlanResult FrameFabCoreService::generateProcessPlan(const int selected_pa
   framefab_msgs::ProcessPlanning srv;
 //  srv.request.params = process_planning_params_;
   srv.request.index = selected_path_index;
-  srv.request.process_path = process_paths_;
+  srv.request.task_sequence = task_sequence_;
   srv.request.env_collision_objs = env_objs_;
 
   success = process_planning_client_.call(srv);

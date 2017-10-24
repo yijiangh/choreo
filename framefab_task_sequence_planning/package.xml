@@ -1,5 +1,5 @@
 <package>
-  <name>framefab_path_planning</name>
+  <name>framefab_task_sequence_planning</name>
   <version>0.1.0</version>
   <description>The framefab core package</description>
   <author email="yijiangh@mit.edu">Yijiang Huang (MIT)</author>

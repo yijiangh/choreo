@@ -13,27 +13,15 @@
     <arg name="robot_model_plugin" value="$(arg robot_model_plugin)"/>
   </include>
 
-  <!-- Brings up action interface for simple trajectory execution -->
+  <!-- Brings up action interface for trajectory execution in Rviz-->
   <node name="path_execution_service" pkg="framefab_path_execution" type="path_execution_service_node" output="screen"/>
 
-<!-- Process execution nodes: These monitor the state of robot's execution of the planned path. They can be, and in this case are, robot or vendor specific -->
+	<!-- Process execution nodes: These monitor the state of robot's execution of the planned path. They can be, and in this case are, robot or vendor specific -->
   <group>
-<!--		remap	"process execution" service name to be compatible with simulator node-->
-<!--		<remap from="process_simulation" to="simulation/simulate_trajectory"/>-->
-
-    <!-- Choose between 'execution' handlers based on whether we're connected to a real robot -->
     <group if="$(arg sim_robot)">
       <node name="framefab_process_execution" pkg="framefab_process_execution" type="framefab_process_execution_service_node" output="screen"/>
     </group>
-
-    <group unless="$(arg sim_robot)">
-      <!-- This requires connection to the service port of a physical robot controller -->
-    </group>
   </group>
-
-  <!-- Bring up simulated robot that can be visualized under the tf namespace 'simulation'
-       Allows for previewing paths generated before execution. -->
-<!--  <include file="$(find framefab_industrial_robot_simulator_service)/launch/start_simulation_server.launch"/>-->
 
   <!-- Brings up the core Framefab service - the central coordination -->
   <include file="$(find framefab_core)/launch/framefab_core.launch">

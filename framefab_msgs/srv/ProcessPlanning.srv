@@ -1,13 +1,13 @@
 int32 ALL=-1
 
-# selected path id
+# selected task id
 int32 index
 
 # working env collision objs
 moveit_msgs/CollisionObject[] env_collision_objs
 
 # the actual path the tool will follow
-framefab_msgs/ElementCandidatePoses[] process_path
+framefab_msgs/ElementCandidatePoses[] task_sequence
 
 ---
 

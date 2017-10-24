@@ -23,7 +23,7 @@ add_action_files(
     DIRECTORY
     action
     FILES
-    PathPlanning.action
+		TaskSequenceProcessing.action
     ProcessPlanning.action
     SimulateMotionPlan.action
     ProcessExecution.action
@@ -36,9 +36,9 @@ add_message_files(
 		msg 
 		FILES 
 		ModelInputParameters.msg
-		PathInputParameters.msg
+		TaskSequenceInputParameters.msg
 		RobotInputParameters.msg
-		OutputPathInputParameters.msg
+		OutputSaveDirInputParameters.msg
 		UnitProcessPlan.msg
 		SubProcess.msg
 		ElementCandidatePoses.msg
@@ -46,17 +46,17 @@ add_message_files(
 
 ## Generate services in the 'srv' folder
 add_service_files(
-FILES
-FrameFabParameters.srv
-PathPostProcessing.srv
-ElementNumberRequest.srv
-VisualizeSelectedPath.srv
-ProcessPlanning.srv
-TrajectoryExecution.srv
-MoveToTargetPose.srv
-GetAvailableProcessPlans.srv
-OutputProcessPlans.srv
-OutputProcessing.srv
+		FILES
+		FrameFabParameters.srv
+		TaskSequenceProcessing.srv
+		ElementNumberRequest.srv
+		VisualizeSelectedPath.srv
+		ProcessPlanning.srv
+		TrajectoryExecution.srv
+		MoveToTargetPose.srv
+		GetAvailableProcessPlans.srv
+		OutputProcessPlans.srv
+		OutputProcessing.srv
 )
 
 ## Generate added messages and services with any dependencies listed here
@@ -68,6 +68,7 @@ generate_messages(DEPENDENCIES
   trajectory_msgs
   moveit_msgs
 )
+
 ###################################
 ## catkin specific configuration ##
 ###################################

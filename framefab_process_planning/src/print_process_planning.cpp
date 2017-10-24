@@ -43,10 +43,10 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
   // Enable Collision Checks
   hotend_model_->setCheckCollisions(true);
 
-  std::vector<framefab_msgs::ElementCandidatePoses> process_path = req.process_path;
+  std::vector<framefab_msgs::ElementCandidatePoses> task_sequence = req.task_sequence;
   std::vector<moveit_msgs::CollisionObject> env_objs = req.env_collision_objs;
 
-  if (process_path.empty())
+  if (task_sequence.empty())
   {
     ROS_WARN("Planning request contained no process path. Nothing to be done.");
     return true;
@@ -69,11 +69,11 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
   std::vector<double> current_joints = getCurrentJointState(JOINT_TOPIC_NAME);
 
   std::vector<descartes_planner::ConstrainedSegment> constrained_segs =
-      toDescartesConstrainedPath(req.process_path, index, 0.01, constrained_seg_params);
+      toDescartesConstrainedPath(req.task_sequence, index, 0.01, constrained_seg_params);
 
-  // extract collision objs from process_path
+  // extract collision objs from task_sequence
   std::vector<moveit_msgs::CollisionObject> collision_objs;
-  for (auto v : process_path)
+  for (auto v : task_sequence)
   {
     collision_objs.push_back(v.collision_cylinder);
   }
