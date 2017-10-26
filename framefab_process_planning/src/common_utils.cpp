@@ -35,7 +35,7 @@ const static double DEFAULT_JOINT_WAIT_TIME = 5.0; // Maximum time allowed to ca
 const static double DEFAULT_JOINT_VELOCITY = 0.3; // rad/s
 
 // MoveIt Configuration Constants
-const static int DEFAULT_MOVEIT_NUM_PLANNING_ATTEMPTS = 20;
+const static int DEFAULT_MOVEIT_NUM_PLANNING_ATTEMPTS = 30;
 const static double DEFAULT_MOVEIT_PLANNING_TIME = 20.0;   // seconds
 const static double DEFAULT_MOVEIT_VELOCITY_SCALING = 0.1; // Slow down the robot
 const static std::string DEFAULT_MOVEIT_PLANNER_ID = "RRTConnectkConfigDefault";
@@ -168,6 +168,10 @@ void framefab_process_planning::appendTrajectoryHeaders(const trajectory_msgs::J
   for (int i = 0; i < traj.points.size(); i++)
   {
     traj.points[i].time_from_start -= base_time;
+
+    //sim speed tuning
+    traj.points[i].time_from_start *= 3.0;
+
     ROS_INFO_STREAM("following pt time: " << traj.points[i].time_from_start);
   }
 }
@@ -325,22 +329,31 @@ trajectory_msgs::JointTrajectory framefab_process_planning::getMoveitTransitionP
   }
   else
   {
-    ROS_ERROR("%s: Unable to call MoveIt path planning service: '%s' or planning failed",
-              __FUNCTION__, DEFAULT_MOVEIT_PLANNING_SERVICE_NAME.c_str());
-    ROS_WARN("try resetting robot to intial pose and replan");
+//    ROS_ERROR("%s: Unable to call MoveIt path planning service: '%s' or planning failed",
+//              __FUNCTION__, DEFAULT_MOVEIT_PLANNING_SERVICE_NAME.c_str());
+    ROS_WARN("[Tr Planning] direct transition planning failed.");
+    ROS_WARN("[Tr Planning] try resetting robot to intial pose and replan");
 
     robot_state::RobotState reset_goal_state(model);
     reset_goal_state.setJointGroupPositions(group, initial_pose);
 
     // interpolate the reset goal state
-    moveit_msgs::Constraints c = kinematic_constraints::constructGoalConstraints(reset_goal_state, group);
-    auto it = req.motion_plan_request.goal_constraints.begin();
+    moveit_msgs::Constraints c_reset = kinematic_constraints::constructGoalConstraints(reset_goal_state, group);
+    req.motion_plan_request.goal_constraints.clear();
+    req.motion_plan_request.goal_constraints.push_back(c_reset);
+    req.motion_plan_request.goal_constraints.push_back(c);
 
-    req.motion_plan_request.goal_constraints.insert(it, c);
+    ROS_INFO_STREAM("moveit tr planning goal: ");
+    for(auto ct : req.motion_plan_request.goal_constraints)
+    {
+      ROS_INFO_STREAM(ct);
+    }
 
+    // reset planning
     if(client.call(req, res))
     {
       jt = res.motion_plan_response.trajectory.joint_trajectory;
+      ROS_WARN("[Tr Planning] reset planning success.");
     }
     else
     {

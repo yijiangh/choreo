@@ -33,13 +33,13 @@ bool framefab_path_execution::PathExecutionService::executionCallback(
   // Check preconditions
   if (!ac_.isServerConnected())
   {
-    ROS_ERROR_STREAM("Action server is not connected.");
+    ROS_ERROR_STREAM("[Sim Exe] Simulation Execution Action server is not connected.");
     return false;
   }
 
   if (req.trajectory.points.empty())
   {
-    ROS_WARN_STREAM("Trajectory Execution Service recieved an empty trajectory.");
+    ROS_WARN_STREAM("[Sim Exe] Trajectory Execution Service recieved an empty trajectory.");
     return true;
   }
 

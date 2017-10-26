@@ -133,8 +133,8 @@ bool framefab_process_planning::generateMotionPlan(
   }
 
   trajectory_msgs::JointTrajectory ros_traj = toROSTrajectory(sol, *model);
-  // sim speed tuning
-  for (auto& pt : ros_traj.points) pt.time_from_start *= 3.0;
+//  // sim speed tuning
+//  for (auto& pt : ros_traj.points) pt.time_from_start *= 3.0;
 
   plans.resize(segs.size());
 
@@ -190,17 +190,17 @@ bool framefab_process_planning::generateMotionPlan(
                                                                               start_state,
                                                                               moveit_model);
 
-    ROS_INFO_STREAM("[PP] process #" << i);
-    ROS_INFO_STREAM("last end pose: " << last_joint_pose[0] << ", " << last_joint_pose[1] << ", "
-                                      << last_joint_pose[2] << ", " << last_joint_pose[3] << ", "
-                                      << last_joint_pose[4] << ", " << last_joint_pose[5]);
-    ROS_INFO_STREAM("this st  pose: " << current_first_joint_pose[0] << ", " << current_first_joint_pose[1] << ", "
-                                      << current_first_joint_pose[2] << ", " << current_first_joint_pose[3] << ", "
-                                      << current_first_joint_pose[4] << ", " << current_first_joint_pose[5]);
-    ROS_INFO_STREAM("---------");
+//    ROS_INFO_STREAM("[PP] process #" << i);
+//    ROS_INFO_STREAM("last end pose: " << last_joint_pose[0] << ", " << last_joint_pose[1] << ", "
+//                                      << last_joint_pose[2] << ", " << last_joint_pose[3] << ", "
+//                                      << last_joint_pose[4] << ", " << last_joint_pose[5]);
+//    ROS_INFO_STREAM("this st  pose: " << current_first_joint_pose[0] << ", " << current_first_joint_pose[1] << ", "
+//                                      << current_first_joint_pose[2] << ", " << current_first_joint_pose[3] << ", "
+//                                      << current_first_joint_pose[4] << ", " << current_first_joint_pose[5]);
+//    ROS_INFO_STREAM("---------");
 
     // sim speed tuning
-    for (auto& pt : ros_trans_traj.points) pt.time_from_start *= 3.0;
+//    for (auto& pt : ros_trans_traj.points) pt.time_from_start *= 3.0;
 
     framefab_msgs::SubProcess sub_process;
 

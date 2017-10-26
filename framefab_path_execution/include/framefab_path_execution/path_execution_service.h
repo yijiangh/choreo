@@ -18,11 +18,6 @@ class PathExecutionService
  public:
   PathExecutionService(ros::NodeHandle& nh);
 
-  /**
-   * Currently forwards the framefab_msgs::TrajectoryExecution on to the corresponding
-   * MoveIt node. The idea though is that abstracting 'execution' will give us more flexibility
-   * later to implement our own process parameters related to execution.
-   */
   bool executionCallback(framefab_msgs::TrajectoryExecution::Request& req,
                          framefab_msgs::TrajectoryExecution::Response& res);
 
