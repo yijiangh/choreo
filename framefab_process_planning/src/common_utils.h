@@ -38,7 +38,8 @@ void fillTrajectoryHeaders(const std::vector<std::string>& joints,
                            trajectory_msgs::JointTrajectory& traj);
 
 void appendTrajectoryHeaders(const trajectory_msgs::JointTrajectory& orig_traj,
-                             trajectory_msgs::JointTrajectory& traj);
+                             trajectory_msgs::JointTrajectory& traj,
+                             const double sim_time_scale = 0.0);
 
 std::vector<double> getCurrentJointState(const std::string& topic);
 

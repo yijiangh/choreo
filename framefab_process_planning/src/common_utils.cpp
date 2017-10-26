@@ -156,7 +156,8 @@ void framefab_process_planning::fillTrajectoryHeaders(const std::vector<std::str
 }
 
 void framefab_process_planning::appendTrajectoryHeaders(const trajectory_msgs::JointTrajectory& orig_traj,
-                                                        trajectory_msgs::JointTrajectory& traj)
+                                                        trajectory_msgs::JointTrajectory& traj,
+                                                        const double sim_time_scale)
 {
   traj.joint_names = orig_traj.joint_names;
   traj.header.frame_id = orig_traj.header.frame_id;
@@ -164,15 +165,13 @@ void framefab_process_planning::appendTrajectoryHeaders(const trajectory_msgs::J
 
   // set time_from_start relative to first point
   ros::Duration base_time = traj.points[0].time_from_start;
-  ROS_INFO_STREAM("base time: " << base_time);
+
   for (int i = 0; i < traj.points.size(); i++)
   {
     traj.points[i].time_from_start -= base_time;
 
     //sim speed tuning
-    traj.points[i].time_from_start *= 3.0;
-
-    ROS_INFO_STREAM("following pt time: " << traj.points[i].time_from_start);
+    traj.points[i].time_from_start *= sim_time_scale;
   }
 }
 
@@ -313,8 +312,8 @@ trajectory_msgs::JointTrajectory framefab_process_planning::getMoveitTransitionP
   req.motion_plan_request.start_state = start_state;
 
   // Set the goal state
-  moveit_msgs::Constraints c = kinematic_constraints::constructGoalConstraints(goal_state, group);
-  req.motion_plan_request.goal_constraints.push_back(c);
+  moveit_msgs::Constraints c_goal = kinematic_constraints::constructGoalConstraints(goal_state, group);
+  req.motion_plan_request.goal_constraints.push_back(c_goal);
 
   // Make connection the planning-service offered by the MoveIt MoveGroup node
   ros::NodeHandle nh;
@@ -329,40 +328,67 @@ trajectory_msgs::JointTrajectory framefab_process_planning::getMoveitTransitionP
   }
   else
   {
-//    ROS_ERROR("%s: Unable to call MoveIt path planning service: '%s' or planning failed",
-//              __FUNCTION__, DEFAULT_MOVEIT_PLANNING_SERVICE_NAME.c_str());
     ROS_WARN("[Tr Planning] direct transition planning failed.");
     ROS_WARN("[Tr Planning] try resetting robot to intial pose and replan");
 
+    moveit_msgs::GetMotionPlan::Request req_to_reset = req;
+    moveit_msgs::GetMotionPlan::Request req_to_goal = req;
+
+    // configure request to reset
     robot_state::RobotState reset_goal_state(model);
     reset_goal_state.setJointGroupPositions(group, initial_pose);
+    moveit_msgs::Constraints c_reset = kinematic_constraints::constructGoalConstraints(reset_goal_state, group);
+    req_to_reset.motion_plan_request.goal_constraints.clear();
+    req_to_reset.motion_plan_request.goal_constraints.push_back(c_reset);
 
-    // interpolate the reset goal state
-    moveit_msgs::Constraints c = kinematic_constraints::constructGoalConstraints(reset_goal_state, group);
-//    req.motion_plan_request.goal_constraints.clear();
-//    req.motion_plan_request.goal_constraints.push_back(c_reset);
-    auto it = req.motion_plan_request.goal_constraints.begin();
+    // configure request to goal
+    moveit_msgs::RobotState start_state_to_goal;
+    joint_state.position = initial_pose;
+    start_state_to_goal.is_diff = false;
+    start_state_to_goal.joint_state = joint_state;
+    req_to_goal.motion_plan_request.start_state = start_state_to_goal;
 
-    req.motion_plan_request.goal_constraints.insert(it, c);
+    req_to_goal.motion_plan_request.goal_constraints.clear();
+    req_to_goal.motion_plan_request.goal_constraints.push_back(c_goal);
 
-    ROS_INFO_STREAM("moveit tr planning goal: ");
-    for(auto ct : req.motion_plan_request.goal_constraints)
-    {
-      ROS_INFO_STREAM(ct);
-    }
+    // obtain trajectory
+    trajectory_msgs::JointTrajectory jt_to_reset;
+    trajectory_msgs::JointTrajectory jt_to_goal;
 
     // reset planning
-    if(client.call(req, res))
+    if(client.call(req_to_reset, res))
     {
-      jt = res.motion_plan_response.trajectory.joint_trajectory;
+      jt_to_reset = res.motion_plan_response.trajectory.joint_trajectory;
       ROS_WARN("[Tr Planning] reset planning success.");
-      ROS_INFO_STREAM(jt);
     }
     else
     {
      ROS_ERROR("%s: Unable to call MoveIt path planning service: '%s' or planning failed, AFTER RESETTING POSE",
               __FUNCTION__, DEFAULT_MOVEIT_PLANNING_SERVICE_NAME.c_str());
       throw std::runtime_error("Unable to generate MoveIt path plan");
+    }
+
+    // goal planning
+    if(client.call(req_to_goal, res))
+    {
+      jt_to_goal = res.motion_plan_response.trajectory.joint_trajectory;
+      ROS_WARN("[Tr Planning] reset to goal planning success.");
+    }
+    else
+    {
+     ROS_ERROR("%s: Unable to call MoveIt path planning service: '%s' or planning failed, AFTER RESETTING POSE",
+              __FUNCTION__, DEFAULT_MOVEIT_PLANNING_SERVICE_NAME.c_str());
+      throw std::runtime_error("Unable to generate MoveIt path plan");
+    }
+
+    // concatenate trajectories
+    jt = jt_to_reset;
+    ros::Duration last_time = jt.points.back().time_from_start;
+
+    for(auto pt : jt_to_goal.points)
+    {
+      pt.time_from_start += last_time;
+      jt.points.push_back(pt);
     }
   }
   return jt;
