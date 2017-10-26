@@ -10,19 +10,14 @@
 #include <actionlib/client/simple_action_client.h>
 #include <control_msgs/FollowJointTrajectoryAction.h>
 
-namespace framefab_path_execution
+namespace framefab_simulation_execution
 {
 
-class PathExecutionService
+class SimulationExecutionService
 {
  public:
-  PathExecutionService(ros::NodeHandle& nh);
+  SimulationExecutionService(ros::NodeHandle& nh);
 
-  /**
-   * Currently forwards the framefab_msgs::TrajectoryExecution on to the corresponding
-   * MoveIt node. The idea though is that abstracting 'execution' will give us more flexibility
-   * later to implement our own process parameters related to execution.
-   */
   bool executionCallback(framefab_msgs::TrajectoryExecution::Request& req,
                          framefab_msgs::TrajectoryExecution::Response& res);
 

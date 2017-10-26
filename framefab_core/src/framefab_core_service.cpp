@@ -518,7 +518,7 @@ void FrameFabCoreService::simulateMotionPlansActionCallback(const framefab_msgs:
 
   visual_tool_.visualizePathUntil(goal_in->index);
 
-  ROS_INFO_STREAM("Simulation time: " << process_time);
+  ROS_INFO_STREAM("[Core] Simulation time: " << process_time);
 
   if(exe_client->waitForResult(process_time + buffer_time))
   {

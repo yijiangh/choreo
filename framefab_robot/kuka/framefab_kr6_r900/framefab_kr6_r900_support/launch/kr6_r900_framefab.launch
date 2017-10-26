@@ -14,7 +14,7 @@
   </include>
 
   <!-- Brings up action interface for trajectory execution in Rviz-->
-  <node name="path_execution_service" pkg="framefab_path_execution" type="path_execution_service_node" output="screen"/>
+  <node name="simulation_execution_service" pkg="framefab_simulation_execution" type="simulation_execution_service_node" output="screen"/>
 
 	<!-- Process execution nodes: These monitor the state of robot's execution of the computed plan. They can be, and in this case are, robot or vendor specific -->
   <group>

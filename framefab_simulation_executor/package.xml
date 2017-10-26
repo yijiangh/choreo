@@ -1,14 +1,12 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>framefab_path_execution</name>
+  <name>framefab_simulation_execution</name>
   <version>0.1.0</version>
   <description>
     This package manages the execution of joint trajectories
-    on the physical platform. Many components in framefab_mpp may
-    issue movement commands, and this package is envisioned
-    as a gate keeper of this motion. 
+    on the rviz simluation platform.
   </description>
-
+  
   <maintainer email="yijiangh@mit.edu">Yijiang Huang</maintainer>
   <maintainer email="jmeyer@swri.org">Jonathan Meyer</maintainer>
   <license>Apache 2.0</license>

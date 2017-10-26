@@ -46,7 +46,7 @@ bool framefab_process_planning::generateMotionPlan(
   // Step 0: Sanity checks
   if (segs.size() == 0)
   {
-    ROS_ERROR("input descartes Constrained Segment size = 0!");
+    ROS_ERROR("[Process Planning] input descartes Constrained Segment size = 0!");
     return false;
   }
 
@@ -69,7 +69,7 @@ bool framefab_process_planning::generateMotionPlan(
 
     if (!child->processCollisionObjectMsg(collision_objs[i]))
     {
-      ROS_WARN("Failed to process collision object");
+      ROS_WARN("[Process Planning] Failed to process collision object");
     }
     planning_scenes.push_back(child);
   }
@@ -87,14 +87,15 @@ bool framefab_process_planning::generateMotionPlan(
     if (true)
     {
       descartes_planner::ConstrainedSegment& seg = segs[i];
-      ROS_INFO_STREAM("seg #" << i << ": " << seg.orientations.size());
+      ROS_INFO_STREAM("[Process Planning] process #" << i << ": " << seg.orientations.size());
     }
     graphs.push_back(descartes_planner::sampleConstrainedPaths(*model, segs[i]));
     graph_indices.push_back(graphs.back().size());
   }
   auto graph_build_end = ros::Time::now();
 
-  ROS_INFO_STREAM("Graph building took: " << (graph_build_end - graph_build_start).toSec() << " seconds");
+  ROS_INFO_STREAM("[Process Planning] Ladder Graph building took: "
+                      << (graph_build_end - graph_build_start).toSec() << " seconds");
 
   // Step 3: graph construction - one single unified graph
   // append individual graph together to form one
@@ -106,7 +107,7 @@ bool framefab_process_planning::generateMotionPlan(
     descartes_planner::appendInTime(final_graph, graph);
   }
   const auto append_end = ros::Time::now();
-  ROS_INFO_STREAM("Graph appending took: " << (append_end - append_start).toSec() << " seconds");
+  ROS_INFO_STREAM("[Process Planning] Graph appending took: " << (append_end - append_start).toSec() << " seconds");
 
   // Next, we build a search for the whole problem
   const auto search_start = ros::Time::now();
@@ -116,8 +117,8 @@ bool framefab_process_planning::generateMotionPlan(
   double cost = search.run();
 
   const auto search_end = ros::Time::now();
-  ROS_INFO_STREAM("Search took " << (search_end-search_start).toSec()
-                                 << " seconds and produced a result with dist = " << cost);
+  ROS_INFO_STREAM("[Process Planning] DAG Search took " << (search_end-search_start).toSec()
+                                                        << " seconds and produced a result with dist = " << cost);
 
   // Step 4 : Harvest shortest path in graph to retract trajectory
   auto path_idxs = search.shortestPath();
@@ -133,8 +134,6 @@ bool framefab_process_planning::generateMotionPlan(
   }
 
   trajectory_msgs::JointTrajectory ros_traj = toROSTrajectory(sol, *model);
-  // sim speed tuning
-  for (auto& pt : ros_traj.points) pt.time_from_start *= 3.0;
 
   plans.resize(segs.size());
 
@@ -163,7 +162,7 @@ bool framefab_process_planning::generateMotionPlan(
       last_joint_pose = plans[i-1].sub_process_array.back().joint_array.points.back().positions;
     }
 
-    current_first_joint_pose = plans[i].sub_process_array[0].joint_array.points.front().positions;
+    current_first_joint_pose = plans[i].sub_process_array.back().joint_array.points.front().positions;
 
     if(last_joint_pose == current_first_joint_pose)
     {
@@ -174,14 +173,14 @@ bool framefab_process_planning::generateMotionPlan(
     // update the planning scene
     if(!planning_scene_diff_client.waitForExistence())
     {
-      ROS_ERROR_STREAM("[Transition Planning] cannot connect with planning scene diff server...");
+      ROS_ERROR_STREAM("[Tr Planning] cannot connect with planning scene diff server...");
     }
 
     moveit_msgs::ApplyPlanningScene srv;
     planning_scenes[i]->getPlanningSceneMsg(srv.request.scene);
     if(!planning_scene_diff_client.call(srv))
     {
-      ROS_ERROR_STREAM("Failed to publish planning scene diff srv!");
+      ROS_ERROR_STREAM("[Tr Planning] Failed to publish planning scene diff srv!");
     }
 
     trajectory_msgs::JointTrajectory ros_trans_traj = getMoveitTransitionPlan(move_group_name,
@@ -189,18 +188,6 @@ bool framefab_process_planning::generateMotionPlan(
                                                                               current_first_joint_pose,
                                                                               start_state,
                                                                               moveit_model);
-
-    ROS_INFO_STREAM("[PP] process #" << i);
-    ROS_INFO_STREAM("last end pose: " << last_joint_pose[0] << ", " << last_joint_pose[1] << ", "
-                                      << last_joint_pose[2] << ", " << last_joint_pose[3] << ", "
-                                      << last_joint_pose[4] << ", " << last_joint_pose[5]);
-    ROS_INFO_STREAM("this st  pose: " << current_first_joint_pose[0] << ", " << current_first_joint_pose[1] << ", "
-                                      << current_first_joint_pose[2] << ", " << current_first_joint_pose[3] << ", "
-                                      << current_first_joint_pose[4] << ", " << current_first_joint_pose[5]);
-    ROS_INFO_STREAM("---------");
-
-    // sim speed tuning
-    for (auto& pt : ros_trans_traj.points) pt.time_from_start *= 3.0;
 
     framefab_msgs::SubProcess sub_process;
 
@@ -221,33 +208,12 @@ bool framefab_process_planning::generateMotionPlan(
   // inline function for append trajectory headers (adjust time frame)
   auto adjustTrajectoryHeaders = [](trajectory_msgs::JointTrajectory& last_filled_jts, framefab_msgs::SubProcess& sp)
   {
-    ROS_INFO_STREAM("[PP] subprocess - jt array size: " << sp.joint_array.points.size());
-    appendTrajectoryHeaders(last_filled_jts, sp.joint_array);
+    appendTrajectoryHeaders(last_filled_jts, sp.joint_array, 3.0);
     last_filled_jts = sp.joint_array;
-
-    // screen display
-    if(sp.process_type == framefab_msgs::SubProcess::TRANSITION)
-    {
-      ROS_INFO_STREAM("sp " << "transition");
-    }
-
-    if(sp.process_type == framefab_msgs::SubProcess::PROCESS)
-    {
-      ROS_INFO_STREAM("sp " << "process");
-    }
-
-    ROS_INFO_STREAM("time stamp: " << sp.joint_array.header.stamp
-                                   << ", first time from st:"
-                                   << sp.joint_array.points.front().time_from_start
-                                   << ", last time from st: "
-                                   << sp.joint_array.points.back().time_from_start);
-    ROS_INFO_STREAM("*****");
   };
 
   for(size_t i = 0; i < segs.size(); i++)
   {
-    ROS_INFO_STREAM("=============================");
-    ROS_INFO_STREAM("process #" << i);
     for (size_t j = 0; j < plans[i].sub_process_array.size(); j++)
     {
       adjustTrajectoryHeaders(last_filled_jts, plans[i].sub_process_array[j]);
