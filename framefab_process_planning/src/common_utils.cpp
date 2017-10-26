@@ -338,10 +338,12 @@ trajectory_msgs::JointTrajectory framefab_process_planning::getMoveitTransitionP
     reset_goal_state.setJointGroupPositions(group, initial_pose);
 
     // interpolate the reset goal state
-    moveit_msgs::Constraints c_reset = kinematic_constraints::constructGoalConstraints(reset_goal_state, group);
-    req.motion_plan_request.goal_constraints.clear();
-    req.motion_plan_request.goal_constraints.push_back(c_reset);
-    req.motion_plan_request.goal_constraints.push_back(c);
+    moveit_msgs::Constraints c = kinematic_constraints::constructGoalConstraints(reset_goal_state, group);
+//    req.motion_plan_request.goal_constraints.clear();
+//    req.motion_plan_request.goal_constraints.push_back(c_reset);
+    auto it = req.motion_plan_request.goal_constraints.begin();
+
+    req.motion_plan_request.goal_constraints.insert(it, c);
 
     ROS_INFO_STREAM("moveit tr planning goal: ");
     for(auto ct : req.motion_plan_request.goal_constraints)
@@ -354,6 +356,7 @@ trajectory_msgs::JointTrajectory framefab_process_planning::getMoveitTransitionP
     {
       jt = res.motion_plan_response.trajectory.joint_trajectory;
       ROS_WARN("[Tr Planning] reset planning success.");
+      ROS_INFO_STREAM(jt);
     }
     else
     {

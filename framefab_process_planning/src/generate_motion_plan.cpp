@@ -163,7 +163,7 @@ bool framefab_process_planning::generateMotionPlan(
       last_joint_pose = plans[i-1].sub_process_array.back().joint_array.points.back().positions;
     }
 
-    current_first_joint_pose = plans[i].sub_process_array[0].joint_array.points.front().positions;
+    current_first_joint_pose = plans[i].sub_process_array.back().joint_array.points.front().positions;
 
     if(last_joint_pose == current_first_joint_pose)
     {
@@ -190,14 +190,14 @@ bool framefab_process_planning::generateMotionPlan(
                                                                               start_state,
                                                                               moveit_model);
 
-//    ROS_INFO_STREAM("[PP] process #" << i);
-//    ROS_INFO_STREAM("last end pose: " << last_joint_pose[0] << ", " << last_joint_pose[1] << ", "
-//                                      << last_joint_pose[2] << ", " << last_joint_pose[3] << ", "
-//                                      << last_joint_pose[4] << ", " << last_joint_pose[5]);
-//    ROS_INFO_STREAM("this st  pose: " << current_first_joint_pose[0] << ", " << current_first_joint_pose[1] << ", "
-//                                      << current_first_joint_pose[2] << ", " << current_first_joint_pose[3] << ", "
-//                                      << current_first_joint_pose[4] << ", " << current_first_joint_pose[5]);
-//    ROS_INFO_STREAM("---------");
+    ROS_INFO_STREAM("[PP] process #" << i);
+    ROS_INFO_STREAM("last end pose: " << last_joint_pose[0] << ", " << last_joint_pose[1] << ", "
+                                      << last_joint_pose[2] << ", " << last_joint_pose[3] << ", "
+                                      << last_joint_pose[4] << ", " << last_joint_pose[5]);
+    ROS_INFO_STREAM("this st  pose: " << current_first_joint_pose[0] << ", " << current_first_joint_pose[1] << ", "
+                                      << current_first_joint_pose[2] << ", " << current_first_joint_pose[3] << ", "
+                                      << current_first_joint_pose[4] << ", " << current_first_joint_pose[5]);
+    ROS_INFO_STREAM("---------");
 
     // sim speed tuning
 //    for (auto& pt : ros_trans_traj.points) pt.time_from_start *= 3.0;
