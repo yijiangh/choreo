@@ -11,7 +11,7 @@
 
 #include <ros/topic.h>
 
-const static std::string SIMULATION_SERVICE_NAME = "path_execution";
+const static std::string SIMULATION_SERVICE_NAME = "simulation_execution";
 const static std::string PROCESS_EXE_ACTION_SERVER_NAME = "framefab_execution_as";
 
 framefab_execution_gatekeeper::ExecutionGatekeeper::ExecutionGatekeeper(ros::NodeHandle& nh)

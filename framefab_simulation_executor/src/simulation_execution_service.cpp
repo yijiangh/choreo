@@ -2,7 +2,7 @@
 // Created by yijiangh on 7/12/17.
 //
 
-#include <framefab_path_execution/path_execution_service.h>
+#include <framefab_simulation_execution/simulation_execution_service.h>
 #include <framefab_industrial_robot_simulator_service/SimulateTrajectory.h>
 
 const static std::string ACTION_SERVER_NAME = "joint_trajectory_action";
@@ -10,14 +10,14 @@ const static double ACTION_EXTRA_WAIT_RATIO = 2.0;   // 20% past end of trajecto
 const static double ACTION_SERVICE_WAIT_TIME = 30.0; // seconds
 const static char* const ACTION_CONNECTION_FAILED_MSG = "Could not connect to action server.";
 
-const static std::string THIS_SERVICE_NAME = "path_execution";
+const static std::string THIS_SERVICE_NAME = "simulation_execution";
 
-framefab_path_execution::PathExecutionService::PathExecutionService(ros::NodeHandle& nh)
+framefab_simulation_execution::SimulationExecutionService::SimulationExecutionService(ros::NodeHandle& nh)
     : ac_(ACTION_SERVER_NAME, true)
 {
-  server_ = nh.advertiseService<PathExecutionService, framefab_msgs::TrajectoryExecution::Request,
+  server_ = nh.advertiseService<SimulationExecutionService, framefab_msgs::TrajectoryExecution::Request,
                                 framefab_msgs::TrajectoryExecution::Response>(
-      THIS_SERVICE_NAME, &framefab_path_execution::PathExecutionService::executionCallback, this);
+      THIS_SERVICE_NAME, &framefab_simulation_execution::SimulationExecutionService::executionCallback, this);
 
   // Attempt to connect to the motion action service
   if (!ac_.waitForServer(ros::Duration(ACTION_SERVICE_WAIT_TIME)))
@@ -27,7 +27,7 @@ framefab_path_execution::PathExecutionService::PathExecutionService(ros::NodeHan
   }
 }
 
-bool framefab_path_execution::PathExecutionService::executionCallback(
+bool framefab_simulation_execution::SimulationExecutionService::executionCallback(
     framefab_msgs::TrajectoryExecution::Request& req, framefab_msgs::TrajectoryExecution::Response& res)
 {
   // Check preconditions

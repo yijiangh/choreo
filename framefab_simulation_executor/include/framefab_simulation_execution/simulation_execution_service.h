@@ -10,13 +10,13 @@
 #include <actionlib/client/simple_action_client.h>
 #include <control_msgs/FollowJointTrajectoryAction.h>
 
-namespace framefab_path_execution
+namespace framefab_simulation_execution
 {
 
-class PathExecutionService
+class SimulationExecutionService
 {
  public:
-  PathExecutionService(ros::NodeHandle& nh);
+  SimulationExecutionService(ros::NodeHandle& nh);
 
   bool executionCallback(framefab_msgs::TrajectoryExecution::Request& req,
                          framefab_msgs::TrajectoryExecution::Response& res);
