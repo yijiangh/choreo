@@ -164,6 +164,8 @@ bool framefab_process_planning::generateMotionPlan(
 
   for(size_t i = 0; i < segs.size(); i++)
   {
+    ROS_INFO_STREAM("[Transition Planning] process #" << i << ": " << seg.orientations.size());
+
     if(0 != i)
     {
       last_joint_pose = plans[i-1].sub_process_array.back().joint_array.points.back().positions;

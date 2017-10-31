@@ -172,7 +172,7 @@
     <bool>false</bool>
    </property>
    <property name="currentIndex">
-    <number>1</number>
+    <number>0</number>
    </property>
    <property name="documentMode">
     <bool>false</bool>
@@ -229,7 +229,7 @@
      </property>
      <property name="geometry">
       <rect>
-       <x>0</x>
+       <x>10</x>
        <y>170</y>
        <width>231</width>
        <height>27</height>
@@ -399,6 +399,22 @@
      </property>
      <property name="text">
       <string>Local Axis</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushbutton_output_chosen_pose">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>200</y>
+       <width>231</width>
+       <height>27</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Output Chosen Pose</string>
      </property>
     </widget>
    </widget>
