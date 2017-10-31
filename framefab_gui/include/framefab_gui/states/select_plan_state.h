@@ -42,6 +42,7 @@ class SelectPlanState : public GuiState
   FrameFabWidget* ptr_gui_;
 
   std::vector<int> selected_plan_ids_;
+  double sim_speed_;
 };
 }
 

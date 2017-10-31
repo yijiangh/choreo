@@ -48,6 +48,7 @@ framefab_gui::SelectionWidget::SelectionWidget(QWidget* parent) : QWidget(parent
 
   // Wire in slider
   connect(ui_->slider_select_number, SIGNAL(valueChanged(int)), this, SLOT(sliderUpdateOrderValue(int)));
+  connect(ui_->slider_sim_speed, SIGNAL(valueChanged(int)), this, SLOT(sliderUpdateSimSpeed(int)));
 
   // Wire in lineedit
   connect(ui_->lineedit_select_number, SIGNAL(returnPressed()), this, SLOT(lineeditUpdateOrderValue()));
@@ -101,6 +102,9 @@ void framefab_gui::SelectionWidget::loadParameters()
   // reset display value
   selected_value_ = 0;
   ui_->slider_select_number->setValue(0);
+
+  ui_->slider_sim_speed->setValue(1);
+
   ui_->lineedit_select_number->setText(QString::number(0));
 
   setInputEnabled(true);
@@ -174,6 +178,11 @@ void framefab_gui::SelectionWidget::orderValueChanged()
   }
 
   setInputEnabled(true);
+}
+
+void framefab_gui::SelectionWidget::simSpeedChanged()
+{
+  ui_->lineedit_sim_speed->setText(QString::number(sim_speed_));
 }
 
 static int getIntFromString(const std::string &str)
@@ -458,6 +467,13 @@ void framefab_gui::SelectionWidget::sliderUpdateOrderValue(int value)
 {
   selected_value_ = value;
   orderValueChanged();
+}
+
+void framefab_gui::SelectionWidget::sliderUpdateSimSpeed(int value)
+{
+  // discretization of slider is set in qt ui file
+  sim_speed_ = (double) value / 100;
+  simSpeedChanged();
 }
 
 void framefab_gui::SelectionWidget::lineeditUpdateOrderValue()

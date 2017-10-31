@@ -50,6 +50,7 @@ class SelectionWidget : public QWidget
 
   // update display according to current print order
   void orderValueChanged();
+  void simSpeedChanged();
 
   void setInputEnabled(bool enabled);
   void setInputIDEnabled(bool);
@@ -57,6 +58,8 @@ class SelectionWidget : public QWidget
   void setInputIKSolutionEnabled(bool);
 
   int  getSelectedValueForPlanning() { return selected_value_; }
+  double getSimSpeed() { return sim_speed_; }
+
   std::vector<int> getSelectedIdsForSimulation() { return selected_ids_for_sim_; }
   std::vector<int> getChosenIds() { return chosen_ids_for_sim_; }
 
@@ -110,6 +113,8 @@ class SelectionWidget : public QWidget
   void sliderUpdateOrderValue(int value);
   void lineeditUpdateOrderValue();
 
+  void sliderUpdateSimSpeed(int value);
+
   void widgetStateChanged();
 
  private:
@@ -124,6 +129,8 @@ class SelectionWidget : public QWidget
   std::vector<int> selected_ids_for_sim_;
   std::vector<int> chosen_ids_for_sim_;
   std::vector<int> fetched_plan_ids_;
+
+  double sim_speed_;
 
   SIMULATE_TYPE sim_type_;
   MODE mode_;

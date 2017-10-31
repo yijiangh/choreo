@@ -164,7 +164,7 @@ bool framefab_process_planning::generateMotionPlan(
 
   for(size_t i = 0; i < segs.size(); i++)
   {
-    ROS_INFO_STREAM("[Transition Planning] process #" << i << ": " << seg.orientations.size());
+    ROS_INFO_STREAM("[Transition Planning] process #" << i);
 
     if(0 != i)
     {

@@ -17,7 +17,12 @@ bool simulate               # If true, the motion plan will be simulated and not
 
 bool wait_for_execution     # If true, the execution service will block until the trajectory
                             # is complete. Otherwise, returns immediately.
+
+# time scaling for rviz simulation, should be in [0,1]
+float64 sim_speed
+
 ---
+
 # Result
 
 # Return Code Enumeration (Negative values for error types)

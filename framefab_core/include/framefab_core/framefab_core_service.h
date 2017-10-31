@@ -88,6 +88,8 @@ class FrameFabCoreService
   // immediate plan & execution
   bool moveToTargetJointPose(std::vector<double> joint_pose);
 
+  void adjustSimSpeed(double sim_speed);
+
  private:
   // Services offered by this class
   ros::ServiceServer framefab_parameters_server_;

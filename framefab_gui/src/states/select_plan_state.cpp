@@ -53,6 +53,7 @@ void framefab_gui::SelectPlanState::onStart(FrameFabWidget& gui)
 
   gui.setButtonsEnabled(false);
   selected_plan_ids_.clear();
+  sim_speed_ = 1.0;
 
   connect(&gui.selection_widget(), SIGNAL(flushSimulation()), this, SLOT(triggerSimulation()));
   connect(&gui.selection_widget(), SIGNAL(flushOutputProcess()), this, SLOT(triggerOutputProcess()));
@@ -97,6 +98,7 @@ void framefab_gui::SelectPlanState::simulateAll()
 {
   selected_plan_ids_.clear();
   selected_plan_ids_ = ptr_gui_->selection_widget().getSelectedIdsForSimulation();
+  sim_speed_ = ptr_gui_->selection_widget().getSimSpeed();
 
   for (std::size_t i = 0; i < selected_plan_ids_.size(); ++i)
   {
@@ -113,6 +115,7 @@ void framefab_gui::SelectPlanState::simulateOne(const int& plan_id)
   goal.index = plan_id;
   goal.simulate = true;
   goal.wait_for_execution = true;
+  goal.sim_speed = sim_speed_;
 
   ptr_gui_->sendGoalAndWait(goal);
 }
