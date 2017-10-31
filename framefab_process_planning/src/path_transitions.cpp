@@ -33,9 +33,7 @@ namespace // anon namespace to hide utility functions
       tf::vectorMsgToEigen(v, eigen_vec);
       eigen_vec *= -1.0;
       eigen_vec.normalize();
-//      ROS_INFO_STREAM("Candiate:" << eigen_vec.transpose());
 
-      // JM
       // construct local x axis & y axis
       Eigen::Vector3d candidate_dir = Eigen::Vector3d::UnitX();
       if ( std::abs(eigen_vec.dot(Eigen::Vector3d::UnitX())) > 0.8 )
@@ -54,7 +52,6 @@ namespace // anon namespace to hide utility functions
       m.col(1) = y_vec;
       m.col(2) = eigen_vec;
 
-//      ROS_INFO_STREAM("Output\n" << m << "\n");
       m_orients.push_back(m);
     }
   }
@@ -94,4 +91,28 @@ framefab_process_planning::toDescartesConstrainedPath(const std::vector<framefab
   } // end segments
 
   return segs;
+}
+
+std::vector<std::vector<double>> retractPath(const std::vector<double>& start_joint, double retract_dist,
+                                             descartes_core::RobotModelPtr& descartes_model,
+                                             planning_scene::PlanningScenePtr)
+{
+  // solve FK to retrieve start eef plane
+  Eigen::Affine3d start_pose;
+  descartes_model->getFK(start_joint, start_pose);
+
+  // transit the start eef plane along the direction of the local z axis
+  Eigen::Affine3d retract_pose = start_pose * Eigen::Translation3d(retract_dist * start_pose.linear().col(2));
+
+  // solve IK for retract plane, and pick the one with the minimal joint distance to start joint config
+  std::vector<std::vector<double>> jts_candidate;
+  descartes_model->getAllIK(retract_pose, jts_candidate);
+
+  // interpolate start pose and target pose
+//  std::vector<std::vector<double>> result_jts = interpolateJoint(start_joint, retract_joint, JTS_DISC_DELTA);
+
+  // check the validity of the pose, if not, send out warning and return nothing
+
+
+//  return result_jts;
 }

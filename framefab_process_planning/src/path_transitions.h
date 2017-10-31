@@ -14,7 +14,9 @@
 #include <framefab_msgs/ElementCandidatePoses.h>
 #include "eigen_conversions/eigen_msg.h"
 
+#include <descartes_core/robot_model.h>
 #include <descartes_planner/graph_builder.h>
+#include <moveit/planning_scene/planning_scene.h>
 
 namespace framefab_process_planning
 {
@@ -34,6 +36,9 @@ toDescartesConstrainedPath(
     const int selected_path_id,
     const double process_speed, const ConstrainedSegParameters& transition_params);
 
+std::vector<std::vector<double>> retractPath(const std::vector<double>& start_joint, double retract_dist,
+                                             descartes_core::RobotModelPtr& descartes_model,
+                                             planning_scene::PlanningScenePtr);
 }
 
 #endif //FRAMEFAB_PROCESS_PLANNING_PATH_TRANSITIONS_H

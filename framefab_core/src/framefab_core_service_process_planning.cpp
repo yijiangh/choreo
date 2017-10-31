@@ -49,7 +49,7 @@ ProcessPlanResult FrameFabCoreService::generateProcessPlan(const int selected_pa
   }
   else
   {
-    ROS_ERROR_STREAM("Failed to plan for path #" << selected_path_index << ", planning failed.");
+    ROS_ERROR_STREAM("[Core] Failed to plan for path #" << selected_path_index << ", planning failed.");
   }
 
   return result;

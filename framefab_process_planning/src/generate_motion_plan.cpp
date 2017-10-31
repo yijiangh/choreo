@@ -97,14 +97,19 @@ bool framefab_process_planning::generateMotionPlan(
   ROS_INFO_STREAM("[Process Planning] Ladder Graph building took: "
                       << (graph_build_end - graph_build_start).toSec() << " seconds");
 
+  //TODO: save constructed disconnected planning graph
+
   // Step 3: graph construction - one single unified graph
   // append individual graph together to form one
   const auto append_start = ros::Time::now();
   descartes_planner::LadderGraph final_graph (model->getDOF());
 
+  int append_id = 0;
   for (const auto& graph : graphs)
   {
+    ROS_INFO_STREAM("[Process Planning] appending graph #" << append_id);
     descartes_planner::appendInTime(final_graph, graph);
+    append_id++;
   }
   const auto append_end = ros::Time::now();
   ROS_INFO_STREAM("[Process Planning] Graph appending took: " << (append_end - append_start).toSec() << " seconds");
@@ -119,6 +124,8 @@ bool framefab_process_planning::generateMotionPlan(
   const auto search_end = ros::Time::now();
   ROS_INFO_STREAM("[Process Planning] DAG Search took " << (search_end-search_start).toSec()
                                                         << " seconds and produced a result with dist = " << cost);
+
+  //TODO: save constructed unified planning graph
 
   // Step 4 : Harvest shortest path in graph to retract trajectory
   auto path_idxs = search.shortestPath();
@@ -208,7 +215,7 @@ bool framefab_process_planning::generateMotionPlan(
   // inline function for append trajectory headers (adjust time frame)
   auto adjustTrajectoryHeaders = [](trajectory_msgs::JointTrajectory& last_filled_jts, framefab_msgs::SubProcess& sp)
   {
-    appendTrajectoryHeaders(last_filled_jts, sp.joint_array, 3.0);
+    appendTrajectoryHeaders(last_filled_jts, sp.joint_array, 1.0);
     last_filled_jts = sp.joint_array;
   };
 
