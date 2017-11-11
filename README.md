@@ -51,6 +51,8 @@ Development mainly on *kuka_kr6r900sixx robot* for now.
 
 ## Application
 
+# :construction: Outdated! :construction:
+
 To launch the application:
 ```
 roslaunch framefab_kr6_r900_support kr6_r900_framefab.launch

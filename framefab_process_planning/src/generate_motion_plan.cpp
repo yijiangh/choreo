@@ -17,6 +17,8 @@
 #include <descartes_planner/graph_builder.h>
 #include <moveit/planning_scene/planning_scene.h>
 
+#include <descartes_parser/descartes_parser.h>
+
 // for immediate execution
 #include <actionlib/client/simple_action_client.h>
 #include <control_msgs/FollowJointTrajectoryAction.h>
@@ -25,6 +27,8 @@
 #include <geometry_msgs/Pose.h>
 #include <trajectory_msgs/JointTrajectoryPoint.h>
 #include <framefab_msgs/SubProcess.h>
+
+#include <descartes_msgs/LadderGraph.h>
 
 // srv
 #include <moveit_msgs/ApplyPlanningScene.h>
@@ -96,6 +100,9 @@ bool framefab_process_planning::generateMotionPlan(
 
   ROS_INFO_STREAM("[Process Planning] Ladder Graph building took: "
                       << (graph_build_end - graph_build_start).toSec() << " seconds");
+
+  // Step 2': save graph to msgs
+  auto graph_msg = descartes_parser::convertToLadderGraphMsg(graphs[0]);
 
   // Step 3: graph construction - one single unified graph
   // append individual graph together to form one
