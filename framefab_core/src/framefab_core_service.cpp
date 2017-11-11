@@ -469,54 +469,54 @@ void FrameFabCoreService::processPlanningActionCallback(const framefab_msgs::Pro
   }
 }
 
-namespace{
-void appendTrajectoryHeaders(const trajectory_msgs::JointTrajectory &orig_traj,
-                             trajectory_msgs::JointTrajectory &traj,
-                             const double sim_time_scale)
-{
-  traj.joint_names = orig_traj.joint_names;
-  traj.header.frame_id = orig_traj.header.frame_id;
-  traj.header.stamp = orig_traj.header.stamp + orig_traj.points.back().time_from_start;
-
-  // set time_from_start relative to first point
-  ros::Duration base_time = traj.points[0].time_from_start;
-
-  for (int i = 0; i < traj.points.size(); i++)
-  {
-    traj.points[i].time_from_start -= base_time;
-
-    //sim speed tuning
-    traj.points[i].time_from_start *= sim_time_scale;
-  }
-}
-}
-
-void FrameFabCoreService::adjustSimSpeed(double sim_speed)
-{
-  // global time_stamp rescale
-  trajectory_msgs::JointTrajectory last_filled_jts = trajectory_library_.get().begin()->second.sub_process_array[0].joint_array;
-
-  // shift first jts array
-  for (int i = 0; i < last_filled_jts.points().size(); i++)
-  {
-    last_filled_jts.points[i].time_from_start *= sim_speed;
-  }
-
-  // inline function for append trajectory headers (adjust time frame)
-  void adjustTrajectoryHeaders = [sim_speed](trajectory_msgs::JointTrajectory& last_filled_jts, framefab_msgs::SubProcess& sp)
-  {
-    appendTrajectoryHeaders(last_filled_jts, sp.joint_array, sim_speed);
-    last_filled_jts = sp.joint_array;
-  };
-
-  for(auto it = trajectory_library_.get().begin(); it != trajectory_library_.get().end(); ++it)
-  {
-    for (size_t j = 0; j < it->second.sub_process_array.size(); j++)
-    {
-      adjustTrajectoryHeaders(last_filled_jts, it->second.sub_process_array[j]);
-    }
-  }
-}
+//namespace{
+//void appendTrajectoryHeaders(const trajectory_msgs::JointTrajectory &orig_traj,
+//                             trajectory_msgs::JointTrajectory &traj,
+//                             const double sim_time_scale)
+//{
+//  traj.joint_names = orig_traj.joint_names;
+//  traj.header.frame_id = orig_traj.header.frame_id;
+//  traj.header.stamp = orig_traj.header.stamp + orig_traj.points.back().time_from_start;
+//
+//  // set time_from_start relative to first point
+//  ros::Duration base_time = traj.points[0].time_from_start;
+//
+//  for (int i = 0; i < traj.points.size(); i++)
+//  {
+//    traj.points[i].time_from_start -= base_time;
+//
+//    //sim speed tuning
+//    traj.points[i].time_from_start *= sim_time_scale;
+//  }
+//}
+//}
+//
+//void FrameFabCoreService::adjustSimSpeed(double sim_speed)
+//{
+//  // global time_stamp rescale
+//  trajectory_msgs::JointTrajectory last_filled_jts = trajectory_library_.get().begin()->second.sub_process_array[0].joint_array;
+//
+//  // shift first jts array
+//  for (int i = 0; i < last_filled_jts.points().size(); i++)
+//  {
+//    last_filled_jts.points[i].time_from_start *= sim_speed;
+//  }
+//
+//  // inline function for append trajectory headers (adjust time frame)
+//  void adjustTrajectoryHeaders = [sim_speed](trajectory_msgs::JointTrajectory& last_filled_jts, framefab_msgs::SubProcess& sp)
+//  {
+//    appendTrajectoryHeaders(last_filled_jts, sp.joint_array, sim_speed);
+//    last_filled_jts = sp.joint_array;
+//  };
+//
+//  for(auto it = trajectory_library_.get().begin(); it != trajectory_library_.get().end(); ++it)
+//  {
+//    for (size_t j = 0; j < it->second.sub_process_array.size(); j++)
+//    {
+//      adjustTrajectoryHeaders(last_filled_jts, it->second.sub_process_array[j]);
+//    }
+//  }
+//}
 
 void FrameFabCoreService::simulateMotionPlansActionCallback(const framefab_msgs::SimulateMotionPlanGoalConstPtr& goal_in)
 {
