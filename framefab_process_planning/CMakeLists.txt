@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   descartes_moveit
   descartes_planner
   descartes_trajectory
+	descartes_parser
   framefab_msgs
 	moveit_msgs
   moveit_ros_planning_interface
@@ -22,6 +23,7 @@ catkin_package(
     descartes_moveit
     descartes_planner
     descartes_trajectory
+		descartes_parser
     framefab_msgs
 		moveit_msgs
     moveit_ros_planning_interface 

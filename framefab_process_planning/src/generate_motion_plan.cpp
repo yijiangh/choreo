@@ -97,7 +97,8 @@ bool framefab_process_planning::generateMotionPlan(
   ROS_INFO_STREAM("[Process Planning] Ladder Graph building took: "
                       << (graph_build_end - graph_build_start).toSec() << " seconds");
 
-  //TODO: save constructed disconnected planning graph
+  // Step 2': save graph to msgs
+  auto graph_msg = descartes_parser::convertToLadderGraphMsg(graphs[0]);
 
   // Step 3: graph construction - one single unified graph
   // append individual graph together to form one
