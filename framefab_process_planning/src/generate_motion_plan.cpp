@@ -42,6 +42,8 @@ void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
                              const std::vector<moveit_msgs::CollisionObject>& collision_objs,
                              std::vector<planning_scene::PlanningScenePtr>& planning_scenes)
 {
+  const auto build_scenes_start = ros::Time::now();
+
   planning_scenes.clear();
   planning_scenes.reserve(collision_objs.size());
 
@@ -61,6 +63,10 @@ void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
     }
     planning_scenes.push_back(child);
   }
+
+  const auto build_scenes_end = ros::Time::now();
+  ROS_INFO_STREAM("[Process Planning] constructing planning scenes took " << (build_scenes_end-build_scenes_start).toSec()
+                                                                          << " seconds.");
 }
 
 void constructLadderGraphSegments(descartes_core::RobotModelPtr model,
@@ -294,11 +300,24 @@ bool framefab_process_planning::generateMotionPlan(
                                graphs, graph_indices);
 
   // Step 2': save graph to msgs
-  auto graph_msg = descartes_parser::convertToLadderGraphMsg(graphs[0]);
+  const auto save_graph_start = ros::Time::now();
 
-  // Step 3: graph construction - one single unified graph
-  // append individual graph together to form one
-  descartes_planner::LadderGraph final_graph (model->getDOF());
+  auto graph_list_msg = descartes_parser::convertToLadderGraphMsg(graphs);
+
+  const auto save_graph_end = ros::Time::now();
+  ROS_INFO_STREAM("[Process Planning] ladder graph saving took " << (save_graph_end-save_graph_start).toSec()
+                                                                 << " seconds.");
+
+  const auto parse_graph_start = ros::Time::now();
+
+  graphs = descartes_parser::convertToLadderGraphList(graph_list_msg);
+
+  const auto parse_graph_end = ros::Time::now();
+  ROS_INFO_STREAM("[Process Planning] ladder graph parsing took " << (parse_graph_end-parse_graph_start).toSec()
+                                                                  << " seconds.");
+
+  // Step 3: append individual graph together to an unified one
+  descartes_planner::LadderGraph final_graph(model->getDOF());
   appendLadderGraphSegments(graphs, final_graph);
 
   // Next, we build a search for the whole problem
