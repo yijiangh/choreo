@@ -28,6 +28,8 @@ framefab_gui::SelectionWidget::SelectionWidget(QWidget* parent) : QWidget(parent
 
   this->setWindowFlags(Qt::WindowStaysOnTopHint);
 
+  select_for_plan_pop_up_ = new SelectForPlanPopUpWidget();
+
   // Wire in buttons
   connect(ui_->pushbutton_select_backward, SIGNAL(clicked()), this, SLOT(buttonBackwardUpdateOrderValue()));
   connect(ui_->pushbutton_select_forward, SIGNAL(clicked()), this, SLOT(buttonForwardUpdateOrderValue()));
@@ -266,11 +268,13 @@ void framefab_gui::SelectionWidget::closeEvent(QCloseEvent *ev)
 
 void framefab_gui::SelectionWidget::setInputEnabled(bool enabled)
 {
-  ui_->pushbutton_select_backward->setEnabled(enabled);
-  ui_->pushbutton_select_forward->setEnabled(enabled);
-
   if(mode_ == PATH_SELECTION)
   {
+    ui_->pushbutton_select_backward->setEnabled(enabled);
+    ui_->pushbutton_select_forward->setEnabled(enabled);
+    ui_->slider_select_number->setEnabled(enabled);
+    ui_->lineedit_select_number->setEnabled(enabled);
+
     ui_->pushbutton_select_for_plan->setEnabled(enabled);
     ui_->pushbutton_select_all->setEnabled(enabled);
     ui_->pushbutton_simulate_single->setEnabled(false);
@@ -288,6 +292,14 @@ void framefab_gui::SelectionWidget::setInputEnabled(bool enabled)
 
   if(mode_ == ZOOM_IN_SELECTION)
   {
+    // TODO: functionality temporarily closed
+    enabled = false;
+
+    ui_->pushbutton_select_backward->setEnabled(enabled);
+    ui_->pushbutton_select_forward->setEnabled(enabled);
+    ui_->slider_select_number->setEnabled(enabled);
+    ui_->lineedit_select_number->setEnabled(enabled);
+
     ui_->pushbutton_select_for_plan->setEnabled(false);
     ui_->pushbutton_select_all->setEnabled(false);
     ui_->pushbutton_simulate_single->setEnabled(false);
@@ -297,17 +309,22 @@ void framefab_gui::SelectionWidget::setInputEnabled(bool enabled)
     setInputLocaAxisEnabled(enabled);
     setInputIKSolutionEnabled(enabled);
 
-    ui_->pushbutton_simulate_single_process->setEnabled(enabled);
-    ui_->pushbutton_close_widget->setEnabled(enabled);
+    ui_->pushbutton_simulate_single_process->setEnabled(false);
+    ui_->pushbutton_close_widget->setEnabled(true);
 
     ui_->tab_widget->setEnabled(enabled);
-    ui_->tab_widget->setTabEnabled(0, true);
+    ui_->tab_widget->setTabEnabled(0, enabled);
     ui_->tab_widget->setTabEnabled(1, false);
     ui_->tab_widget->setCurrentIndex(0);
   }
 
   if(mode_ == PLAN_SELECTION)
   {
+    ui_->pushbutton_select_backward->setEnabled(enabled);
+    ui_->pushbutton_select_forward->setEnabled(enabled);
+    ui_->slider_select_number->setEnabled(enabled);
+    ui_->lineedit_select_number->setEnabled(enabled);
+
     ui_->pushbutton_select_for_plan->setEnabled(false);
     ui_->pushbutton_select_all->setEnabled(enabled);
     ui_->pushbutton_simulate_single->setEnabled(enabled);
@@ -325,9 +342,6 @@ void framefab_gui::SelectionWidget::setInputEnabled(bool enabled)
     ui_->tab_widget->setTabEnabled(1, true);
     ui_->tab_widget->setCurrentIndex(1);
   }
-
-  ui_->slider_select_number->setEnabled(enabled);
-  ui_->lineedit_select_number->setEnabled(enabled);
 }
 
 void framefab_gui::SelectionWidget::setInputIDEnabled(bool enabled)
@@ -456,8 +470,7 @@ void framefab_gui::SelectionWidget::buttonSelectForPlan()
 {
   setInputEnabled(false);
 
-  // send service to core to enable pre-graph construction
-//  Q_EMIT acceptSelection();
+  select_for_plan_pop_up_->show();
 
   setMode(ZOOM_IN_SELECTION);
   setInputEnabled(true);

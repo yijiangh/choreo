@@ -18,7 +18,7 @@ namespace framefab_gui
 
 class ParamsSubmenu : public QWidget
 {
-  Q_OBJECT
+ Q_OBJECT
 
  public:
   ParamsSubmenu(QWidget* parent = 0);

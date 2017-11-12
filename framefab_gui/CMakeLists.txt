@@ -46,6 +46,7 @@ set(framefab_gui_SRCS
 	src/params/output_save_dir_input_config_widget.cpp
 	#selection
 	src/selection/selection_widget.cpp
+	src/selection/select_for_plan_pop_up_widget.cpp
 	)
 
 set(framefab_gui_HDRS
@@ -67,6 +68,7 @@ set(framefab_gui_HDRS
 	include/framefab_gui/params/output_save_dir_input_config_widget.h
 	#selection
 	include/framefab_gui/selection/selection_widget.h
+	include/framefab_gui/selection/select_for_plan_pop_up_widget.h
 	)
 
 set(framefab_gui_UIS
@@ -77,6 +79,7 @@ set(framefab_gui_UIS
 	src/uis/robot_input_config.ui
 	src/uis/output_save_dir_input_config.ui
 	src/uis/selection_widget.ui
+	src/uis/select_for_plan_pop_up.ui
 	)
 
 set(framefab_gui_RESOURCES

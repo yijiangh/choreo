@@ -12,9 +12,10 @@
 
 const static std::string PROCESS_PLANNING_ACTION_CLIENT_NAME = "process_planning_action";
 
-framefab_gui::ProcessPlanningState::ProcessPlanningState(const int& index)
+framefab_gui::ProcessPlanningState::ProcessPlanningState(const int index, const bool use_ladder_graph_record)
     : process_planning_action_client_(PROCESS_PLANNING_ACTION_CLIENT_NAME, true),
-      selected_path_index_(index)
+      selected_path_index_(index),
+      use_ladder_graph_record_(use_ladder_graph_record)
 {}
 
 void framefab_gui::ProcessPlanningState::onStart(FrameFabWidget& gui)

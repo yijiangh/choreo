@@ -19,7 +19,7 @@ class ProcessPlanningState : public GuiState
   Q_OBJECT
  public:
   // Constructor
-  ProcessPlanningState(const int& index);
+  ProcessPlanningState(const int index, const bool use_ladder_graph_record);
 
   // Entry and exit classes
   virtual void onStart(FrameFabWidget& gui);
@@ -47,6 +47,8 @@ class ProcessPlanningState : public GuiState
 
  private:
   int selected_path_index_;
+  bool use_ladder_graph_record_;
+
   actionlib::SimpleActionClient<framefab_msgs::ProcessPlanningAction> process_planning_action_client_;
   FrameFabWidget* gui_ptr_;
 };

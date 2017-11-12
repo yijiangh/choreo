@@ -10,6 +10,8 @@
 
 #include <ros/ros.h>
 
+#include <framefab_gui/selection/select_for_plan_pop_up_widget.h>
+
 namespace Ui
 {
 class SelectionWidgetWindow;
@@ -123,6 +125,7 @@ class SelectionWidget : public QWidget
   ros::ServiceClient visualize_client_;
 
   Ui::SelectionWidgetWindow* ui_;
+  SelectForPlanPopUpWidget* select_for_plan_pop_up_;
 
   int max_value_;
   int selected_value_;

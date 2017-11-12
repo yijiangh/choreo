@@ -19,9 +19,13 @@ void framefab_gui::SelectTasksState::onStart(FrameFabWidget& gui)
                   "Close the selection widget to continue.");
   gui.setButtonsEnabled(false);
   selected_id_for_planning_ = -1;
+  use_ladder_graph_record_ = false;
+
+  // request checking ladder graph in record
+//  connect(&gui.selection_widget(), SIGNAL(exitSelectionWidget()), this, SLOT(toNextState()));
 
   // if the selection widget is closed, move to next state
-  connect(&gui.selection_widget(), SIGNAL(exitSelectionWidget()), this, SLOT(toNextState()));
+  connect(&gui.selection_widget(), SIGNAL(exitSelectionWidget()), this, SLOT(toBackState()));
 
   selectTask(gui);
 }
@@ -35,14 +39,18 @@ void framefab_gui::SelectTasksState::onNext(FrameFabWidget& gui)
   // fetch ids for planning from selection_widget
   selected_id_for_planning_ = gui.selection_widget().getSelectedValueForPlanning();
 
-//  gui.appendText("\nselect path state finished! Selected Path: #" + std::to_string(selected_path_ids_));
-  Q_EMIT newStateAvailable(new ProcessPlanningState(selected_id_for_planning_));
+  // fetch use_record decision from selection_widget
+//  use_ladder_graph_record_ = gui.selection_widget().getUseLadderGraphRecord();
+
+  // proceed to Process Planning State
+  // params: selected_id_for_planning, (bool) use_record
+  Q_EMIT newStateAvailable(new ProcessPlanningState(selected_id_for_planning_, use_ladder_graph_record_));
 }
 
 void framefab_gui::SelectTasksState::onBack(FrameFabWidget& gui)
 {
   gui.selection_widget().cleanUpVisual();
-  Q_EMIT newStateAvailable(new SystemInitState());
+  Q_EMIT newStateAvailable(new TaskSequenceProcessingState());
 }
 
 void framefab_gui::SelectTasksState::onReset(FrameFabWidget& gui)
@@ -61,4 +69,9 @@ void framefab_gui::SelectTasksState::selectTask(FrameFabWidget& gui)
 void framefab_gui::SelectTasksState::toNextState()
 {
   this->onNext(*ptr_gui_);
+}
+
+void framefab_gui::SelectTasksState::toBackState()
+{
+  this->onBack(*ptr_gui_);
 }

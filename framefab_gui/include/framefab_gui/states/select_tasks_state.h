@@ -26,6 +26,7 @@ class SelectTasksState : public GuiState
   virtual void onReset(FrameFabWidget& gui);
 
  protected Q_SLOTS:
+  void toBackState();
   void toNextState();
 
  protected:
@@ -33,6 +34,7 @@ class SelectTasksState : public GuiState
 
  private:
   int selected_id_for_planning_;
+  bool use_ladder_graph_record_;
   FrameFabWidget* ptr_gui_;
 };
 }
