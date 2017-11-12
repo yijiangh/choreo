@@ -17,6 +17,9 @@
 #include <descartes_planner/graph_builder.h>
 #include <moveit/planning_scene/planning_scene.h>
 
+// for serializing ladder graph
+#include <descartes_parser/descartes_parser.h>
+
 // for immediate execution
 #include <actionlib/client/simple_action_client.h>
 #include <control_msgs/FollowJointTrajectoryAction.h>
@@ -33,31 +36,16 @@
 
 #define SANITY_CHECK(cond) do { if ( !(cond) ) { throw std::runtime_error(#cond); } } while (false);
 
-bool framefab_process_planning::generateMotionPlan(
-    descartes_core::RobotModelPtr model,
-    std::vector<descartes_planner::ConstrainedSegment>& segs,
-    const std::vector<moveit_msgs::CollisionObject>& collision_objs,
-    moveit::core::RobotModelConstPtr moveit_model,
-    ros::ServiceClient& planning_scene_diff_client,
-    const std::string& move_group_name,
-    const std::vector<double>& start_state,
-    std::vector<framefab_msgs::UnitProcessPlan>& plans)
+namespace{ //util function namespace
+
+void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
+                             const std::vector<moveit_msgs::CollisionObject>& collision_objs,
+                             std::vector<planning_scene::PlanningScenePtr>& planning_scenes)
 {
-  // Step 0: Sanity checks
-  if (segs.size() == 0)
-  {
-    ROS_ERROR("[Process Planning] input descartes Constrained Segment size = 0!");
-    return false;
-  }
+  planning_scenes.clear();
+  planning_scenes.reserve(collision_objs.size());
 
-  const std::vector<std::string>& joint_names =
-      moveit_model->getJointModelGroup(move_group_name)->getActiveJointModelNames();
-
-  // Step 1: Let's create all of our planning scenes to collision check against
-  std::vector<planning_scene::PlanningScenePtr> planning_scenes;
-  planning_scenes.reserve(segs.size());
-
-  planning_scene::PlanningScenePtr root_scene (new planning_scene::PlanningScene(moveit_model));
+  planning_scene::PlanningScenePtr root_scene(new planning_scene::PlanningScene(moveit_model));
   root_scene->getCurrentStateNonConst().setToDefaultValues();
   root_scene->getCurrentStateNonConst().update();
   planning_scenes.push_back(root_scene);
@@ -73,37 +61,43 @@ bool framefab_process_planning::generateMotionPlan(
     }
     planning_scenes.push_back(child);
   }
+}
 
-  // Step 2: sample graph for each segment separately
+void constructLadderGraphSegments(descartes_core::RobotModelPtr model,
+                                  moveit::core::RobotModelConstPtr moveit_model,
+                                  std::vector<descartes_planner::ConstrainedSegment>& segs,
+                                  const std::vector<planning_scene::PlanningScenePtr>& planning_scenes,
+                                  const std::string& move_group_name,
+                                  const std::vector<std::string> &joint_names,
+                                  std::vector<descartes_planner::LadderGraph>& graphs,
+                                  std::vector<std::size_t>& graph_indices)
+{
   auto graph_build_start = ros::Time::now();
-  std::vector<descartes_planner::LadderGraph> graphs;
-  graphs.reserve(segs.size());
 
-  std::vector<std::size_t> graph_indices;
+  graphs.clear();
+  graphs.reserve(segs.size());
 
   for (std::size_t i = 0; i < segs.size(); ++i)
   {
     model->setPlanningScene(planning_scenes[i]);
     if (true)
     {
-      descartes_planner::ConstrainedSegment& seg = segs[i];
-      ROS_INFO_STREAM("[Process Planning] process #" << i << ": " << seg.orientations.size());
+      descartes_planner::ConstrainedSegment &seg = segs[i];
+      ROS_INFO_STREAM("[Process Planning] process #" << i << ", orient size: " << seg.orientations.size());
     }
     graphs.push_back(descartes_planner::sampleConstrainedPaths(*model, segs[i]));
     graph_indices.push_back(graphs.back().size());
   }
-  auto graph_build_end = ros::Time::now();
 
+  auto graph_build_end = ros::Time::now();
   ROS_INFO_STREAM("[Process Planning] Ladder Graph building took: "
                       << (graph_build_end - graph_build_start).toSec() << " seconds");
+}
 
-  // Step 2': save graph to msgs
-  auto graph_msg = descartes_parser::convertToLadderGraphMsg(graphs[0]);
-
-  // Step 3: graph construction - one single unified graph
-  // append individual graph together to form one
+void appendLadderGraphSegments(std::vector<descartes_planner::LadderGraph>& graphs,
+                                descartes_planner::LadderGraph& final_graph)
+{
   const auto append_start = ros::Time::now();
-  descartes_planner::LadderGraph final_graph (model->getDOF());
 
   int append_id = 0;
   for (const auto& graph : graphs)
@@ -112,13 +106,18 @@ bool framefab_process_planning::generateMotionPlan(
     descartes_planner::appendInTime(final_graph, graph);
     append_id++;
   }
+
   const auto append_end = ros::Time::now();
   ROS_INFO_STREAM("[Process Planning] Graph appending took: " << (append_end - append_start).toSec() << " seconds");
+}
 
-  // Next, we build a search for the whole problem
+void searchLadderGraphforProcessROSTraj(descartes_core::RobotModelPtr model,
+                                        descartes_planner::LadderGraph& final_graph,
+                                        std::vector<std::size_t>& graph_indices,
+                                        std::vector<descartes_planner::ConstrainedSegment>& segs,
+                                        std::vector<framefab_msgs::UnitProcessPlan>& plans)
+{
   const auto search_start = ros::Time::now();
-//  descartes_planner::DAGSearchLazyCollision search (final_graph);
-//  double cost = search.run(planning_scenes, graph_indices);
   descartes_planner::DAGSearch search(final_graph);
   double cost = search.run();
 
@@ -126,11 +125,10 @@ bool framefab_process_planning::generateMotionPlan(
   ROS_INFO_STREAM("[Process Planning] DAG Search took " << (search_end-search_start).toSec()
                                                         << " seconds and produced a result with dist = " << cost);
 
-  //TODO: save constructed unified planning graph
 
   // Step 4 : Harvest shortest path in graph to retract trajectory
   auto path_idxs = search.shortestPath();
-  DescartesTraj sol;
+  framefab_process_planning::DescartesTraj sol;
   for (size_t j = 0; j < path_idxs.size(); ++j)
   {
     const auto idx = path_idxs[j];
@@ -141,9 +139,7 @@ bool framefab_process_planning::generateMotionPlan(
     sol.push_back(pt);
   }
 
-  trajectory_msgs::JointTrajectory ros_traj = toROSTrajectory(sol, *model);
-
-  plans.resize(segs.size());
+  trajectory_msgs::JointTrajectory ros_traj = framefab_process_planning::toROSTrajectory(sol, *model);
 
   auto it = ros_traj.points.begin();
   for(size_t i = 0; i < segs.size(); i++)
@@ -158,12 +154,27 @@ bool framefab_process_planning::generateMotionPlan(
 
     it = it + graph_indices[i];
   }
+}
 
-  // Step 5 : Plan for transition between each pair of sequential path
+void transitionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
+                        moveit::core::RobotModelConstPtr moveit_model,
+                        ros::ServiceClient& planning_scene_diff_client,
+                        const std::string& move_group_name,
+                        const std::vector<double>& start_state,
+                        std::vector<planning_scene::PlanningScenePtr>& planning_scenes)
+{
+  if (plans.size() == 0)
+  {
+    ROS_ERROR("[transionPlanning] plans size = 0!");
+    assert(false);
+  }
+
+  const auto tr_planning_start = ros::Time::now();
+
   std::vector<double> last_joint_pose = start_state;
   std::vector<double> current_first_joint_pose;
 
-  for(size_t i = 0; i < segs.size(); i++)
+  for(size_t i = 0; i < plans.size(); i++)
   {
     ROS_INFO_STREAM("[Transition Planning] process #" << i);
 
@@ -193,11 +204,12 @@ bool framefab_process_planning::generateMotionPlan(
       ROS_ERROR_STREAM("[Tr Planning] Failed to publish planning scene diff srv!");
     }
 
-    trajectory_msgs::JointTrajectory ros_trans_traj = getMoveitTransitionPlan(move_group_name,
-                                                                              last_joint_pose,
-                                                                              current_first_joint_pose,
-                                                                              start_state,
-                                                                              moveit_model);
+    trajectory_msgs::JointTrajectory ros_trans_traj =
+        framefab_process_planning::getMoveitTransitionPlan(move_group_name,
+                                                           last_joint_pose,
+                                                           current_first_joint_pose,
+                                                           start_state,
+                                                           moveit_model);
 
     framefab_msgs::SubProcess sub_process;
 
@@ -208,29 +220,100 @@ bool framefab_process_planning::generateMotionPlan(
     plans[i].sub_process_array.insert(plans[i].sub_process_array.begin(), sub_process);
   }
 
-  // Step 6 : Process each transition plan to extract "near-process" segmentation
+  const auto tr_planning_end = ros::Time::now();
+  ROS_INFO_STREAM("[Process Planning] Transition Planning took " << (tr_planning_end-tr_planning_start).toSec()
+                                                                 << " seconds.");
+}
 
-  // Step 7 : fill in trajectory's time headers and pack into sub_process_plans
-  // for each unit_process
-  fillTrajectoryHeaders(joint_names, plans[0].sub_process_array[0].joint_array);
+void adjustTrajectoryTiming(std::vector<framefab_msgs::UnitProcessPlan>& plans,
+                            const std::vector<std::string> &joint_names)
+{
+  if (plans.size() == 0)
+  {
+    ROS_ERROR("[ProcessPlanning : adjustTrajectoryTiming] plans size = 0!");
+    assert(false);
+  }
+
+  if (0 == plans[0].sub_process_array.size())
+  {
+    ROS_ERROR("[ProcessPlanning : adjustTrajectoryTiming] plans[0] doesn't have sub process!");
+    assert(false);
+  }
+
+  framefab_process_planning::fillTrajectoryHeaders(joint_names, plans[0].sub_process_array[0].joint_array);
   auto last_filled_jts = plans[0].sub_process_array[0].joint_array;
 
   // inline function for append trajectory headers (adjust time frame)
   auto adjustTrajectoryHeaders = [](trajectory_msgs::JointTrajectory& last_filled_jts, framefab_msgs::SubProcess& sp)
   {
-    appendTrajectoryHeaders(last_filled_jts, sp.joint_array, 1.0);
+    framefab_process_planning::appendTrajectoryHeaders(last_filled_jts, sp.joint_array, 1.0);
     last_filled_jts = sp.joint_array;
   };
 
-  for(size_t i = 0; i < segs.size(); i++)
+  for(size_t i = 0; i < plans.size(); i++)
   {
     for (size_t j = 0; j < plans[i].sub_process_array.size(); j++)
     {
       adjustTrajectoryHeaders(last_filled_jts, plans[i].sub_process_array[j]);
     }
   }
+}
 
-  ROS_INFO("[Process Planning] trajectory packing finished");
+} // end util namespace
 
+bool framefab_process_planning::generateMotionPlan(
+    descartes_core::RobotModelPtr model,
+    std::vector<descartes_planner::ConstrainedSegment>& segs,
+    const std::vector<moveit_msgs::CollisionObject>& collision_objs,
+    moveit::core::RobotModelConstPtr moveit_model,
+    ros::ServiceClient& planning_scene_diff_client,
+    const std::string& move_group_name,
+    const std::vector<double>& start_state,
+    std::vector<framefab_msgs::UnitProcessPlan>& plans)
+{
+  // Step 0: Sanity checks
+  if (segs.size() == 0)
+  {
+    ROS_ERROR("[Process Planning] input descartes Constrained Segment size = 0!");
+    return false;
+  }
+
+  plans.resize(segs.size());
+  const std::vector<std::string> &joint_names =
+      moveit_model->getJointModelGroup(move_group_name)->getActiveJointModelNames();
+
+  // Step 1: Let's create all of our planning scenes to collision check against
+  std::vector<planning_scene::PlanningScenePtr> planning_scenes;
+  constructPlanningScenes(moveit_model, collision_objs, planning_scenes);
+
+  // Step 2: sample graph for each segment separately
+  std::vector<descartes_planner::LadderGraph> graphs;
+  std::vector<std::size_t> graph_indices;
+  constructLadderGraphSegments(model, moveit_model, segs, planning_scenes,
+                               move_group_name, joint_names,
+                               graphs, graph_indices);
+
+  // Step 2': save graph to msgs
+  auto graph_msg = descartes_parser::convertToLadderGraphMsg(graphs[0]);
+
+  // Step 3: graph construction - one single unified graph
+  // append individual graph together to form one
+  descartes_planner::LadderGraph final_graph (model->getDOF());
+  appendLadderGraphSegments(graphs, final_graph);
+
+  // Next, we build a search for the whole problem
+  searchLadderGraphforProcessROSTraj(model, final_graph, graph_indices, segs, plans);
+
+  // Step 5 : Plan for transition between each pair of sequential path
+  transitionPlanning(plans, moveit_model, planning_scene_diff_client, move_group_name,
+                     start_state, planning_scenes);
+
+  // Step 6 : TODO: Process each transition plan to extract "near-process" segmentation
+
+  // Step 7 : fill in trajectory's time headers and pack into sub_process_plans
+  // for each unit_process
+  adjustTrajectoryTiming(plans, joint_names);
+
+  ROS_INFO("[Process Planning] trajectories solved and packing finished");
   return true;
 }
