@@ -17,19 +17,19 @@
    <item>
     <layout class="QFormLayout" name="formLayout">
      <item row="0" column="1">
-      <widget class="QPlainTextEdit" name="plaintextedit_msg"/>
+      <widget class="QPlainTextEdit" name="textedit_msg"/>
      </item>
      <item row="1" column="1">
       <widget class="QPushButton" name="pushbutton_recompute">
        <property name="text">
-        <string>Abandon Record and Recompute!</string>
+        <string>Compute From Scratch!</string>
        </property>
       </widget>
      </item>
      <item row="2" column="1">
       <widget class="QPushButton" name="pushbutton_keep_record">
        <property name="text">
-        <string>Keep Record</string>
+        <string>Use Record!</string>
        </property>
       </widget>
      </item>

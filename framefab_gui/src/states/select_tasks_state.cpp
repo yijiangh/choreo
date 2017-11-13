@@ -18,14 +18,13 @@ void framefab_gui::SelectTasksState::onStart(FrameFabWidget& gui)
                   "Select the desired path to be planned in selection window and click <select for plan>.\n"
                   "Close the selection widget to continue.");
   gui.setButtonsEnabled(false);
-  selected_id_for_planning_ = -1;
-  use_ladder_graph_record_ = false;
 
-  // request checking ladder graph in record
-//  connect(&gui.selection_widget(), SIGNAL(exitSelectionWidget()), this, SLOT(toNextState()));
+  std::string file_name = gui.params().taskSequenceInputParams().file_path;
+//  std::replace(modified_file_name.begin(), modified_file_name.end(), '/', '_');
+  gui.selection_widget().setModelFileName(file_name);
 
-  // if the selection widget is closed, move to next state
-  connect(&gui.selection_widget(), SIGNAL(exitSelectionWidget()), this, SLOT(toBackState()));
+  connect(&gui.selection_widget(), SIGNAL(closeWidgetAndContinue()), this, SLOT(toNextState()));
+//  connect(&gui.selection_widget(), SIGNAL(exitSelectionWidget()), this, SLOT(toBackState()));
 
   selectTask(gui);
 }
@@ -37,14 +36,14 @@ void framefab_gui::SelectTasksState::onNext(FrameFabWidget& gui)
   gui.setButtonsEnabled(false);
 
   // fetch ids for planning from selection_widget
-  selected_id_for_planning_ = gui.selection_widget().getSelectedValueForPlanning();
+  int selected_id_for_planning = gui.selection_widget().getSelectedValueForPlanning();
 
   // fetch use_record decision from selection_widget
-//  use_ladder_graph_record_ = gui.selection_widget().getUseLadderGraphRecord();
+  bool use_ladder_graph_record = gui.selection_widget().getUseSavedResult();
 
   // proceed to Process Planning State
   // params: selected_id_for_planning, (bool) use_record
-  Q_EMIT newStateAvailable(new ProcessPlanningState(selected_id_for_planning_, use_ladder_graph_record_));
+  Q_EMIT newStateAvailable(new ProcessPlanningState(selected_id_for_planning, use_ladder_graph_record));
 }
 
 void framefab_gui::SelectTasksState::onBack(FrameFabWidget& gui)

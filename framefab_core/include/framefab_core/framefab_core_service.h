@@ -8,6 +8,7 @@
 #include <framefab_msgs/VisualizeSelectedPath.h>
 #include <framefab_msgs/GetAvailableProcessPlans.h>
 #include <framefab_msgs/OutputProcessPlans.h>
+#include <framefab_msgs/QueryComputationRecord.h>
 
 // msgs
 #include <framefab_msgs/FrameFabParameters.h>
@@ -72,6 +73,9 @@ class FrameFabCoreService
   bool outputProcessPlansCallback(framefab_msgs::OutputProcessPlans::Request& req,
                                   framefab_msgs::OutputProcessPlans::Response& res);
 
+  bool queryComputationResultCallback(framefab_msgs::QueryComputationRecord::Request& req,
+                                      framefab_msgs::QueryComputationRecord::Response& res);
+
   // Action callbacks
   void taskSequenceProcessingActionCallback(const framefab_msgs::TaskSequenceProcessingGoalConstPtr &goal);
   void processPlanningActionCallback(const framefab_msgs::ProcessPlanningGoalConstPtr &goal);
@@ -97,6 +101,7 @@ class FrameFabCoreService
   ros::ServiceServer visualize_selected_path_server_;
   ros::ServiceServer get_available_process_plans_server_;
   ros::ServiceServer output_process_plans_server_;
+  ros::ServiceServer query_computation_result_server_;
 
   // Services subscribed to by this class
   ros::ServiceClient task_sequence_processing_srv_client_;

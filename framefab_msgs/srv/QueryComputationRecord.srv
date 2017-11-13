@@ -1,0 +1,15 @@
+int32 SAVED_LADDER_GRAPH=0
+
+int32 action
+
+string file_name
+
+---
+
+#result
+
+bool record_found
+
+# for ladder graph result,
+# this is the number of segment graph
+int32 found_record_size

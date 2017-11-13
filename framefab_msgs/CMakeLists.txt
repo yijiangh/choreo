@@ -57,6 +57,7 @@ add_service_files(
 		GetAvailableProcessPlans.srv
 		OutputProcessPlans.srv
 		OutputProcessing.srv
+		QueryComputationRecord.srv
 )
 
 ## Generate added messages and services with any dependencies listed here

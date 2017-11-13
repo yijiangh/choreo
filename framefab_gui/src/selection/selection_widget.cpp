@@ -14,13 +14,17 @@
 // service
 #include <framefab_msgs/ElementNumberRequest.h>
 #include <framefab_msgs/VisualizeSelectedPath.h>
+#include <framefab_msgs/QueryComputationRecord.h>
 
 const static std::string ELEMENT_NUMBER_REQUEST_SERVICE = "element_member_request";
 const static std::string VISUALIZE_SELECTED_PATH = "visualize_select_path";
+const static std::string QUERY_COMPUTATION_RESULT = "query_computation_result";
 
 framefab_gui::SelectionWidget::SelectionWidget(QWidget* parent) : QWidget(parent),
                                                                   mode_(PATH_SELECTION),
-                                                                  sim_type_(SIMULATE_TYPE::SINGLE)
+                                                                  sim_type_(SIMULATE_TYPE::SINGLE),
+                                                                  selected_value_(-1),
+                                                                  use_saved_result_(false)
 {
   // UI setup
   ui_ = new Ui::SelectionWidgetWindow;
@@ -29,6 +33,11 @@ framefab_gui::SelectionWidget::SelectionWidget(QWidget* parent) : QWidget(parent
   this->setWindowFlags(Qt::WindowStaysOnTopHint);
 
   select_for_plan_pop_up_ = new SelectForPlanPopUpWidget();
+  this->select_for_plan_pop_up_->setWindowFlags(Qt::WindowStaysOnTopHint);
+
+  // wire in pop up widget signals
+  connect(select_for_plan_pop_up_, SIGNAL(buttonRecompute()), this, SLOT(recomputeChosen()));
+  connect(select_for_plan_pop_up_, SIGNAL(buttonKeepRecord()), this, SLOT(useSavedResultChosen()));
 
   // Wire in buttons
   connect(ui_->pushbutton_select_backward, SIGNAL(clicked()), this, SLOT(buttonBackwardUpdateOrderValue()));
@@ -58,6 +67,9 @@ framefab_gui::SelectionWidget::SelectionWidget(QWidget* parent) : QWidget(parent
   // Start Service Client
   visualize_client_ =
       nh_.serviceClient<framefab_msgs::VisualizeSelectedPath>(VISUALIZE_SELECTED_PATH);
+
+  query_computation_record_client_ =
+      nh_.serviceClient<framefab_msgs::QueryComputationRecord>(QUERY_COMPUTATION_RESULT);
 }
 
 void framefab_gui::SelectionWidget::loadParameters()
@@ -310,7 +322,7 @@ void framefab_gui::SelectionWidget::setInputEnabled(bool enabled)
     setInputIKSolutionEnabled(enabled);
 
     ui_->pushbutton_simulate_single_process->setEnabled(false);
-    ui_->pushbutton_close_widget->setEnabled(true);
+    ui_->pushbutton_close_widget->setEnabled(false);
 
     ui_->tab_widget->setEnabled(enabled);
     ui_->tab_widget->setTabEnabled(0, enabled);
@@ -470,7 +482,39 @@ void framefab_gui::SelectionWidget::buttonSelectForPlan()
 {
   setInputEnabled(false);
 
-  select_for_plan_pop_up_->show();
+  framefab_msgs::QueryComputationRecord srv;
+  srv.request.action = framefab_msgs::QueryComputationRecordRequest::SAVED_LADDER_GRAPH;
+
+  query_computation_record_client_.waitForExistence();
+
+  if (query_computation_record_client_.call(srv))
+  {
+    ROS_INFO_STREAM("[Selection Widget] select path panel fetch saved ladder graph info successfully.");
+
+    const bool saved_record_found = srv.response.record_found;
+    const int found_record_size = srv.response.found_record_size;
+
+    // set pop up widget text
+    if(saved_record_found && found_record_size > 0)
+    {
+      std::string msg = "Previous ladder graph record found: 0 - " + std::to_string(found_record_size);
+      select_for_plan_pop_up_->setDisplayText(msg);
+    }
+    else
+    {
+      ROS_WARN_STREAM("[UI] No previous ladder graph record found.");
+
+      std::string msg = "No previous ladder graph record found.";
+      select_for_plan_pop_up_->setDisplayText(msg);
+    }
+
+    select_for_plan_pop_up_->enableButtons(saved_record_found);
+    select_for_plan_pop_up_->show();
+  }
+  else
+  {
+    ROS_ERROR_STREAM("[Selection Widget] Unable to fetch model's element number!");
+  }
 
   setMode(ZOOM_IN_SELECTION);
   setInputEnabled(true);
@@ -493,4 +537,22 @@ void framefab_gui::SelectionWidget::lineeditUpdateOrderValue()
 {
   selected_value_ = ui_->lineedit_select_number->text().toInt();
   orderValueChanged();
+}
+
+void framefab_gui::SelectionWidget::recomputeChosen()
+{
+  use_saved_result_ = false;
+  this->select_for_plan_pop_up_->close();
+  this->close();
+
+  Q_EMIT closeWidgetAndContinue();
+}
+
+void framefab_gui::SelectionWidget::useSavedResultChosen()
+{
+  use_saved_result_ = true;
+  this->select_for_plan_pop_up_->close();
+  this->close();
+
+  Q_EMIT closeWidgetAndContinue();
 }

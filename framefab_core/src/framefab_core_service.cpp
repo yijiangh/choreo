@@ -21,6 +21,7 @@ const static std::string ELEMENT_NUMBER_REQUEST_SERVICE = "element_member_reques
 const static std::string VISUALIZE_SELECTED_PATH_SERVICE= "visualize_select_path";
 const static std::string GET_AVAILABLE_PROCESS_PLANS_SERVICE= "get_available_process_plans";
 const static std::string OUTPUT_PROCESS_PLANS_SERVICE= "output_process_plans";
+const static std::string QUERY_COMPUTATION_RESULT="query_computation_result";
 
 // subscribed services
 const static std::string TASK_SEQUENCE_PROCESSING_SERVICE = "task_sequence_processing";
@@ -104,6 +105,9 @@ bool FrameFabCoreService::init()
 
   output_process_plans_server_ = nh_.advertiseService(
       OUTPUT_PROCESS_PLANS_SERVICE, &FrameFabCoreService::outputProcessPlansCallback, this);
+
+  query_computation_result_server_ = nh_.advertiseService(
+      QUERY_COMPUTATION_RESULT, &FrameFabCoreService::queryComputationResultCallback, this);
 
   // start local instances
   visual_tool_.init("world_frame", PATH_VISUAL_TOPIC);
@@ -362,6 +366,16 @@ bool FrameFabCoreService::outputProcessPlansCallback(
   {
     return true;
   }
+}
+
+bool FrameFabCoreService::queryComputationResultCallback(
+    framefab_msgs::QueryComputationRecord::Request &req,
+    framefab_msgs::QueryComputationRecord::Response &res)
+{
+  res.record_found = false;
+  res.found_record_size = 0;
+
+  return true;
 }
 
 void FrameFabCoreService::taskSequenceProcessingActionCallback(const framefab_msgs::TaskSequenceProcessingGoalConstPtr &goal_in)

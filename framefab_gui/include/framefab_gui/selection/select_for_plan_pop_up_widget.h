@@ -22,11 +22,21 @@ class SelectForPlanPopUpWidget : public QWidget
  public:
   SelectForPlanPopUpWidget(QWidget* parent = 0);
 
-// Q_SIGNALS:
+  void setFileName(std::string s) { file_name_ = s; }
+
+  void setDisplayText(const std::string& text);
+
+  void enableButtons(bool record_found);
+
+ Q_SIGNALS:
+  void buttonRecompute();
+  void buttonKeepRecord();
 
  private:
   // Display layout
   Ui::SelectForPlanPopUpWidget* ui_;
+
+  std::string file_name_;
 };
 } // end namespace framefab_gui
 

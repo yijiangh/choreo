@@ -33,8 +33,6 @@ class SelectTasksState : public GuiState
   void selectTask(FrameFabWidget& gui);
 
  private:
-  int selected_id_for_planning_;
-  bool use_ladder_graph_record_;
   FrameFabWidget* ptr_gui_;
 };
 }

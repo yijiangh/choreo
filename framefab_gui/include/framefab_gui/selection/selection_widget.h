@@ -43,6 +43,7 @@ class SelectionWidget : public QWidget
 
   // set path or plan selection mode
   void setMode(MODE _mode) { mode_ = _mode; }
+  void setModelFileName(std::string m) { model_file_name_ = m; }
 
   // service request on required parameters
   void loadParameters();
@@ -61,6 +62,7 @@ class SelectionWidget : public QWidget
 
   int  getSelectedValueForPlanning() { return selected_value_; }
   double getSimSpeed() { return sim_speed_; }
+  bool getUseSavedResult() { return use_saved_result_; }
 
   std::vector<int> getSelectedIdsForSimulation() { return selected_ids_for_sim_; }
   std::vector<int> getChosenIds() { return chosen_ids_for_sim_; }
@@ -91,7 +93,7 @@ class SelectionWidget : public QWidget
   void flushSimulation();
   void flushOutputProcess();
 
-//  void closeWidgetAndContinue();
+  void closeWidgetAndContinue();
   void enterSelectionWidget();
   void exitSelectionWidget();
 
@@ -117,12 +119,14 @@ class SelectionWidget : public QWidget
 
   void sliderUpdateSimSpeed(int value);
 
-  void widgetStateChanged();
+  void recomputeChosen();
+  void useSavedResultChosen();
 
  private:
   ros::NodeHandle nh_;
 
   ros::ServiceClient visualize_client_;
+  ros::ServiceClient query_computation_record_client_;
 
   Ui::SelectionWidgetWindow* ui_;
   SelectForPlanPopUpWidget* select_for_plan_pop_up_;
@@ -133,7 +137,11 @@ class SelectionWidget : public QWidget
   std::vector<int> chosen_ids_for_sim_;
   std::vector<int> fetched_plan_ids_;
 
+  bool use_saved_result_;
+
   double sim_speed_;
+
+  std::string model_file_name_;
 
   SIMULATE_TYPE sim_type_;
   MODE mode_;

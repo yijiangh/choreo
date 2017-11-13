@@ -75,6 +75,8 @@ class FrameFabWidget : public QWidget
 
   void showOutputSaveDirParams();
 
+  void onUseSavedResult(bool);
+
  protected:
   // UI
   Ui::FrameFabWidget* ui_;
