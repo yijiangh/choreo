@@ -22,6 +22,7 @@
   <depend>tf</depend>
   <depend>tf_conversions</depend>
   <depend>framefab_msgs</depend>
+  <depend>descartes_msgs</depend>
   <depend>framefab_param_helpers</depend>
 
   <depend>rviz_visual_tools</depend>

@@ -9,6 +9,10 @@ moveit_msgs/CollisionObject[] env_collision_objs
 # the actual path the tool will follow
 framefab_msgs/ElementCandidatePoses[] task_sequence
 
+bool use_saved_graph
+
+string file_name
+
 ---
 
 framefab_msgs/UnitProcessPlan[] plan

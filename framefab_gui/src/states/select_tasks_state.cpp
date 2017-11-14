@@ -19,9 +19,9 @@ void framefab_gui::SelectTasksState::onStart(FrameFabWidget& gui)
                   "Close the selection widget to continue.");
   gui.setButtonsEnabled(false);
 
-  std::string file_name = gui.params().taskSequenceInputParams().file_path;
-//  std::replace(modified_file_name.begin(), modified_file_name.end(), '/', '_');
-  gui.selection_widget().setModelFileName(file_name);
+  std::string full_file_name = gui.params().taskSequenceInputParams().file_path;
+  std::replace(full_file_name.begin(), full_file_name.end(), '/', '_');
+  gui.selection_widget().setModelFileName(full_file_name);
 
   connect(&gui.selection_widget(), SIGNAL(closeWidgetAndContinue()), this, SLOT(toNextState()));
 //  connect(&gui.selection_widget(), SIGNAL(exitSelectionWidget()), this, SLOT(toBackState()));

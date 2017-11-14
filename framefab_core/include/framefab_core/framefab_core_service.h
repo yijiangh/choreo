@@ -56,6 +56,7 @@ class FrameFabCoreService
   void saveRobotInputParameters(const std::string& filename);
   bool loadOutputSaveDirInputParameters(const std::string& filename);
   void saveOutputSaveDirInputParameters(const std::string& filename);
+  int  checkSavedLadderGraphSize(const std::string& filename);
 
   // Service callbacks
   bool framefabParametersServerCallback(framefab_msgs::FrameFabParameters::Request& req,
@@ -138,6 +139,7 @@ class FrameFabCoreService
 
   // Trajectory library
   int selected_task_id_;
+  bool use_saved_graph_;
   framefab_core_service::TrajectoryLibrary trajectory_library_;
 
   // Parameters

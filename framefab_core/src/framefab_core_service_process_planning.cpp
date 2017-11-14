@@ -30,12 +30,18 @@ ProcessPlanResult FrameFabCoreService::generateProcessPlan(const int selected_pa
   bool success = false;
   std::vector<framefab_msgs::UnitProcessPlan> process_plan;
 
+  // get task sequence file name as ladder graph file name
+  std::string saved_graph_file_name = task_sequence_input_params_.file_path;
+  std::replace(saved_graph_file_name.begin(), saved_graph_file_name.end(), '/', '_');
+
   // call process_processing srv
   framefab_msgs::ProcessPlanning srv;
 //  srv.request.params = process_planning_params_;
   srv.request.index = selected_path_index;
   srv.request.task_sequence = task_sequence_;
   srv.request.env_collision_objs = env_objs_;
+  srv.request.use_saved_graph = use_saved_graph_;
+  srv.request.file_name = saved_graph_file_name;
 
   success = process_planning_client_.call(srv);
   process_plan = srv.response.plan;

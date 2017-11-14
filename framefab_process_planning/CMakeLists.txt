@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_ros_planning_interface
   roscpp
 	rviz_visual_tools
+	framefab_param_helpers
 )
 
 catkin_package(
@@ -29,6 +30,7 @@ catkin_package(
     moveit_ros_planning_interface 
     roscpp
 		rviz_visual_tools
+		framefab_param_helpers
 )
 
 ###########

@@ -11,6 +11,9 @@
 // For visualizing in rviz
 #include <rviz_visual_tools/rviz_visual_tools.h>
 
+// msgs
+#include <descartes_msgs/LadderGraphList.h>
+
 // topics and services
 const static std::string SAVE_DATA_BOOL_PARAM = "save_data";
 const static std::string SAVE_LOCATION_PARAM = "save_location";
@@ -65,8 +68,11 @@ bool FrameFabCoreService::init()
   ros::NodeHandle ph("~");
 
   // loading parameters
-  ph.getParam(SAVE_DATA_BOOL_PARAM, save_data_);
-  ph.getParam(SAVE_LOCATION_PARAM, save_location_);
+  // TODO: save location is default to $HOME/.ros/ now,
+  // should be oriented to some customized path
+
+//  ph.getParam(SAVE_DATA_BOOL_PARAM, save_data_);
+//  ph.getParam(SAVE_LOCATION_PARAM, save_location_);
 
   // Load the 'prefix' that will be combined with parameters msg base names to save to disk
   ph.param<std::string>("param_cache_prefix", param_cache_prefix_, "");
@@ -237,6 +243,22 @@ void FrameFabCoreService::saveOutputSaveDirInputParameters(const std::string & f
   }
 }
 
+int FrameFabCoreService::checkSavedLadderGraphSize(const std::string& filename)
+{
+  descartes_msgs::LadderGraphList graph_list_msg;
+
+  if(framefab_param_helpers::fromFile(filename, graph_list_msg))
+  {
+    ROS_INFO_STREAM("[Core] saved ladder graph record found!");
+    return graph_list_msg.graph_list.size();
+  }
+  else
+  {
+    ROS_WARN_STREAM("[Core] NO saved ladder graph record found.");
+    return 0;
+  }
+}
+
 bool FrameFabCoreService::framefabParametersServerCallback(
     framefab_msgs::FrameFabParameters::Request& req,
     framefab_msgs::FrameFabParameters::Response& res)
@@ -372,8 +394,12 @@ bool FrameFabCoreService::queryComputationResultCallback(
     framefab_msgs::QueryComputationRecord::Request &req,
     framefab_msgs::QueryComputationRecord::Response &res)
 {
-  res.record_found = false;
-  res.found_record_size = 0;
+  const int found_saved_graphs_size = checkSavedLadderGraphSize(req.file_name);
+
+  ROS_INFO_STREAM("[CORE] saved graph query - file name: " << req.file_name);
+
+  res.record_found = bool(found_saved_graphs_size);
+  res.found_record_size = found_saved_graphs_size;
 
   return true;
 }
@@ -440,6 +466,7 @@ void FrameFabCoreService::processPlanningActionCallback(const framefab_msgs::Pro
       process_planning_server_.publishFeedback(process_planning_feedback_);
 
       selected_task_id_ = goal_in->index;
+      use_saved_graph_ = goal_in->use_saved_graph;
 
       // reset Robot's pose to init pose
       if(!moveToTargetJointPose(robot_input_params_.init_pose))

@@ -484,12 +484,13 @@ void framefab_gui::SelectionWidget::buttonSelectForPlan()
 
   framefab_msgs::QueryComputationRecord srv;
   srv.request.action = framefab_msgs::QueryComputationRecordRequest::SAVED_LADDER_GRAPH;
+  srv.request.file_name = model_file_name_;
 
   query_computation_record_client_.waitForExistence();
 
   if (query_computation_record_client_.call(srv))
   {
-    ROS_INFO_STREAM("[Selection Widget] select path panel fetch saved ladder graph info successfully.");
+//    ROS_INFO_STREAM("[Selection Widget] select path panel fetch saved ladder graph info successfully.");
 
     const bool saved_record_found = srv.response.record_found;
     const int found_record_size = srv.response.found_record_size;

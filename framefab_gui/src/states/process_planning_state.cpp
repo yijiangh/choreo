@@ -54,6 +54,7 @@ void framefab_gui::ProcessPlanningState::makeRequest()
   framefab_msgs::ProcessPlanningGoal goal;
   goal.action = framefab_msgs::ProcessPlanningGoal::GENERATE_MOTION_PLAN_AND_PREVIEW;
   goal.index = selected_path_index_;
+  goal.use_saved_graph = use_ladder_graph_record_;
 
   ROS_INFO("Waiting for process planning action server to start.");
   process_planning_action_client_.waitForServer();

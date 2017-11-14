@@ -31,8 +31,10 @@
 
 // srv
 #include <moveit_msgs/ApplyPlanningScene.h>
-
 #include <eigen_conversions/eigen_msg.h>
+
+// serialization
+#include <framefab_param_helpers/framefab_param_helpers.h>
 
 #define SANITY_CHECK(cond) do { if ( !(cond) ) { throw std::runtime_error(#cond); } } while (false);
 
@@ -75,6 +77,7 @@ void constructLadderGraphSegments(descartes_core::RobotModelPtr model,
                                   const std::vector<planning_scene::PlanningScenePtr>& planning_scenes,
                                   const std::string& move_group_name,
                                   const std::vector<std::string> &joint_names,
+                                  std::vector<descartes_planner::LadderGraph>& saved_graphs,
                                   std::vector<descartes_planner::LadderGraph>& graphs,
                                   std::vector<std::size_t>& graph_indices)
 {
@@ -83,15 +86,24 @@ void constructLadderGraphSegments(descartes_core::RobotModelPtr model,
   graphs.clear();
   graphs.reserve(segs.size());
 
+  bool use_ladder_graph = bool(saved_graphs.size());
+
   for (std::size_t i = 0; i < segs.size(); ++i)
   {
     model->setPlanningScene(planning_scenes[i]);
-    if (true)
+
+    if (use_ladder_graph && i < saved_graphs.size())
+    {
+      ROS_INFO_STREAM("[Process Planning] process #" << i << ", orient size" << segs[i].orientations.size()
+                                                     << " (saved graph used)");
+      graphs.push_back(saved_graphs[i]);
+    }
+    else
     {
       descartes_planner::ConstrainedSegment &seg = segs[i];
       ROS_INFO_STREAM("[Process Planning] process #" << i << ", orient size: " << seg.orientations.size());
+      graphs.push_back(descartes_planner::sampleConstrainedPaths(*model, segs[i]));
     }
-    graphs.push_back(descartes_planner::sampleConstrainedPaths(*model, segs[i]));
     graph_indices.push_back(graphs.back().size());
   }
 
@@ -265,12 +277,22 @@ void adjustTrajectoryTiming(std::vector<framefab_msgs::UnitProcessPlan>& plans,
   }
 }
 
+bool saveLadderGraph(const std::string& filename, const descartes_msgs::LadderGraphList& graph_list_msg)
+{
+  if (!framefab_param_helpers::toFile(filename, graph_list_msg))
+  {
+    ROS_WARN_STREAM("Unable to save ladder graph list to: " << filename);
+  }
+}
+
 } // end util namespace
 
 bool framefab_process_planning::generateMotionPlan(
     descartes_core::RobotModelPtr model,
     std::vector<descartes_planner::ConstrainedSegment>& segs,
     const std::vector<moveit_msgs::CollisionObject>& collision_objs,
+    const bool use_saved_graph,
+    const std::string& saved_graph_file_name,
     moveit::core::RobotModelConstPtr moveit_model,
     ros::ServiceClient& planning_scene_diff_client,
     const std::string& move_group_name,
@@ -293,28 +315,57 @@ bool framefab_process_planning::generateMotionPlan(
   constructPlanningScenes(moveit_model, collision_objs, planning_scenes);
 
   // Step 2: sample graph for each segment separately
+  descartes_msgs::LadderGraphList graph_list_msg;
   std::vector<descartes_planner::LadderGraph> graphs;
   std::vector<std::size_t> graph_indices;
-  constructLadderGraphSegments(model, moveit_model, segs, planning_scenes,
-                               move_group_name, joint_names,
-                               graphs, graph_indices);
 
-  // Step 2': save graph to msgs
+  if(!use_saved_graph)
+  {
+    std::vector<descartes_planner::LadderGraph> empty_graph_list;
+
+    constructLadderGraphSegments(model, moveit_model, segs, planning_scenes,
+                                 move_group_name, joint_names,
+                                 empty_graph_list, graphs, graph_indices);
+  }
+  else
+  {
+    std::vector<descartes_planner::LadderGraph> saved_graphs;
+
+    // parse saved graph
+    if(framefab_param_helpers::fromFile(saved_graph_file_name, graph_list_msg))
+    {
+      const auto parse_graph_start = ros::Time::now();
+      saved_graphs = descartes_parser::convertToLadderGraphList(graph_list_msg);
+
+      const auto parse_graph_end = ros::Time::now();
+      ROS_INFO_STREAM("[Process Planning] ladder graph parsing took " << (parse_graph_end-parse_graph_start).toSec()
+                                                                      << " seconds.");
+    }
+    else
+    {
+      ROS_WARN("no saved graph found, recompute ladder graphs.");
+    }
+
+    // generate graphs based on saved graph
+    constructLadderGraphSegments(model, moveit_model, segs, planning_scenes,
+                                 move_group_name, joint_names,
+                                 saved_graphs, graphs, graph_indices);
+
+    // release saved_graphs memory
+    std::vector<descartes_planner::LadderGraph>().swap(saved_graphs);
+  }
+
+  // Step 2': save newly generated graphs to msgs
   const auto save_graph_start = ros::Time::now();
 
-  auto graph_list_msg = descartes_parser::convertToLadderGraphMsg(graphs);
+  graph_list_msg = descartes_parser::convertToLadderGraphMsg(graphs);
+
+  saveLadderGraph(saved_graph_file_name, graph_list_msg);
 
   const auto save_graph_end = ros::Time::now();
   ROS_INFO_STREAM("[Process Planning] ladder graph saving took " << (save_graph_end-save_graph_start).toSec()
                                                                  << " seconds.");
 
-  const auto parse_graph_start = ros::Time::now();
-
-  graphs = descartes_parser::convertToLadderGraphList(graph_list_msg);
-
-  const auto parse_graph_end = ros::Time::now();
-  ROS_INFO_STREAM("[Process Planning] ladder graph parsing took " << (parse_graph_end-parse_graph_start).toSec()
-                                                                  << " seconds.");
 
   // Step 3: append individual graph together to an unified one
   descartes_planner::LadderGraph final_graph(model->getDOF());

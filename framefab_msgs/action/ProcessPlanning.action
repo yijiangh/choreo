@@ -9,6 +9,8 @@ int32 index
 
 # bool use_default_parameters
 
+bool use_saved_graph
+
 ---
 
 # Result

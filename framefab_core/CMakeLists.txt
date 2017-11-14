@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
 	tf_conversions
 	framefab_param_helpers
 	framefab_msgs
+	descartes_msgs
 	rviz_visual_tools
 	)
 
@@ -36,6 +37,7 @@ catkin_package(
 	tf_conversions
 	framefab_param_helpers
 	framefab_msgs
+	descartes_msgs
 	rviz_visual_tools
 )
 

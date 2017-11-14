@@ -19,6 +19,8 @@ namespace framefab_process_planning
 bool generateMotionPlan(descartes_core::RobotModelPtr model,
                         std::vector<descartes_planner::ConstrainedSegment>& segs,
                         const std::vector<moveit_msgs::CollisionObject>& collision_objs,
+                        const bool use_saved_graph,
+                        const std::string& saved_graph_file_name,
                         moveit::core::RobotModelConstPtr moveit_model,
                         ros::ServiceClient& planning_scene_diff_client,
                         const std::string& move_group_name,

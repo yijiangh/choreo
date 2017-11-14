@@ -26,4 +26,6 @@
 
   <depend>rviz_visual_tools</depend>
 
+  <depend>framefab_param_helpers</depend>
+
 </package>
