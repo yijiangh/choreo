@@ -14,6 +14,8 @@ Development mainly on *kuka_kr6r900sixx robot* for now.
 # :construction: In Construction! :construction:
 
 ## Installation
+- Install ROS-Kinetic on Ubuntu 16.04 following the instructions [here](http://wiki.ros.org/kinetic/Installation/Ubuntu)
+
 - Install [python_catkin_tools](http://catkin-tools.readthedocs.io/en/latest/index.html) to enable ```catkin build```.
   ```
   sudo apt-get install python-catkin-tools
