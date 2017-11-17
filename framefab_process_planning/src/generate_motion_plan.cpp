@@ -356,6 +356,7 @@ bool framefab_process_planning::generateMotionPlan(
   }
 
   // Step 2': save newly generated graphs to msgs
+  // TODO: if newly generated graph is smaller than the old one, keep the old
   const auto save_graph_start = ros::Time::now();
 
   graph_list_msg = descartes_parser::convertToLadderGraphMsg(graphs);
@@ -383,6 +384,9 @@ bool framefab_process_planning::generateMotionPlan(
   // Step 7 : fill in trajectory's time headers and pack into sub_process_plans
   // for each unit_process
   adjustTrajectoryTiming(plans, joint_names);
+
+  // Step 8: fill in TCP pose according to trajectories
+//  appendTCPPosetoPlans(plans);
 
   ROS_INFO("[Process Planning] trajectories solved and packing finished");
   return true;

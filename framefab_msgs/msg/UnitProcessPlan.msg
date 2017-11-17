@@ -19,20 +19,3 @@ int32 type
 
 # sub_processes
 framefab_msgs/SubProcess[] sub_process_array
-
-# ---------------------------------------
-
-# to-be removed
-trajectory_msgs/JointTrajectory trajectory_connection
-trajectory_msgs/JointTrajectory trajectory_approach
-trajectory_msgs/JointTrajectory trajectory_process
-trajectory_msgs/JointTrajectory trajectory_depart
-
-# to-be removed
-geometry_msgs/Pose near_start
-geometry_msgs/Pose start
-geometry_msgs/Pose end
-geometry_msgs/Pose near_end
-
-# to-be removed
-geometry_msgs/Pose[] cart_process_poses

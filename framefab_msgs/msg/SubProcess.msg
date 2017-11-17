@@ -22,8 +22,8 @@ int32 main_data_type
 # joint_array
 trajectory_msgs/JointTrajectory joint_array
 
-# cart_array
-geometry_msgs/Pose[] cart_array
+# end effector cartesian pose array
+geometry_msgs/Pose[] TCP_pose_array
 
 # comment
 string comment
