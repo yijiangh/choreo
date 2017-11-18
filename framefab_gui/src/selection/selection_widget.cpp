@@ -498,7 +498,7 @@ void framefab_gui::SelectionWidget::buttonSelectForPlan()
     // set pop up widget text
     if(saved_record_found && found_record_size > 0)
     {
-      std::string msg = "Previous ladder graph record found: 0 - " + std::to_string(found_record_size);
+      std::string msg = "Previous ladder graph record found: 0 - " + std::to_string(found_record_size-1);
       select_for_plan_pop_up_->setDisplayText(msg);
     }
     else

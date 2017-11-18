@@ -17,7 +17,105 @@
 #include <tf_conversions/tf_eigen.h>
 #include <eigen_conversions/eigen_msg.h>
 
-bool framefab_output_processor::OutputProcessor::outputJson(std::vector<framefab_msgs::UnitProcessPlan> &plans)
+namespace
+{
+std::string translateProcessType(const int& process_type_id)
+{
+  // ref framefab_msgs/SubProcess.msg process_type table
+  switch(process_type_id)
+  {
+    case 0:
+    {
+      return std::string("Process");
+    }
+    case 1:
+    {
+      return std::string("Near Model");
+    }
+    case 2:
+    {
+      return std::string("Transition");
+    }
+    default:
+    {
+      ROS_WARN("[output processor] Unknown process_type. Save default 'None' type.");
+      return std::string("Unknown");
+    }
+  }
+}
+
+std::string translateMainDataType(const int& main_data_type_id)
+{
+  // ref framefab_msgs/SubProcess.msg main_data_type_type table
+  switch(main_data_type_id)
+  {
+    case -1:
+    {
+      return std::string("Joint");
+    }
+    case -2:
+    {
+      return std::string("Cartesian");
+    }
+    default:
+    {
+      ROS_ERROR("[output processor] Unknown process_type. Save default 'Joint' type.");
+      return std::string("Joint");
+    }
+  }
+}
+
+std::string translateElementProcessType(const int& element_process_type_id)
+{
+  // ref framefab_msgs/SubProcess.msg element_process_type table
+  switch(element_process_type_id)
+  {
+    case 3:
+    {
+      return std::string("Support");
+    }
+    case 4:
+    {
+      return std::string("Create");
+    }
+    case 5:
+    {
+      return std::string("Connect");
+    }
+    case 6:
+    {
+      return std::string("None");
+    }
+    default:
+    {
+      ROS_WARN("[output processor] Unknown element_process_type. Save default 'None' type");
+      return std::string("None");
+    }
+  }
+}
+
+std::string translateAxisName(const int& axis_id)
+{
+  switch (axis_id)
+  {
+    case 0:
+    {
+      return std::string("x");
+    }
+    case 1:
+    {
+      return std::string("y");
+    }
+    case 2:
+    {
+      return std::string("z");
+    }
+  }
+}
+}// name space util
+
+
+bool framefab_output_processor::OutputProcessor::outputJson(std::vector<framefab_msgs::UnitProcessPlan>& plans)
 {
   using namespace rapidjson;
 
@@ -35,48 +133,103 @@ bool framefab_output_processor::OutputProcessor::outputJson(std::vector<framefab
 
   Value process_plans_container(rapidjson::kArrayType);
 
-  for (int i = 0; i < plans.size(); i++)
+  for(const auto& unit_process_plan : plans)
   {
-    rapidjson::Value unit_process_container(rapidjson::kArrayType);
+    rapidjson::Value unit_process_plan_container(rapidjson::kArrayType);
 
-    // sub_process
-    // id: sub_process i
-    // main_data_type: "cartesian" or "joints"
-    // trajectory_points: [array]
-    // EEF_plans: [array]
-    // comment:
-
-    // TODO: loop for subprocesses
-//    {
-    // temporal testing, only "process" process type
-    rapidjson::Value sub_process_object_container(rapidjson::kObjectType);
-    sub_process_object_container.AddMember("process type", "process", allocator);
-
-    rapidjson::Value trajectory_points(rapidjson::kArrayType);
-    trajectory_points.Clear();
-
-    // add every traj in the subprocess
-    for (trajectory_msgs::JointTrajectoryPoint traj_pt : plans[i].trajectory_process.points)
+    for (const auto &sub_process : unit_process_plan.sub_process_array)
     {
-      // add robot joint values
-      rapidjson::Value joint_traj_point(rapidjson::kArrayType);
-      for (auto joint_value : traj_pt.positions)
+      rapidjson::Value sub_process_object_container(rapidjson::kObjectType);
+
+      // parent_unit_process_plan_id
+      sub_process_object_container.AddMember("parent_unit_process_plan_id", sub_process.unit_process_id, allocator);
+
+      // subprocess_id
+      sub_process_object_container.AddMember("sub_process_id", sub_process.sub_process_id, allocator);
+
+      // process_type
+      sub_process_object_container.AddMember("process_type",
+                                             Value().SetString(translateProcessType(sub_process.process_type).c_str(), allocator),
+                                             allocator);
+
+      // element_process_type
+      sub_process_object_container.AddMember("element_process_type",
+                                             Value().SetString(translateElementProcessType(sub_process.element_process_type).c_str(), allocator),
+                                             allocator);
+
+      // main_data_type
+      sub_process_object_container.AddMember("main_data_type",
+                                             Value().SetString(translateMainDataType(sub_process.main_data_type).c_str(), allocator),
+                                             allocator);
+
+      // TODO comment msg
+
+      // joint_array
+      rapidjson::Value joint_array_container(rapidjson::kArrayType);
+
+      for(const auto& joint_pt : sub_process.joint_array.points)
       {
-        joint_traj_point.PushBack(Value().SetDouble(joint_value), allocator);
+        rapidjson::Value joint_pt_container(rapidjson::kArrayType);
+
+        // add robot joint values
+        for (const auto& joint_value : joint_pt.positions)
+        {
+          joint_pt_container.PushBack(Value().SetDouble(joint_value), allocator);
+        }
+
+        joint_array_container.PushBack(joint_pt_container, allocator);
       }
 
-      trajectory_points.PushBack(joint_traj_point, allocator);
-    }
+      sub_process_object_container.AddMember("joint_array", joint_array_container, allocator);
 
-    sub_process_object_container.AddMember("trajectory_points", trajectory_points, allocator);
+      // TCP_pose_array
+      rapidjson::Value TCP_pose_array_container(rapidjson::kArrayType);
 
-    // add more for subprocess
+      for(const auto& TCP_pose_pt : sub_process.TCP_pose_array)
+      {
+        // add robot joint values
+        rapidjson::Value TCP_pose_pt_container(rapidjson::kObjectType);
 
-    unit_process_container.PushBack(sub_process_object_container, allocator);
-//    }
+        // from geometry pose to affine3d matrix
+        Eigen::Affine3d m;
+        tf::poseMsgToEigen(TCP_pose_pt, m);
+        Eigen::Matrix3d orientation = m.matrix().block<3,3>(0,0);
+        Eigen::Vector3d position = m.matrix().col(3).head<3>();
 
+        // add axes
+        for(int i=0; i < 3; i++)
+        {
+          rapidjson::Value axis_vector3d_container(rapidjson::kArrayType);
+          // x, y, z axis
+          for (int j = 0; j < 3; j++)
+          {
+            // coordinates for axis
+            axis_vector3d_container.PushBack(Value().SetDouble(orientation.col(i)[j]), allocator);
+          }
 
-    process_plans_container.PushBack(unit_process_container, allocator);
+          std::string axis_name = "axis_" + translateAxisName(i);
+          TCP_pose_pt_container.AddMember(Value().SetString(axis_name.c_str(), allocator), axis_vector3d_container, allocator);
+        }
+
+        // add origin position
+       rapidjson::Value TCP_origin_container(rapidjson::kArrayType);
+        for (int j = 0; j < 3; j++)
+        {
+          TCP_origin_container.PushBack(Value().SetDouble(position[j]), allocator);
+        }
+        TCP_pose_pt_container.AddMember("origin", TCP_origin_container, allocator);
+
+        // add TCP pose into TCP_array
+        TCP_pose_array_container.PushBack(TCP_pose_pt_container, allocator);
+      }
+
+      sub_process_object_container.AddMember("TCP_pose_array", TCP_pose_array_container, allocator);
+
+      // end sub process adding
+      unit_process_plan_container.PushBack(sub_process_object_container, allocator);
+    } // end subprocess
+
+    process_plans_container.PushBack(unit_process_plan_container, allocator);
   }
 
   document.AddMember("process_plans", process_plans_container, allocator);

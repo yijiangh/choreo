@@ -37,16 +37,10 @@ const double SEG_Z_AXIS_DISC = 0.1; // angle discretization about z (radians)
 bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning::Request &req,
                                                  framefab_msgs::ProcessPlanning::Response &res)
 {
-  // selected path index
-  int index = req.index;
-
   // Enable Collision Checks
   hotend_model_->setCheckCollisions(true);
 
-  std::vector<framefab_msgs::ElementCandidatePoses> task_sequence = req.task_sequence;
-  std::vector<moveit_msgs::CollisionObject> env_objs = req.env_collision_objs;
-
-  if (task_sequence.empty())
+  if (req.task_sequence.empty())
   {
     ROS_WARN("Planning request contained no process path. Nothing to be done.");
     return true;
@@ -55,7 +49,7 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
   const static double LINEAR_VEL = 0.01; // (m/s)
   const static double LINEAR_DISCRETIZATION = 0.01; // meters
   // the distance between angular steps about z for each orientation
-  const static double ANGULAR_DISCRETIZATION = M_PI / 12; // radians
+  const static double ANGULAR_DISCRETIZATION = M_PI / 5; // radians
   const static double RETRACT_DISTANCE = 0.005; // meters
 
   ConstrainedSegParameters constrained_seg_params;
@@ -64,21 +58,23 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
   constrained_seg_params.angular_disc = ANGULAR_DISCRETIZATION;
   constrained_seg_params.retract_dist = RETRACT_DISTANCE;
 
-//  Eigen::Affine3d start_home_pose;
-//  hotend_model_->getFK(current_joints, start_home_pose);
+  //  Eigen::Affine3d start_home_pose;
+  //  hotend_model_->getFK(current_joints, start_home_pose);
   std::vector<double> current_joints = getCurrentJointState(JOINT_TOPIC_NAME);
 
   std::vector<descartes_planner::ConstrainedSegment> constrained_segs =
-      toDescartesConstrainedPath(req.task_sequence, index, 0.01, constrained_seg_params);
+      toDescartesConstrainedPath(req.task_sequence, req.index, 0.01, constrained_seg_params);
 
-  // extract collision objs from task_sequence
+  // extract collision objects and associated seg type tags from task_sequence
   std::vector<moveit_msgs::CollisionObject> collision_objs;
-  for (auto v : task_sequence)
+  std::vector<int> seg_type_tags;
+  for (std::size_t i=0; i<constrained_segs.size(); i++)
   {
-    collision_objs.push_back(v.collision_cylinder);
+    collision_objs.push_back(req.task_sequence[i].collision_cylinder);
+    seg_type_tags.push_back(req.task_sequence[i].type);
   }
 
-  if(generateMotionPlan(hotend_model_, constrained_segs, collision_objs,
+  if(generateMotionPlan(hotend_model_, constrained_segs, collision_objs, seg_type_tags,
                         req.use_saved_graph, req.file_name,
                         moveit_model_, planning_scene_diff_client_,
                         hotend_group_name_, current_joints, res.plan))

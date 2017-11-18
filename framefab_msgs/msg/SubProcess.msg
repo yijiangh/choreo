@@ -1,7 +1,13 @@
 # process_type primitives
-int32 TRANSITION=2
-int32 NEAR_MODEL=1
 int32 PROCESS=0
+int32 NEAR_MODEL=1
+int32 TRANSITION=2
+
+# Enumeration element type
+int32 SUPPORT=3
+int32 CREATE=4
+int32 CONNECT=5
+int32 NONE=6
 
 # main_data_type primitives
 int32 JOINT=-1
@@ -22,8 +28,11 @@ int32 main_data_type
 # joint_array
 trajectory_msgs/JointTrajectory joint_array
 
-# cart_array
-geometry_msgs/Pose[] cart_array
+# end effector cartesian pose array
+geometry_msgs/Pose[] TCP_pose_array
+
+# element process type
+int32 element_process_type
 
 # comment
 string comment
