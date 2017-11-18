@@ -18,9 +18,9 @@
   </node>
 
 	<!--task sequence formatting service-->
-  <node name="framefab_task_sequence_processor_node" pkg="framefab_task_sequence_processor" type="task_sequence_processor_node" output="screen" required="true"/>
+  <node name="framefab_task_sequence_processor_node" pkg="framefab_task_sequence_processor" type="task_sequence_processor_node" output="screen" respawn="true"/>
 
 	<!--output trajectory formatting service-->
-  <node name="framefab_output_processor_node" pkg="framefab_output_processor" type="framefab_output_processor_node" output="screen" required="true"/>
+  <node name="framefab_output_processor_node" pkg="framefab_output_processor" type="framefab_output_processor_node" output="screen" respawn="true"/>
 
 </launch>

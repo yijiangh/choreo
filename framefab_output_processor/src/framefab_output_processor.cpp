@@ -17,6 +17,85 @@
 #include <tf_conversions/tf_eigen.h>
 #include <eigen_conversions/eigen_msg.h>
 
+namespace
+{
+std::string translateProcessType(const int& process_type_id)
+{
+  // ref framefab_msgs/SubProcess.msg process_type table
+  switch(process_type_id)
+  {
+    case 0:
+    {
+      return std::string("Process");
+    }
+    case 1:
+    {
+      return std::string("Near Model");
+    }
+    case 2:
+    {
+      return std::string("Transition");
+    }
+    default:
+    {
+      ROS_WARN("[output processor] Unknown process_type. Save default 'None' type.");
+      return std::string("Unknown");
+    }
+  }
+}
+
+std::string translateMainDataType(const int& main_data_type_id)
+{
+  // ref framefab_msgs/SubProcess.msg main_data_type_type table
+  switch(main_data_type_id)
+  {
+    case -1:
+    {
+      return std::string("Joint");
+    }
+    case -2:
+    {
+      return std::string("Cartesian");
+    }
+    default:
+    {
+      ROS_ERROR("[output processor] Unknown process_type. Save default 'Joint' type.");
+      return std::string("Joint");
+    }
+  }
+}
+
+std::string translateElementProcessType(const int& element_process_type_id)
+{
+  // ref framefab_msgs/SubProcess.msg element_process_type table
+  switch(element_process_type_id)
+  {
+    case 3:
+    {
+      return std::string("Support");
+    }
+    case 4:
+    {
+      return std::string("Create");
+    }
+    case 5:
+    {
+      return std::string("Connect");
+    }
+    case 6:
+    {
+      return std::string("None");
+    }
+    default:
+    {
+      ROS_WARN("[output processor] Unknown element_process_type. Save default 'None' type");
+      return std::string("None");
+    }
+  }
+}
+}// name space util
+
+
 bool framefab_output_processor::OutputProcessor::outputJson(std::vector<framefab_msgs::UnitProcessPlan>& plans)
 {
   using namespace rapidjson;
@@ -50,34 +129,35 @@ bool framefab_output_processor::OutputProcessor::outputJson(std::vector<framefab
       sub_process_object_container.AddMember("sub_process_id", sub_process.sub_process_id, allocator);
 
       // process_type
-      sub_process_object_container.AddMember("process_type", sub_process.process_type, allocator);
+      sub_process_object_container.AddMember("process_type",
+                                             Value().SetString(translateProcessType(sub_process.process_type).c_str(), allocator),
+                                             allocator);
 
       // main_data_type
-      sub_process_object_container.AddMember("main_data_type", sub_process.main_data_type, allocator);
+      sub_process_object_container.AddMember("main_data_type",
+                                             Value().SetString(translateMainDataType(sub_process.main_data_type).c_str(), allocator),
+                                             allocator);
 
       // joint_array
-      rapidjson::Value traj_joint_array_containter(rapidjson::kArrayType);
-      traj_joint_array_containter.Clear();
-      rapidjson::Value traj_joint_pt_container(rapidjson::kArrayType);
+      rapidjson::Value joint_array_container(rapidjson::kArrayType);
 
-      for(const auto& traj_joint_pt : sub_process.joint_array.points)
+      for(const auto& joint_pt : sub_process.joint_array.points)
       {
-        // add robot joint values
-        traj_joint_pt_container.Clear();
+        rapidjson::Value joint_pt_container(rapidjson::kArrayType);
 
-        for (const auto& joint_value : traj_joint_pt.positions)
+        // add robot joint values
+        for (const auto& joint_value : joint_pt.positions)
         {
-          traj_joint_pt_container.PushBack(Value().SetDouble(joint_value), allocator);
+          joint_pt_container.PushBack(Value().SetDouble(joint_value), allocator);
         }
 
-        traj_joint_array_containter.PushBack(traj_joint_pt_container, allocator);
+        joint_array_container.PushBack(joint_pt_container, allocator);
       }
 
-      sub_process_object_container.AddMember("joint_array", traj_joint_array_containter, allocator);
+      sub_process_object_container.AddMember("joint_array", joint_array_container, allocator);
 
       // TCP_pose_array
-      rapidjson::Value TCP_pose_array_containter(rapidjson::kArrayType);
-      TCP_pose_array_containter.Clear();
+      rapidjson::Value TCP_pose_array_container(rapidjson::kArrayType);
 
       for(const auto& TCP_pose_pt : sub_process.TCP_pose_array)
       {
@@ -90,37 +170,34 @@ bool framefab_output_processor::OutputProcessor::outputJson(std::vector<framefab
         Eigen::Matrix3d orientation = m.matrix().block<3,3>(0,0);
         Eigen::Vector3d position = m.matrix().col(3).head<3>();
 
-        rapidjson::Value vector3d_container(rapidjson::kArrayType);
-
         // add axes
-        for(int i=0; i < 2; i++)
+        for(int i=0; i < 3; i++)
         {
+          rapidjson::Value axis_vector3d_container(rapidjson::kArrayType);
           // x, y, z axis
-          vector3d_container.Clear();
-
-          for (int j = 0; j < 2; j++)
+          for (int j = 0; j < 3; j++)
           {
             // coordinates for axis
-            vector3d_container.PushBack(Value().SetDouble(orientation.col(i)[j]), allocator);
+            axis_vector3d_container.PushBack(Value().SetDouble(orientation.col(i)[j]), allocator);
           }
 
           std::string axis_name = "axis_" + std::to_string(i);
-          TCP_pose_pt_container.AddMember(Value().SetString(axis_name.c_str(), allocator), vector3d_container, allocator);
+          TCP_pose_pt_container.AddMember(Value().SetString(axis_name.c_str(), allocator), axis_vector3d_container, allocator);
         }
 
         // add origin position
-        vector3d_container.Clear();
-        for (int j = 0; j < 2; j++)
+       rapidjson::Value TCP_origin_container(rapidjson::kArrayType);
+        for (int j = 0; j < 3; j++)
         {
-          vector3d_container.PushBack(Value().SetDouble(position[j]), allocator);
+          TCP_origin_container.PushBack(Value().SetDouble(position[j]), allocator);
         }
-        TCP_pose_pt_container.AddMember("origin", vector3d_container, allocator);
+        TCP_pose_pt_container.AddMember("origin", TCP_origin_container, allocator);
 
         // add TCP pose into TCP_array
-        TCP_pose_array_containter.PushBack(TCP_pose_pt_container, allocator);
+        TCP_pose_array_container.PushBack(TCP_pose_pt_container, allocator);
       }
 
-      sub_process_object_container.AddMember("TCP_pose_array", TCP_pose_array_containter, allocator);
+      sub_process_object_container.AddMember("TCP_pose_array", TCP_pose_array_container, allocator);
 
       // comment or process explanation (connect, create, support etc.)
       // TODO

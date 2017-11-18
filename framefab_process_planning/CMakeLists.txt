@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
 	rviz_visual_tools
 	framefab_param_helpers
+	eigen_conversions
 )
 
 catkin_package(
@@ -31,6 +32,7 @@ catkin_package(
     roscpp
 		rviz_visual_tools
 		framefab_param_helpers
+		eigen_conversions
 )
 
 ###########

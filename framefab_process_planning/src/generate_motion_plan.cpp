@@ -17,6 +17,9 @@
 #include <descartes_planner/graph_builder.h>
 #include <moveit/planning_scene/planning_scene.h>
 
+// pose conversion
+#include <eigen_conversions/eigen_msg.h>
+
 // for serializing ladder graph
 #include <descartes_parser/descartes_parser.h>
 
@@ -165,6 +168,7 @@ void searchLadderGraphforProcessROSTraj(descartes_core::RobotModelPtr model,
   {
     framefab_msgs::SubProcess sub_process;
 
+    sub_process.unit_process_id = i;
     sub_process.process_type = framefab_msgs::SubProcess::PROCESS;
     sub_process.main_data_type = framefab_msgs::SubProcess::CART;
 
@@ -185,6 +189,7 @@ void searchLadderGraphforProcessROSTraj(descartes_core::RobotModelPtr model,
       default:
       {
         sub_process.element_process_type = framefab_msgs::SubProcess::NONE;
+        ROS_WARN_STREAM("[Process Planning] printing process #" << i << " have no element process type!");
       }
     }
 
@@ -294,6 +299,8 @@ void adjustTrajectoryTiming(std::vector<framefab_msgs::UnitProcessPlan>& plans,
   {
     for (size_t j = 0; j < plans[i].sub_process_array.size(); j++)
     {
+      plans[i].sub_process_array[j].unit_process_id = i;
+      plans[i].sub_process_array[j].sub_process_id = j;
       adjustTrajectoryHeaders(last_filled_jts, plans[i].sub_process_array[j]);
     }
   }
@@ -304,6 +311,43 @@ bool saveLadderGraph(const std::string& filename, const descartes_msgs::LadderGr
   if (!framefab_param_helpers::toFile(filename, graph_list_msg))
   {
     ROS_WARN_STREAM("Unable to save ladder graph list to: " << filename);
+    return false;
+  }
+  return true;
+}
+
+void appendTCPPosetoPlans(const descartes_core::RobotModelPtr model,
+                          const std::vector<planning_scene::PlanningScenePtr>& planning_scenes,
+                          std::vector<framefab_msgs::UnitProcessPlan>& plans)
+{
+  int process_id_count = 0;
+  for(auto& unit_plan : plans)
+  {
+    model->setPlanningScene(planning_scenes[process_id_count]);
+
+    for(auto& sub_process : unit_plan.sub_process_array)
+    {
+      for(const auto& jt_pt : sub_process.joint_array.points)
+      {
+        Eigen::Affine3d TCP_pose = Eigen::Affine3d::Identity();
+        geometry_msgs::Pose geo_pose_msg;
+
+        // convert it to TCP pose
+        if(!model->getFK(jt_pt.positions, TCP_pose))
+        {
+          ROS_ERROR_STREAM("FK solution failed at unit process #" << sub_process.unit_process_id
+                                                                  << ", subprocess #" << sub_process.sub_process_id
+                                                                  << ", process type: " << sub_process.process_type
+                                                                  << " (0: process, 1: near_model, 2: transition)");
+        }
+
+        // affine3d to geometry_msg/pose
+        tf::poseEigenToMsg(TCP_pose, geo_pose_msg);
+
+        sub_process.TCP_pose_array.push_back(geo_pose_msg);
+      }
+    }
+    process_id_count++;
   }
 }
 
@@ -422,11 +466,11 @@ bool framefab_process_planning::generateMotionPlan(
   // Step 6 : TODO: Process each transition plan to extract "near-process" segmentation
 
   // Step 7 : fill in trajectory's time headers and pack into sub_process_plans
-  // for each unit_process
+  // for each unit_process (process id is added here too)
   adjustTrajectoryTiming(plans, joint_names);
 
   // Step 8: fill in TCP pose according to trajectories
-//  appendTCPPosetoPlans(plans);
+  appendTCPPosetoPlans(model, planning_scenes, plans);
 
   ROS_INFO("[Process Planning] trajectories solved and packing finished");
   return true;
