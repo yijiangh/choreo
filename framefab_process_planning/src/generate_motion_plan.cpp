@@ -177,14 +177,17 @@ void searchLadderGraphforProcessROSTraj(descartes_core::RobotModelPtr model,
       case framefab_msgs::ElementCandidatePoses::SUPPORT:
       {
         sub_process.element_process_type = framefab_msgs::SubProcess::SUPPORT;
+        break;
       }
       case framefab_msgs::ElementCandidatePoses::CREATE:
       {
         sub_process.element_process_type = framefab_msgs::SubProcess::CREATE;
+        break;
       }
       case framefab_msgs::ElementCandidatePoses::CONNECT:
       {
         sub_process.element_process_type = framefab_msgs::SubProcess::CONNECT;
+        break;
       }
       default:
       {
@@ -427,7 +430,7 @@ bool framefab_process_planning::generateMotionPlan(
   }
 
   // Step 2': save newly generated graphs to msgs
-  if(graphs.size() > saved_graph_size)
+  if(!use_saved_graph || graphs.size() > saved_graph_size)
   {
     // not using saved graph or graph_list size grow
 

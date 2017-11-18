@@ -93,6 +93,25 @@ std::string translateElementProcessType(const int& element_process_type_id)
     }
   }
 }
+
+std::string translateAxisName(const int& axis_id)
+{
+  switch (axis_id)
+  {
+    case 0:
+    {
+      return std::string("x");
+    }
+    case 1:
+    {
+      return std::string("y");
+    }
+    case 2:
+    {
+      return std::string("z");
+    }
+  }
+}
 }// name space util
 
 
@@ -133,10 +152,17 @@ bool framefab_output_processor::OutputProcessor::outputJson(std::vector<framefab
                                              Value().SetString(translateProcessType(sub_process.process_type).c_str(), allocator),
                                              allocator);
 
+      // element_process_type
+      sub_process_object_container.AddMember("element_process_type",
+                                             Value().SetString(translateElementProcessType(sub_process.element_process_type).c_str(), allocator),
+                                             allocator);
+
       // main_data_type
       sub_process_object_container.AddMember("main_data_type",
                                              Value().SetString(translateMainDataType(sub_process.main_data_type).c_str(), allocator),
                                              allocator);
+
+      // TODO comment msg
 
       // joint_array
       rapidjson::Value joint_array_container(rapidjson::kArrayType);
@@ -181,7 +207,7 @@ bool framefab_output_processor::OutputProcessor::outputJson(std::vector<framefab
             axis_vector3d_container.PushBack(Value().SetDouble(orientation.col(i)[j]), allocator);
           }
 
-          std::string axis_name = "axis_" + std::to_string(i);
+          std::string axis_name = "axis_" + translateAxisName(i);
           TCP_pose_pt_container.AddMember(Value().SetString(axis_name.c_str(), allocator), axis_vector3d_container, allocator);
         }
 
@@ -199,9 +225,7 @@ bool framefab_output_processor::OutputProcessor::outputJson(std::vector<framefab
 
       sub_process_object_container.AddMember("TCP_pose_array", TCP_pose_array_container, allocator);
 
-      // comment or process explanation (connect, create, support etc.)
-      // TODO
-
+      // end sub process adding
       unit_process_plan_container.PushBack(sub_process_object_container, allocator);
     } // end subprocess
 
