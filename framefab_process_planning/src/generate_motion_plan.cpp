@@ -28,6 +28,7 @@
 #include <geometry_msgs/Pose.h>
 #include <trajectory_msgs/JointTrajectoryPoint.h>
 #include <framefab_msgs/SubProcess.h>
+#include <framefab_msgs/ElementCandidatePoses.h>
 
 // srv
 #include <moveit_msgs/ApplyPlanningScene.h>
@@ -130,9 +131,9 @@ void appendLadderGraphSegments(std::vector<descartes_planner::LadderGraph>& grap
 }
 
 void searchLadderGraphforProcessROSTraj(descartes_core::RobotModelPtr model,
-                                        descartes_planner::LadderGraph& final_graph,
-                                        std::vector<std::size_t>& graph_indices,
-                                        std::vector<descartes_planner::ConstrainedSegment>& segs,
+                                        const descartes_planner::LadderGraph& final_graph,
+                                        const std::vector<std::size_t>& graph_indices,
+                                        const std::vector<int> seg_type_tags,
                                         std::vector<framefab_msgs::UnitProcessPlan>& plans)
 {
   const auto search_start = ros::Time::now();
@@ -160,12 +161,33 @@ void searchLadderGraphforProcessROSTraj(descartes_core::RobotModelPtr model,
   trajectory_msgs::JointTrajectory ros_traj = framefab_process_planning::toROSTrajectory(sol, *model);
 
   auto it = ros_traj.points.begin();
-  for(size_t i = 0; i < segs.size(); i++)
+  for(size_t i = 0; i < seg_type_tags.size(); i++)
   {
     framefab_msgs::SubProcess sub_process;
 
     sub_process.process_type = framefab_msgs::SubProcess::PROCESS;
     sub_process.main_data_type = framefab_msgs::SubProcess::CART;
+
+    switch(seg_type_tags[i])
+    {
+      case framefab_msgs::ElementCandidatePoses::SUPPORT:
+      {
+        sub_process.element_process_type = framefab_msgs::SubProcess::SUPPORT;
+      }
+      case framefab_msgs::ElementCandidatePoses::CREATE:
+      {
+        sub_process.element_process_type = framefab_msgs::SubProcess::CREATE;
+      }
+      case framefab_msgs::ElementCandidatePoses::CONNECT:
+      {
+        sub_process.element_process_type = framefab_msgs::SubProcess::CONNECT;
+      }
+      default:
+      {
+        sub_process.element_process_type = framefab_msgs::SubProcess::NONE;
+      }
+    }
+
     sub_process.joint_array.points =  std::vector<trajectory_msgs::JointTrajectoryPoint>(it, it + graph_indices[i]);
 
     plans[i].sub_process_array.push_back(sub_process);
@@ -291,6 +313,7 @@ bool framefab_process_planning::generateMotionPlan(
     descartes_core::RobotModelPtr model,
     std::vector<descartes_planner::ConstrainedSegment>& segs,
     const std::vector<moveit_msgs::CollisionObject>& collision_objs,
+    const std::vector<int>& seg_type_tags,
     const bool use_saved_graph,
     const std::string& saved_graph_file_name,
     moveit::core::RobotModelConstPtr moveit_model,
@@ -300,9 +323,11 @@ bool framefab_process_planning::generateMotionPlan(
     std::vector<framefab_msgs::UnitProcessPlan>& plans)
 {
   // Step 0: Sanity checks
-  if (segs.size() == 0)
+  if (segs.size() == 0 || collision_objs.size() != segs.size() || seg_type_tags.size() != segs.size())
   {
-    ROS_ERROR("[Process Planning] input descartes Constrained Segment size = 0!");
+    ROS_ERROR_STREAM("[Process Planning] input descartes Constrained Segment size" << segs.size()
+                                                                                   << ", collision objs size: " << collision_objs.size()
+                                                                                   << ", seg type size" << seg_type_tags.size());
     return false;
   }
 
@@ -315,6 +340,7 @@ bool framefab_process_planning::generateMotionPlan(
   constructPlanningScenes(moveit_model, collision_objs, planning_scenes);
 
   // Step 2: sample graph for each segment separately
+  int saved_graph_size = 0;
   descartes_msgs::LadderGraphList graph_list_msg;
   std::vector<descartes_planner::LadderGraph> graphs;
   std::vector<std::size_t> graph_indices;
@@ -336,6 +362,7 @@ bool framefab_process_planning::generateMotionPlan(
     {
       const auto parse_graph_start = ros::Time::now();
       saved_graphs = descartes_parser::convertToLadderGraphList(graph_list_msg);
+      saved_graph_size = saved_graphs.size();
 
       const auto parse_graph_end = ros::Time::now();
       ROS_INFO_STREAM("[Process Planning] ladder graph parsing took " << (parse_graph_end-parse_graph_start).toSec()
@@ -356,24 +383,37 @@ bool framefab_process_planning::generateMotionPlan(
   }
 
   // Step 2': save newly generated graphs to msgs
-  // TODO: if newly generated graph is smaller than the old one, keep the old
-  const auto save_graph_start = ros::Time::now();
+  if(graphs.size() > saved_graph_size)
+  {
+    // not using saved graph or graph_list size grow
 
-  graph_list_msg = descartes_parser::convertToLadderGraphMsg(graphs);
+    const auto save_graph_start = ros::Time::now();
 
-  saveLadderGraph(saved_graph_file_name, graph_list_msg);
+    graph_list_msg = descartes_parser::convertToLadderGraphMsg(graphs);
 
-  const auto save_graph_end = ros::Time::now();
-  ROS_INFO_STREAM("[Process Planning] ladder graph saving took " << (save_graph_end-save_graph_start).toSec()
-                                                                 << " seconds.");
+    saveLadderGraph(saved_graph_file_name, graph_list_msg);
 
+    const auto save_graph_end = ros::Time::now();
+    ROS_INFO_STREAM("[Process Planning] ladder graph saving took " << (save_graph_end - save_graph_start).toSec()
+                                                                   << " seconds.");
+  }
+  else
+  {
+    ROS_INFO_STREAM("[Process Planning] a subset of the saved graph is used, no need to save it.");
+  }
 
   // Step 3: append individual graph together to an unified one
   descartes_planner::LadderGraph final_graph(model->getDOF());
   appendLadderGraphSegments(graphs, final_graph);
 
+  // release graphs list memory
+  std::vector<descartes_planner::LadderGraph>().swap(graphs);
+
+  ROS_INFO_STREAM("[Proceess Planning] unified ladder graph has " << final_graph.numVertices() << " vertices, "
+                                                                  << final_graph.size() << " rungs");
+
   // Next, we build a search for the whole problem
-  searchLadderGraphforProcessROSTraj(model, final_graph, graph_indices, segs, plans);
+  searchLadderGraphforProcessROSTraj(model, final_graph, graph_indices, seg_type_tags, plans);
 
   // Step 5 : Plan for transition between each pair of sequential path
   transitionPlanning(plans, moveit_model, planning_scene_diff_client, move_group_name,

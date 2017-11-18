@@ -10,6 +10,7 @@
 #include <descartes_planner/graph_builder.h>
 
 #include <framefab_msgs/UnitProcessPlan.h>
+#include <framefab_msgs/ElementCandidatePoses.h>
 
 #include "common_utils.h"
 
@@ -19,6 +20,7 @@ namespace framefab_process_planning
 bool generateMotionPlan(descartes_core::RobotModelPtr model,
                         std::vector<descartes_planner::ConstrainedSegment>& segs,
                         const std::vector<moveit_msgs::CollisionObject>& collision_objs,
+                        const std::vector<int>& seg_type_tags,
                         const bool use_saved_graph,
                         const std::string& saved_graph_file_name,
                         moveit::core::RobotModelConstPtr moveit_model,
