@@ -17,6 +17,10 @@
 // for extra descartes graph building feature
 #include <descartes_planner/graph_builder.h>
 
+#include "trajectory_utils.h"
+
+const static double JTS_DISC_DELTA = 0.25; // radians
+
 namespace // anon namespace to hide utility functions
 {
   // convert orientations representing by Eigen3d::vector into Eigen::Matrix3d
@@ -93,10 +97,13 @@ framefab_process_planning::toDescartesConstrainedPath(const std::vector<framefab
   return segs;
 }
 
-std::vector<std::vector<double>> retractPath(const std::vector<double>& start_joint, double retract_dist,
-                                             descartes_core::RobotModelPtr& descartes_model,
-                                             planning_scene::PlanningScenePtr)
+bool framefab_process_planning::retractPath(
+    const std::vector<double>& start_joint, double retract_dist, double TCP_speed,
+    descartes_core::RobotModelPtr& descartes_model,
+    std::vector<std::vector<double>>& retract_jt_traj)
 {
+  const int dof = descartes_model->getDOF();
+
   // solve FK to retrieve start eef plane
   Eigen::Affine3d start_pose;
   descartes_model->getFK(start_joint, start_pose);
@@ -104,15 +111,61 @@ std::vector<std::vector<double>> retractPath(const std::vector<double>& start_jo
   // transit the start eef plane along the direction of the local z axis
   Eigen::Affine3d retract_pose = start_pose * Eigen::Translation3d(retract_dist * start_pose.linear().col(2));
 
-  // solve IK for retract plane, and pick the one with the minimal joint distance to start joint config
-  std::vector<std::vector<double>> jts_candidate;
-  descartes_model->getAllIK(retract_pose, jts_candidate);
+  // debug visualization
+//  auto rvz = rviz_visual_tools::RvizVisualTools("world_frame", "pose_v");
+//  rvz.publishXArrow(retract_pose, rviz_visual_tools::RED, rviz_visual_tools::XXXXSMALL, 0.1);
+//  rvz.publishYArrow(retract_pose, rviz_visual_tools::GREEN, rviz_visual_tools::XXXXSMALL, 0.1);
+//  rvz.publishZArrow(retract_pose, rviz_visual_tools::BLUE, rviz_visual_tools::XXXXSMALL, 0.1);
+//  rvz.trigger();
+
+  // solve IK for retract plane, and use a two_rung ladder graph to
+  // pick the one with the minimal joint distance to start joint config
+  std::vector<std::vector<double>> retract_jt_vec;
+  descartes_model->getAllIK(retract_pose, retract_jt_vec);
+
+  if(retract_jt_vec.size() == 0)
+  {
+    ROS_ERROR_STREAM("[RetractPath] failed to generate feasible IK for retracted pose!");
+    return false;
+  }
+
+  const int end_size = retract_jt_vec.size() / dof;
+
+  double delta = 10e4;
+  int min_id = 0;
+  int cnt = 0;
+
+  for(auto& retract_jt : retract_jt_vec)
+  {
+    double temp_delta = 0;
+    // calculate joint dist
+    for(size_t i = 0; i < dof; i++)
+    {
+      temp_delta += abs(retract_jt[i] - start_joint[i]);
+    }
+
+    // update min delta value and id
+    if(temp_delta < delta)
+    {
+      delta = temp_delta;
+      min_id = cnt;
+    }
+
+    cnt++;
+  }
 
   // interpolate start pose and target pose
-//  std::vector<std::vector<double>> result_jts = interpolateJoint(start_joint, retract_joint, JTS_DISC_DELTA);
+  retract_jt_traj = interpolateJoint(start_joint, retract_jt_vec[min_id], JTS_DISC_DELTA);
 
   // check the validity of the pose, if not, send out warning and return nothing
+  for(auto& jt : retract_jt_traj)
+  {
+    if(!descartes_model->isValid(jt))
+    {
+      ROS_ERROR("[retract planning] interpolated joint pose is not valid!");
+      return false;
+    }
+  }
 
-
-//  return result_jts;
+  return true;
 }

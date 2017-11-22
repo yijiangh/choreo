@@ -1,6 +1,6 @@
 # process_type primitives
 int32 PROCESS=0
-int32 NEAR_MODEL=1
+int32 RETRACTION=1
 int32 TRANSITION=2
 
 # Enumeration element type
@@ -8,6 +8,10 @@ int32 SUPPORT=3
 int32 CREATE=4
 int32 CONNECT=5
 int32 NONE=6
+
+# Enumeration retraction type
+int32 APPROACH=7
+int32 DEPART=8
 
 # main_data_type primitives
 int32 JOINT=-1

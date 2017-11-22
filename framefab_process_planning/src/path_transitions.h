@@ -36,9 +36,9 @@ toDescartesConstrainedPath(
     const int selected_path_id,
     const double process_speed, const ConstrainedSegParameters& transition_params);
 
-std::vector<std::vector<double>> retractPath(const std::vector<double>& start_joint, double retract_dist,
-                                             descartes_core::RobotModelPtr& descartes_model,
-                                             planning_scene::PlanningScenePtr);
+bool retractPath(const std::vector<double>& start_joint, double retract_dist, double TCP_speed,
+                 descartes_core::RobotModelPtr& descartes_model,
+                 std::vector<std::vector<double>>& retract_jt_traj);
 }
 
 #endif //FRAMEFAB_PROCESS_PLANNING_PATH_TRANSITIONS_H

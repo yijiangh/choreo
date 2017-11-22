@@ -30,7 +30,7 @@ std::string translateProcessType(const int& process_type_id)
     }
     case 1:
     {
-      return std::string("Near Model");
+      return std::string("Retraction");
     }
     case 2:
     {
@@ -85,6 +85,14 @@ std::string translateElementProcessType(const int& element_process_type_id)
     case 6:
     {
       return std::string("None");
+    }
+    case 7:
+    {
+      return std::string("Approach");
+    }
+    case 8:
+    {
+      return std::string("Depart");
     }
     default:
     {

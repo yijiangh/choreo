@@ -38,7 +38,7 @@ const static double DEFAULT_JOINT_VELOCITY = 0.3; // rad/s
 const static int DEFAULT_MOVEIT_NUM_PLANNING_ATTEMPTS = 30;
 const static double DEFAULT_MOVEIT_PLANNING_TIME = 20.0;   // seconds
 const static double DEFAULT_MOVEIT_VELOCITY_SCALING = 0.1; // Slow down the robot
-const static std::string DEFAULT_MOVEIT_PLANNER_ID = "RRTConnectkConfigDefault";
+const static std::string DEFAULT_MOVEIT_PLANNER_ID = "RRTstar";
 const static std::string DEFAULT_MOVEIT_FRAME_ID = "world_frame";
 const static std::string DEFAULT_MOVEIT_PLANNING_SERVICE_NAME = "plan_kinematic_path";
 
@@ -98,6 +98,50 @@ static double calcDefaultTime(const std::vector<double>& a, const std::vector<do
   });
 
   return *std::max_element(result.begin(), result.end()) / max_joint_vel;
+}
+
+trajectory_msgs::JointTrajectory framefab_process_planning::toROSTrajectory(
+    const std::vector<std::vector<double>>& solution,
+    const descartes_core::RobotModel& model)
+{
+  ros::Duration from_start(0.0);
+  std::vector<double> joint_point;
+  std::vector<double> dummy;
+  trajectory_msgs::JointTrajectory ros_trajectory; // result
+
+  const int dof = model.getDOF();
+
+  for (std::size_t i = 0; i < solution.size(); ++i)
+  {
+    assert(solution[i].size()==dof);
+
+    trajectory_msgs::JointTrajectoryPoint pt;
+    pt.positions = solution[i];
+    pt.velocities.resize(joint_point.size(), 0.0);
+    pt.accelerations.resize(joint_point.size(), 0.0);
+    pt.effort.resize(joint_point.size(), 0.0);
+
+    if (i == 0)
+    {
+      from_start += ros::Duration(DEFAULT_TIME_UNDEFINED_VELOCITY); // default time
+    }
+    else
+    {
+      // If we have a previous point then it makes more sense to set the time of the
+      // motion based on the largest joint motion required between two points and a
+      // default velocity.
+      const auto& prev = ros_trajectory.points.back().positions;
+      const auto& next = pt.positions;
+      const auto td = calcDefaultTime(prev, next, DEFAULT_JOINT_VELOCITY);
+      from_start += ros::Duration(td);
+    }
+
+    pt.time_from_start = from_start;
+
+    ros_trajectory.points.push_back(pt);
+  }
+
+  return ros_trajectory;
 }
 
 trajectory_msgs::JointTrajectory framefab_process_planning::toROSTrajectory(
@@ -268,6 +312,8 @@ trajectory_msgs::JointTrajectory framefab_process_planning::getMoveitPlan(
   ros::ServiceClient client =
       nh.serviceClient<moveit_msgs::GetMotionPlan>(DEFAULT_MOVEIT_PLANNING_SERVICE_NAME);
 
+  ROS_INFO_STREAM("[Moveit Planning] planner: " << DEFAULT_MOVEIT_PLANNER_ID);
+
   trajectory_msgs::JointTrajectory jt;
   moveit_msgs::GetMotionPlan::Response res;
   if (client.call(req, res))
@@ -326,6 +372,7 @@ trajectory_msgs::JointTrajectory framefab_process_planning::getMoveitTransitionP
 
   trajectory_msgs::JointTrajectory jt;
   moveit_msgs::GetMotionPlan::Response res;
+  ROS_INFO_STREAM("[Moveit Transition Planning] planner: " << DEFAULT_MOVEIT_PLANNER_ID);
 
   bool insert_reset = false;
 
