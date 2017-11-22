@@ -312,6 +312,8 @@ trajectory_msgs::JointTrajectory framefab_process_planning::getMoveitPlan(
   ros::ServiceClient client =
       nh.serviceClient<moveit_msgs::GetMotionPlan>(DEFAULT_MOVEIT_PLANNING_SERVICE_NAME);
 
+  ROS_INFO_STREAM("[Moveit Planning] planner: " << DEFAULT_MOVEIT_PLANNER_ID);
+
   trajectory_msgs::JointTrajectory jt;
   moveit_msgs::GetMotionPlan::Response res;
   if (client.call(req, res))
@@ -370,6 +372,7 @@ trajectory_msgs::JointTrajectory framefab_process_planning::getMoveitTransitionP
 
   trajectory_msgs::JointTrajectory jt;
   moveit_msgs::GetMotionPlan::Response res;
+  ROS_INFO_STREAM("[Moveit Transition Planning] planner: " << DEFAULT_MOVEIT_PLANNER_ID);
 
   bool insert_reset = false;
 

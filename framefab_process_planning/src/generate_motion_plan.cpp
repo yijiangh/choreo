@@ -375,7 +375,6 @@ void adjustTrajectoryTiming(std::vector<framefab_msgs::UnitProcessPlan>& plans,
   // inline function for append trajectory headers (adjust time frame)
   auto adjustTrajectoryHeaders = [](trajectory_msgs::JointTrajectory& last_filled_jts, framefab_msgs::SubProcess& sp)
   {
-    // TODO: temp speed, should be 1.0
     framefab_process_planning::appendTrajectoryHeaders(last_filled_jts, sp.joint_array, 1.0);
     last_filled_jts = sp.joint_array;
   };
@@ -546,7 +545,7 @@ bool framefab_process_planning::generateMotionPlan(
 
   // retract planning
   // TODO: move this into param
-  double retraction_dist = 0.01; // meters
+  double retraction_dist = 0.015; // meters
   double ret_TCP_speed = 0.005; // m/s
   retractionPlanning(plans, model, planning_scenes, retraction_dist, ret_TCP_speed);
 
