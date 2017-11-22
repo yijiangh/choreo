@@ -148,9 +148,10 @@ void searchLadderGraphforProcessROSTraj(descartes_core::RobotModelPtr model,
   ROS_INFO_STREAM("[Process Planning] DAG Search took " << (search_end-search_start).toSec()
                                                         << " seconds and produced a result with dist = " << cost);
 
-
-  // Step 4 : Harvest shortest path in graph to retract trajectory
+  // Harvest shortest path in graph to retract trajectory
   auto path_idxs = search.shortestPath();
+  ROS_INFO_STREAM("[Process Planning] DAG shortest path completed.");
+
   framefab_process_planning::DescartesTraj sol;
   for (size_t j = 0; j < path_idxs.size(); ++j)
   {
@@ -162,7 +163,11 @@ void searchLadderGraphforProcessROSTraj(descartes_core::RobotModelPtr model,
     sol.push_back(pt);
   }
 
+  ROS_INFO_STREAM("[Process Planning] descartes traj sol packed.");
+
   trajectory_msgs::JointTrajectory ros_traj = framefab_process_planning::toROSTrajectory(sol, *model);
+
+  ROS_INFO_STREAM("[Process Planning] to ros traj packed");
 
   auto it = ros_traj.points.begin();
   for(size_t i = 0; i < seg_type_tags.size(); i++)
@@ -373,9 +378,9 @@ void adjustTrajectoryTiming(std::vector<framefab_msgs::UnitProcessPlan>& plans,
   auto last_filled_jts = plans[0].sub_process_array[0].joint_array;
 
   // inline function for append trajectory headers (adjust time frame)
-  auto adjustTrajectoryHeaders = [](trajectory_msgs::JointTrajectory& last_filled_jts, framefab_msgs::SubProcess& sp)
+  auto adjustTrajectoryHeaders = [](trajectory_msgs::JointTrajectory& last_filled_jts, framefab_msgs::SubProcess& sp, double sim_speed)
   {
-    framefab_process_planning::appendTrajectoryHeaders(last_filled_jts, sp.joint_array, 1.0);
+    framefab_process_planning::appendTrajectoryHeaders(last_filled_jts, sp.joint_array, sim_speed);
     last_filled_jts = sp.joint_array;
   };
 
@@ -385,7 +390,14 @@ void adjustTrajectoryTiming(std::vector<framefab_msgs::UnitProcessPlan>& plans,
     {
       plans[i].sub_process_array[j].unit_process_id = i;
       plans[i].sub_process_array[j].sub_process_id = j;
-      adjustTrajectoryHeaders(last_filled_jts, plans[i].sub_process_array[j]);
+
+      double sim_speed = 1.0;
+      if(2 != plans[i].sub_process_array[j].process_type)
+      {
+        sim_speed = 6.0;
+      }
+
+      adjustTrajectoryHeaders(last_filled_jts, plans[i].sub_process_array[j], sim_speed);
     }
   }
 }
@@ -546,7 +558,7 @@ bool framefab_process_planning::generateMotionPlan(
   // retract planning
   // TODO: move this into param
   double retraction_dist = 0.015; // meters
-  double ret_TCP_speed = 0.005; // m/s
+  double ret_TCP_speed = 0.0005; // m/s
   retractionPlanning(plans, model, planning_scenes, retraction_dist, ret_TCP_speed);
 
   // Step 5 : Plan for transition between each pair of sequential path

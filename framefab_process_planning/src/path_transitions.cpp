@@ -19,7 +19,7 @@
 
 #include "trajectory_utils.h"
 
-const static double JTS_DISC_DELTA = 0.25; // radians
+const static double JTS_DISC_DELTA = 0.05; // radians
 
 namespace // anon namespace to hide utility functions
 {
