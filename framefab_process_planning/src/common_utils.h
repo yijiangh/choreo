@@ -34,6 +34,9 @@ Eigen::Affine3d createNominalTransform(const Eigen::Affine3d& ref_pose, const do
 trajectory_msgs::JointTrajectory toROSTrajectory(const DescartesTraj& solution,
                                                  const descartes_core::RobotModel& model);
 
+trajectory_msgs::JointTrajectory toROSTrajectory(const std::vector<std::vector<double>>& solution,
+                                                 const descartes_core::RobotModel& model);
+
 void fillTrajectoryHeaders(const std::vector<std::string>& joints,
                            trajectory_msgs::JointTrajectory& traj);
 

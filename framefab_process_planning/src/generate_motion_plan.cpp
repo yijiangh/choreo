@@ -7,6 +7,7 @@
 
 #include "generate_motion_plan.h"
 #include "trajectory_utils.h"
+#include "path_transitions.h"
 #include "common_utils.h"
 #include <descartes_trajectory/axial_symmetric_pt.h>
 #include <descartes_trajectory/joint_trajectory_pt.h>
@@ -204,6 +205,86 @@ void searchLadderGraphforProcessROSTraj(descartes_core::RobotModelPtr model,
   }
 }
 
+void retractionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
+                        descartes_core::RobotModelPtr model,
+                        std::vector<planning_scene::PlanningScenePtr>& planning_scenes,
+                        const double& retract_dist,
+                        const double& retract_TCP_speed)
+{
+  if (plans.size() == 0)
+  {
+    ROS_ERROR("[retraction Planning] plans size = 0!");
+    assert(false);
+  }
+
+  const auto ret_planning_start = ros::Time::now();
+
+  for(size_t i = 0; i < plans.size(); i++)
+  {
+    ROS_INFO_STREAM("[retraction Planning] process #" << i);
+
+    const std::vector<double> start_process_joint = plans[i].sub_process_array.back().joint_array.points.front().positions;
+    const std::vector<double> end_process_joint = plans[i].sub_process_array.back().joint_array.points.back().positions;
+
+
+    if(0 != i)
+    {
+      const auto last_process_end_joint = plans[i-1].sub_process_array.back().joint_array.points.back().positions;
+
+      if(last_process_end_joint == start_process_joint)
+      {
+        // skip retraction planning
+        ROS_INFO_STREAM("[retraction Planning] process #" << i << "retraction planning skipped.");
+        continue;
+      }
+
+    }
+
+    model->setPlanningScene(planning_scenes[i]);
+
+    std::vector<std::vector<double>> approach_retract_traj;
+    if(!framefab_process_planning::retractPath(start_process_joint, retract_dist, retract_TCP_speed,
+                                               model, approach_retract_traj))
+    {
+      ROS_ERROR_STREAM("[retraction planning] process #" << i << " failed to find feasible approach retract motion!");
+    }
+    std::reverse(approach_retract_traj.begin(), approach_retract_traj.end());
+
+    std::vector<std::vector<double>> depart_retract_traj;
+    if(!framefab_process_planning::retractPath(end_process_joint, retract_dist, retract_TCP_speed,
+                                               model, depart_retract_traj))
+    {
+      ROS_ERROR_STREAM("[retraction planning] process #" << i << " failed to find feasible depart retract motion!");
+    }
+
+    trajectory_msgs::JointTrajectory approach_ros_traj =
+        framefab_process_planning::toROSTrajectory(approach_retract_traj, *model);
+    trajectory_msgs::JointTrajectory depart_ros_traj =
+        framefab_process_planning::toROSTrajectory(depart_retract_traj, *model);
+
+    framefab_msgs::SubProcess sub_process_approach;
+
+    sub_process_approach.process_type = framefab_msgs::SubProcess::RETRACTION;
+    sub_process_approach.main_data_type = framefab_msgs::SubProcess::CART;
+    sub_process_approach.element_process_type = framefab_msgs::SubProcess::APPROACH;
+    sub_process_approach.joint_array = approach_ros_traj;
+
+    framefab_msgs::SubProcess sub_process_depart;
+
+    sub_process_depart.process_type = framefab_msgs::SubProcess::RETRACTION;
+    sub_process_depart.main_data_type = framefab_msgs::SubProcess::CART;
+    sub_process_depart.element_process_type = framefab_msgs::SubProcess::DEPART;
+    sub_process_depart.joint_array = depart_ros_traj;
+
+    plans[i].sub_process_array.insert(plans[i].sub_process_array.begin(), sub_process_approach);
+    plans[i].sub_process_array.insert(plans[i].sub_process_array.end(), sub_process_depart);
+  }
+
+  const auto ret_planning_end = ros::Time::now();
+  ROS_INFO_STREAM("[retraction planning] Retraction Planning took " << (ret_planning_end-ret_planning_start).toSec()
+                                                                    << " seconds.");
+}
+
 void transitionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
                         moveit::core::RobotModelConstPtr moveit_model,
                         ros::ServiceClient& planning_scene_diff_client,
@@ -231,7 +312,7 @@ void transitionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
       last_joint_pose = plans[i-1].sub_process_array.back().joint_array.points.back().positions;
     }
 
-    current_first_joint_pose = plans[i].sub_process_array.back().joint_array.points.front().positions;
+    current_first_joint_pose = plans[i].sub_process_array.front().joint_array.points.front().positions;
 
     if(last_joint_pose == current_first_joint_pose)
     {
@@ -294,6 +375,7 @@ void adjustTrajectoryTiming(std::vector<framefab_msgs::UnitProcessPlan>& plans,
   // inline function for append trajectory headers (adjust time frame)
   auto adjustTrajectoryHeaders = [](trajectory_msgs::JointTrajectory& last_filled_jts, framefab_msgs::SubProcess& sp)
   {
+    // TODO: temp speed, should be 1.0
     framefab_process_planning::appendTrajectoryHeaders(last_filled_jts, sp.joint_array, 1.0);
     last_filled_jts = sp.joint_array;
   };
@@ -462,11 +544,15 @@ bool framefab_process_planning::generateMotionPlan(
   // Next, we build a search for the whole problem
   searchLadderGraphforProcessROSTraj(model, final_graph, graph_indices, seg_type_tags, plans);
 
+  // retract planning
+  // TODO: move this into param
+  double retraction_dist = 0.01; // meters
+  double ret_TCP_speed = 0.005; // m/s
+  retractionPlanning(plans, model, planning_scenes, retraction_dist, ret_TCP_speed);
+
   // Step 5 : Plan for transition between each pair of sequential path
   transitionPlanning(plans, moveit_model, planning_scene_diff_client, move_group_name,
                      start_state, planning_scenes);
-
-  // Step 6 : TODO: Process each transition plan to extract "near-process" segmentation
 
   // Step 7 : fill in trajectory's time headers and pack into sub_process_plans
   // for each unit_process (process id is added here too)
