@@ -49,7 +49,7 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
   const static double LINEAR_VEL = 0.01; // (m/s)
   const static double LINEAR_DISCRETIZATION = 0.01; // meters
   // the distance between angular steps about z for each orientation
-  const static double ANGULAR_DISCRETIZATION = M_PI / 5; // radians
+  const static double ANGULAR_DISCRETIZATION = PRINT_ANGLE_DISCRETIZATION; // radians
   const static double RETRACT_DISTANCE = 0.005; // meters
 
   ConstrainedSegParameters constrained_seg_params;

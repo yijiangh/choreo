@@ -167,8 +167,6 @@ void searchLadderGraphforProcessROSTraj(descartes_core::RobotModelPtr model,
 
   trajectory_msgs::JointTrajectory ros_traj = framefab_process_planning::toROSTrajectory(sol, *model);
 
-  ROS_INFO_STREAM("[Process Planning] to ros traj packed");
-
   auto it = ros_traj.points.begin();
   for(size_t i = 0; i < seg_type_tags.size(); i++)
   {
@@ -231,18 +229,17 @@ void retractionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
     const std::vector<double> start_process_joint = plans[i].sub_process_array.back().joint_array.points.front().positions;
     const std::vector<double> end_process_joint = plans[i].sub_process_array.back().joint_array.points.back().positions;
 
-
     if(0 != i)
     {
       const auto last_process_end_joint = plans[i-1].sub_process_array.back().joint_array.points.back().positions;
 
+      // TODO: user option if start process pt = end process pt, skip retraction planning
       if(last_process_end_joint == start_process_joint)
       {
         // skip retraction planning
         ROS_INFO_STREAM("[retraction Planning] process #" << i << "retraction planning skipped.");
         continue;
       }
-
     }
 
     model->setPlanningScene(planning_scenes[i]);
@@ -281,6 +278,7 @@ void retractionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
     sub_process_depart.element_process_type = framefab_msgs::SubProcess::DEPART;
     sub_process_depart.joint_array = depart_ros_traj;
 
+    // retract_approach - process - retract depart
     plans[i].sub_process_array.insert(plans[i].sub_process_array.begin(), sub_process_approach);
     plans[i].sub_process_array.insert(plans[i].sub_process_array.end(), sub_process_depart);
   }
@@ -297,7 +295,7 @@ void transitionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
                         const std::vector<double>& start_state,
                         std::vector<planning_scene::PlanningScenePtr>& planning_scenes)
 {
-  if (plans.size() == 0)
+  if(plans.size() == 0)
   {
     ROS_ERROR("[transionPlanning] plans size = 0!");
     assert(false);
@@ -557,7 +555,7 @@ bool framefab_process_planning::generateMotionPlan(
 
   // retract planning
   // TODO: move this into param
-  double retraction_dist = 0.015; // meters
+  double retraction_dist = 0.010; // meters
   double ret_TCP_speed = 0.0005; // m/s
   retractionPlanning(plans, model, planning_scenes, retraction_dist, ret_TCP_speed);
 
