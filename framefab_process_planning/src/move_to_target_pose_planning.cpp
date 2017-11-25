@@ -34,6 +34,12 @@ bool ProcessPlanningManager::handleMoveToTargetPosePlanAndExecution(
     const std::vector<std::string>& joint_names =
         moveit_model_->getJointModelGroup(hotend_group_name_)->getActiveJointModelNames();
 
+    if(current_joints == req.pose)
+    {
+      // skip planning if required pose = current pose
+      return true;
+    }
+
     trajectory_msgs::JointTrajectory ros_traj =
         getMoveitPlan(hotend_group_name_,
                       current_joints,
