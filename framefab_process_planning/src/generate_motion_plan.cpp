@@ -18,6 +18,9 @@
 #include <descartes_planner/graph_builder.h>
 #include <moveit/planning_scene/planning_scene.h>
 
+// cap ladder tree RRTstar
+#include <descartes_planner/capsulated_ladder_tree_RRTstar.h>
+
 // pose conversion
 #include <eigen_conversions/eigen_msg.h>
 
@@ -476,6 +479,14 @@ bool framefab_process_planning::generateMotionPlan(
   // Step 1: Let's create all of our planning scenes to collision check against
   std::vector<planning_scene::PlanningScenePtr> planning_scenes;
   constructPlanningScenes(moveit_model, collision_objs, planning_scenes);
+
+//  // temp test CLT RRT*
+//  descartes_planner::CapsulatedLadderTreeRRTstar CLT_RRT(segs, planning_scenes);
+//  double clt_cost = 0;
+//
+//  clt_cost = CLT_RRT.solve(*model);
+//
+//  ROS_WARN_STREAM("CLT RRT* return cost: " << clt_cost);
 
   // Step 2: sample graph for each segment separately
   int saved_graph_size = 0;
