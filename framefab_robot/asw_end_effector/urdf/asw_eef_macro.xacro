@@ -1,8 +1,8 @@
 <?xml version="1.0" ?>
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
-  <xacro:property name="hotend_tcp_x" value="0.15045"/>
-  <xacro:property name="hotend_tcp_y" value="0.000283"/>
-  <xacro:property name="hotend_tcp_z" value="0.121277"/>
+  <xacro:property name="hotend_tcp_x" value="0.150539"/>
+  <xacro:property name="hotend_tcp_y" value="0.001052"/>
+  <xacro:property name="hotend_tcp_z" value="0.119157"/>
 
   <xacro:property name="half_pi" value="1.5707963267948966"/>
 

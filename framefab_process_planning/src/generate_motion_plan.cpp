@@ -558,15 +558,17 @@ bool framefab_process_planning::generateMotionPlan(
   // release graphs list memory
   std::vector<descartes_planner::LadderGraph>().swap(graphs);
 
-  ROS_INFO_STREAM("[Proceess Planning] unified ladder graph has " << final_graph.numVertices() << " vertices, "
-                                                                  << final_graph.size() << " rungs");
+  ROS_INFO_STREAM("[Proceess Planning] unified ladder graph has "
+                      << final_graph.numVertices() << " vertices, "
+                      << final_graph.numEdges() << " edges, "
+                      << final_graph.size() << " rungs");
 
   // Next, we build a search for the whole problem
   searchLadderGraphforProcessROSTraj(model, final_graph, graph_indices, seg_type_tags, plans);
 
   // retract planning
   // TODO: move this into param
-  double retraction_dist = 0.010; // meters
+  double retraction_dist = 0.005; // meters
   double ret_TCP_speed = 0.0005; // m/s
   retractionPlanning(plans, model, planning_scenes, retraction_dist, ret_TCP_speed);
 
