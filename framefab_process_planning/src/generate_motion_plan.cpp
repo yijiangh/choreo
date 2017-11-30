@@ -406,6 +406,12 @@ void transitionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
                                                            start_state,
                                                            moveit_model);
 
+    // TODO: recover from transition planning failure
+    if(ros_trans_traj.points.empty())
+    {
+      continue;
+    }
+
     framefab_msgs::SubProcess sub_process;
 
     sub_process.process_type = framefab_msgs::SubProcess::TRANSITION;
