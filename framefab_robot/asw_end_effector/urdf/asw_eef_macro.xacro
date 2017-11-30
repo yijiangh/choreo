@@ -33,7 +33,7 @@
     <joint name="${prefix}eef_frame_to_hotend_tool" type="fixed">
         <parent link="${prefix}eef_frame"/>
         <child link="${prefix}hotend_tool"/>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <origin xyz="0.000088 0.000769 -0.002121" rpy="0 0 0"/>
     </joint>
 
     <link name="${prefix}tmp_tcp_frame"/> <!--The actual 'useful' work frame-->
