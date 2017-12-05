@@ -125,8 +125,12 @@ bool framefab_process_planning::retractPath(
 
   if(retract_jt_vec.size() == 0)
   {
-    ROS_ERROR_STREAM("[RetractPath] failed to generate feasible IK for retracted pose!");
+    ROS_WARN_STREAM("[RetractPath] failed to directly generate feasible IK for retracted pose!");
     return false;
+  }
+  else
+  {
+    // sample around the eef orientation
   }
 
   const int end_size = retract_jt_vec.size() / dof;

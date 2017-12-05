@@ -312,39 +312,46 @@ void retractionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
                                                model, approach_retract_traj))
     {
       ROS_ERROR_STREAM("[retraction planning] process #" << i << " failed to find feasible approach retract motion!");
+      continue;
     }
-    std::reverse(approach_retract_traj.begin(), approach_retract_traj.end());
+    else
+    {
+      trajectory_msgs::JointTrajectory approach_ros_traj =
+          framefab_process_planning::toROSTrajectory(approach_retract_traj, *model);
+
+      framefab_msgs::SubProcess sub_process_approach;
+
+      sub_process_approach.process_type = framefab_msgs::SubProcess::RETRACTION;
+      sub_process_approach.main_data_type = framefab_msgs::SubProcess::CART;
+      sub_process_approach.element_process_type = framefab_msgs::SubProcess::APPROACH;
+      sub_process_approach.joint_array = approach_ros_traj;
+
+      std::reverse(approach_retract_traj.begin(), approach_retract_traj.end());
+      plans[i].sub_process_array.insert(plans[i].sub_process_array.begin(), sub_process_approach);
+    }
 
     std::vector<std::vector<double>> depart_retract_traj;
     if(!framefab_process_planning::retractPath(end_process_joint, retract_dist, retract_TCP_speed,
                                                model, depart_retract_traj))
     {
       ROS_ERROR_STREAM("[retraction planning] process #" << i << " failed to find feasible depart retract motion!");
+      continue;
     }
+    else
+    {
+      trajectory_msgs::JointTrajectory depart_ros_traj =
+          framefab_process_planning::toROSTrajectory(depart_retract_traj, *model);
 
-    trajectory_msgs::JointTrajectory approach_ros_traj =
-        framefab_process_planning::toROSTrajectory(approach_retract_traj, *model);
-    trajectory_msgs::JointTrajectory depart_ros_traj =
-        framefab_process_planning::toROSTrajectory(depart_retract_traj, *model);
+      framefab_msgs::SubProcess sub_process_depart;
 
-    framefab_msgs::SubProcess sub_process_approach;
+      sub_process_depart.process_type = framefab_msgs::SubProcess::RETRACTION;
+      sub_process_depart.main_data_type = framefab_msgs::SubProcess::CART;
+      sub_process_depart.element_process_type = framefab_msgs::SubProcess::DEPART;
+      sub_process_depart.joint_array = depart_ros_traj;
 
-    sub_process_approach.process_type = framefab_msgs::SubProcess::RETRACTION;
-    sub_process_approach.main_data_type = framefab_msgs::SubProcess::CART;
-    sub_process_approach.element_process_type = framefab_msgs::SubProcess::APPROACH;
-    sub_process_approach.joint_array = approach_ros_traj;
-
-    framefab_msgs::SubProcess sub_process_depart;
-
-    sub_process_depart.process_type = framefab_msgs::SubProcess::RETRACTION;
-    sub_process_depart.main_data_type = framefab_msgs::SubProcess::CART;
-    sub_process_depart.element_process_type = framefab_msgs::SubProcess::DEPART;
-    sub_process_depart.joint_array = depart_ros_traj;
-
-    // retract_approach - process - retract depart
-    plans[i].sub_process_array.insert(plans[i].sub_process_array.begin(), sub_process_approach);
-    plans[i].sub_process_array.insert(plans[i].sub_process_array.end(), sub_process_depart);
-  }
+      plans[i].sub_process_array.insert(plans[i].sub_process_array.end(), sub_process_depart);
+    }
+  } // loop for all unit plans
 
   const auto ret_planning_end = ros::Time::now();
   ROS_INFO_STREAM("[retraction planning] Retraction Planning took " << (ret_planning_end-ret_planning_start).toSec()
