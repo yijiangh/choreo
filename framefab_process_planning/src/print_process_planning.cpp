@@ -74,6 +74,12 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
     seg_type_tags.push_back(req.task_sequence[i].type);
   }
 
+  // add fixed extra collision objects in the work environment, e.g. heating bed (adjustable)
+  for(const auto& obj : req.env_collision_objs)
+  {
+    addCollisionObject(planning_scene_diff_client_, obj);
+  }
+
   if(generateMotionPlan(hotend_model_, constrained_segs, collision_objs, seg_type_tags,
                         req.use_saved_graph, req.file_name,
                         moveit_model_, planning_scene_diff_client_,
