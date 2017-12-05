@@ -46,8 +46,8 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
     return true;
   }
 
-  const static double LINEAR_VEL = 0.01; // (m/s)
-  const static double LINEAR_DISCRETIZATION = 0.01; // meters
+  const static double LINEAR_VEL = 0.1; // (m/s)
+  const static double LINEAR_DISCRETIZATION = 0.01; // meters (simulation)
   // the distance between angular steps about z for each orientation
   const static double ANGULAR_DISCRETIZATION = PRINT_ANGLE_DISCRETIZATION; // radians
   const static double RETRACT_DISTANCE = 0.005; // meters
@@ -72,6 +72,12 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
   {
     collision_objs.push_back(req.task_sequence[i].collision_cylinder);
     seg_type_tags.push_back(req.task_sequence[i].type);
+  }
+
+  // add fixed extra collision objects in the work environment, e.g. heating bed (adjustable)
+  for(const auto& obj : req.env_collision_objs)
+  {
+    addCollisionObject(planning_scene_diff_client_, obj);
   }
 
   if(generateMotionPlan(hotend_model_, constrained_segs, collision_objs, seg_type_tags,
