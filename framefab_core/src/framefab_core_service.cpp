@@ -571,6 +571,13 @@ void FrameFabCoreService::simulateMotionPlansActionCallback(const framefab_msgs:
         simulate_motion_plan_result_.code = framefab_msgs::SimulateMotionPlanResult::RESET_POSE_FAIL;
         simulate_motion_plan_server_.setAborted(simulate_motion_plan_result_);
       }
+      else
+      {
+        simulate_motion_plan_result_.code = framefab_msgs::SimulateMotionPlanResult::SUCCESS;
+        simulate_motion_plan_server_.setSucceeded(simulate_motion_plan_result_);
+      }
+
+      break;
     }
     case framefab_msgs::SimulateMotionPlanGoal::SINGLE_PATH_RUN:
     case framefab_msgs::SimulateMotionPlanGoal::ALL_PATHS_UNTIL_SELECTED_RUN:
@@ -634,6 +641,13 @@ void FrameFabCoreService::simulateMotionPlansActionCallback(const framefab_msgs:
         simulate_motion_plan_result_.code = framefab_msgs::SimulateMotionPlanResult::TIMEOUT;
         simulate_motion_plan_server_.setAborted(simulate_motion_plan_result_);
       }
+
+      break;
+    }
+    default:
+    {
+      ROS_ERROR_STREAM("[Core] Unknown action code for SimulateMotionPlan " << goal_in->action << "' request");
+      break;
     }
   }
 }
