@@ -53,10 +53,10 @@ geometry_msgs::Pose framefab_task_sequence_processing_utils::UnitProcess::comput
 
 moveit_msgs::CollisionObject framefab_task_sequence_processing_utils::UnitProcess::createCollisionObject(
     const int& id, const Eigen::Vector3d& st_pt, const Eigen::Vector3d& end_pt,
-    const double& element_diameter) const
+    const double& element_diameter, std::string&& shrink_type_suffix) const
 {
   moveit_msgs::CollisionObject collision_cylinder;
-  std::string cylinder_id = "element_" + std::to_string(id);
+  std::string cylinder_id = "element_" + std::to_string(id) + "_" + shrink_type_suffix;
 
   // TODO: make frame_id as input parameter
   collision_cylinder.id = cylinder_id;
@@ -108,15 +108,25 @@ framefab_msgs::ElementCandidatePoses framefab_task_sequence_processing_utils::Un
 
   msg.element_diameter = element_diameter_;
 
-  Eigen::Vector3d s_st_pt = st_pt_;
-  Eigen::Vector3d s_end_pt = end_pt_;
+  Eigen::Vector3d shrinked_st_pt = st_pt_;
+  Eigen::Vector3d shrinked_end_pt = end_pt_;
 
-  createShrinkedEndPoint(s_st_pt, s_end_pt, shrink_length_);
+  createShrinkedEndPoint(shrinked_st_pt, shrinked_end_pt, shrink_length_);
 
-  tf::pointEigenToMsg(s_st_pt, msg.shrinked_start_pt);
-  tf::pointEigenToMsg(s_end_pt, msg.shrinked_end_pt);
+  tf::pointEigenToMsg(shrinked_st_pt, msg.shrinked_start_pt);
+  tf::pointEigenToMsg(shrinked_end_pt, msg.shrinked_end_pt);
 
-  msg.collision_cylinder = createCollisionObject(id_, s_st_pt, s_end_pt, element_diameter_);
+  msg.both_side_shrinked_collision_object = createCollisionObject(id_, shrinked_st_pt, shrinked_end_pt,
+                                                                  element_diameter_, "shrink_both_ends");
+
+  msg.st_shrinked_collision_object = createCollisionObject(id_, shrinked_st_pt, end_pt_,
+                                                           element_diameter_, "shrink_start");
+
+  msg.end_shrinked_collision_object = createCollisionObject(id_, st_pt_, shrinked_end_pt,
+                                                            element_diameter_, "shrink_end");
+
+  msg.full_collision_object = createCollisionObject(id_, st_pt_, end_pt_,
+                                                    element_diameter_, "full");
 
   for(int i=0; i < feasible_orients_.size(); i++)
   {

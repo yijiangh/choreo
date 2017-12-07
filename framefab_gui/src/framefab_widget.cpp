@@ -80,6 +80,13 @@ void framefab_gui::FrameFabWidget::onBackButton()
 void framefab_gui::FrameFabWidget::onResetButton()
 {
   active_state_->onReset(*this);
+
+  framefab_msgs::SimulateMotionPlanGoal goal;
+  goal.action = framefab_msgs::SimulateMotionPlanGoal::RESET_TO_DEFAULT_POSE;
+  goal.simulate = true;
+  goal.wait_for_execution = true;
+
+  this->sendGoalAndWait(goal);
 }
 
 void framefab_gui::FrameFabWidget::onParamsButton()

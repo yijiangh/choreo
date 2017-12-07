@@ -213,14 +213,20 @@ void framefab_gui::SelectionWidget::addFetchedPlans(const std::vector<std::strin
   ui_->plan_list_widget->clear();
   fetched_plan_ids_.clear();
 
-  for(const auto& plan : plan_names)
+  for (const auto& plan : plan_names)
   {
-    QListWidgetItem* item = new QListWidgetItem();
-    item->setText(QString::fromStdString(plan));
-    ui_->plan_list_widget->addItem(item);
-
     // add it in fetched_plans for available plan database
     fetched_plan_ids_.push_back(getIntFromString(plan));
+  }
+
+  // sort fetched plans in an increasing order
+  std::sort(fetched_plan_ids_.begin(), fetched_plan_ids_.end());
+
+  for (const auto& id : fetched_plan_ids_)
+  {
+    QListWidgetItem *item = new QListWidgetItem();
+    item->setText(QString::number(id));
+    ui_->plan_list_widget->addItem(item);
   }
 }
 
