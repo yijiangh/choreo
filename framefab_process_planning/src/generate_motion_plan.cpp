@@ -49,29 +49,51 @@
 namespace{ //util function namespace
 
 void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
-                             const std::vector<moveit_msgs::CollisionObject>& collision_objs,
-                             std::vector<planning_scene::PlanningScenePtr>& planning_scenes)
+                             const std::vector<framefab_msgs::ElementCandidatePoses>& task_seq,
+                             std::vector<planning_scene::PlanningScenePtr>& planning_scenes_shrinked,
+                             std::vector<planning_scene::PlanningScenePtr>& planning_scenes_full)
 {
   const auto build_scenes_start = ros::Time::now();
 
-  planning_scenes.clear();
-  planning_scenes.reserve(collision_objs.size());
+  planning_scenes_shrinked.reserve(task_seq.size());
+  planning_scenes_full.reserve(task_seq.size());
 
   planning_scene::PlanningScenePtr root_scene(new planning_scene::PlanningScene(moveit_model));
   root_scene->getCurrentStateNonConst().setToDefaultValues();
   root_scene->getCurrentStateNonConst().update();
-  planning_scenes.push_back(root_scene);
 
-  for (std::size_t i = 0; i < collision_objs.size() - 1; ++i) // We use all but the last collision object
+  // start with no element constructed in the scene
+  planning_scenes_shrinked.push_back(root_scene);
+  planning_scenes_full.push_back(root_scene);
+
+  for (std::size_t i = 1; i < task_seq.size(); ++i) // We use all but the last collision object
   {
-    auto last_scene = planning_scenes.back();
-    auto child = last_scene->diff();
+    auto last_scene_shrinked = planning_scenes_shrinked.back();
+    auto child_shrinked = last_scene_shrinked->diff();
 
-    if (!child->processCollisionObjectMsg(collision_objs[i]))
+    auto last_scene_full = planning_scenes_full.back();
+    auto child_full = last_scene_full->diff();
+
+    // query for existing connected elements to element[i] and shared node info (st, end or both?)
+    // substitute them with geometry shrinked at the shared node side
+    if (!child_shrinked->processCollisionObjectMsg(task_seq[i-1].both_side_shrinked_collision_object))
     {
-      ROS_WARN("[Process Planning] Failed to process collision object");
+      ROS_WARN("[Process Planning] Failed to process shrinked collision object");
     }
-    planning_scenes.push_back(child);
+
+    // push in partial_collision_geometry_planning_scene
+    planning_scenes_shrinked.push_back(child_shrinked);
+
+    // get diff as child
+    // restore changed element back to full geometry
+    // push in full_collision_geometry_planning_scene
+    if (!child_full->processCollisionObjectMsg(task_seq[i-1].full_collision_object))
+    {
+      ROS_WARN("[Process Planning] Failed to process full collision object");
+    }
+
+    // push in full_scene[i]
+    planning_scenes_full.push_back(child_full);
   }
 
   const auto build_scenes_end = ros::Time::now();
@@ -79,141 +101,15 @@ void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
                                                                           << " seconds.");
 }
 
-void constructLadderGraphSegments(descartes_core::RobotModelPtr model,
-                                  std::vector<descartes_planner::ConstrainedSegment>& segs,
-                                  const std::vector<planning_scene::PlanningScenePtr>& planning_scenes,
-                                  std::vector<descartes_planner::LadderGraph>& saved_graphs,
-                                  std::vector<descartes_planner::LadderGraph>& graphs,
-                                  std::vector<std::size_t>& graph_indices)
-{
-  auto graph_build_start = ros::Time::now();
-
-  graphs.clear();
-  graphs.reserve(segs.size());
-
-  bool use_ladder_graph = bool(saved_graphs.size());
-
-  for (std::size_t i = 0; i < segs.size(); ++i)
-  {
-    model->setPlanningScene(planning_scenes[i]);
-
-    if (use_ladder_graph && i < saved_graphs.size())
-    {
-      ROS_INFO_STREAM("[Process Planning] process #" << i << ", orient size" << segs[i].orientations.size()
-                                                     << " (saved graph used)");
-      graphs.push_back(saved_graphs[i]);
-    }
-    else
-    {
-      descartes_planner::ConstrainedSegment &seg = segs[i];
-      ROS_INFO_STREAM("[Process Planning] process #" << i << ", orient size: " << seg.orientations.size());
-      graphs.push_back(descartes_planner::sampleConstrainedPaths(*model, segs[i]));
-    }
-    graph_indices.push_back(graphs.back().size());
-  }
-
-  auto graph_build_end = ros::Time::now();
-  ROS_INFO_STREAM("[Process Planning] Ladder Graph building took: "
-                      << (graph_build_end - graph_build_start).toSec() << " seconds");
-}
-
-void appendLadderGraphSegments(std::vector<descartes_planner::LadderGraph>& graphs,
-                                descartes_planner::LadderGraph& final_graph)
-{
-  const auto append_start = ros::Time::now();
-
-  int append_id = 0;
-  for (const auto& graph : graphs)
-  {
-    ROS_INFO_STREAM("[Process Planning] appending graph #" << append_id);
-    descartes_planner::appendInTime(final_graph, graph);
-    append_id++;
-  }
-
-  const auto append_end = ros::Time::now();
-  ROS_INFO_STREAM("[Process Planning] Graph appending took: " << (append_end - append_start).toSec() << " seconds");
-}
-
-void searchLadderGraphforProcessROSTraj(descartes_core::RobotModelPtr model,
-                                        const descartes_planner::LadderGraph& final_graph,
-                                        const std::vector<std::size_t>& graph_indices,
-                                        const std::vector<int> seg_type_tags,
-                                        std::vector<framefab_msgs::UnitProcessPlan>& plans)
-{
-  const auto search_start = ros::Time::now();
-  descartes_planner::DAGSearch search(final_graph);
-  double cost = search.run();
-
-  const auto search_end = ros::Time::now();
-  ROS_INFO_STREAM("[Process Planning] DAG Search took " << (search_end-search_start).toSec()
-                                                        << " seconds and produced a result with dist = " << cost);
-
-  // Harvest shortest path in graph to retract trajectory
-  auto path_idxs = search.shortestPath();
-  ROS_INFO_STREAM("[Process Planning] DAG shortest path completed.");
-
-  framefab_process_planning::DescartesTraj sol;
-  for (size_t j = 0; j < path_idxs.size(); ++j)
-  {
-    const auto idx = path_idxs[j];
-    const auto* data = final_graph.vertex(j, idx);
-    const auto& tm = final_graph.getRung(j).timing;
-    auto pt = descartes_core::TrajectoryPtPtr(new descartes_trajectory::JointTrajectoryPt(
-        std::vector<double>(data, data + 6), tm));
-    sol.push_back(pt);
-  }
-
-  ROS_INFO_STREAM("[Process Planning] descartes traj sol packed.");
-
-  trajectory_msgs::JointTrajectory ros_traj = framefab_process_planning::toROSTrajectory(sol, *model);
-
-  auto it = ros_traj.points.begin();
-  for(size_t i = 0; i < seg_type_tags.size(); i++)
-  {
-    framefab_msgs::SubProcess sub_process;
-
-    sub_process.unit_process_id = i;
-    sub_process.process_type = framefab_msgs::SubProcess::PROCESS;
-    sub_process.main_data_type = framefab_msgs::SubProcess::CART;
-
-    switch(seg_type_tags[i])
-    {
-      case framefab_msgs::ElementCandidatePoses::SUPPORT:
-      {
-        sub_process.element_process_type = framefab_msgs::SubProcess::SUPPORT;
-        break;
-      }
-      case framefab_msgs::ElementCandidatePoses::CREATE:
-      {
-        sub_process.element_process_type = framefab_msgs::SubProcess::CREATE;
-        break;
-      }
-      case framefab_msgs::ElementCandidatePoses::CONNECT:
-      {
-        sub_process.element_process_type = framefab_msgs::SubProcess::CONNECT;
-        break;
-      }
-      default:
-      {
-        sub_process.element_process_type = framefab_msgs::SubProcess::NONE;
-        ROS_WARN_STREAM("[Process Planning] printing process #" << i << " have no element process type!");
-      }
-    }
-
-    sub_process.joint_array.points =  std::vector<trajectory_msgs::JointTrajectoryPoint>(it, it + graph_indices[i]);
-
-    plans[i].sub_process_array.push_back(sub_process);
-
-    it = it + graph_indices[i];
-  }
-}
-
 void CLTRRTforProcessROSTraj(descartes_core::RobotModelPtr model,
                              std::vector<descartes_planner::ConstrainedSegment>& segs,
                              const std::vector<planning_scene::PlanningScenePtr>& planning_scenes,
-                             const std::vector<int> seg_type_tags,
+                             const std::vector<framefab_msgs::ElementCandidatePoses>& task_seq,
                              std::vector<framefab_msgs::UnitProcessPlan>& plans)
 {
+  // sanity check
+  assert(segs.size() == task_seq.size());
+
   const auto clt_start = ros::Time::now();
 
   descartes_planner::CapsulatedLadderTreeRRTstar CLT_RRT(segs, planning_scenes);
@@ -231,7 +127,7 @@ void CLTRRTforProcessROSTraj(descartes_core::RobotModelPtr model,
   trajectory_msgs::JointTrajectory ros_traj = framefab_process_planning::toROSTrajectory(sol, *model);
 
   auto it = ros_traj.points.begin();
-  for(size_t i = 0; i < seg_type_tags.size(); i++)
+  for(size_t i = 0; i < task_seq.size(); i++)
   {
     framefab_msgs::SubProcess sub_process;
 
@@ -239,7 +135,7 @@ void CLTRRTforProcessROSTraj(descartes_core::RobotModelPtr model,
     sub_process.process_type = framefab_msgs::SubProcess::PROCESS;
     sub_process.main_data_type = framefab_msgs::SubProcess::CART;
 
-    switch(seg_type_tags[i])
+    switch(task_seq[i].type)
     {
       case framefab_msgs::ElementCandidatePoses::SUPPORT:
       {
@@ -271,11 +167,10 @@ void CLTRRTforProcessROSTraj(descartes_core::RobotModelPtr model,
   }
 }
 
-void retractionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
-                        descartes_core::RobotModelPtr model,
-                        std::vector<planning_scene::PlanningScenePtr>& planning_scenes,
-                        const double& retract_dist,
-                        const double& retract_TCP_speed)
+void retractionPlanning(descartes_core::RobotModelPtr model,
+                        const std::vector<planning_scene::PlanningScenePtr>& planning_scenes,
+                        const std::vector<descartes_planner::ConstrainedSegment>& segs,
+                        std::vector<framefab_msgs::UnitProcessPlan>& plans)
 {
   if (plans.size() == 0)
   {
@@ -297,54 +192,61 @@ void retractionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
       const auto last_process_end_joint = plans[i-1].sub_process_array.back().joint_array.points.back().positions;
 
       // TODO: user option if start process pt = end process pt, skip retraction planning
-      if(last_process_end_joint == start_process_joint)
-      {
-        // skip retraction planning
-        ROS_INFO_STREAM("[retraction Planning] process #" << i << "retraction planning skipped.");
-        continue;
-      }
+//      if(last_process_end_joint == start_process_joint)
+//      {
+//        // skip retraction planning
+//        ROS_INFO_STREAM("[retraction Planning] process #" << i << "retraction planning skipped.");
+//        continue;
+//      }
     }
 
     model->setPlanningScene(planning_scenes[i]);
 
     std::vector<std::vector<double>> approach_retract_traj;
-    if(!framefab_process_planning::retractPath(start_process_joint, retract_dist, retract_TCP_speed,
+    if(!framefab_process_planning::retractPath(start_process_joint, segs[i].retract_dist, segs[i].linear_vel,
                                                model, approach_retract_traj))
     {
       ROS_ERROR_STREAM("[retraction planning] process #" << i << " failed to find feasible approach retract motion!");
     }
-    std::reverse(approach_retract_traj.begin(), approach_retract_traj.end());
+    else
+    {
+
+      std::reverse(approach_retract_traj.begin(), approach_retract_traj.end());
+
+      trajectory_msgs::JointTrajectory approach_ros_traj =
+          framefab_process_planning::toROSTrajectory(approach_retract_traj, *model);
+
+      framefab_msgs::SubProcess sub_process_approach;
+
+      sub_process_approach.process_type = framefab_msgs::SubProcess::RETRACTION;
+      sub_process_approach.main_data_type = framefab_msgs::SubProcess::CART;
+      sub_process_approach.element_process_type = framefab_msgs::SubProcess::APPROACH;
+      sub_process_approach.joint_array = approach_ros_traj;
+
+      plans[i].sub_process_array.insert(plans[i].sub_process_array.begin(), sub_process_approach);
+    }
 
     std::vector<std::vector<double>> depart_retract_traj;
-    if(!framefab_process_planning::retractPath(end_process_joint, retract_dist, retract_TCP_speed,
+    if(!framefab_process_planning::retractPath(end_process_joint, segs[i].retract_dist, segs[i].linear_vel,
                                                model, depart_retract_traj))
     {
       ROS_ERROR_STREAM("[retraction planning] process #" << i << " failed to find feasible depart retract motion!");
     }
+    else
+    {
+      trajectory_msgs::JointTrajectory depart_ros_traj =
+          framefab_process_planning::toROSTrajectory(depart_retract_traj, *model);
 
-    trajectory_msgs::JointTrajectory approach_ros_traj =
-        framefab_process_planning::toROSTrajectory(approach_retract_traj, *model);
-    trajectory_msgs::JointTrajectory depart_ros_traj =
-        framefab_process_planning::toROSTrajectory(depart_retract_traj, *model);
+      framefab_msgs::SubProcess sub_process_depart;
 
-    framefab_msgs::SubProcess sub_process_approach;
+      sub_process_depart.process_type = framefab_msgs::SubProcess::RETRACTION;
+      sub_process_depart.main_data_type = framefab_msgs::SubProcess::CART;
+      sub_process_depart.element_process_type = framefab_msgs::SubProcess::DEPART;
+      sub_process_depart.joint_array = depart_ros_traj;
 
-    sub_process_approach.process_type = framefab_msgs::SubProcess::RETRACTION;
-    sub_process_approach.main_data_type = framefab_msgs::SubProcess::CART;
-    sub_process_approach.element_process_type = framefab_msgs::SubProcess::APPROACH;
-    sub_process_approach.joint_array = approach_ros_traj;
-
-    framefab_msgs::SubProcess sub_process_depart;
-
-    sub_process_depart.process_type = framefab_msgs::SubProcess::RETRACTION;
-    sub_process_depart.main_data_type = framefab_msgs::SubProcess::CART;
-    sub_process_depart.element_process_type = framefab_msgs::SubProcess::DEPART;
-    sub_process_depart.joint_array = depart_ros_traj;
-
-    // retract_approach - process - retract depart
-    plans[i].sub_process_array.insert(plans[i].sub_process_array.begin(), sub_process_approach);
-    plans[i].sub_process_array.insert(plans[i].sub_process_array.end(), sub_process_depart);
-  }
+      plans[i].sub_process_array.insert(plans[i].sub_process_array.end(), sub_process_depart);
+    }
+  } // loop for all unit plans
 
   const auto ret_planning_end = ros::Time::now();
   ROS_INFO_STREAM("[retraction planning] Retraction Planning took " << (ret_planning_end-ret_planning_start).toSec()
@@ -480,16 +382,24 @@ bool saveLadderGraph(const std::string& filename, const descartes_msgs::LadderGr
 }
 
 void appendTCPPosetoPlans(const descartes_core::RobotModelPtr model,
-                          const std::vector<planning_scene::PlanningScenePtr>& planning_scenes,
+                          const std::vector<planning_scene::PlanningScenePtr>& planning_scenes_shrinked,
+                          const std::vector<planning_scene::PlanningScenePtr>& planning_scenes_full,
                           std::vector<framefab_msgs::UnitProcessPlan>& plans)
 {
   int process_id_count = 0;
   for(auto& unit_plan : plans)
   {
-    model->setPlanningScene(planning_scenes[process_id_count]);
-
     for(auto& sub_process : unit_plan.sub_process_array)
     {
+      if(sub_process.process_type == framefab_msgs::SubProcess::TRANSITION)
+      {
+        model->setPlanningScene(planning_scenes_full[process_id_count]);
+      }
+      else
+      {
+        model->setPlanningScene(planning_scenes_shrinked[process_id_count]);
+      }
+
       for(const auto& jt_pt : sub_process.joint_array.points)
       {
         Eigen::Affine3d TCP_pose = Eigen::Affine3d::Identity();
@@ -519,8 +429,7 @@ void appendTCPPosetoPlans(const descartes_core::RobotModelPtr model,
 bool framefab_process_planning::generateMotionPlan(
     descartes_core::RobotModelPtr model,
     std::vector<descartes_planner::ConstrainedSegment>& segs,
-    const std::vector<moveit_msgs::CollisionObject>& collision_objs,
-    const std::vector<int>& seg_type_tags,
+    const std::vector<framefab_msgs::ElementCandidatePoses>& task_seq,
     const bool use_saved_graph,
     const std::string& saved_graph_file_name,
     moveit::core::RobotModelConstPtr moveit_model,
@@ -530,11 +439,9 @@ bool framefab_process_planning::generateMotionPlan(
     std::vector<framefab_msgs::UnitProcessPlan>& plans)
 {
   // Step 0: Sanity checks
-  if (segs.size() == 0 || collision_objs.size() != segs.size() || seg_type_tags.size() != segs.size())
+  if (segs.size() == 0 || task_seq.size() != segs.size())
   {
-    ROS_ERROR_STREAM("[Process Planning] input descartes Constrained Segment size" << segs.size()
-                                                                                   << ", collision objs size: " << collision_objs.size()
-                                                                                   << ", seg type size" << seg_type_tags.size());
+    ROS_ERROR_STREAM("[Process Planning] input descartes Constrained Segment size" << segs.size());
     return false;
   }
 
@@ -543,28 +450,26 @@ bool framefab_process_planning::generateMotionPlan(
       moveit_model->getJointModelGroup(move_group_name)->getActiveJointModelNames();
 
   // Step 1: Let's create all of our planning scenes to collision check against
-  std::vector<planning_scene::PlanningScenePtr> planning_scenes;
-  constructPlanningScenes(moveit_model, collision_objs, planning_scenes);
+  std::vector<planning_scene::PlanningScenePtr> planning_scenes_shrinked;
+  std::vector<planning_scene::PlanningScenePtr> planning_scenes_full;
+  constructPlanningScenes(moveit_model, task_seq, planning_scenes_shrinked, planning_scenes_full);
 
   // Step 2: CLT RRT* to solve process trajectory
-  CLTRRTforProcessROSTraj(model, segs, planning_scenes, seg_type_tags, plans);
+  CLTRRTforProcessROSTraj(model, segs, planning_scenes_shrinked, task_seq, plans);
 
-//  // retract planning
-//  // TODO: move this into param
-  double retraction_dist = 0.005; // meters
-  double ret_TCP_speed = 0.0005; // m/s
-  retractionPlanning(plans, model, planning_scenes, retraction_dist, ret_TCP_speed);
+  // retract planning
+  retractionPlanning(model, planning_scenes_shrinked, segs, plans);
 
   // Step 5 : Plan for transition between each pair of sequential path
   transitionPlanning(plans, moveit_model, planning_scene_diff_client, move_group_name,
-                     start_state, planning_scenes);
+                     start_state, planning_scenes_full);
 
   // Step 7 : fill in trajectory's time headers and pack into sub_process_plans
   // for each unit_process (process id is added here too)
   adjustTrajectoryTiming(plans, joint_names);
 
   // Step 8: fill in TCP pose according to trajectories
-  appendTCPPosetoPlans(model, planning_scenes, plans);
+  appendTCPPosetoPlans(model, planning_scenes_shrinked, planning_scenes_full, plans);
 
   ROS_INFO("[Process Planning] trajectories solved and packing finished");
   return true;

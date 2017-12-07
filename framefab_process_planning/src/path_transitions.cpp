@@ -19,7 +19,7 @@
 
 #include "trajectory_utils.h"
 
-const static double JTS_DISC_DELTA = 0.05; // radians
+const static double JTS_DISC_DELTA = 0.01; // radians
 
 namespace // anon namespace to hide utility functions
 {
@@ -67,16 +67,16 @@ boost::function<descartes_planner::ConstrainedSegment (const Eigen::Vector3d &, 
 
 std::vector<descartes_planner::ConstrainedSegment>
 framefab_process_planning::toDescartesConstrainedPath(const std::vector<framefab_msgs::ElementCandidatePoses>& task_sequence,
-                                                      const int index,
-                                                      const double process_speed, const ConstrainedSegParameters& seg_params)
+                                                      const int index, const ConstrainedSegParameters& seg_params)
 {
   using ConstrainedSegment = descartes_planner::ConstrainedSegment;
 
+  // index is under 0-index convention in C++, thus + 1 for full size
   int selected_path_num = index + 1;
   std::vector<ConstrainedSegment> segs(selected_path_num);
 
   // Inline function for adding a sequence of motions
-  auto add_segment = [process_speed, seg_params]
+  auto add_segment = [seg_params]
       (ConstrainedSegment& seg, const framefab_msgs::ElementCandidatePoses path_pose)
   {
     tf::pointMsgToEigen(path_pose.start_pt, seg.start);
@@ -120,52 +120,68 @@ bool framefab_process_planning::retractPath(
 
   // solve IK for retract plane, and use a two_rung ladder graph to
   // pick the one with the minimal joint distance to start joint config
-  std::vector<std::vector<double>> retract_jt_vec;
+  std::vector <std::vector<double>> retract_jt_vec;
   descartes_model->getAllIK(retract_pose, retract_jt_vec);
 
-  if(retract_jt_vec.size() == 0)
+  if (retract_jt_vec.size() == 0)
   {
-    ROS_ERROR_STREAM("[RetractPath] failed to generate feasible IK for retracted pose!");
+    ROS_WARN_STREAM("[RetractPath] failed to directly generate feasible IK for retracted pose!");
     return false;
+  }
+  else
+  {
+    // sample around the eef orientation
   }
 
   const int end_size = retract_jt_vec.size() / dof;
 
   double delta = 10e4;
-  int min_id = 0;
+  int min_id = -1;
   int cnt = 0;
 
-  for(auto& retract_jt : retract_jt_vec)
+  // select valid ik solution with min(delta_Jt)
+  for (auto &retract_jt : retract_jt_vec)
   {
     double temp_delta = 0;
-    // calculate joint dist
-    for(size_t i = 0; i < dof; i++)
-    {
-      temp_delta += abs(retract_jt[i] - start_joint[i]);
-    }
 
-    // update min delta value and id
-    if(temp_delta < delta)
+    if (descartes_model->isValid(retract_jt))
     {
-      delta = temp_delta;
-      min_id = cnt;
-    }
+      // calculate joint dist
+      for (size_t i = 0; i < dof; i++)
+      {
+        temp_delta += abs(retract_jt[i] - start_joint[i]);
+      }
 
+      // update min delta value and id
+      if (temp_delta < delta)
+      {
+        delta = temp_delta;
+        min_id = cnt;
+      }
+    }
     cnt++;
   }
 
-  // interpolate start pose and target pose
-  retract_jt_traj = interpolateJoint(start_joint, retract_jt_vec[min_id], JTS_DISC_DELTA);
-
-  // check the validity of the pose, if not, send out warning and return nothing
-  for(auto& jt : retract_jt_traj)
+  if (-1 == min_id)
   {
-    if(!descartes_model->isValid(jt))
-    {
-      ROS_ERROR("[retract planning] interpolated joint pose is not valid!");
-      return false;
-    }
+    // no valid joint found
+    ROS_ERROR("[retract planning] interpolated joint pose is not valid!");
+    return false;
   }
+  else
+  {
+    // interpolate start pose and target pose
+    retract_jt_traj = interpolateJoint(start_joint, retract_jt_vec[min_id], JTS_DISC_DELTA);
 
-  return true;
+    // check the validity of the pose, if not, send out warning and return nothing
+    for (auto &jt : retract_jt_traj)
+    {
+      if (!descartes_model->isValid(jt))
+      {
+        ROS_ERROR("[retract planning] interpolated joint pose is not valid!");
+        return false;
+      }
+    }
+    return true;
+  }
 }

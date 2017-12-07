@@ -30,10 +30,6 @@ const double PRINT_ANGLE_DISCRETIZATION =
 const static std::string JOINT_TOPIC_NAME =
     "joint_states"; // ROS topic to subscribe to for current robot state info
 
-const double SEG_LINEAR_DISC = 0.02; // approx linear discretization (m)
-const double SEG_LINEAR_VEL = 0.01; // approximate linear velocity (m/s)
-const double SEG_Z_AXIS_DISC = 0.1; // angle discretization about z (radians)
-
 bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning::Request &req,
                                                  framefab_msgs::ProcessPlanning::Response &res)
 {
@@ -42,15 +38,16 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
 
   if (req.task_sequence.empty())
   {
-    ROS_WARN("Planning request contained no process path. Nothing to be done.");
+    ROS_WARN("[Process Planning] Planning request contained no process path. Nothing to be done.");
     return true;
   }
 
-  const static double LINEAR_VEL = 0.1; // (m/s)
-  const static double LINEAR_DISCRETIZATION = 0.01; // meters (simulation)
+  const static double LINEAR_VEL = 0.01; // (m/s)
+  const static double RETRACT_DISTANCE = 0.010; // meters
+
+  const static double LINEAR_DISCRETIZATION = 0.005; // meters
   // the distance between angular steps about z for each orientation
   const static double ANGULAR_DISCRETIZATION = PRINT_ANGLE_DISCRETIZATION; // radians
-  const static double RETRACT_DISTANCE = 0.005; // meters
 
   ConstrainedSegParameters constrained_seg_params;
   constrained_seg_params.linear_vel = LINEAR_VEL;
@@ -62,17 +59,11 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
   //  hotend_model_->getFK(current_joints, start_home_pose);
   std::vector<double> current_joints = getCurrentJointState(JOINT_TOPIC_NAME);
 
+  // construct segs for descartes & copy chosen task sequence
   std::vector<descartes_planner::ConstrainedSegment> constrained_segs =
-      toDescartesConstrainedPath(req.task_sequence, req.index, 0.01, constrained_seg_params);
-
-  // extract collision objects and associated seg type tags from task_sequence
-  std::vector<moveit_msgs::CollisionObject> collision_objs;
-  std::vector<int> seg_type_tags;
-  for (std::size_t i=0; i<constrained_segs.size(); i++)
-  {
-    collision_objs.push_back(req.task_sequence[i].collision_cylinder);
-    seg_type_tags.push_back(req.task_sequence[i].type);
-  }
+      toDescartesConstrainedPath(req.task_sequence, req.index, constrained_seg_params);
+  const std::vector<framefab_msgs::ElementCandidatePoses>
+      chosen_task_seq(req.task_sequence.begin(), req.task_sequence.begin() + constrained_segs.size());
 
   // add fixed extra collision objects in the work environment, e.g. heating bed (adjustable)
   for(const auto& obj : req.env_collision_objs)
@@ -80,7 +71,7 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
     addCollisionObject(planning_scene_diff_client_, obj);
   }
 
-  if(generateMotionPlan(hotend_model_, constrained_segs, collision_objs, seg_type_tags,
+  if(generateMotionPlan(hotend_model_, constrained_segs, chosen_task_seq,
                         req.use_saved_graph, req.file_name,
                         moveit_model_, planning_scene_diff_client_,
                         hotend_group_name_, current_joints, res.plan))

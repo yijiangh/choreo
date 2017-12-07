@@ -5,6 +5,7 @@
 #include <framefab_gui/states/system_init_state.h>
 
 #include <ui_framefab_widget.h>
+#include <QtConcurrent/QtConcurrentRun>
 
 const std::string FRAMEFAB_PARAMETERS_SERVICE = "framefab_parameters";
 const static std::string SIMULATE_MOTION_PLAN_ACTION_SERVER_NAME = "simulate_motion_plan_as";
@@ -80,6 +81,13 @@ void framefab_gui::FrameFabWidget::onBackButton()
 void framefab_gui::FrameFabWidget::onResetButton()
 {
   active_state_->onReset(*this);
+
+  framefab_msgs::SimulateMotionPlanGoal goal;
+  goal.action = framefab_msgs::SimulateMotionPlanGoal::RESET_TO_DEFAULT_POSE;
+  goal.simulate = true;
+  goal.wait_for_execution = true;
+
+  QtConcurrent::run(this, &FrameFabWidget::sendGoalAndWait, goal);
 }
 
 void framefab_gui::FrameFabWidget::onParamsButton()
