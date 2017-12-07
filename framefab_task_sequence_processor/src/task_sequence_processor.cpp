@@ -159,7 +159,7 @@ bool framefab_task_sequence_processing::TaskSequenceProcessor::createCandidatePo
                                                       type_str, element_diameter_, shrink_length_));
   }
 
-  ROS_INFO_STREAM("path json Parsing succeeded.");
+  ROS_INFO_STREAM("[task sequence processor] task sequence json parsing succeeded.");
   return true;
 }
 

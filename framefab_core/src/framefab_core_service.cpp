@@ -561,64 +561,94 @@ void FrameFabCoreService::processPlanningActionCallback(const framefab_msgs::Pro
 
 void FrameFabCoreService::simulateMotionPlansActionCallback(const framefab_msgs::SimulateMotionPlanGoalConstPtr& goal_in)
 {
-  std::string lib_sort_id = std::to_string(goal_in->index);
-
-  // If plan does not exist, abort and return
-  if (trajectory_library_.get().find(lib_sort_id) == trajectory_library_.get().end())
+  switch (goal_in->action)
   {
-    ROS_WARN_STREAM("[Core] Motion plan #" << lib_sort_id << " does not exist. Cannot execute.");
-    simulate_motion_plan_result_.code = framefab_msgs::SimulateMotionPlanResult::NO_SUCH_NAME;
-    simulate_motion_plan_server_.setAborted(simulate_motion_plan_result_);
-    return;
-  }
-  else
-  {
-    ROS_INFO_STREAM("[Core] Motion plan #" << lib_sort_id << " found");
-  }
-
-  if(0 == goal_in->index)
-  {
-    // reset Robot's pose to init pose
-    if (!moveToTargetJointPose(robot_input_params_.init_pose))
+    case framefab_msgs::SimulateMotionPlanGoal::RESET_TO_DEFAULT_POSE:
     {
-      ROS_ERROR("[Core] Reset to init robot's pose planning & execution failed");
-      simulate_motion_plan_result_.code = framefab_msgs::SimulateMotionPlanResult::RESET_POSE_FAIL;
-      simulate_motion_plan_server_.setAborted(simulate_motion_plan_result_);
+      if (!moveToTargetJointPose(robot_input_params_.init_pose))
+      {
+        ROS_ERROR("[Core] Reset to init robot's pose planning & execution failed");
+        simulate_motion_plan_result_.code = framefab_msgs::SimulateMotionPlanResult::RESET_POSE_FAIL;
+        simulate_motion_plan_server_.setAborted(simulate_motion_plan_result_);
+      }
+      else
+      {
+        simulate_motion_plan_result_.code = framefab_msgs::SimulateMotionPlanResult::SUCCESS;
+        simulate_motion_plan_server_.setSucceeded(simulate_motion_plan_result_);
+      }
+
+      break;
     }
-  }
+    case framefab_msgs::SimulateMotionPlanGoal::SINGLE_PATH_RUN:
+    case framefab_msgs::SimulateMotionPlanGoal::ALL_PATHS_UNTIL_SELECTED_RUN:
+    {
+      std::string lib_sort_id = std::to_string(goal_in->index);
 
-  // Send command to execution server
-  framefab_msgs::ProcessExecutionGoal goal;
-  ros::Duration process_time(0);
+      // If plan does not exist, abort and return
+      if (trajectory_library_.get().find(lib_sort_id) == trajectory_library_.get().end())
+      {
+        ROS_WARN_STREAM("[Core] Motion plan #" << lib_sort_id << " does not exist. Cannot execute.");
+        simulate_motion_plan_result_.code = framefab_msgs::SimulateMotionPlanResult::NO_SUCH_NAME;
+        simulate_motion_plan_server_.setAborted(simulate_motion_plan_result_);
+        return;
+      }
+      else
+      {
+        ROS_INFO_STREAM("[Core] Motion plan #" << lib_sort_id << " found");
+      }
 
-  for(auto sp : trajectory_library_.get()[lib_sort_id].sub_process_array)
-  {
-    goal.joint_traj_array.push_back(sp.joint_array);
-    process_time += sp.joint_array.points.back().time_from_start;
-  }
+      if (0 == goal_in->index)
+      {
+        // reset Robot's pose to init pose
+        if (!moveToTargetJointPose(robot_input_params_.init_pose))
+        {
+          ROS_ERROR("[Core] Reset to init robot's pose planning & execution failed");
+          simulate_motion_plan_result_.code = framefab_msgs::SimulateMotionPlanResult::RESET_POSE_FAIL;
+          simulate_motion_plan_server_.setAborted(simulate_motion_plan_result_);
+        }
+      }
 
-  goal.wait_for_execution = goal_in->wait_for_execution;
-  goal.simulate = goal_in->simulate;
+      // Send command to execution server
+      framefab_msgs::ProcessExecutionGoal goal;
+      ros::Duration process_time(0);
 
-  actionlib::SimpleActionClient<framefab_msgs::ProcessExecutionAction> *exe_client = &framefab_exe_client_;
-  exe_client->sendGoal(goal);
+      for (auto sp : trajectory_library_.get()[lib_sort_id].sub_process_array)
+      {
+        goal.joint_traj_array.push_back(sp.joint_array);
+        process_time += sp.joint_array.points.back().time_from_start;
+      }
+
+      goal.wait_for_execution = goal_in->wait_for_execution;
+      goal.simulate = goal_in->simulate;
+
+      actionlib::SimpleActionClient <framefab_msgs::ProcessExecutionAction> *exe_client = &framefab_exe_client_;
+      exe_client->sendGoal(goal);
 
 //  ros::Duration process_time(goal.joint_traj_array.back().points.back().time_from_start);
-  ros::Duration buffer_time(PROCESS_EXE_BUFFER);
+      ros::Duration buffer_time(PROCESS_EXE_BUFFER);
 
-  visual_tool_.visualizePathUntil(goal_in->index);
+      visual_tool_.visualizePathUntil(goal_in->index);
 
-  ROS_INFO_STREAM("[Core] Simulation time: " << process_time);
+      ROS_INFO_STREAM("[Core] Simulation time: " << process_time);
 
-  if(exe_client->waitForResult(process_time + buffer_time))
-  {
-    simulate_motion_plan_result_.code = framefab_msgs::SimulateMotionPlanResult::SUCCESS;
-    simulate_motion_plan_server_.setSucceeded(simulate_motion_plan_result_);
-  }
-  else
-  {
-    simulate_motion_plan_result_.code = framefab_msgs::SimulateMotionPlanResult::TIMEOUT;
-    simulate_motion_plan_server_.setAborted(simulate_motion_plan_result_);
+      if (exe_client->waitForResult(process_time + buffer_time))
+      {
+        simulate_motion_plan_result_.code = framefab_msgs::SimulateMotionPlanResult::SUCCESS;
+        simulate_motion_plan_server_.setSucceeded(simulate_motion_plan_result_);
+      }
+      else
+      {
+        simulate_motion_plan_result_.code = framefab_msgs::SimulateMotionPlanResult::TIMEOUT;
+        simulate_motion_plan_server_.setAborted(simulate_motion_plan_result_);
+      }
+
+      break;
+    }
+    default:
+    {
+      ROS_ERROR_STREAM("[Core] Unknown action code for SimulateMotionPlan " << goal_in->action << "' request");
+      break;
+    }
   }
 }
 

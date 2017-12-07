@@ -33,8 +33,7 @@ struct ConstrainedSegParameters
 std::vector<descartes_planner::ConstrainedSegment>
 toDescartesConstrainedPath(
     const std::vector<framefab_msgs::ElementCandidatePoses>& task_sequence,
-    const int selected_path_id,
-    const double process_speed, const ConstrainedSegParameters& transition_params);
+    const int selected_path_id, const ConstrainedSegParameters& transition_params);
 
 bool retractPath(const std::vector<double>& start_joint, double retract_dist, double TCP_speed,
                  descartes_core::RobotModelPtr& descartes_model,
