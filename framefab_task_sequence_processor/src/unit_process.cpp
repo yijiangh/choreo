@@ -88,8 +88,10 @@ framefab_msgs::ElementCandidatePoses framefab_task_sequence_processing_utils::Un
 {
   framefab_msgs::ElementCandidatePoses msg;
 
+  // element index
   msg.element_id = id_;
 
+  // process element's type
   if("support" == type_)
   {
     msg.type = framefab_msgs::ElementCandidatePoses::SUPPORT;
@@ -103,6 +105,7 @@ framefab_msgs::ElementCandidatePoses framefab_task_sequence_processing_utils::Un
     msg.type = framefab_msgs::ElementCandidatePoses::CONNECT;
   }
 
+  // add start end point data
   tf::pointEigenToMsg(st_pt_, msg.start_pt);
   tf::pointEigenToMsg(end_pt_, msg.end_pt);
 
@@ -125,9 +128,17 @@ framefab_msgs::ElementCandidatePoses framefab_task_sequence_processing_utils::Un
   msg.end_shrinked_collision_object = createCollisionObject(id_, st_pt_, shrinked_end_pt,
                                                             element_diameter_, "shrink_end");
 
-  msg.full_collision_object = createCollisionObject(id_, st_pt_, end_pt_,
-                                                    element_diameter_, "full");
 
+  // for safety, we inflate the full collision geometry
+  Eigen::Vector3d extended_st_pt = st_pt_;
+  Eigen::Vector3d extended_end_pt = end_pt_;
+  createShrinkedEndPoint(extended_st_pt, extended_st_pt, - shrink_length_);
+
+  msg.full_collision_object = createCollisionObject(id_, extended_st_pt, extended_end_pt,
+                                                    element_diameter_ + 1.0, "extended");
+
+
+  // add feasible EEF orientations
   for(int i=0; i < feasible_orients_.size(); i++)
   {
     geometry_msgs::Vector3 vec_msg;
