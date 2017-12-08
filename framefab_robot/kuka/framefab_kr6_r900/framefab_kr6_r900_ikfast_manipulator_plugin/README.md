@@ -4,7 +4,7 @@ Unfortunately, ROS-kinetic does not have a publicly released openrave package.
 
 Based on my experience, the easiest way to install openrave on Ubuntu 16.04 is `clone it and build from source`.
 
-At Dec-8-2017, the following line in cmd FAILED to fetch openrave.
+At Dec-8-2017, the following line in cmd FAILED to fetch openrave in Ubuntu 16.04.
 
 ```
 sudo add-apt-repository ppa:openrave/release
@@ -21,6 +21,19 @@ make -j4
 sudo make install
 ```
 
+Notice that the openrave will be installed at this path:
+
+```
+/usr/local/lib/python2.7/dist-packages/openravepy/_openravepy_0_9
+```
+
+instead of 
+
+```
+/usr/lib/python2.7/dist-packages/openravepy/_openravepy_0_8
+```
+
+because we are doing source installation.
 
 Here are some references:
 
@@ -32,7 +45,7 @@ Here are some references:
 
 [ROS-I tutorial - Create a fastik solution - prerequisite](http://wiki.ros.org/Industrial/Tutorials/Create_a_Fast_IK_Solution/Prerequisites)
 
-[ROS-I tutorial - Create a fastik solution - prerequisite](http://wiki.ros.org/Industrial/Tutorials/Create_a_Fast_IK_Solution)
+[ROS-I tutorial - Create a fastik solution](http://wiki.ros.org/Industrial/Tutorials/Create_a_Fast_IK_Solution)
 
 [Discussion related to Descartes and IKFast on the main Descartes repo](https://github.com/ros-industrial-consortium/descartes/issues/204)
 
