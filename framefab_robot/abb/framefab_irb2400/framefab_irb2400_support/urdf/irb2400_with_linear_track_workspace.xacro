@@ -1,0 +1,34 @@
+<?xml version="1.0" ?>
+<robot name="irb2400_workspace" xmlns:xacro="http://ros.org/wiki/xacro">
+  <!--robot-->
+  <xacro:include filename="$(find abb_irb2400_support)/urdf/irb2400_macro.xacro"/>
+
+	<!--end effector-->
+	<xacro:include filename="$(find asw_end_effector)/urdf/asw_eef_macro.xacro"/>
+  
+	<!--linear track and other setups in the workcell-->
+	<xacro:include filename="$(find framefab_irb2400_support)/urdf/ucla_linear_track_demo_cell_macro.xacro"/>
+
+  <link name="world_frame"/>
+
+  <!-- instantiating arm  --> 
+  <xacro:abb_irb2400 prefix=""/>
+  <!-- instantiating end effector  -->
+  <xacro:asw_eef_definition  prefix=""/>
+  <!-- linear track and workcell  -->
+  <xacro:ucla_linear_track_demo_cell  prefix=""/>
+
+	<!-- Attach the end effector to the end of the robot arm (tool0) -->
+	<joint name="link_t_to_eef" type="fixed">
+		<parent link="tool0"/>
+		<child link="eef_frame"/>
+		<origin xyz="0 0 0" rpy="0 0 0"/>
+	</joint>
+
+  <joint name="world_to_demo_cell" type="fixed">
+    <parent link="world_frame"/>
+    <child link="demo_cell_base_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  
+</robot>
