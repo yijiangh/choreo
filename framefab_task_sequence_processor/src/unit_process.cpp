@@ -134,8 +134,8 @@ framefab_msgs::ElementCandidatePoses framefab_task_sequence_processing_utils::Un
   Eigen::Vector3d extended_end_pt = end_pt_;
   createShrinkedEndPoint(extended_st_pt, extended_st_pt, - shrink_length_);
 
-  msg.full_collision_object = createCollisionObject(id_, extended_st_pt, extended_end_pt,
-                                                    element_diameter_ + 1.0, "extended");
+  msg.full_collision_object = createCollisionObject(id_, st_pt_, end_pt_,
+                                                    element_diameter_, "full");
 
 
   // add feasible EEF orientations
