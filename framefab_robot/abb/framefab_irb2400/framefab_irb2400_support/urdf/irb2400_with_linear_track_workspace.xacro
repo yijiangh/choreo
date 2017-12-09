@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<robot name="framefab_irb2400" xmlns:xacro="http://ros.org/wiki/xacro">
+<robot name="framefab_irb2400_workspace" xmlns:xacro="http://ros.org/wiki/xacro">
   <!--robot-->
   <xacro:include filename="$(find abb_irb2400_support)/urdf/irb2400_macro.xacro"/>
 
