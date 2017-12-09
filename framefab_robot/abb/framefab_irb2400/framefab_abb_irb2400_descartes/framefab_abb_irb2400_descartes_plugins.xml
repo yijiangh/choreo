@@ -1,0 +1,7 @@
+<?xml version="1.0" ?>
+<library path="lib/libframefab_abb_irb2400_descartes">
+  <class name="framefab_abb_irb2400_descartes/FramefabAbbIrb2400RobotModel"
+         type="framefab_abb_irb2400_descartes::FramefabAbbIrb2400RobotModel" base_class_type="descartes_core::RobotModel">
+    <description>This is a robot model adapter for of the abb irb2400+linear track for descartes robot model. </description>
+  </class>
+</library>

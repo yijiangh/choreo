@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
 include_directories(${catkin_INCLUDE_DIRS})
 
 catkin_package(
+	INCLUDE_DIRS include
   LIBRARIES
   CATKIN_DEPENDS
     moveit_core

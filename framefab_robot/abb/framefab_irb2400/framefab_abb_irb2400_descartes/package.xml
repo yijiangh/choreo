@@ -18,7 +18,7 @@
   <depend>pluginlib</depend>
 
   <export>
-    <descartes_core plugin="${prefix}/abb_irb2400_descartes_plugins.xml"/>
+    <descartes_core plugin="${prefix}/framefab_abb_irb2400_descartes_plugins.xml"/>
   </export>
 
 </package>

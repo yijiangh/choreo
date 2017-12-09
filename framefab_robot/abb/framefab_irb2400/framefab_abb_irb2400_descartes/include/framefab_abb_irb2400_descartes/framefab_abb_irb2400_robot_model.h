@@ -14,19 +14,19 @@
   limitations under the License.
 */
 
-#ifndef ABB_IRB2400_ROBOT_MODEL_H
-#define ABB_IRB2400_ROBOT_MODEL_H
+#ifndef FRAMEFAB_ABB_IRB2400_ROBOT_MODEL_H
+#define FRAMEFAB_ABB_IRB2400_ROBOT_MODEL_H
 
 #include <descartes_moveit/moveit_state_adapter.h>
-#include <irb2400_ikfast_manipulator_plugin/abb_irb2400_manipulator_ikfast_moveit_plugin.hpp>
+#include <irb2400_ikfast_manipulator_plugin/framefab_irb2400_manipulator_ikfast_moveit_plugin.hpp>
 
-namespace abb_irb2400_descartes
+namespace framefab_abb_irb2400_descartes
 {
-class AbbIrb2400RobotModel : public descartes_moveit::MoveitStateAdapter,
-                             public irb2400_ikfast_manipulator_plugin::IKFastKinematicsPlugin
+class FramefabAbbIrb2400RobotModel : public descartes_moveit::MoveitStateAdapter,
+                             public ikfast_kinematics_plugin::IKFastKinematicsPlugin
 {
 public:
-  AbbIrb2400RobotModel();
+  FramefabAbbIrb2400RobotModel();
 
   virtual bool initialize(const std::string& robot_description, const std::string& group_name,
                           const std::string& world_frame, const std::string& tcp_frame);
@@ -36,7 +36,7 @@ public:
 
   virtual descartes_core::RobotModelPtr clone() const
   {
-    descartes_core::RobotModelPtr ptr(new AbbIrb2400RobotModel());
+    descartes_core::RobotModelPtr ptr(new FramefabAbbIrb2400RobotModel());
     ptr->initialize("robot_description", descartes_moveit::MoveitStateAdapter::group_name_,
                     world_frame_, tool_frame_);
     return ptr;
@@ -48,4 +48,4 @@ protected:
 };
 }
 
-#endif // MOTOMAN_SIA20D_ROBOT_MODEL
+#endif

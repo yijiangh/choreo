@@ -6,7 +6,7 @@ add_compile_options(-std=c++11)
 find_package(catkin REQUIRED COMPONENTS
   descartes_core
   descartes_moveit
-  irb2400_ikfast_manipulator_plugin
+	irb2400_ikfast_manipulator_plugin
   pluginlib
 )
 
@@ -34,7 +34,7 @@ include_directories(include
 
 
 add_library(${PROJECT_NAME}
-            src/abb_irb2400_robot_model.cpp
+	src/framefab_abb_irb2400_robot_model.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}

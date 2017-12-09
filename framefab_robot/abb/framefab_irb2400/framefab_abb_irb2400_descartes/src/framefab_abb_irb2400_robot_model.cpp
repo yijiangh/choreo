@@ -14,7 +14,7 @@
   limitations under the License.
 */
 
-#include <abb_irb2400_descartes/abb_irb2400_robot_model.h>
+#include <framefab_abb_irb2400_descartes/framefab_abb_irb2400_robot_model.h>
 #include <eigen_conversions/eigen_kdl.h>
 #include <pluginlib/class_list_macros.h>
 
@@ -23,21 +23,20 @@ static const std::string MOTOMAN_SIA20D_TOOL_LINK = "tool0";
 static const double JOINT_LIMIT_TOLERANCE = .0000001f;
 
 using namespace descartes_moveit;
-using namespace irb2400_ikfast_manipulator_plugin;
 
-namespace abb_irb2400_descartes
+namespace framefab_abb_irb2400_descartes
 {
-AbbIrb2400RobotModel::AbbIrb2400RobotModel()
+FramefabAbbIrb2400RobotModel::FramefabAbbIrb2400RobotModel()
     : world_to_base_(Eigen::Affine3d::Identity()), tool_to_tip_(Eigen::Affine3d::Identity())
 {
 }
 
-bool AbbIrb2400RobotModel::initialize(const std::string& robot_description,
+bool FramefabAbbIrb2400RobotModel::initialize(const std::string& robot_description,
                                       const std::string& group_name, const std::string& world_frame,
                                       const std::string& tcp_frame)
 {
   MoveitStateAdapter::initialize(robot_description, group_name, world_frame, tcp_frame);
-  irb2400_ikfast_manipulator_plugin::IKFastKinematicsPlugin::initialize(
+  ikfast_kinematics_plugin::IKFastKinematicsPlugin::initialize(
       robot_description, group_name, MOTOMAN_SIA20D_BASE_LINK, MOTOMAN_SIA20D_TOOL_LINK, 0.001);
 
   // initialize world transformations
@@ -56,7 +55,7 @@ bool AbbIrb2400RobotModel::initialize(const std::string& robot_description,
   return true;
 }
 
-bool AbbIrb2400RobotModel::getAllIK(const Eigen::Affine3d& pose,
+bool FramefabAbbIrb2400RobotModel::getAllIK(const Eigen::Affine3d& pose,
                                     std::vector<std::vector<double> >& joint_poses) const
 {
   std::vector<double> vfree(free_params_.size(), 0.0);
@@ -64,6 +63,7 @@ bool AbbIrb2400RobotModel::getAllIK(const Eigen::Affine3d& pose,
   Eigen::Affine3d tool_pose = world_to_base_.frame_inv * pose * tool_to_tip_.frame;
   tf::transformEigenToKDL(tool_pose, frame);
 
+  using namespace ikfast_kinematics_plugin;
   ikfast::IkSolutionList<IkReal> solutions;
 
   int numsol = solve(frame, vfree, solutions);
@@ -85,13 +85,13 @@ bool AbbIrb2400RobotModel::getAllIK(const Eigen::Affine3d& pose,
       // than this, then we need to check to see if we have extra solutions that have the same
       // configuration but a different joint position. In our case, joint 6 has this kind of
       // extra motion, so here we check for valid solutions 360 degrees from each solution.
-      sol[5] += 2 * M_PI;
-      if (isValid(sol))
-        joint_poses.push_back(sol);
-
-      sol[5] -= 2 * 2 * M_PI;
-      if (isValid(sol))
-        joint_poses.push_back(sol);
+//      sol[5] += 2 * M_PI;
+//      if (isValid(sol))
+//        joint_poses.push_back(sol);
+//
+//      sol[5] -= 2 * 2 * M_PI;
+//      if (isValid(sol))
+//        joint_poses.push_back(sol);
 
     }
   }
@@ -101,4 +101,4 @@ bool AbbIrb2400RobotModel::getAllIK(const Eigen::Affine3d& pose,
 
 }
 
-PLUGINLIB_EXPORT_CLASS(abb_irb2400_descartes::AbbIrb2400RobotModel, descartes_core::RobotModel)
+PLUGINLIB_EXPORT_CLASS(framefab_abb_irb2400_descartes::FramefabAbbIrb2400RobotModel, descartes_core::RobotModel)
