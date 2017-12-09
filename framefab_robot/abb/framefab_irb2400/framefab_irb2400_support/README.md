@@ -6,6 +6,22 @@ and to launch moveit! setup assistant:
 
 `roslaunch moveit_setup_assistant setup_assistant.launch`
 
+After generating MoveIt! package with no workspace info, please find `planning_context.launch` and replace:
+
+```
+  <!-- Load universal robot description format (URDF) -->
+  <param if="$(arg load_robot_description)" name="$(arg robot_description)" textfile="$(find <robot>_support)/urdf/<your urdf>.urdf"/> 
+```
+
+with
+
+```
+  <param if="$(arg load_robot_description)" name="$(arg robot_description)"
+         command="$(find xacro)/xacro --inorder '$(find <robot>_support)/urdf/<your xacro>.xacro'"/>
+```
+
+This will allow us to get rid of the urdf file and update workcell and eef info without recompiling moveit package.
+
 References:
 
 [godel ABB_irb2400 setup](https://github.com/ros-industrial-consortium/godel/tree/7ce719d6f5537bda496f62b69b1caea0d4f0b3d7/godel_robots/abb/godel_irb2400/godel_irb2400_support/urdf)

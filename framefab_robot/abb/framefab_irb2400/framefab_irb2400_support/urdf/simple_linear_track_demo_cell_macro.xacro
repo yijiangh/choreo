@@ -8,7 +8,6 @@
 <xacro:property name="workcell_z" value="-0.1"/>
 
 <xacro:macro name="simple_linear_track_demo_cell" params="prefix">
-  <link name="demo_cell_base_link"/>
 
   <material name="workcell_material">
    <color rgba="0.8 1.0 0.8 0.2"/>
@@ -105,7 +104,7 @@
   </link>
 
   <joint name="cell_base_to_bounds" type="fixed">
-    <parent link="demo_cell_base_link" />
+    <parent link="world_frame" />
     <child link="workcell_bounds" />
     <origin xyz="0 0 ${workcell_z}"/>
   </joint>

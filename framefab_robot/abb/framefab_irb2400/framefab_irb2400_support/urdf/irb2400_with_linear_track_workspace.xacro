@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<robot name="irb2400_workspace" xmlns:xacro="http://ros.org/wiki/xacro">
+<robot name="framefab_irb2400" xmlns:xacro="http://ros.org/wiki/xacro">
   <!--robot-->
   <xacro:include filename="$(find abb_irb2400_support)/urdf/irb2400_macro.xacro"/>
 
@@ -30,10 +30,11 @@
 		<origin xyz="0 0 0" rpy="0 0 0"/>
 	</joint>
 
-  <joint name="world_to_demo_cell" type="fixed">
-    <parent link="world_frame"/>
-    <child link="demo_cell_base_link"/>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
+	<!--bind the rail to word_frame-->
+  <joint name="world_to_rail" type="fixed">
+    <parent link="world_frame" />
+    <child link="rail" />
+    <origin xyz="0 0 0"/>
   </joint>
   
 </robot>
