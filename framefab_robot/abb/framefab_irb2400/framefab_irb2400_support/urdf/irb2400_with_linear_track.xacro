@@ -1,0 +1,14 @@
+<?xml version="1.0" ?>
+<robot name="irb2400_workspace" xmlns:xacro="http://ros.org/wiki/xacro">
+  <!--robot-->
+  <xacro:include filename="$(find abb_irb2400_support)/urdf/irb2400_macro.xacro"/>
+  
+	<!--linear track setup-->
+	<xacro:include filename="$(find framefab_irb2400_support)/urdf/simple_linear_track_macro.xacro"/>
+
+  <!-- instantiating arm  --> 
+  <xacro:abb_irb2400 prefix=""/>
+	<!-- linear track  -->
+  <xacro:simple_linear_track prefix=""/>
+
+</robot>

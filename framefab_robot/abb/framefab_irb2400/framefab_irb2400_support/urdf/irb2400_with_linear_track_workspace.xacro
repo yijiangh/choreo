@@ -6,17 +6,22 @@
 	<!--end effector-->
 	<xacro:include filename="$(find asw_end_effector)/urdf/asw_eef_macro.xacro"/>
   
-	<!--linear track and other setups in the workcell-->
-	<xacro:include filename="$(find framefab_irb2400_support)/urdf/ucla_linear_track_demo_cell_macro.xacro"/>
+	<!--linear track setup-->
+	<xacro:include filename="$(find framefab_irb2400_support)/urdf/simple_linear_track_macro.xacro"/>
+
+	<!--workcell setup-->
+	<xacro:include filename="$(find framefab_irb2400_support)/urdf/simple_linear_track_demo_cell_macro.xacro"/>
 
   <link name="world_frame"/>
 
   <!-- instantiating arm  --> 
   <xacro:abb_irb2400 prefix=""/>
   <!-- instantiating end effector  -->
-  <xacro:asw_eef_definition  prefix=""/>
-  <!-- linear track and workcell  -->
-  <xacro:ucla_linear_track_demo_cell  prefix=""/>
+  <xacro:asw_eef_definition prefix=""/>
+	<!-- linear track  -->
+  <xacro:simple_linear_track prefix=""/>
+  <!-- workcell  -->
+  <xacro:simple_linear_track_demo_cell prefix=""/>
 
 	<!-- Attach the end effector to the end of the robot arm (tool0) -->
 	<joint name="link_t_to_eef" type="fixed">
