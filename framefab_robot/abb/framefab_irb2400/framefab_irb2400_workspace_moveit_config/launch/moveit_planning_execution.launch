@@ -21,7 +21,7 @@
   <!-- run the robot simulator and action interface nodes -->
   <group if="$(arg sim)">
   <include file="$(find industrial_robot_simulator)/launch/robot_interface_simulator.launch" />
-    <rosparam param="initial_joint_state">[0.0, 0.08, -1.57, 1.74, 0.08, 0.17, -0.08]</rosparam>
+<!--    <rosparam param="initial_joint_state">[0.0, 0.08, -1.57, 1.74, 0.08, 0.17, -0.08]</rosparam>-->
   </group>
 
   <!-- run the "real robot" interface nodes -->
