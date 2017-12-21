@@ -24,6 +24,7 @@ add_action_files(
     action
     FILES
 		TaskSequenceProcessing.action
+		TaskSequencePlanning.action
     ProcessPlanning.action
     SimulateMotionPlan.action
     ProcessExecution.action

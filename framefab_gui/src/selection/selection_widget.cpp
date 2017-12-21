@@ -575,7 +575,6 @@ void framefab_gui::SelectionWidget::lineeditUpdateOrderValue()
 void framefab_gui::SelectionWidget::recomputeChosen()
 {
   use_saved_result_ = false;
-  this->select_for_plan_pop_up_->close();
   this->close();
 
   Q_EMIT closeWidgetAndContinue();
@@ -584,7 +583,6 @@ void framefab_gui::SelectionWidget::recomputeChosen()
 void framefab_gui::SelectionWidget::useSavedResultChosen()
 {
   use_saved_result_ = true;
-  this->select_for_plan_pop_up_->close();
   this->close();
 
   Q_EMIT closeWidgetAndContinue();
@@ -592,7 +590,5 @@ void framefab_gui::SelectionWidget::useSavedResultChosen()
 
 void framefab_gui::SelectionWidget::useSavedTaskSequenceResultChosen()
 {
-  this->task_seq_recompute_pop_up_->close();
-
   Q_EMIT closeWidgetAndContinue();
 }

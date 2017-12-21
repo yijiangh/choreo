@@ -98,6 +98,7 @@ class SelectionWidget : public QWidget
   void closeWidgetAndContinue();
   void enterSelectionWidget();
   void exitSelectionWidget();
+  void recomputeTaskSequenceChosen();
 
  protected Q_SLOTS:
   // different source that changes order_value
@@ -124,7 +125,6 @@ class SelectionWidget : public QWidget
   void recomputeChosen();
   void useSavedResultChosen();
 
-  void recomputeTaskSequenceChosen();
   void useSavedTaskSequenceResultChosen();
 
  private:

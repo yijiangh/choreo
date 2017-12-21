@@ -1,0 +1,15 @@
+
+# action specification, see enumeration above
+# int32 action
+
+framefab_msgs/ModelInputParameters model_params
+
+---
+
+#Result
+bool succeeded
+
+---
+
+# Feedback
+string last_completed
