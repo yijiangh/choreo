@@ -450,10 +450,12 @@ void FrameFabCoreService::taskSequenceProcessingActionCallback(const framefab_ms
     {
       // NOT SUPPORTING OTHER ACTION GOAL NOW
       ROS_ERROR_STREAM("Unknown action code '" << goal_in->action << "' request");
+      task_sequence_processing_result_.succeeded = false;
+      task_sequence_processing_server_.setAborted(task_sequence_processing_result_);
+
       break;
     }
   }
-  task_sequence_processing_result_.succeeded = false;
 }
 
 void FrameFabCoreService::processPlanningActionCallback(const framefab_msgs::ProcessPlanningGoalConstPtr &goal_in)

@@ -33,11 +33,18 @@ framefab_gui::SelectionWidget::SelectionWidget(QWidget* parent) : QWidget(parent
   this->setWindowFlags(Qt::WindowStaysOnTopHint);
 
   select_for_plan_pop_up_ = new SelectForPlanPopUpWidget();
+  task_seq_recompute_pop_up_ =  new SelectForPlanPopUpWidget();
+
   this->select_for_plan_pop_up_->setWindowFlags(Qt::WindowStaysOnTopHint);
+  this->task_seq_recompute_pop_up_->setWindowFlags(Qt::WindowStaysOnTopHint);
 
   // wire in pop up widget signals
   connect(select_for_plan_pop_up_, SIGNAL(buttonRecompute()), this, SLOT(recomputeChosen()));
   connect(select_for_plan_pop_up_, SIGNAL(buttonKeepRecord()), this, SLOT(useSavedResultChosen()));
+
+   // wire in pop up widget signals
+  connect(task_seq_recompute_pop_up_, SIGNAL(buttonRecompute()), this, SIGNAL(recomputeTaskSequenceChosen()));
+  connect(task_seq_recompute_pop_up_, SIGNAL(buttonKeepRecord()), this, SLOT(useSavedTaskSequenceResultChosen()));
 
   // Wire in buttons
   connect(ui_->pushbutton_select_backward, SIGNAL(clicked()), this, SLOT(buttonBackwardUpdateOrderValue()));
@@ -272,6 +279,25 @@ void framefab_gui::SelectionWidget::cleanUpVisual()
   {
     ROS_ERROR_STREAM("Unable to clean up selected path!!");
   }
+}
+
+void framefab_gui::SelectionWidget::showTaskSequenceRecomputePopUp(bool found_task_plan)
+{
+  if(found_task_plan)
+  {
+    std::string msg = "Saved task sequence plan record found.";
+    task_seq_recompute_pop_up_->setDisplayText(msg);
+  }
+  else
+  {
+    ROS_WARN_STREAM("[UI] No saved task sequence plan found.");
+
+    std::string msg = "No saved task sequence plan record found.";
+    task_seq_recompute_pop_up_->setDisplayText(msg);
+  }
+
+  task_seq_recompute_pop_up_->enableButtons(found_task_plan);
+  task_seq_recompute_pop_up_->show();
 }
 
 void framefab_gui::SelectionWidget::showEvent(QShowEvent *ev)
@@ -560,6 +586,13 @@ void framefab_gui::SelectionWidget::useSavedResultChosen()
   use_saved_result_ = true;
   this->select_for_plan_pop_up_->close();
   this->close();
+
+  Q_EMIT closeWidgetAndContinue();
+}
+
+void framefab_gui::SelectionWidget::useSavedTaskSequenceResultChosen()
+{
+  this->task_seq_recompute_pop_up_->close();
 
   Q_EMIT closeWidgetAndContinue();
 }

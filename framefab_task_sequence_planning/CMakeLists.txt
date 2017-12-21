@@ -54,7 +54,6 @@ set(${PROJECT_NAME}_CUT_GENERATORS_SRC_FILES
 	)
 
 set(${PROJECT_NAME}_SEQUENCE_ANALYZERS_SRC_FILES
-	src/sequence_analyzers/BFAnalyzer.cpp
 	src/sequence_analyzers/FFAnalyzer.cpp
 	src/sequence_analyzers/ProcAnalyzer.cpp
 	src/sequence_analyzers/SeqAnalyzer.cpp

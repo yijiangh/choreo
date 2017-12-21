@@ -29,8 +29,11 @@ void framefab_gui::TaskSequenceProcessingState::onStart(FrameFabWidget& gui)
   gui_ptr_ = &gui;
 
   QObject::connect(this, SIGNAL(feedbackReceived(QString)), this, SLOT(setFeedbackText(QString)));
-  QtConcurrent::run(this, &TaskSequenceProcessingState::makeRequest, gui.params().modelInputParams(),
-                    gui.params().taskSequenceInputParams());
+  QObject::connect(&gui.selection_widget(), SIGNAL(closeWidgetAndContinue()), this, SLOT(toNextState()));
+//  QtConcurrent::run(this, &TaskSequenceProcessingState::makeRequest, gui.params().modelInputParams(),
+//                    gui.params().taskSequenceInputParams());
+
+  taskSequenceProcessOrPlan();
 }
 
 void framefab_gui::TaskSequenceProcessingState::onExit(FrameFabWidget& gui) { gui.setButtonsEnabled(true); }
@@ -52,7 +55,30 @@ void framefab_gui::TaskSequenceProcessingState::onReset(FrameFabWidget& gui)
   Q_EMIT newStateAvailable(new SystemInitState());
 }
 
-void framefab_gui::TaskSequenceProcessingState::makeRequest(
+void framefab_gui::TaskSequenceProcessingState::toNextState()
+{
+  this->onNext(*gui_ptr_);
+}
+
+void framefab_gui::TaskSequenceProcessingState::taskSequenceProcessOrPlan()
+{
+  // TODO: simplify this if else
+
+  if(makeTaskSequenceProcessingRequest(gui_ptr_->params().modelInputParams(),
+                                       gui_ptr_->params().taskSequenceInputParams()))
+  {
+    ROS_INFO_STREAM("UI - task seq plan found!");
+
+    gui_ptr_->selection_widget().showTaskSequenceRecomputePopUp(true);
+  }
+  else
+  {
+    ROS_INFO_STREAM("UI - no task seq plan found!");
+    gui_ptr_->selection_widget().showTaskSequenceRecomputePopUp(false);
+  }
+}
+
+bool framefab_gui::TaskSequenceProcessingState::makeTaskSequenceProcessingRequest(
     framefab_msgs::ModelInputParameters model_params,
     framefab_msgs::TaskSequenceInputParameters task_sequence_params)
 {
@@ -77,11 +103,14 @@ void framefab_gui::TaskSequenceProcessingState::makeRequest(
       boost::bind(&framefab_gui::TaskSequenceProcessingState::taskSequenceProcessingDoneCallback, this, _1, _2),
       boost::bind(&framefab_gui::TaskSequenceProcessingState::taskSequenceProcessingActiveCallback, this),
       boost::bind(&framefab_gui::TaskSequenceProcessingState::taskSequenceProcessingFeedbackCallback, this, _1));
+
+  task_sequence_processing_action_client_.waitForResult();
+  return task_sequence_processing_action_client_.getResult()->succeeded;
 }
 
 void framefab_gui::TaskSequenceProcessingState::setFeedbackText(QString feedback)
 {
-  gui_ptr_->appendText("-----------ACTION FEEDBACK-----------\n" + feedback.toStdString());
+//  gui_ptr_->appendText("-----------ACTION FEEDBACK-----------\n" + feedback.toStdString());
 }
 
 // Action Callbacks

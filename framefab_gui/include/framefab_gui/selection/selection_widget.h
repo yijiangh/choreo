@@ -77,6 +77,8 @@ class SelectionWidget : public QWidget
   // send srv to clean up visualization markers
   void cleanUpVisual();
 
+  void showTaskSequenceRecomputePopUp(bool found_task_plan);
+
  protected:
   virtual void showEvent(QShowEvent *ev);
   virtual void closeEvent(QCloseEvent *ev);
@@ -122,6 +124,9 @@ class SelectionWidget : public QWidget
   void recomputeChosen();
   void useSavedResultChosen();
 
+  void recomputeTaskSequenceChosen();
+  void useSavedTaskSequenceResultChosen();
+
  private:
   ros::NodeHandle nh_;
 
@@ -130,6 +135,7 @@ class SelectionWidget : public QWidget
 
   Ui::SelectionWidgetWindow* ui_;
   SelectForPlanPopUpWidget* select_for_plan_pop_up_;
+  SelectForPlanPopUpWidget* task_seq_recompute_pop_up_;
 
   int max_value_;
   int selected_value_;

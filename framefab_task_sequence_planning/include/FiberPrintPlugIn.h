@@ -67,26 +67,13 @@ public:
 	void			Init();
 
 	/* Fiber printing */
-	void			FrameFabPrint();
-	void			BruteForcePrint();
-	void			SweepingPrint();
 	void			OneLayerPrint();
 
 	/* apply stiffness computation directly to the input frame shape */
 	void			GetDeformation();
-	void			GetFrameFabCut();
-
-	bool			ImportPrintOrder(char *fname);
-	void			ExportPrintOrder(char *fname);
 
 	void			InputPrintOrder(vector<int> &queue)			{ ptr_seqanalyzer_->InputPrintOrder(queue); }
 	void			OutputPrintOrder(vector<WF_edge*> &queue)	{ ptr_seqanalyzer_->OutputPrintOrder(queue); }
-	void			ExportRenderPath(int min_layer, int max_layer, char *ptr_path)
-	{
-		ptr_seqanalyzer_->WriteRenderPath(min_layer, max_layer, ptr_path);
-	}
-
-	void			Debug();		// return value: edge index in mesh, for cut rendering
 
 public:
 	WireFrame			*ptr_frame_;
@@ -94,7 +81,6 @@ public:
 	QuadricCollision	*ptr_collision_;
 	Stiffness			*ptr_stiffness_;
 
-	GraphCut			*ptr_graphcut_;
 	SeqAnalyzer			*ptr_seqanalyzer_;
 	ProcAnalyzer		*ptr_procanalyzer_;
 

@@ -8,7 +8,7 @@ FiberPrintPARM::FiberPrintPARM(
 	)
 {
 	/*
-	*	For Your Inference; Unit Transfer
+	*	FYI; Unit Transfer
 	*	Gpa = 10^3Mpa = 10^9pa
 	*   1 kg/m^3 = 1e-3 g/cm^3 = 1e-12 Ton/mm^3
 	*	1 Pa = 1 N/mm^2

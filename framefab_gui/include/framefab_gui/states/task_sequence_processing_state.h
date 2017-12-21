@@ -39,14 +39,16 @@ class TaskSequenceProcessingState : public GuiState
   void taskSequenceProcessingFeedbackCallback(const framefab_msgs::TaskSequenceProcessingFeedbackConstPtr& feedback);
 
  private:
-  void makeRequest(framefab_msgs::ModelInputParameters model_params,
-                   framefab_msgs::TaskSequenceInputParameters task_sequence_params);
+  void taskSequenceProcessOrPlan();
+  bool makeTaskSequenceProcessingRequest(framefab_msgs::ModelInputParameters model_params,
+                                         framefab_msgs::TaskSequenceInputParameters task_sequence_params);
 
   Q_SIGNALS:
   void feedbackReceived(QString feedback);
 
  protected Q_SLOTS:
   void setFeedbackText(QString feedback);
+  void toNextState();
 
  private:
   ros::NodeHandle nh_;

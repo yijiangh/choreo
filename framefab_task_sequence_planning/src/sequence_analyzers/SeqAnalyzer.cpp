@@ -67,12 +67,6 @@ void SeqAnalyzer::PrintOutTimer()
 {
 }
 
-
-void SeqAnalyzer::WriteRenderPath(int min_layer, int max_layer, char *ptr_path)
-{
-}
-
-
 void SeqAnalyzer::Init()
 {
 	ptr_wholegraph_->Dualization();
@@ -319,7 +313,6 @@ bool SeqAnalyzer::TestifyStiffness(WF_edge *e)
 			if (offset.norm() >= D_tol_)
 			{
 				//printf("$$$Stiffness offset: %lf\n", offset.norm());
-				//ptr_stiffness_->WriteData(D, ptr_dualgraph_->e_orig_id(k) / 2);
 				bSuccess = false;
 				break;
 			}
@@ -370,5 +363,3 @@ void SeqAnalyzer::OutputPrintOrder(vector<WF_edge*> &print_queue)
 		print_queue.push_back(print_queue_[i]);
 	}
 }
-
-

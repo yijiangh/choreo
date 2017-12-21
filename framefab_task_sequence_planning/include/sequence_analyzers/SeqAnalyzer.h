@@ -71,7 +71,6 @@ public:
 public:
 	virtual bool	SeqPrint();
 	virtual void	PrintOutTimer();
-	virtual void	WriteRenderPath(int min_layer, int max_layer, char *ptr_path);
 
 public:
 	bool			InputPrintOrder(vector<int> &print_queue);
@@ -104,10 +103,10 @@ protected:
 
 	/* parameters */
 	double				gamma_;						// gamma_	: amplifier factor for adjacency cost
-	double				D_tol_;							// Dt_tol	: tolerance of offset in stiffness
-	double				Wp_;								// Wp_		: stablity weight for printing cost
-	double				Wa_;								// Wa_		: adjacent weight for printing cost
-	double				Wi_;								// Wl_		: influence weight for printing cost
+	double				D_tol_;						// Dt_tol	: tolerance of offset in stiffness
+	double				Wp_;						// Wp_		: stablity weight for printing cost
+	double				Wa_;						// Wa_		: adjacent weight for printing cost
+	double				Wi_;						// Wl_		: influence weight for printing cost
 
 	/* for debuging */
 	bool				terminal_output_;
@@ -120,4 +119,3 @@ protected:
 	Timer				rec_map_;
 	Timer				test_stiff_;
 };
-
