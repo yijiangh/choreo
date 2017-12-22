@@ -4,6 +4,7 @@
 
 //subscribed services
 #include <framefab_msgs/TaskSequenceProcessing.h>
+#include <framefab_msgs/TaskSequencePlanning.h>
 #include <framefab_msgs/ProcessPlanning.h>
 #include <framefab_msgs/MoveToTargetPose.h>
 #include <framefab_msgs/OutputProcessing.h>
@@ -28,6 +29,7 @@ const static std::string QUERY_COMPUTATION_RESULT="query_computation_result";
 
 // subscribed services
 const static std::string TASK_SEQUENCE_PROCESSING_SERVICE = "task_sequence_processing";
+const static std::string TASK_SEQUENCE_PLANNING_SERVICE = "task_sequence_planning";
 const static std::string PROCESS_PLANNING_SERVICE = "process_planning";
 const static std::string MOVE_TO_TARGET_POSE_SERVICE = "move_to_target_pose";
 const static std::string OUTPUT_PROCESSING_SERVICE = "output_processing";
@@ -42,9 +44,10 @@ const static std::string OUTPUT_SAVE_DIR_INPUT_PARAMS_FILE = "output_save_dir_in
 const static std::string PATH_VISUAL_TOPIC = "path_visualization";
 
 // subscribed action server name - note: must be same to client's name
-const static std::string FRAMEFAB_EXE_ACTION_SERVER_NAME =              "framefab_execution_as";
-const static std::string TASK_SEQUENCE_PROCESSING_ACTION_SERVER_NAME =  "task_sequence_processing_action";
-const static std::string PROCESS_PLANNING_ACTION_SERVER_NAME =          "process_planning_action";
+const static std::string FRAMEFAB_EXE_ACTION_SERVER_NAME = "framefab_execution_as";
+const static std::string TASK_SEQUENCE_PROCESSING_ACTION_SERVER_NAME = "task_sequence_processing_action";
+const static std::string TASK_SEQUENCE_PLANNING_ACTION_SERVER_NAME = "task_sequence_planning_action";
+const static std::string PROCESS_PLANNING_ACTION_SERVER_NAME = "process_planning_action";
 
 // serving action
 const static std::string SIMULATE_MOTION_PLAN_ACTION_SERVER_NAME = "simulate_motion_plan_as";
@@ -56,7 +59,9 @@ FrameFabCoreService::FrameFabCoreService()
       selected_task_id_(0),
       framefab_exe_client_(FRAMEFAB_EXE_ACTION_SERVER_NAME, true),
       task_sequence_processing_server_(nh_, TASK_SEQUENCE_PROCESSING_ACTION_SERVER_NAME,
-                            boost::bind(&FrameFabCoreService::taskSequenceProcessingActionCallback, this, _1), false),
+                                       boost::bind(&FrameFabCoreService::taskSequenceProcessingActionCallback, this, _1), false),
+      task_sequence_planning_server_(nh_, TASK_SEQUENCE_PLANNING_ACTION_SERVER_NAME,
+                                     boost::bind(&FrameFabCoreService::taskSequencePlanningActionCallback, this, _1), false),
       process_planning_server_(nh_, PROCESS_PLANNING_ACTION_SERVER_NAME,
                                boost::bind(&FrameFabCoreService::processPlanningActionCallback, this, _1), false),
       simulate_motion_plan_server_(nh_, SIMULATE_MOTION_PLAN_ACTION_SERVER_NAME,
@@ -122,6 +127,7 @@ bool FrameFabCoreService::init()
 
   // service clients
   task_sequence_processing_srv_client_ = nh_.serviceClient<framefab_msgs::TaskSequenceProcessing>(TASK_SEQUENCE_PROCESSING_SERVICE);
+  task_sequence_planning_srv_client_ = nh_.serviceClient<framefab_msgs::TaskSequencePlanning>(TASK_SEQUENCE_PLANNING_SERVICE);
   process_planning_client_ = nh_.serviceClient<framefab_msgs::ProcessPlanning>(PROCESS_PLANNING_SERVICE);
   move_to_pose_client_  = nh_.serviceClient<framefab_msgs::MoveToTargetPose>(MOVE_TO_TARGET_POSE_SERVICE);
   output_processing_client_  = nh_.serviceClient<framefab_msgs::OutputProcessing>(OUTPUT_PROCESSING_SERVICE);
@@ -130,6 +136,7 @@ bool FrameFabCoreService::init()
 
   // action servers
   task_sequence_processing_server_.start();
+  task_sequence_planning_server_.start();
   process_planning_server_.start();
   simulate_motion_plan_server_.start();
 
@@ -455,6 +462,36 @@ void FrameFabCoreService::taskSequenceProcessingActionCallback(const framefab_ms
 
       break;
     }
+  }
+}
+
+void FrameFabCoreService::taskSequencePlanningActionCallback(const framefab_msgs::TaskSequencePlanningGoalConstPtr &goal_in)
+{
+  task_sequence_planning_feedback_.last_completed = "[Core] Recieved request to process task sequence plan\n";
+  task_sequence_planning_server_.publishFeedback(task_sequence_planning_feedback_);
+
+  // call task_sequence_planning srv
+  framefab_msgs::TaskSequencePlanning srv;
+//  srv.request.action = srv.request.PROCESS_TASK_AND_MARKER;
+  srv.request.model_params = model_input_params_;
+  srv.request.task_sequence_params = task_sequence_input_params_;
+
+  if(!task_sequence_planning_srv_client_.call(srv))
+  {
+    ROS_WARN_STREAM("[Core] Unable to call task sequence planning service");
+    task_sequence_planning_feedback_.last_completed = "[Core] Failed to call Task Sequence Planning Service!\n";
+    task_sequence_planning_server_.publishFeedback(task_sequence_planning_feedback_);
+    task_sequence_planning_result_.succeeded = false;
+    task_sequence_planning_server_.setAborted(task_sequence_planning_result_);
+  }
+  else
+  {
+    // take srv output, save them
+    task_sequence_planning_feedback_.last_completed = "Finished task sequence planning.\n";
+    task_sequence_planning_server_.publishFeedback(task_sequence_planning_feedback_);
+
+    task_sequence_planning_result_.succeeded = true;
+    task_sequence_planning_server_.setSucceeded(task_sequence_planning_result_);
   }
 }
 

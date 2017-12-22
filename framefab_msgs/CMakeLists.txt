@@ -50,6 +50,7 @@ add_service_files(
 		FILES
 		FrameFabParameters.srv
 		TaskSequenceProcessing.srv
+		TaskSequencePlanning.srv
 		ElementNumberRequest.srv
 		VisualizeSelectedPath.srv
 		ProcessPlanning.srv
