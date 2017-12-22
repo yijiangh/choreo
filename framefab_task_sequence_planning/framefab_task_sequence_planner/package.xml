@@ -1,0 +1,18 @@
+<package>
+  <name>framefab_task_sequence_planner</name>
+  <version>0.1.0</version>
+  <description>The framefab core package</description>
+  <author email="yijiangh@mit.edu">Yijiang Huang</author>
+  <maintainer email="yijiangh@mit.edu">Yijiang Huang</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <!--  <test_depend>roslaunch</test_depend>-->
+
+  <build_depend>geometric_tools_engine</build_depend>
+  <build_depend>framefab_msgs</build_depend>
+
+  <run_depend>geometric_tools_engine</run_depend>
+  <run_depend>framefab_msgs</run_depend>
+
+</package>

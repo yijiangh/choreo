@@ -36,62 +36,58 @@
 * ==========================================================================
 */
 
-#pragma once
-
 #ifndef FIBERPRINTPLUGIN_H
 #define FIBERPRINTPLUGIN_H
 
-#include <vector>
-#include <cut_generators/ADMMCut.h>
-#include <cut_generators/NormalCut.h>
-#include <sequence_analyzers/FFAnalyzer.h>
-#include <sequence_analyzers/BFAnalyzer.h>
-#include <sequence_analyzers/ProcAnalyzer.h>
+#include "framefab_task_sequence_planner/sequence_analyzers/sequence_analyzers/FFAnalyzer.h"
+//#include "framefab_task_sequence_planner/sequence_analyzers/sequence_analyzers/ProcAnalyzer.h"
 
-
+namespace framefab_task_sequence_planning
+{
 class FiberPrintPlugIn
 {
-public:
-	typedef Eigen::MatrixXd MX;
-	typedef Eigen::VectorXd VX;
+ public:
+  typedef Eigen::MatrixXd MX;
+  typedef Eigen::VectorXd VX;
 
-public:
-	FiberPrintPlugIn();
-	FiberPrintPlugIn(
-		WireFrame *ptr_frame, FiberPrintPARM *ptr_parm, char *ptr_path = NULL, 
-		bool terminal_output = false, bool file_output = false
-		);
-	~FiberPrintPlugIn();
+ public:
+  FiberPrintPlugIn();
+  FiberPrintPlugIn(
+		  WireFrame *ptr_frame, FiberPrintPARM *ptr_parm, char *ptr_path = NULL,
+		  bool terminal_output = false, bool file_output = false
+  );
+  ~FiberPrintPlugIn();
 
-public:
-	void			Init();
+ public:
+  void Init();
 
-	/* Fiber printing */
-	void			OneLayerPrint();
+  /* Fiber printing */
+  void OneLayerPrint();
 
-	/* apply stiffness computation directly to the input frame shape */
-	void			GetDeformation();
+  /* apply stiffness computation directly to the input frame shape */
+  void GetDeformation();
 
-	void			InputPrintOrder(vector<int> &queue)			{ ptr_seqanalyzer_->InputPrintOrder(queue); }
-	void			OutputPrintOrder(vector<WF_edge*> &queue)	{ ptr_seqanalyzer_->OutputPrintOrder(queue); }
+  void InputPrintOrder(vector<int> &queue) { ptr_seqanalyzer_->InputPrintOrder(queue); }
+  void OutputPrintOrder(vector<WF_edge *> &queue) { ptr_seqanalyzer_->OutputPrintOrder(queue); }
 
-public:
-	WireFrame			*ptr_frame_;
-	DualGraph			*ptr_dualgraph_;
-	QuadricCollision	*ptr_collision_;
-	Stiffness			*ptr_stiffness_;
+ public:
+  WireFrame *ptr_frame_;
+  DualGraph *ptr_dualgraph_;
+  QuadricCollision *ptr_collision_;
+  Stiffness *ptr_stiffness_;
 
-	SeqAnalyzer			*ptr_seqanalyzer_;
-	ProcAnalyzer		*ptr_procanalyzer_;
+  SeqAnalyzer *ptr_seqanalyzer_;
+//  ProcAnalyzer *ptr_procanalyzer_;
 
-	char				*ptr_path_;
-	FiberPrintPARM		*ptr_parm_;
+  char *ptr_path_;
+  FiberPrintPARM *ptr_parm_;
 
-private:
-	Timer				fiber_print_;
+ private:
+  Timer fiber_print_;
 
-	bool				terminal_output_;
-	bool				file_output_;
+  bool terminal_output_;
+  bool file_output_;
 };
+} // end namespace
 
 #endif // FIBERPRINTPLUGIN_H

@@ -9,8 +9,9 @@ add_definitions("-std=c++11 -D__LINUX__ -DGTE_DEV_OPENGL -DGTE_DISABLE_PCH")
 ## catkin specific configuration ##
 ###################################
 catkin_package(
-  INCLUDE_DIRS include
-  LIBRARIES 
+  INCLUDE_DIRS 
+		include
+  LIBRARIES
 		${PROJECT_NAME}
 )
 

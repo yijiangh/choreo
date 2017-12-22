@@ -3,7 +3,11 @@
 //
 
 #include <ros/ros.h>
+
 #include <framefab_task_sequence_planning/framefab_task_sequence_planning.h>
+
+// framefab dependencies
+//#include "framefab_task_sequence_planning/utils/WireFrame.h"
 
 // Globals
 const static std::string DEFAULT_TASK_SEQUENCE_PLANNING_SERVICE = "task_sequence_planning";
@@ -11,6 +15,8 @@ const static std::string DEFAULT_TASK_SEQUENCE_PLANNING_SERVICE = "task_sequence
 bool planTaskSequenceCallback(framefab_msgs::TaskSequencePlanningRequest& req,
                               framefab_msgs::TaskSequencePlanningResponse& res)
 {
+
+
   return true;
 }
 
