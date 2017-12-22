@@ -6,7 +6,7 @@ framefab_msgs/TaskSequenceInputParameters task_sequence_params
 
 ---
 
-#result
+# save result
 bool succeeded
 
 # joint pose for reset position
