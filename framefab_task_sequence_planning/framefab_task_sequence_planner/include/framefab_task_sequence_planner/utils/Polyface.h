@@ -44,7 +44,7 @@
 //#include <windows.h>
 
 // http://kiwwito.com/installing-opengl-glut-libraries-in-ubuntu/
-#include <utils/Geometry.h>
+#include "framefab_task_sequence_planner/utils/Geometry.h"
 
 using namespace std;
 

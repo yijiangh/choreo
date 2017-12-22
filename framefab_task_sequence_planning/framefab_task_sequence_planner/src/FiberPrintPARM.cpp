@@ -1,6 +1,6 @@
 #include "framefab_task_sequence_planner/FiberPrintPARM.h"
 
-framefab_task_sequence_planning::FiberPrintPARM::FiberPrintPARM(
+FiberPrintPARM::FiberPrintPARM(
 	double Wp, double Wa, double Wi, double seq_D_tol,
 	double ADMM_D_tol , double penalty, double pri_tol, double dual_tol,
 	double radius, double density, double g, 
@@ -49,6 +49,6 @@ framefab_task_sequence_planning::FiberPrintPARM::FiberPrintPARM(
 }
 
 
-framefab_task_sequence_planning::FiberPrintPARM::~FiberPrintPARM()
+FiberPrintPARM::~FiberPrintPARM()
 {
 }

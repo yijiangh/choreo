@@ -3,13 +3,19 @@ project(framefab_task_sequence_planner)
 
 find_package(catkin REQUIRED COMPONENTS
 	roscpp
-#	cmake_modules
+	#	cmake_modules
 	geometric_tools_engine
 	framefab_msgs
 	)
 
 #--- Find LAPACK
 find_package(LAPACK REQUIRED)
+find_package(Eigen3 REQUIRED)
+
+# Eigen 3.2 (Wily) only provides EIGEN3_INCLUDE_DIR, not EIGEN3_INCLUDE_DIRS
+if(NOT EIGEN3_INCLUDE_DIRS)
+	set(EIGEN3_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR})
+endif()
 
 add_definitions("-std=c++11 -D__LINUX__ -DGTE_DEV_OPENGL -DGTE_DISABLE_PCH")
 add_definitions("-Wno-write-strings")
@@ -28,6 +34,7 @@ catkin_package(
 		framefab_msgs
 	DEPENDS
 		LAPACK
+		EIGEN3
 )
 
 ###########
@@ -38,6 +45,7 @@ catkin_package(
 include_directories(
 	include
 	${catkin_INCLUDE_DIRS}
+	${EIGEN3_INCLUDE_DIRS}
 )
 
 #set(${PROJECT_NAME}_SEQUENCE_ANALYZERS_SRC_FILES
@@ -64,8 +72,8 @@ include_directories(
 
 ### Declare a C++ library
 add_library(${PROJECT_NAME}
-#	${${PROJECT_NAME}_SEQUENCE_ANALYZERS_SRC_FILES}
-#	${${PROJECT_NAME}_UTILS_SRC_FILES}
+	#	${${PROJECT_NAME}_SEQUENCE_ANALYZERS_SRC_FILES}
+	#	${${PROJECT_NAME}_UTILS_SRC_FILES}
 	src/FiberPrintPARM.cpp
 	src/FiberPrintPlugIn.cpp
 	)

@@ -59,14 +59,14 @@
 #include <Eigen/OrderingMethods>
 #include <Eigen/IterativeLinearSolvers>
 
-#include <utils/WireFrame.h>
-#include <utils/DualGraph.h>
-#include <FiberPrintPARM.h>
-#include <utils/CoordTrans.h>
-#include <utils/GCommon.h>
-#include <utils/StiffnessIO.h>
-#include <utils/StiffnessSolver.h>
-#include <utils/IllCondDetector.h>
+#include "framefab_task_sequence_planner/utils/WireFrame.h"
+#include "framefab_task_sequence_planner/utils/DualGraph.h"
+#include "framefab_task_sequence_planner/FiberPrintPARM.h"
+#include "framefab_task_sequence_planner/utils/CoordTrans.h"
+#include "framefab_task_sequence_planner/utils/GCommon.h"
+#include "framefab_task_sequence_planner/utils/StiffnessIO.h"
+#include "framefab_task_sequence_planner/utils/StiffnessSolver.h"
+#include "framefab_task_sequence_planner/utils/IllCondDetector.h"
 
 using namespace std;
 using namespace Eigen;

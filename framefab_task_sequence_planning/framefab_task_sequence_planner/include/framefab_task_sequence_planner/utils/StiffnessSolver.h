@@ -50,7 +50,7 @@
 #include <Eigen/SparseCholesky>
 #include <Eigen/LU>
 
-#include <utils/Timer.h>
+#include "framefab_task_sequence_planner/utils/Timer.h"
 
 #define sind(x) (sin(fmod((x),360) * M_PI / 180))
 #define cosd(x) (cos(fmod((x),360) * M_PI / 180))

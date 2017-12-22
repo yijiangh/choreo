@@ -1,4 +1,4 @@
-#include <utils/Stiffness.h>
+#include "framefab_task_sequence_planner/utils/Stiffness.h"
 
 Stiffness::Stiffness()
 {

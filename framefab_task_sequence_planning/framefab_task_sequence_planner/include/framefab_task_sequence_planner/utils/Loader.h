@@ -5,19 +5,17 @@
 
 #include <string>
 
+class Loader{
 
-	class Loader{
+ private:
+  Loader(){ ; }
+  ~Loader(){ ; }
 
-	private:
-		Loader(){ ; }
-		~Loader(){ ; }
+ public:
 
-	public:
-
-		static bool uniqueFilename(const std::string& filePathName,
-			const std::string& fileExtension,
-			std::string& uniqueFullFileName);
-	};
-
+  static bool uniqueFilename(const std::string& filePathName,
+							 const std::string& fileExtension,
+							 std::string& uniqueFullFileName);
+};
 
 #endif

@@ -73,7 +73,6 @@ step, smoothstep, faceforward, reflect, refract, and angle
 #include <iostream>
 #include <algorithm>
 
-
 // Let gcc optimize conditional branches a bit better...
 #ifndef likely
 #  if !defined(__GNUC__) || (__GNUC__ == 2 && __GNUC_MINOR__ < 96)

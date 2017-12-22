@@ -1,6 +1,6 @@
 #include <Mathematics/GteTriangle.h>
 #include <Mathematics/GteCylinder3.h>
-#include <utils/QuadricCollision.h>
+#include "framefab_task_sequence_planner/utils/QuadricCollision.h"
 
 QuadricCollision::QuadricCollision()
 {

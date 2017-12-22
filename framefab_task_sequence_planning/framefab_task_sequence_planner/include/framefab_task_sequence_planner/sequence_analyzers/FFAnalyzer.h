@@ -52,7 +52,7 @@
 #include <cmath>
 #include <cstring>
 
-#include <sequence_analyzers/SeqAnalyzer.h>
+#include "framefab_task_sequence_planner/sequence_analyzers/SeqAnalyzer.h"
 
 class FFAnalyzer : public SeqAnalyzer
 {

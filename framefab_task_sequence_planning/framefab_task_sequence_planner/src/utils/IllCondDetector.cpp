@@ -1,4 +1,4 @@
-#include <utils/IllCondDetector.h>
+#include "framefab_task_sequence_plannerutils/IllCondDetector.h"
 
 // mapping from two-dim index to packed 'Up' column major layout storage
 #define MAP(i,j,N) (i*N + j)

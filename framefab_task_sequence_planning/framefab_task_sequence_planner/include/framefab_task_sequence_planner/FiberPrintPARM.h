@@ -41,9 +41,6 @@
 
 #include "framefab_task_sequence_planner/utils/GCommon.h"
 
-namespace framefab_task_sequence_planning
-{
-
 class FiberPrintPARM
 {
  public:
@@ -87,6 +84,5 @@ class FiberPrintPARM
   double Wi_;
   double seq_D_tol_;        // seq_D_tol_   : tolerance of offset in stiffness for SeqAnalyzer
 };
-}
 
 #endif

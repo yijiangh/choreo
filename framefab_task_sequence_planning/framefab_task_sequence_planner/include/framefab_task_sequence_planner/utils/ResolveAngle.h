@@ -41,32 +41,30 @@
 */
 
 #pragma once
-#include <utils/WireFrame.h>
-#include <utils/Geometry.h>
-#include <utils/ExtruderCone.h>
+
+#include "framefab_task_sequence_planner/utils/WireFrame.h"
+#include "framefab_task_sequence_planner/utils/Geometry.h"
+#include "framefab_task_sequence_planner/utils/ExtruderCone.h"
 
 class ResolveAngle
 {
-public:
-    ResolveAngle();
-	ResolveAngle( vector< Geometry::Vector3d> list );
-	~ResolveAngle();
+ public:
+  ResolveAngle();
+  ResolveAngle( vector< Geometry::Vector3d> list );
+  ~ResolveAngle();
 
+  Geometry::Vector3d dec;
+  double wave;
+  vector< Geometry::Vector3d> a_;
+  vector< Geometry::Vector3d> b_;
+  vector< Geometry::Vector3d> c_;
 
-	Geometry::Vector3d dec;
-	double wave;
-	vector< Geometry::Vector3d> a_;
-	vector< Geometry::Vector3d> b_;
-	vector< Geometry::Vector3d> c_;
+  ExtruderCone extruder_;
+  vector< Geometry::Vector3d> list_;
+  vector< Geometry::Vector3d> Resolve();
 
-	ExtruderCone extruder_;
-	vector< Geometry::Vector3d> list_;
-	vector< Geometry::Vector3d> Resolve();
+  void Dec();
 
-	
-	
-	void Dec();
-
-	Geometry::Vector3d Ave(vector<Geometry::Vector3d> t);
+  Geometry::Vector3d Ave(vector<Geometry::Vector3d> t);
 };
 

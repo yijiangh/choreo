@@ -7,7 +7,6 @@ FiberPrintPlugIn::FiberPrintPlugIn()
 	ptr_collision_ = NULL;
 	ptr_stiffness_ = NULL;
 
-	ptr_graphcut_ = NULL;
 	ptr_seqanalyzer_ = NULL;
 	ptr_procanalyzer_ = NULL;
 

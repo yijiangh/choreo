@@ -38,7 +38,7 @@
 #include <iostream>
 #include <Eigen/Core>
 
-#include <utils/WireFrame.h>
+#include "framefab_task_sequence_planner/utils/WireFrame.h"
 
 using namespace std;
 using namespace Eigen;

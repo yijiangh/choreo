@@ -1,4 +1,4 @@
-#include <utils/StiffnessIO.h>
+#include "framefab_task_sequence_planner/utils/StiffnessIO.h"
 
 /*
 * OUTPUT_PATH

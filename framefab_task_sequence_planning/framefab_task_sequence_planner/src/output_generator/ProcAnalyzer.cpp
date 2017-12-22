@@ -1,16 +1,12 @@
-#include <sequence_analyzers/ProcAnalyzer.h>
+#include "framefab_task_sequence_planner/output_generator/ProcAnalyzer.h"
 
 ProcAnalyzer::ProcAnalyzer()
 {
-
-
 }
-
 
 ProcAnalyzer::~ProcAnalyzer()
 {
 }
-
 
 ProcAnalyzer::ProcAnalyzer(SeqAnalyzer *seqanalyzer, char *path)
 {
@@ -20,7 +16,6 @@ ProcAnalyzer::ProcAnalyzer(SeqAnalyzer *seqanalyzer, char *path)
 
 	MaxEdgeAngle_ = F_PI / 18*6;
 }
-
 
 void ProcAnalyzer::ProcPrint()
 {

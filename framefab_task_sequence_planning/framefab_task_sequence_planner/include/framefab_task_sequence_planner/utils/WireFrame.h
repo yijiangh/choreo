@@ -39,12 +39,10 @@
 #pragma once
 
 #include <assert.h>
-#include <vector>
-#include <map>
 #include <cmath>
 #include <string.h>
 
-#include <utils/Vec.h>
+#include "framefab_task_sequence_planner/utils/Vec.h"
 
 using namespace std;
 using trimesh::vec;
@@ -53,7 +51,6 @@ using trimesh::point;
 typedef trimesh::point point;
 typedef trimesh::vec3  Vec3f;
 typedef trimesh::vec4  Vec4f;
-
 
 class WF_vert;
 class WF_edge;

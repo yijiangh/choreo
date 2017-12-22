@@ -39,11 +39,15 @@
 #ifndef FIBERPRINTPLUGIN_H
 #define FIBERPRINTPLUGIN_H
 
-#include "framefab_task_sequence_planner/sequence_analyzers/sequence_analyzers/FFAnalyzer.h"
-//#include "framefab_task_sequence_planner/sequence_analyzers/sequence_analyzers/ProcAnalyzer.h"
+// framefab utils
+#include "framefab_task_sequence_planner/utils/WireFrame.h"
+#include "framefab_task_sequence_planner/utils/DualGraph.h"
+#include "framefab_task_sequence_planner/utils/QuadricCollision.h"
+#include "framefab_task_sequence_planner/utils/Stiffness.h"
 
-namespace framefab_task_sequence_planning
-{
+#include "framefab_task_sequence_planner/sequence_analyzers/FFAnalyzer.h"
+#include "framefab_task_sequence_planner/output_generator/ProcAnalyzer.h"
+
 class FiberPrintPlugIn
 {
  public:
@@ -77,7 +81,7 @@ class FiberPrintPlugIn
   Stiffness *ptr_stiffness_;
 
   SeqAnalyzer *ptr_seqanalyzer_;
-//  ProcAnalyzer *ptr_procanalyzer_;
+  ProcAnalyzer *ptr_procanalyzer_;
 
   char *ptr_path_;
   FiberPrintPARM *ptr_parm_;
@@ -88,6 +92,5 @@ class FiberPrintPlugIn
   bool terminal_output_;
   bool file_output_;
 };
-} // end namespace
 
 #endif // FIBERPRINTPLUGIN_H

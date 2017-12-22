@@ -47,7 +47,7 @@
 #include <vector>
 #include <Eigen/Dense>
 
-#include <utils/WireFrame.h>
+#include "framefab_task_sequence_planner/utils/WireFrame.h"
 
 /**
 CoordTrans -  evaluate the 3D coordinate transformation coefficients

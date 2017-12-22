@@ -1,4 +1,4 @@
-#include <utils/StiffnessSolver.h>
+#include "framefab_task_sequence_planner/utils/StiffnessSolver.h"
 
 StiffnessSolver::StiffnessSolver()
 {

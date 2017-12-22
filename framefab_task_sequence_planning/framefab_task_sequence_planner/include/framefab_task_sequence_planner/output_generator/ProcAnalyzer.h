@@ -23,18 +23,17 @@
 
 #pragma once
 
-#include <sequence_analyzers/SeqAnalyzer.h>
+#include "framefab_task_sequence_planner/sequence_analyzers/SeqAnalyzer.h"
 
 using namespace std;
 
-typedef  struct Process
+struct Process
 {
 	bool	fan_state_;
 	point	start_;
 	point	end_;
 	std::vector<GeoV3>  normal_;
 };
-
 
 class ProcAnalyzer
 {

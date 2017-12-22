@@ -1,4 +1,4 @@
-#include <utils/DualGraph.h>
+#include "framefab_task_sequence_planner/utils/DualGraph.h"
 
 DualGraph::DualGraph()
 {

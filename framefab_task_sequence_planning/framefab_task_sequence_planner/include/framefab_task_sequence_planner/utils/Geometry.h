@@ -44,8 +44,8 @@
 
 #include <cmath>
 #include <iostream>
-#include <utils/GCommon.h>
-#include <utils/WireFrame.h>
+#include "framefab_task_sequence_planner/utils/GCommon.h"
+#include "framefab_task_sequence_planner/utils/WireFrame.h"
 
 using std::cout;
 
@@ -136,7 +136,7 @@ namespace Geometry
 		}
 
 	private:
-		double			data_[3];
+		double data_[3];
 	};
 
 	/* For Vector3d(dot product) */

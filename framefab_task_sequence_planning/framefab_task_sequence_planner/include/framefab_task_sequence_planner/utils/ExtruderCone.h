@@ -43,9 +43,9 @@
 */
 
 #pragma once
-#include <utils/GCommon.h>
-#include <utils/WireFrame.h>
-#include <utils/Triangle.h>
+#include "framefab_task_sequence_planner/utils/GCommon.h"
+#include "framefab_task_sequence_planner/utils/WireFrame.h"
+#include "framefab_task_sequence_planner/utils/Triangle.h"
 
 using namespace std;
 using namespace Geometry;

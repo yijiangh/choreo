@@ -41,7 +41,7 @@
 */
 
 #pragma once
-#include <utils/Polyface.h>
+#include "framefab_task_sequence_planner/utils/Polyface.h"
 
 class Triangle : public Polyface
 {
