@@ -7,6 +7,8 @@ int32 CONNECT=0
 
 int32 type
 
+int32 layer_id
+
 geometry_msgs/Point start_pt
 geometry_msgs/Point end_pt
 

@@ -21,6 +21,8 @@ const static std::string DEFAULT_TASK_SEQUENCE_PLANNING_SERVICE = "task_sequence
 bool planTaskSequenceCallback(framefab_msgs::TaskSequencePlanningRequest& req,
                               framefab_msgs::TaskSequencePlanningResponse& res)
 {
+  // TODO: add a switch for srv req actions
+
   double Wl = 1.0;
   double Wp = 1.0;
   double Wa = 1.0;

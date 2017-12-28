@@ -472,26 +472,40 @@ void FrameFabCoreService::taskSequencePlanningActionCallback(const framefab_msgs
 
   // call task_sequence_planning srv
   framefab_msgs::TaskSequencePlanning srv;
-//  srv.request.action = srv.request.PROCESS_TASK_AND_MARKER;
+  srv.request.action = srv.request.READ_WIREFRAME;
   srv.request.model_params = model_input_params_;
   srv.request.task_sequence_params = task_sequence_input_params_;
 
   if(!task_sequence_planning_srv_client_.call(srv))
   {
-    ROS_WARN_STREAM("[Core] task sequence planning service call failed.");
-    task_sequence_planning_feedback_.last_completed = "[Core] Task Sequence Planning Service Call Failed!\n";
+    ROS_WARN_STREAM("[Core] task sequence planning service read wireframe failed.");
+    task_sequence_planning_feedback_.last_completed = "[Core] task sequence planning service read wireframe failed!\n";
     task_sequence_planning_server_.publishFeedback(task_sequence_planning_feedback_);
     task_sequence_planning_result_.succeeded = false;
     task_sequence_planning_server_.setAborted(task_sequence_planning_result_);
   }
   else
   {
-    // take srv output, save them
-    task_sequence_planning_feedback_.last_completed = "Finished task sequence planning.\n";
-    task_sequence_planning_server_.publishFeedback(task_sequence_planning_feedback_);
+    srv.request.action = srv.request.TASK_SEQUENCE_SEARCHING;
 
-    task_sequence_planning_result_.succeeded = true;
-    task_sequence_planning_server_.setSucceeded(task_sequence_planning_result_);
+    if (!task_sequence_planning_srv_client_.call(srv))
+    {
+      ROS_WARN_STREAM("[Core] task sequence planning service seq search failed.");
+      task_sequence_planning_feedback_.last_completed =
+          "[Core] task sequence planning service read seq search failed!\n";
+      task_sequence_planning_server_.publishFeedback(task_sequence_planning_feedback_);
+      task_sequence_planning_result_.succeeded = false;
+      task_sequence_planning_server_.setAborted(task_sequence_planning_result_);
+    }
+    else
+    {
+      // take srv output, save them
+      task_sequence_planning_feedback_.last_completed = "Finished task sequence planning.\n";
+      task_sequence_planning_server_.publishFeedback(task_sequence_planning_feedback_);
+
+      task_sequence_planning_result_.succeeded = true;
+      task_sequence_planning_server_.setSucceeded(task_sequence_planning_result_);
+    }
   }
 }
 

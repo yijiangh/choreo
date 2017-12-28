@@ -63,16 +63,19 @@ class FiberPrintPlugIn
   ~FiberPrintPlugIn();
 
  public:
-  void Init();
+  bool Init();
+
+  void setWireFrame(WireFrame *ptr_frame) { ptr_frame_ = ptr_frame; };
+  void setFiberPrintPARM(FiberPrintPARM *ptr_parm) { ptr_parm_ = ptr_parm; };
+
+  // TODO
+  void setOutputPath();
 
   /* Fiber printing */
   void OneLayerPrint();
 
   /* apply stiffness computation directly to the input frame shape */
   void GetDeformation();
-
-  void InputPrintOrder(vector<int> &queue) { ptr_seqanalyzer_->InputPrintOrder(queue); }
-  void OutputPrintOrder(vector<WF_edge *> &queue) { ptr_seqanalyzer_->OutputPrintOrder(queue); }
 
  public:
   WireFrame *ptr_frame_;
