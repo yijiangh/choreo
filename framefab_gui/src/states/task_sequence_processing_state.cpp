@@ -90,7 +90,7 @@ bool framefab_gui::TaskSequenceProcessingState::makeTaskSequenceProcessingReques
   task_sequence_processing_action_client_.waitForServer();
   if(task_sequence_processing_action_client_.isServerConnected())
   {
-    ROS_INFO_STREAM("[UI] task sequence processing action server connected!");
+//    ROS_INFO_STREAM("[UI] task sequence processing action server connected!");
   }
   else
   {

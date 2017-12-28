@@ -17,6 +17,7 @@ const static std::string DEFAULT_TASK_SEQUENCE_PLANNING_SERVICE = "task_sequence
 
 #define SAFE_DELETE_POINTER(ptr) if (ptr!=NULL){delete ptr; ptr = NULL;};
 
+
 bool planTaskSequenceCallback(framefab_msgs::TaskSequencePlanningRequest& req,
                               framefab_msgs::TaskSequencePlanningResponse& res)
 {
@@ -24,6 +25,8 @@ bool planTaskSequenceCallback(framefab_msgs::TaskSequencePlanningRequest& req,
   double Wp = 1.0;
   double Wa = 1.0;
 
+  // TODO: all of these char* should be const char*
+  // convert std::string to writable char*
   std::string& file_path = req.model_params.file_name;
   std::vector<char> fp(file_path.begin(), file_path.end());
   fp.push_back('\0');
@@ -35,13 +38,27 @@ bool planTaskSequenceCallback(framefab_msgs::TaskSequencePlanningRequest& req,
   ptr_frame->LoadFromPWF(&fp[0]);
 
   FiberPrintPlugIn* ptr_fiberprint =
-      new FiberPrintPlugIn(ptr_frame, ptr_parm, &fp[0]);
+      new FiberPrintPlugIn(ptr_frame, ptr_parm, &fp[0], true);
 
   ptr_fiberprint->OneLayerPrint();
 
-  SAFE_DELETE_POINTER(ptr_fiberprint);
-  SAFE_DELETE_POINTER(ptr_frame);
-  SAFE_DELETE_POINTER(ptr_parm);
+  if(ptr_parm != NULL)
+  {
+    delete ptr_parm;
+    ptr_parm = NULL;
+  }
+
+  if(ptr_frame != NULL)
+  {
+    delete ptr_frame;
+    ptr_frame = NULL;
+  }
+
+  if(ptr_fiberprint != NULL)
+  {
+    delete ptr_fiberprint;
+    ptr_fiberprint = NULL;
+  }
 
   return true;
 }

@@ -91,9 +91,9 @@ public:
 	void		SetID(int id)								{ id_ = id; }
 	void		IncreaseDegree()							{ degree_++; }
 
-	void		SetFixed(bool b_fixed)						{ b_fixed_ = b_fixed; }
-	void		SetBase(bool b_base)						{ b_base_ = b_base; }
-	void		SetSubgraph(bool b_subg)					{ b_subg_ = b_subg; }
+	void		SetFixed(bool b_fixed)	 { b_fixed_ = b_fixed; }
+	void		SetBase(bool b_base)	 { b_base_ = b_base; }
+	void		SetSubgraph(bool b_subg) { b_subg_ = b_subg; }
 
 public:
 	WF_edge		*pedge_;
@@ -213,36 +213,36 @@ public:
 	void		MakeCeiling(vector<WF_edge*> &bound_e);
 	void		MakeSubGraph(vector<WF_edge*> &subg_e);
 
-	inline int					SizeOfVertList()		{ return pvert_list_->size(); }
-	inline int					SizeOfEdgeList()		{ return pedge_list_->size(); }
-	inline int					SizeOfFixedVert()		{ return fixed_vert_; }
-	inline int					SizeOfBaseVert()		{ return base_vert_; }
-	inline int					SizeOfPillar()			{ return pillar_size_; }
-	inline int					SizeOfCeiling()			{ return ceiling_size_; }
-	inline int					SizeOfLayer()			{ return layer_size_; }
+	inline int SizeOfVertList() { return pvert_list_->size(); }
+	inline int SizeOfEdgeList()	{ return pedge_list_->size(); }
+	inline int SizeOfFixedVert() { return fixed_vert_; }
+	inline int SizeOfBaseVert()	{ return base_vert_; }
+	inline int SizeOfPillar() { return pillar_size_; }
+	inline int SizeOfCeiling() { return ceiling_size_; }
+	inline int SizeOfLayer() { return layer_size_; }
 
-	inline vector<WF_vert*>		*GetVertList()			{ return pvert_list_; }
-	inline vector<WF_edge*>		*GetEdgeList()			{ return pedge_list_; }
-	inline WF_vert				*GetVert(int u)			{ return (u >= SizeOfVertList() || u < 0) ? NULL : (*pvert_list_)[u]; }
-	inline WF_edge				*GetEdge(int i)			{ return (i >= SizeOfEdgeList() || i < 0) ? NULL : (*pedge_list_)[i]; }
-	inline WF_edge				*GetNeighborEdge(int u)	{ return (u >= SizeOfVertList() || u < 0) ? NULL : (*pvert_list_)[u]->pedge_; }
+	inline vector<WF_vert*>	*GetVertList() { return pvert_list_; }
+	inline vector<WF_edge*>	*GetEdgeList() { return pedge_list_; }
+	inline WF_vert *GetVert(int u) { return (u >= SizeOfVertList() || u < 0) ? NULL : (*pvert_list_)[u]; }
+	inline WF_edge *GetEdge(int i) { return (i >= SizeOfEdgeList() || i < 0) ? NULL : (*pedge_list_)[i]; }
+	inline WF_edge *GetNeighborEdge(int u) { return (u >= SizeOfVertList() || u < 0) ? NULL : (*pvert_list_)[u]->pedge_; }
 
-	inline point		GetPosition(int u)			{ assert(u >= SizeOfVertList() || u < 0); return((*pvert_list_)[u]->Position()); }
-	inline int			GetDegree(int u)			{ assert(u >= SizeOfVertList() || u < 0); return((*pvert_list_)[u]->Degree()); }
+	inline point GetPosition(int u)	{ assert(u < SizeOfVertList() && u >= 0); return((*pvert_list_)[u]->Position()); }
+	inline int	 GetDegree(int u)	{ assert(u < SizeOfVertList() && u >= 0); return((*pvert_list_)[u]->Degree()); }
 
-	inline int			GetEndu(int i)				{ assert(i >= SizeOfEdgeList() || i < 0); return((*pedge_list_)[i]->ppair_->pvert_->ID()); }
-	inline int			GetEndv(int i)				{ assert(i >= SizeOfEdgeList() || i < 0); return((*pedge_list_)[i]->pvert_->ID()); }
-	inline point		GetCenterPos(int i)			{ assert(i >= SizeOfEdgeList() || i < 0); return((*pedge_list_)[i]->CenterPos()); }
+	inline int	 GetEndu(int i)		 { assert(i < SizeOfEdgeList() && i >= 0); return((*pedge_list_)[i]->ppair_->pvert_->ID()); }
+	inline int	 GetEndv(int i)		 { assert(i < SizeOfEdgeList() && i >= 0); return((*pedge_list_)[i]->pvert_->ID()); }
+	inline point GetCenterPos(int i) { assert(i < SizeOfEdgeList() && i >= 0); return((*pedge_list_)[i]->CenterPos()); }
 
-	inline bool			isFixed(int u)				{ assert(u >= SizeOfVertList() || u < 0); return((*pvert_list_)[u]->isFixed()); }
-	inline bool			isPillar(int i)				{ assert(i >= SizeOfEdgeList() || i < 0); return((*pedge_list_)[i]->isPillar()); }
+	inline bool	isFixed(int u)	{ assert(u < SizeOfVertList() && u >= 0); return((*pvert_list_)[u]->isFixed()); }
+	inline bool	isPillar(int i)	{ assert(i < SizeOfEdgeList() && i >= 0); return((*pedge_list_)[i]->isPillar()); }
 
-	inline double		maxX()		{ return maxx_; }
-	inline double		minX()		{ return minx_; }
-	inline double		maxY()		{ return maxy_; }
-	inline double		minY()		{ return miny_; }
-	inline double		maxZ()		{ return maxz_; }
-	inline double		minZ()		{ return minz_; }
+	inline double maxX() { return maxx_; }
+	inline double minX() { return minx_; }
+	inline double maxY() { return maxy_; }
+	inline double minY() { return miny_; }
+	inline double maxZ() { return maxz_; }
+	inline double minZ() { return minz_; }
 
 	inline double Norm(point u)
 	{
@@ -272,25 +272,24 @@ public:
 	}
 
 private:
-	vector<WF_vert*>	*pvert_list_;
-	vector<WF_edge*>	*pedge_list_;
+	vector<WF_vert*> *pvert_list_;
+	vector<WF_edge*> *pedge_list_;
 
-	int					fixed_vert_;
-	int					base_vert_;
-	int					pillar_size_;
-	int					ceiling_size_;
-	int					layer_size_;
+	int	fixed_vert_;
+	int	base_vert_;
+	int	pillar_size_;
+	int	ceiling_size_;
+	int	layer_size_;
 
-	double				maxx_;
-	double				maxy_;
-	double				maxz_;
-	double				minx_;
-	double				miny_;
-	double				minz_;
+	double maxx_;
+	double maxy_;
+	double maxz_;
+	double minx_;
+	double miny_;
+	double minz_;
 
-	Vec3f				center_pos_;
-	float				scaleV_;
-	double				unify_size_;
-	double				delta_tol_;
+	Vec3f center_pos_;
+	float scaleV_;
+	double unify_size_;
+	double delta_tol_;
 };
-

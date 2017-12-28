@@ -478,8 +478,8 @@ void FrameFabCoreService::taskSequencePlanningActionCallback(const framefab_msgs
 
   if(!task_sequence_planning_srv_client_.call(srv))
   {
-    ROS_WARN_STREAM("[Core] Unable to call task sequence planning service");
-    task_sequence_planning_feedback_.last_completed = "[Core] Failed to call Task Sequence Planning Service!\n";
+    ROS_WARN_STREAM("[Core] task sequence planning service call failed.");
+    task_sequence_planning_feedback_.last_completed = "[Core] Task Sequence Planning Service Call Failed!\n";
     task_sequence_planning_server_.publishFeedback(task_sequence_planning_feedback_);
     task_sequence_planning_result_.succeeded = false;
     task_sequence_planning_server_.setAborted(task_sequence_planning_result_);
