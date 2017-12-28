@@ -1,3 +1,6 @@
+// ros output
+#include <ros/console.h>
+
 #include "framefab_task_sequence_planner/utils/Timer.h"
 
 Timer::Timer()
@@ -35,8 +38,11 @@ void Timer::Reset()
 
 void Timer::Print(char *item)
 {
-	printf("%s total-time:%3.4lf   count:%4d   avg-time:%3.4lf\n", 
-		item, sum_time_, count_, sum_time_ / count_);
+//	printf("%s total-time:%3.4lf   count:%4d   avg-time:%3.4lf\n",
+//		item, sum_time_, count_, sum_time_ / count_);
+
+  ROS_INFO("%s total-time:%3.4lf   count:%4d   avg-time:%3.4lf\n",
+           item, sum_time_, count_, sum_time_ / count_);
 }
 
 

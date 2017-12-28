@@ -40,8 +40,6 @@
 * ==========================================================================
 */
 
-#pragma once
-
 #ifndef ILLCONDDECTOR_H
 #define ILLCONDDECTOR_H
 

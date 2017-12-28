@@ -1,4 +1,4 @@
-#include <sequence_analyzers/FFAnalyzer.h>
+#include "framefab_task_sequence_planner/sequence_analyzers/FFAnalyzer.h"
 
 FFAnalyzer::FFAnalyzer(WireFrame *ptr_frame)
 {

@@ -42,6 +42,14 @@
 #pragma once
 #include <cmath>
 
+#include "framefab_task_sequence_planner/utils/Timer.h"
+#include "framefab_task_sequence_planner/utils/WireFrame.h"
+#include "framefab_task_sequence_planner/utils/DualGraph.h"
+#include "framefab_task_sequence_planner/utils/Stiffness.h"
+#include "framefab_task_sequence_planner/utils/WireFrame.h"
+
+#include "framefab_task_sequence_planner/FiberPrintPARM.h"
+
 #include "framefab_task_sequence_planner/utils/QuadricCollision.h"
 #include "framefab_task_sequence_planner/utils/ResolveAngle.h"
 

@@ -48,32 +48,36 @@ include_directories(
 	${EIGEN3_INCLUDE_DIRS}
 )
 
-#set(${PROJECT_NAME}_SEQUENCE_ANALYZERS_SRC_FILES
-#	src/sequence_analyzers/FFAnalyzer.cpp
-#	src/sequence_analyzers/ProcAnalyzer.cpp
-#	src/sequence_analyzers/SeqAnalyzer.cpp
-#	)
-#
-#set(${PROJECT_NAME}_UTILS_SRC_FILES
-#	src/utils/CoordTrans.cpp
-#	src/utils/DualGraph.cpp
-#	src/utils/ExtruderCone.cpp
-#	src/utils/IllCondDetector.cpp
-#	src/utils/Loader.cpp
-#	src/utils/QuadricCollision.cpp
-#	src/utils/ResolveAngle.cpp
-#	src/utils/Statistics.cpp
-#	src/utils/Stiffness.cpp
-#	src/utils/StiffnessIO.cpp
-#	src/utils/StiffnessSolver.cpp
-#	src/utils/Timer.cpp
-#	src/utils/WireFrame.cpp
-#	)
+set(${PROJECT_NAME}_UTILS_SRC_FILES
+	src/utils/CoordTrans.cpp
+	src/utils/DualGraph.cpp
+	src/utils/ExtruderCone.cpp
+	src/utils/IllCondDetector.cpp
+	src/utils/Loader.cpp
+	src/utils/QuadricCollision.cpp
+	src/utils/ResolveAngle.cpp
+	src/utils/Statistics.cpp
+	src/utils/Stiffness.cpp
+	src/utils/StiffnessIO.cpp
+	src/utils/StiffnessSolver.cpp
+	src/utils/Timer.cpp
+	src/utils/WireFrame.cpp
+	)
+
+set(${PROJECT_NAME}_SEQUENCE_ANALYZERS_SRC_FILES
+	src/sequence_analyzers/FFAnalyzer.cpp
+	src/sequence_analyzers/SeqAnalyzer.cpp
+	)
+
+set(${PROJECT_NAME}_OUTPUT_GENERATOR_SRC_FILES
+	src/output_generator/ProcAnalyzer.cpp
+	)
 
 ### Declare a C++ library
 add_library(${PROJECT_NAME}
-	#	${${PROJECT_NAME}_SEQUENCE_ANALYZERS_SRC_FILES}
-	#	${${PROJECT_NAME}_UTILS_SRC_FILES}
+	${${PROJECT_NAME}_UTILS_SRC_FILES}
+	${${PROJECT_NAME}_SEQUENCE_ANALYZERS_SRC_FILES}
+	${${PROJECT_NAME}_OUTPUT_GENERATOR_SRC_FILES}
 	src/FiberPrintPARM.cpp
 	src/FiberPrintPlugIn.cpp
 	)
@@ -81,8 +85,10 @@ add_library(${PROJECT_NAME}
 add_executable(${PROJECT_NAME}_node
 	src/task_sequence_planning_node.cpp
 	)
-target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME} ${catkin_LIBRARIES})
-#${LAPACK_LIBRARIES}
+target_link_libraries(${PROJECT_NAME}_node
+	${PROJECT_NAME}
+	${catkin_LIBRARIES}
+	${LAPACK_LIBRARIES})
 
 #############
 ## Install ##
