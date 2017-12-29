@@ -486,6 +486,8 @@ void FrameFabCoreService::taskSequencePlanningActionCallback(const framefab_msgs
   }
   else
   {
+    // TODO visualize wireframe, show layer decomposition result
+
     srv.request.action = srv.request.TASK_SEQUENCE_SEARCHING;
 
     if (!task_sequence_planning_srv_client_.call(srv))

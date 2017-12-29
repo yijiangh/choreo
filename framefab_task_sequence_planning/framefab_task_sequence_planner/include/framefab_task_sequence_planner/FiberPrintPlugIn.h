@@ -48,6 +48,9 @@
 #include "framefab_task_sequence_planner/sequence_analyzers/FFAnalyzer.h"
 #include "framefab_task_sequence_planner/output_generator/ProcAnalyzer.h"
 
+// ros srv
+#include <framefab_msgs/TaskSequencePlanning.h>
+
 class FiberPrintPlugIn
 {
  public:
@@ -65,17 +68,16 @@ class FiberPrintPlugIn
  public:
   bool Init();
 
-  void setWireFrame(WireFrame *ptr_frame) { ptr_frame_ = ptr_frame; };
-  void setFiberPrintPARM(FiberPrintPARM *ptr_parm) { ptr_parm_ = ptr_parm; };
-
-  // TODO
-  void setOutputPath();
-
   /* Fiber printing */
   void OneLayerPrint();
 
   /* apply stiffness computation directly to the input frame shape */
   void GetDeformation();
+
+  /* ros service */
+  bool handleTaskSequencePlanning(
+      framefab_msgs::TaskSequencePlanning::Request& req,
+      framefab_msgs::TaskSequencePlanning::Response& res);
 
  public:
   WireFrame *ptr_frame_;
@@ -86,6 +88,7 @@ class FiberPrintPlugIn
   SeqAnalyzer *ptr_seqanalyzer_;
   ProcAnalyzer *ptr_procanalyzer_;
 
+  // output saving path
   char *ptr_path_;
   FiberPrintPARM *ptr_parm_;
 

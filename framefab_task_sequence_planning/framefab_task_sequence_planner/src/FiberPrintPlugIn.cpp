@@ -55,6 +55,9 @@ FiberPrintPlugIn::~FiberPrintPlugIn()
 
 	delete ptr_parm_;
 	ptr_parm_ = NULL;
+
+	delete ptr_frame_;
+	ptr_frame_ = NULL;
 }
 
 bool FiberPrintPlugIn::Init()
@@ -129,4 +132,62 @@ void FiberPrintPlugIn::GetDeformation()
 	VX D;
 	ptr_stiffness_->Init();
 	ptr_stiffness_->CalculateD(D, NULL, false, 0, "FiberTest");
+}
+
+bool FiberPrintPlugIn::handleTaskSequencePlanning(
+		framefab_msgs::TaskSequencePlanning::Request& req,
+		framefab_msgs::TaskSequencePlanning::Response& res)
+{
+	switch(req.action)
+	{
+		case framefab_msgs::TaskSequencePlanning::Request::READ_WIREFRAME:
+		{
+			std::string file_path = req.model_params.file_name;
+
+			// TODO: all of these char* should be const char*
+			// convert std::string to writable char*
+			std::vector<char> fp(file_path.begin(), file_path.end());
+			fp.push_back('\0');
+
+			if(NULL == ptr_frame_)
+			{
+				ptr_frame_ = new WireFrame();
+			}
+
+			// TODO: if contains keyword "pwf"
+			ptr_frame_->LoadFromPWF(&fp[0]);
+
+			// TODO add return data for visualization
+
+			break;
+		}
+		case framefab_msgs::TaskSequencePlanning::Request::TASK_SEQUENCE_SEARCHING:
+		{
+			double Wl = 1.0;
+			double Wp = 1.0;
+			double Wa = 1.0;
+
+			if(NULL != ptr_parm_)
+			{
+				delete ptr_parm_;
+			}
+
+			ptr_parm_ = new FiberPrintPARM(Wl, Wp, Wa);
+			ptr_path_ = "/home";
+			terminal_output_ = true;
+
+			OneLayerPrint();
+
+			//TODO: add return data
+
+			break;
+		}
+		default:
+		{
+			ROS_ERROR_STREAM("[ts planning] unknown task sequence planning request action.");
+			return false;
+		}
+	}
+
+	return true;
 }
