@@ -486,7 +486,10 @@ void FrameFabCoreService::taskSequencePlanningActionCallback(const framefab_msgs
   }
   else
   {
-    // TODO visualize wireframe, show layer decomposition result
+    // import data into visual_tools
+    visual_tool_.setVisualWireFrame(srv.response.element_array);
+
+    visual_tool_.visualizeAllWireFrame();
 
     srv.request.action = srv.request.TASK_SEQUENCE_SEARCHING;
 

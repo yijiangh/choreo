@@ -121,10 +121,6 @@ void framefab_gui::TaskSequenceProcessingState::taskSequenceProcessingDoneCallba
   {
     gui_ptr_->setButtonsEnabled(true);
   }
-  else
-  {
-    Q_EMIT newStateAvailable(new SystemInitState());
-  }
 }
 
 void framefab_gui::TaskSequenceProcessingState::taskSequenceProcessingActiveCallback()
