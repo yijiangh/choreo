@@ -45,7 +45,8 @@ class TaskSequenceProcessingState : public GuiState
   void taskSequenceProcessOrPlan();
   bool makeTaskSequenceProcessingRequest(framefab_msgs::ModelInputParameters model_params,
                                          framefab_msgs::TaskSequenceInputParameters task_sequence_params);
-  bool makeTaskSequencePlanningRequest(framefab_msgs::ModelInputParameters model_params);
+  bool makeTaskSequencePlanningRequest(framefab_msgs::ModelInputParameters model_params,
+                                       framefab_msgs::TaskSequenceInputParameters task_sequence_params);
 
   Q_SIGNALS:
   void feedbackReceived(QString feedback);

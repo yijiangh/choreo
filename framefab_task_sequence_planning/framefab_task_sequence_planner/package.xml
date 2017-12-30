@@ -12,9 +12,10 @@
   <build_depend>geometric_tools_engine</build_depend>
   <build_depend>framefab_msgs</build_depend>
   <build_depend>eigen_conversions</build_depend>
+  <build_depend>framefab_rapidjson</build_depend>
 
   <run_depend>geometric_tools_engine</run_depend>
   <run_depend>framefab_msgs</run_depend>
   <run_depend>eigen_conversions</run_depend>
-
+  <run_depend>framefab_rapidjson</run_depend>
 </package>

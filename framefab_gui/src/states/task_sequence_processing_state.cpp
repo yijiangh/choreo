@@ -66,6 +66,7 @@ void framefab_gui::TaskSequenceProcessingState::toNextState()
 
 void framefab_gui::TaskSequenceProcessingState::taskSequenceProcessOrPlan()
 {
+  gui_ptr_->setButtonsEnabled(false);
   if(makeTaskSequenceProcessingRequest(gui_ptr_->params().modelInputParams(),
                                        gui_ptr_->params().taskSequenceInputParams()))
   {
@@ -117,10 +118,6 @@ void framefab_gui::TaskSequenceProcessingState::taskSequenceProcessingDoneCallba
     const actionlib::SimpleClientGoalState& state,
     const framefab_msgs::TaskSequenceProcessingResultConstPtr& result)
 {
-  if(result->succeeded)
-  {
-    gui_ptr_->setButtonsEnabled(true);
-  }
 }
 
 void framefab_gui::TaskSequenceProcessingState::taskSequenceProcessingActiveCallback()
@@ -137,14 +134,17 @@ void framefab_gui::TaskSequenceProcessingState::taskSequencePlanningOn()
 {
   gui_ptr_->setButtonsEnabled(false);
   QtConcurrent::run(this, &TaskSequenceProcessingState::makeTaskSequencePlanningRequest,
-                    gui_ptr_->params().modelInputParams());
+                    gui_ptr_->params().modelInputParams(),
+                    gui_ptr_->params().taskSequenceInputParams());
 }
 
 bool framefab_gui::TaskSequenceProcessingState::makeTaskSequencePlanningRequest(
-    framefab_msgs::ModelInputParameters model_params)
+    framefab_msgs::ModelInputParameters model_params,
+    framefab_msgs::TaskSequenceInputParameters task_sequence_params)
 {
   framefab_msgs::TaskSequencePlanningGoal goal;
   goal.model_params = model_params;
+  goal.task_sequence_params = task_sequence_params;
 
   ROS_INFO("[UI] Waiting for task sequence planning action server to start.");
   task_sequence_planning_action_client_.waitForServer();
@@ -170,12 +170,10 @@ void framefab_gui::TaskSequenceProcessingState::taskSequencePlanningDoneCallback
     const actionlib::SimpleClientGoalState& state,
     const framefab_msgs::TaskSequencePlanningResultConstPtr& result)
 {
-  if (result->succeeded)
+  if (result->succeeded && makeTaskSequenceProcessingRequest(gui_ptr_->params().modelInputParams(),
+                                                             gui_ptr_->params().taskSequenceInputParams()))
   {
     gui_ptr_->setButtonsEnabled(true);
-  }
-  else
-  {
   }
 }
 

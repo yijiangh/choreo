@@ -68,8 +68,7 @@ class FiberPrintPlugIn
  public:
   bool Init();
 
-  /* Fiber printing */
-  void OneLayerPrint();
+  bool DirectSearch();
 
   /* apply stiffness computation directly to the input frame shape */
   void GetDeformation();

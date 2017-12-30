@@ -171,7 +171,7 @@ bool FiberPrintPlugIn::Init()
   }
 }
 
-void FiberPrintPlugIn::OneLayerPrint()
+bool FiberPrintPlugIn::DirectSearch()
 {
   fiber_print_.Start();
 
@@ -187,23 +187,22 @@ void FiberPrintPlugIn::OneLayerPrint()
         file_output_
     );
 
-    ptr_procanalyzer_ = new ProcAnalyzer(ptr_seqanalyzer_, ptr_path_);
-
     if (!ptr_seqanalyzer_->SeqPrint())
     {
-      cout << "Model not printable!" << endl;
-      getchar();
+      ROS_WARN("Model not printable!");
+      return false;
     }
 
     fiber_print_.Stop();
     fiber_print_.Print("OneLayer:");
 
-    //ptr_procanalyzer_->ProcPrint();
+    return true;
   }
   else
   {
     ROS_WARN_STREAM("[ts planning] wireframe, fiber_print parm or output_path not initiated."
                         << "ts planning failed.");
+    return false;
   }
 }
 
@@ -240,7 +239,6 @@ bool FiberPrintPlugIn::handleTaskSequencePlanning(
       ptr_frame_ = new WireFrame();
       ptr_frame_->LoadFromPWF(&fp[0]);
 
-      // TODO add return data for visualization
       convertWireFrameToMsg(req.model_params, *ptr_frame_, res.element_array);
 
       break;
@@ -257,12 +255,30 @@ bool FiberPrintPlugIn::handleTaskSequencePlanning(
       }
 
       ptr_parm_ = new FiberPrintPARM(Wl, Wp, Wa);
+
+      // dummy framefab output path
       ptr_path_ = "/home";
+      const char* json_output_path = req.task_sequence_params.file_path.c_str();
+
       terminal_output_ = true;
 
-      OneLayerPrint();
+      if(DirectSearch())
+      {
+        assert(NULL != ptr_seqanalyzer_);
 
-      //TODO: add return data
+        ptr_procanalyzer_ = new ProcAnalyzer(ptr_seqanalyzer_, json_output_path);
+
+        if(!ptr_procanalyzer_->ProcPrint())
+        {
+          ROS_ERROR_STREAM("[ts planner] proc analyzer failed.");
+          return false;
+        }
+      }
+      else
+      {
+        ROS_ERROR_STREAM("[ts planner] direct searching failed.");
+        return false;
+      }
 
       break;
     }

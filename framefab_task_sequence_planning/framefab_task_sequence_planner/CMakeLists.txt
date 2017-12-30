@@ -7,6 +7,7 @@ find_package(catkin REQUIRED COMPONENTS
 	geometric_tools_engine
 	framefab_msgs
 	eigen_conversions
+	framefab_rapidjson
 	)
 
 #--- Find LAPACK
@@ -34,6 +35,7 @@ catkin_package(
 		#cmake_modules
 		framefab_msgs
 		eigen_conversions
+		framefab_rapidjson
 	DEPENDS
 		LAPACK
 		EIGEN3
