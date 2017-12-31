@@ -66,7 +66,6 @@ bool FFAnalyzer::SeqPrint()
       continue;
     }
 
-
     /* max_z_ and min_z_ in current layer */
     min_z_ = 1e20;
     max_z_ = -min_z_;
@@ -135,6 +134,7 @@ bool FFAnalyzer::GenerateSeq(int l, int h, int t)
   /* next edge in current layer */
   int Nl = layers_[l].size();
 
+  // for all the edges in current layer, generate cost (pruning in cost generation)
   for (int j = 0; j < Nl; j++)
   {
     WF_edge *ej = layers_[l][j];
@@ -176,6 +176,8 @@ bool FFAnalyzer::GenerateSeq(int l, int h, int t)
     // backtrack
     RecoverStateMap(ej, tmp_angle);
     RecoverStructure(ej);
+//    RecoverCollisionObjects();
+
     print_queue_.pop_back();
   }
 
@@ -212,20 +214,20 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej)
     if (exist_uj && exist_vj)
     {
       /* edge j share two ends with printed structure */
-      if (terminal_output_)
-      {
-        fprintf(stderr, "It shares two ends with printed structure\n");
-      }
+//      if (terminal_output_)
+//      {
+//        fprintf(stderr, "It shares two ends with printed structure\n");
+//      }
       P = z;
     }
     else
     if (exist_uj || exist_vj)
     {
       /* edge j share one end with printed structure */
-      if (terminal_output_)
-      {
-        fprintf(stderr, "It shares only one ends with printed structure\n");
-      }
+//      if (terminal_output_)
+//      {
+//        fprintf(stderr, "It shares only one ends with printed structure\n");
+//      }
 
       double ang;
       point pos_uj = ptr_frame_->GetPosition(uj);
@@ -261,6 +263,8 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej)
     }
 
     // TODO: if free directions' number < threshold, check kinematics
+    /* robot kinematics test */
+//    TestRobotKinematics();
 
     /* stiffness test */
     if (!TestifyStiffness(ej))
@@ -307,8 +311,7 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej)
           tmp[o] |= angle_state_[dual_k][o];
         }
 
-        double tmp_range = ptr_collision_->ColFreeAngle(tmp) * 1.0 /
-            ptr_collision_->Divide();
+        double tmp_range = ptr_collision_->ColFreeAngle(tmp) * 1.0 / ptr_collision_->Divide();
         I += exp(-5 * tmp_range * tmp_range);
       }
     }

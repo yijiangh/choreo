@@ -179,8 +179,7 @@ class QuadricCollision
 
   /* (Nd * Nd) * (3) */
   /* (i, j): j's angle map & i printed */
-  vector<vector < lld>*>
-  colli_map_;
+  vector<vector<lld>*> colli_map_;
 };
 
 #endif

@@ -1,6 +1,4 @@
 // ros output
-#include <ros/console.h>
-
 #include "framefab_task_sequence_planner/utils/Timer.h"
 
 Timer::Timer()
@@ -24,7 +22,7 @@ void Timer::Stop()
 {
 	end_time_ = std::chrono::system_clock::now();
 	sum_time_ += std::chrono::duration_cast<std::chrono::duration<double>>
-		(end_time_ - start_time_).count();
+																		(end_time_ - start_time_).count();
 	count_++;
 }
 
@@ -38,11 +36,8 @@ void Timer::Reset()
 
 void Timer::Print(char *item)
 {
-//	printf("%s total-time:%3.4lf   count:%4d   avg-time:%3.4lf\n",
-//		item, sum_time_, count_, sum_time_ / count_);
-
-  ROS_INFO("%s total-time:%3.4lf   count:%4d   avg-time:%3.4lf\n",
-           item, sum_time_, count_, sum_time_ / count_);
+	printf("%s total-time:%3.4lf   count:%4d   avg-time:%3.4lf\n",
+		   item, sum_time_, count_, sum_time_ / count_);
 }
 
 

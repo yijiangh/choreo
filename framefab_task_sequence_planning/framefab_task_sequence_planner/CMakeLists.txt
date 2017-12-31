@@ -5,7 +5,10 @@ find_package(catkin REQUIRED COMPONENTS
 	roscpp
 	#	cmake_modules
 	geometric_tools_engine
+	geometry_msgs
 	framefab_msgs
+	moveit_msgs
+	tf_conversions
 	eigen_conversions
 	framefab_rapidjson
 	)
@@ -33,7 +36,10 @@ catkin_package(
 	CATKIN_DEPENDS
 		geometric_tools_engine
 		#cmake_modules
+		geometry_msgs
 		framefab_msgs
+		moveit_msgs
+		tf_conversions
 		eigen_conversions
 		framefab_rapidjson
 	DEPENDS

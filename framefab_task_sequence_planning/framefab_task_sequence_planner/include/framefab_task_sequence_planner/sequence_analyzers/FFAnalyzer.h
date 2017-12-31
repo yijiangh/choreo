@@ -56,45 +56,43 @@
 
 class FFAnalyzer : public SeqAnalyzer
 {
-public:
-	typedef Eigen::MatrixXd MX;
-	typedef Eigen::Matrix3d M3;
-	typedef Eigen::VectorXd VX;
-	typedef Eigen::Vector3d V3;
+ public:
+  typedef Eigen::MatrixXd MX;
+  typedef Eigen::Matrix3d M3;
+  typedef Eigen::VectorXd VX;
+  typedef Eigen::Vector3d V3;
 
-public:
-	FFAnalyzer(WireFrame *ptr_frame = NULL);
-	FFAnalyzer(
-		DualGraph			*ptr_dualgraph,
-		QuadricCollision	*ptr_collision,
-		Stiffness			*ptr_stiffness,
-		FiberPrintPARM		*ptr_parm,
-		char				*ptr_path,
-		bool				terminal_output = false, 
-		bool				file_output = false
-		)
-		:SeqAnalyzer(ptr_dualgraph, ptr_collision, ptr_stiffness,
-		ptr_parm, ptr_path, terminal_output, file_output){}
-	~FFAnalyzer();
+ public:
+  FFAnalyzer(WireFrame *ptr_frame = NULL);
+  FFAnalyzer(
+		  DualGraph			*ptr_dualgraph,
+		  QuadricCollision	*ptr_collision,
+		  Stiffness			*ptr_stiffness,
+		  FiberPrintPARM		*ptr_parm,
+		  char				*ptr_path,
+		  bool				terminal_output = false,
+		  bool				file_output = false
+  ) :SeqAnalyzer(ptr_dualgraph, ptr_collision, ptr_stiffness,
+				 ptr_parm, ptr_path, terminal_output, file_output){}
+  ~FFAnalyzer();
 
-public:
-	bool			SeqPrint();
+ public:
+  bool SeqPrint();
 
-private:
-	bool			GenerateSeq(int l, int h, int t);
-	double			GenerateCost(WF_edge *ei, WF_edge *ej);
+ private:
+  bool	 GenerateSeq(int l, int h, int t);
+  double GenerateCost(WF_edge *ei, WF_edge *ej);
 
-public:
-	void			PrintOutTimer();
-	void			WriteRenderPath(int min_layer, int max_layer, char *ptr_path);
+ public:
+  void PrintOutTimer();
+  void WriteRenderPath(int min_layer, int max_layer, char *ptr_path);
 
-private:
-	vector<vector<WF_edge*>>	layers_;			// store dual_node's id for each layers
+ private:
+  vector<vector<WF_edge*>> layers_; // store dual_node's id for each layers
 
-	double			min_z_;
-	double			max_z_;
+  double min_z_;
+  double max_z_;
 
-
-	Timer			FF_analyzer_;
+  Timer FF_analyzer_;
 };
 
