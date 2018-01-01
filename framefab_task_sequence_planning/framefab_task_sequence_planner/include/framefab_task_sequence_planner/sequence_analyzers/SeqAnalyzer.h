@@ -86,19 +86,19 @@ class SeqAnalyzer
   void Init();
 
   void PrintPillars();
-  void UpdateStructure(WF_edge *e);
-  void RecoverStructure(WF_edge *e);
+  void UpdateStructure(WF_edge *e, bool update_collision = false);
+  void RecoverStructure(WF_edge *e, bool recover_collision = false);
   void UpdateStateMap(WF_edge *e, vector<vector<lld>> &state_map);
   void RecoverStateMap(WF_edge *e, vector<vector<lld>> &state_map);
   bool TestifyStiffness(WF_edge *e);
+  bool TestRobotKinematics(WF_edge* e);
 
+ private:
   // robot kinematics related
   // the collision obj's update and recover are called
   // inside UpdateStructure and RecoverStructure.
   void UpdateCollisionObjects(WF_edge* e);
   void RecoverCollisionObjects(WF_edge* e);
-
-  bool TestRobotKinematics(WF_edge* e);
 
  public:
   WireFrame* ptr_frame_;

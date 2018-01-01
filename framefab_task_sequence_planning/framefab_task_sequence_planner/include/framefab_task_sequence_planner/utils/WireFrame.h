@@ -77,8 +77,8 @@ class WF_vert
  public:
   point		Position()		{ return position_; }
   point		RenderPos()		{ return render_pos_; }
-  int			ID()			{ return id_; }
-  int			Degree()		{ return degree_; }
+  int		ID()			{ return id_; }
+  int		Degree()		{ return degree_; }
 
   bool		isFixed()		{ return b_fixed_; }
   bool		isBase()		{ return b_base_; }

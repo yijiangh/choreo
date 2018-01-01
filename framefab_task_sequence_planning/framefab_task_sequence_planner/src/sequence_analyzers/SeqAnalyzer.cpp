@@ -1,75 +1,8 @@
 #include "framefab_task_sequence_planner/sequence_analyzers/SeqAnalyzer.h"
 
 #include <moveit_msgs/CollisionObject.h>
-#include <tf_conversions/tf_eigen.h>
-#include <eigen_conversions/eigen_msg.h>
-
-const static std::string COLLISION_OBJ_PREFIX = "tsp_wireframe_element";
 
 namespace{
-double dist(const Eigen::Vector3d& from, const Eigen::Vector3d& to)
-{
-  return (from - to).norm();
-}
-
-geometry_msgs::Pose computeCylinderPose(Eigen::Vector3d& st_pt, Eigen::Vector3d& end_pt)
-{
-  geometry_msgs::Pose cylinder_pose;
-
-  // rotation
-  Eigen::Vector3d axis = end_pt - st_pt;
-  axis.normalize();
-  Eigen::Vector3d z_vec(0.0, 0.0, 1.0);
-  const Eigen::Vector3d& x_vec = axis.cross(z_vec);
-
-  tf::Quaternion tf_q;
-  if(0 == x_vec.norm())
-  {
-    // axis = z_vec
-    tf_q = tf::Quaternion(0, 0, 0, 1);
-  }
-  else
-  {
-    double theta = axis.dot(z_vec);
-    double angle = -1.0 * acos(theta);
-
-    // convert eigen vertor to tf::Vector3
-    tf::Vector3 x_vec_tf;
-    tf::vectorEigenToTF(x_vec, x_vec_tf);
-
-    // Create quaternion
-    tf_q = tf::Quaternion(x_vec_tf, angle);
-    tf_q.normalize();
-  }
-
-  //back to ros coords
-  tf::quaternionTFToMsg(tf_q, cylinder_pose.orientation);
-  tf::pointEigenToMsg((end_pt + st_pt) * 0.5, cylinder_pose.position);
-
-  return cylinder_pose;
-}
-
-void convertWFEdgeToCollisionObject(WF_edge* e, moveit_msgs::CollisionObject& collision_cylinder)
-{
-  std::string cylinder_id = COLLISION_OBJ_PREFIX + std::to_string(e->ID());
-
-  // TODO: make frame_id as input parameter
-  collision_cylinder.id = cylinder_id;
-  collision_cylinder.header.frame_id = "world_frame";
-  collision_cylinder.operation = moveit_msgs::CollisionObject::ADD;
-
-  shape_msgs::SolidPrimitive cylinder_solid;
-  cylinder_solid.type = shape_msgs::SolidPrimitive::CYLINDER;
-  cylinder_solid.dimensions.resize(2);
-
-  // TODO
-//  cylinder_solid.dimensions[0] = dist(st_pt, end_pt);
-
-  cylinder_solid.dimensions[1] = element_diameter;
-  collision_cylinder.primitives.push_back(cylinder_solid);
-  collision_cylinder.primitive_poses.push_back(computeCylinderPose(st_pt, end_pt));
-}
-
 }// util namespace
 
 SeqAnalyzer::SeqAnalyzer()
@@ -190,7 +123,7 @@ void SeqAnalyzer::PrintPillars()
   }
 }
 
-void SeqAnalyzer::UpdateStructure(WF_edge *e)
+void SeqAnalyzer::UpdateStructure(WF_edge *e, bool update_collision)
 {
 //  if (terminal_output_)
 //  {
@@ -244,9 +177,14 @@ void SeqAnalyzer::UpdateStructure(WF_edge *e)
 //  {
 //    upd_struct_.Stop();
 //  }
+
+  if(update_collision)
+  {
+    UpdateCollisionObjects(e);
+  }
 }
 
-void SeqAnalyzer::RecoverStructure(WF_edge *e)
+void SeqAnalyzer::RecoverStructure(WF_edge *e, bool recover_collision)
 {
 //  if (terminal_output_)
 //  {
@@ -271,8 +209,12 @@ void SeqAnalyzer::RecoverStructure(WF_edge *e)
 //  {
 //    rec_struct_.Stop();
 //  }
-}
 
+ if(recover_collision)
+ {
+    RecoverCollisionObjects(e);
+ }
+}
 
 void SeqAnalyzer::UpdateStateMap(WF_edge *order_e, vector<vector<lld>> &state_map)
 {

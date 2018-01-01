@@ -8,13 +8,94 @@
 #include <framefab_msgs/TaskSequenceInputParameters.h>
 
 // util
+#include <tf_conversions/tf_eigen.h>
 #include <eigen_conversions/eigen_msg.h>
 
+const static std::string COLLISION_OBJ_PREFIX = "tsp_wireframe_element";
+
 namespace{
+double dist(const Eigen::Vector3d& from, const Eigen::Vector3d& to)
+{
+  return (from - to).norm();
+}
+
+void createShrinkedEndPoint(Eigen::Vector3d& st_pt, Eigen::Vector3d& end_pt,
+                            const double& shrink_length)
+{
+  Eigen::Vector3d translation_vec = end_pt - st_pt;
+  translation_vec.normalize();
+
+  st_pt = st_pt + shrink_length * translation_vec;
+  end_pt = end_pt - shrink_length * translation_vec;
+}
+
+geometry_msgs::Pose computeCylinderPose(const Eigen::Vector3d& st_pt, const Eigen::Vector3d& end_pt)
+{
+  geometry_msgs::Pose cylinder_pose;
+
+  // rotation
+  Eigen::Vector3d axis = end_pt - st_pt;
+  axis.normalize();
+  Eigen::Vector3d z_vec(0.0, 0.0, 1.0);
+  const Eigen::Vector3d& x_vec = axis.cross(z_vec);
+
+  tf::Quaternion tf_q;
+  if(0 == x_vec.norm())
+  {
+    // axis = z_vec
+    tf_q = tf::Quaternion(0, 0, 0, 1);
+  }
+  else
+  {
+    double theta = axis.dot(z_vec);
+    double angle = -1.0 * acos(theta);
+
+    // convert eigen vertor to tf::Vector3
+    tf::Vector3 x_vec_tf;
+    tf::vectorEigenToTF(x_vec, x_vec_tf);
+
+    // Create quaternion
+    tf_q = tf::Quaternion(x_vec_tf, angle);
+    tf_q.normalize();
+  }
+
+  //back to ros coords
+  tf::quaternionTFToMsg(tf_q, cylinder_pose.orientation);
+  tf::pointEigenToMsg((end_pt + st_pt) * 0.5, cylinder_pose.position);
+
+  return cylinder_pose;
+}
+
+moveit_msgs::CollisionObject convertWFEdgeToCollisionObject(
+    int edge_id, const Eigen::Vector3d st_pt, const Eigen::Vector3d end_pt, double element_diameter)
+{
+  moveit_msgs::CollisionObject collision_cylinder;
+  std::string cylinder_id = COLLISION_OBJ_PREFIX + std::to_string(edge_id);
+
+  // TODO: make frame_id as input parameter
+  collision_cylinder.id = cylinder_id;
+  collision_cylinder.header.frame_id = "world_frame";
+  collision_cylinder.operation = moveit_msgs::CollisionObject::ADD;
+
+  shape_msgs::SolidPrimitive cylinder_solid;
+  cylinder_solid.type = shape_msgs::SolidPrimitive::CYLINDER;
+  cylinder_solid.dimensions.resize(2);
+
+  cylinder_solid.dimensions[0] = dist(st_pt, end_pt);
+
+  cylinder_solid.dimensions[1] = element_diameter;
+  collision_cylinder.primitives.push_back(cylinder_solid);
+  collision_cylinder.primitive_poses.push_back(computeCylinderPose(st_pt, end_pt));
+
+  return collision_cylinder;
+}
+
 void convertWireFrameToMsg(
     const framefab_msgs::ModelInputParameters& model_params,
     WireFrame& wire_frame, std::vector<framefab_msgs::ElementCandidatePoses>& wf_msgs)
 {
+  wf_msgs.clear();
+
   // set unit scale
   double unit_scale = 1.0;
   switch (model_params.unit_type)
@@ -60,7 +141,7 @@ void convertWireFrameToMsg(
     if(e->ID() < e->ppair_->ID())
     {
       framefab_msgs::ElementCandidatePoses element_msg;
-      element_msg.element_id = i;
+      element_msg.element_id = e->ID();
 
       Eigen::Vector3d eigen_st_pt(e->ppair_->pvert_->Position().x(),
                                   e->ppair_->pvert_->Position().y(),
@@ -76,6 +157,20 @@ void convertWireFrameToMsg(
       element_msg.element_diameter = model_params.element_diameter * unit_scale;
 
       element_msg.layer_id = e->Layer();
+
+      // create collision objs
+      Eigen::Vector3d shrinked_st_pt = eigen_st_pt;
+      Eigen::Vector3d shrinked_end_pt = eigen_end_pt;
+      createShrinkedEndPoint(shrinked_st_pt, shrinked_end_pt, model_params.shrink_length);
+
+      element_msg.both_side_shrinked_collision_object = convertWFEdgeToCollisionObject(
+          e->ID(), shrinked_st_pt, shrinked_end_pt, model_params.element_diameter);
+
+      element_msg.st_shrinked_collision_object = convertWFEdgeToCollisionObject(
+          e->ID(), shrinked_st_pt, eigen_st_pt, model_params.element_diameter);
+
+      element_msg.end_shrinked_collision_object= convertWFEdgeToCollisionObject(
+          e->ID(), eigen_st_pt, shrinked_st_pt, model_params.element_diameter);
 
       wf_msgs.push_back(element_msg);
     }
@@ -239,7 +334,8 @@ bool FiberPrintPlugIn::handleTaskSequencePlanning(
       ptr_frame_ = new WireFrame();
       ptr_frame_->LoadFromPWF(&fp[0]);
 
-      convertWireFrameToMsg(req.model_params, *ptr_frame_, res.element_array);
+      convertWireFrameToMsg(req.model_params, *ptr_frame_, frame_msgs_);
+      res.element_array = frame_msgs_;
 
       break;
     }

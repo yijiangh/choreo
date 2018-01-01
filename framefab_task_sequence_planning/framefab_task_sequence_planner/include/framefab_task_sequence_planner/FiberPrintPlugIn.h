@@ -51,6 +51,11 @@
 // ros srv
 #include <framefab_msgs/TaskSequencePlanning.h>
 
+struct WFEdgeCollisionObject
+{
+
+};
+
 class FiberPrintPlugIn
 {
  public:
@@ -83,6 +88,7 @@ class FiberPrintPlugIn
   DualGraph *ptr_dualgraph_;
   QuadricCollision *ptr_collision_;
   Stiffness *ptr_stiffness_;
+  std::vector<framefab_msgs::ElementCandidatePoses> frame_msgs_;
 
   SeqAnalyzer *ptr_seqanalyzer_;
   ProcAnalyzer *ptr_procanalyzer_;

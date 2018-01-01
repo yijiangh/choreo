@@ -9,6 +9,8 @@ int32 type
 
 int32 layer_id
 
+# for wireframe, start pt = e->ppair->pvert
+# for wireframe, end pt = e->pvert
 geometry_msgs/Point start_pt
 geometry_msgs/Point end_pt
 
