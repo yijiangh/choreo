@@ -100,7 +100,7 @@ class SeqAnalyzer
 
   void PrintPillars();
   void UpdateStructure(WF_edge *e, bool update_collision = false);
-  void RecoverStructure(WF_edge *e, bool recover_collision = false);
+  void RecoverStructure(WF_edge *e, bool update_collision = false);
   void UpdateStateMap(WF_edge *e, vector<vector<lld>> &state_map);
   void RecoverStateMap(WF_edge *e, vector<vector<lld>> &state_map);
   bool TestifyStiffness(WF_edge *e);
@@ -111,8 +111,8 @@ class SeqAnalyzer
   // robot kinematics related
   // the collision obj's update and recover are called
   // inside UpdateStructure and RecoverStructure.
-  void UpdateCollisionObjects(WF_edge* e);
-  void RecoverCollisionObjects(WF_edge* e);
+  void UpdateCollisionObjects(WF_edge* e, bool shrink = false);
+  void RecoverCollisionObjects(WF_edge* e, bool shrink = false);
 
  public:
   WireFrame* ptr_frame_;
@@ -142,6 +142,8 @@ class SeqAnalyzer
   bool terminal_output_;
   bool file_output_;
 
+  bool update_collision_;
+
   Timer	upd_struct_;
   Timer	rec_struct_;
   Timer	upd_map_;
@@ -152,4 +154,6 @@ class SeqAnalyzer
   descartes_core::RobotModelPtr hotend_model_;
   moveit::core::RobotModelConstPtr moveit_model_;
   std::string hotend_group_name_;
+
+  planning_scene::PlanningScenePtr planning_scene_;
 };

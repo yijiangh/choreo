@@ -121,17 +121,17 @@ class WF_edge
   ~WF_edge(){}
 
  public:
-  int			ID()			{ return id_; }
-  int			Layer()			{ return layer_; }
-  bool		isPillar()		{ return b_pillar_; }
-  bool		isCeiling()		{ return b_ceiling_; }
-  bool		isSubgraph()	{ return b_subg_; }
+  int ID()			{ return id_; }
+  int Layer()			{ return layer_; }
+  bool isPillar()		{ return b_pillar_; }
+  bool isCeiling()		{ return b_ceiling_; }
+  bool isSubgraph()	{ return b_subg_; }
 
-  void		SetID(int id)				{ id_ = id; }
-  void		SetLayer(int layer)			{ layer_ = layer; }
-  void		SetPillar(bool b_pillar)	{ b_pillar_ = b_pillar; }
-  void		SetCeiling(bool b_ceiling)	{ b_ceiling_ = b_ceiling; }
-  void		SetSubgraph(bool b_subg)	{ b_subg_ = b_subg; }
+  void SetID(int id)				{ id_ = id; }
+  void SetLayer(int layer)			{ layer_ = layer; }
+  void SetPillar(bool b_pillar)	{ b_pillar_ = b_pillar; }
+  void SetCeiling(bool b_ceiling)	{ b_ceiling_ = b_ceiling; }
+  void SetSubgraph(bool b_subg)	{ b_subg_ = b_subg; }
 
   point CenterPos()
   {

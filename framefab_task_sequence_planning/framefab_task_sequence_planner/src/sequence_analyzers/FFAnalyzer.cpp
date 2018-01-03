@@ -154,10 +154,7 @@ bool FFAnalyzer::GenerateSeq(int l, int h, int t)
     print_queue_.push_back(ej);
 
     /* update printed subgraph */
-    UpdateStructure(ej);
-
-    // TODO: update collision objects
-//    UpdateCollisionObjects(ej);
+    UpdateStructure(ej, update_collision_);
 
     /* update collision */
     vector<vector<lld>> tmp_angle(3);
@@ -175,8 +172,7 @@ bool FFAnalyzer::GenerateSeq(int l, int h, int t)
 
     // backtrack
     RecoverStateMap(ej, tmp_angle);
-    RecoverStructure(ej);
-//    RecoverCollisionObjects();
+    RecoverStructure(ej, update_collision_);
 
     print_queue_.pop_back();
   }

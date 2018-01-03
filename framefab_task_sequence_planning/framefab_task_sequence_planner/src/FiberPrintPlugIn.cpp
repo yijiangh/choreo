@@ -135,7 +135,7 @@ void convertWireFrameToMsg(
                                                 model_params.ref_pt_y - base_pt.y(),
                                                 model_params.ref_pt_z - base_pt.z());
 
-  wf_msgs.reserve(wire_frame.SizeOfEdgeList());
+  wf_msgs.resize(wire_frame.SizeOfEdgeList());
 
   for(std::size_t i=0; i < wire_frame.SizeOfEdgeList(); i++)
   {
@@ -175,7 +175,10 @@ void convertWireFrameToMsg(
       element_msg.end_shrinked_collision_object= convertWFEdgeToCollisionObject(
           e->ID(), eigen_st_pt, shrinked_st_pt, model_params.element_diameter);
 
-      wf_msgs.push_back(element_msg);
+      // TODO: this is redundant, a quick patch to make it work with wireframe's double-edge
+      // data structure
+      wf_msgs[e->ID()] = element_msg;
+      wf_msgs[e->ppair_->ID()] = element_msg;
     }
   }
 }
@@ -286,7 +289,7 @@ bool FiberPrintPlugIn::DirectSearch()
 
   if(Init())
   {
-    assert(ptr_frame_->SizeOfEdgeList()/2 == frame_msgs_.size());
+    assert(ptr_frame_->SizeOfEdgeList() == frame_msgs_.size());
 
     ptr_seqanalyzer_ = new FFAnalyzer(
         ptr_dualgraph_,

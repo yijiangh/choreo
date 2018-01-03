@@ -1,5 +1,11 @@
+#include <ros/console.h>
+
 #include "framefab_task_sequence_planner/sequence_analyzers/SeqAnalyzer.h"
 
+// planning scene
+#include <moveit/planning_scene/planning_scene.h>
+
+// msgs
 #include <moveit_msgs/CollisionObject.h>
 
 namespace{
@@ -36,6 +42,8 @@ SeqAnalyzer::SeqAnalyzer(
   terminal_output_ = terminal_output;
   file_output_ = file_output;
 
+  update_collision_ = true;
+
   hotend_model_ = hotend_model;
   moveit_model_ = moveit_model;
   hotend_group_name_ = hotend_group_name;
@@ -70,6 +78,11 @@ void SeqAnalyzer::Init()
   angle_state_.resize(Nd_);
 
   ptr_dualgraph_->Init();
+
+  // init base planning scene
+  planning_scene_ = planning_scene::PlanningScenePtr(new planning_scene::PlanningScene(moveit_model_));
+  planning_scene_->getCurrentStateNonConst().setToDefaultValues();
+  planning_scene_->getCurrentStateNonConst().update();
 }
 
 void SeqAnalyzer::PrintPillars()
@@ -120,7 +133,8 @@ void SeqAnalyzer::UpdateStructure(WF_edge *e, bool update_collision)
 
   if(update_collision)
   {
-    UpdateCollisionObjects(e);
+    // add full collision obj without shrinking
+    UpdateCollisionObjects(e, false);
   }
 
   int dual_upd = ptr_dualgraph_->UpdateDualization(e);
@@ -172,7 +186,7 @@ void SeqAnalyzer::UpdateStructure(WF_edge *e, bool update_collision)
 //  }
 }
 
-void SeqAnalyzer::RecoverStructure(WF_edge *e, bool recover_collision)
+void SeqAnalyzer::RecoverStructure(WF_edge *e, bool update_collision)
 {
 //  if (terminal_output_)
 //  {
@@ -198,10 +212,11 @@ void SeqAnalyzer::RecoverStructure(WF_edge *e, bool recover_collision)
 //    rec_struct_.Stop();
 //  }
 
- if(recover_collision)
- {
-    RecoverCollisionObjects(e);
- }
+  if(update_collision)
+  {
+    // pop full collision obj without dealing with neighnoring edges
+    RecoverCollisionObjects(e, false);
+  }
 }
 
 void SeqAnalyzer::UpdateStateMap(WF_edge *order_e, vector<vector<lld>> &state_map)
@@ -275,38 +290,155 @@ void SeqAnalyzer::RecoverStateMap(WF_edge *order_e, vector<vector<lld>> &state_m
 //  }
 }
 
-void SeqAnalyzer::UpdateCollisionObjects(WF_edge* e)
+void SeqAnalyzer::UpdateCollisionObjects(WF_edge* e, bool shrink)
 {
-  // for connected vert of this edge
-  int orig_j = e->ID();
+  int orig_j;
+  if(e->ID() < e->ppair_->ID())
+  {
+    orig_j = e->ID();
+  }
+  else
+  {
+    orig_j = e->ppair_->ID();
+  }
+
+  assert(orig_j < frame_msgs_.size());
+  moveit_msgs::CollisionObject e_collision_obj;
+
+  // st node index
   int uj = ptr_frame_->GetEndu(orig_j);
-  int vj = ptr_frame_->GetEndv(orig_j);
   bool exist_uj = ptr_dualgraph_->isExistingVert(uj);
+
+  // end node index
+  int vj = ptr_frame_->GetEndv(orig_j);
   bool exist_vj = ptr_dualgraph_->isExistingVert(vj);
 
-//  if(exist_uj && exist_vj)
-//  {
-//
-//  }
+  std::vector<int> shrink_vert_ids;
 
-  // shrink the connected sides of this edge
+  if(shrink || (exist_uj && exist_vj))
+  {
+    // both vertices exist, <connect> type, shrink both side
+    e_collision_obj = frame_msgs_[orig_j].both_side_shrinked_collision_object;
+    shrink_vert_ids.push_back(uj);
+    shrink_vert_ids.push_back(vj);
+  }
+  else
+  {
+    // only one vertex exist, <create type>
+    if(exist_uj)
+    {
+      e_collision_obj = frame_msgs_[orig_j].st_shrinked_collision_object;
+      shrink_vert_ids.push_back(uj);
+    }
+
+    if(exist_vj)
+    {
+      e_collision_obj = frame_msgs_[orig_j].end_shrinked_collision_object;
+      shrink_vert_ids.push_back(vj);
+    }
+  }
 
   // add this edge to the planning scene
+  auto child_scene = planning_scene_->diff();
 
-  // query connected & existing edges for these nodes, shrink them
+  if (!child_scene->processCollisionObjectMsg(e_collision_obj))
+  {
+    ROS_WARN_STREAM("[ts planning] Failed to add shrinked collision object: edge #" << orig_j);
+  }
 
-  // pop these edges from existing planning_scene, replace with the shrinked ones
+  if(shrink)
+  {
+    // query connected & existing edges for these nodes, shrink them
+    for (const auto &connect_vert_id : shrink_vert_ids)
+    {
+      WF_edge *eu = ptr_frame_->GetNeighborEdge(connect_vert_id);
 
+      while (eu != NULL)
+      {
+        // pop the neighnor edge from existing planning scene
+
+        // replace with shrinked ones
+
+        eu = eu->pnext_;
+      }
+    }
+  }
 }
 
-void SeqAnalyzer::RecoverCollisionObjects(WF_edge* e)
+void SeqAnalyzer::RecoverCollisionObjects(WF_edge* e, bool shrink)
 {
-  // pop this edge from planning scene
+  int orig_j;
+  if(e->ID() < e->ppair_->ID())
+  {
+    orig_j = e->ID();
+  }
+  else
+  {
+    orig_j = e->ppair_->ID();
+  }
 
-  // query connected & existing edges for the connected node, shrink them
+  assert(orig_j < frame_msgs_.size());
+  moveit_msgs::CollisionObject e_collision_obj;
 
-  // pop these edges from existing planning_scene, replace with the shrinked ones
+  // st node index
+  int uj = ptr_frame_->GetEndu(orig_j);
+  bool exist_uj = ptr_dualgraph_->isExistingVert(uj);
 
+  // end node index
+  int vj = ptr_frame_->GetEndv(orig_j);
+  bool exist_vj = ptr_dualgraph_->isExistingVert(vj);
+
+  std::vector<int> shrink_vert_ids;
+
+  if(shrink || (exist_uj && exist_vj))
+  {
+    // both vertices exist, <connect> type, shrink both side
+    e_collision_obj = frame_msgs_[orig_j].both_side_shrinked_collision_object;
+    shrink_vert_ids.push_back(uj);
+    shrink_vert_ids.push_back(vj);
+  }
+  else
+  {
+    // only one vertex exist, <create type>
+    if(exist_uj)
+    {
+      e_collision_obj = frame_msgs_[orig_j].st_shrinked_collision_object;
+      shrink_vert_ids.push_back(uj);
+    }
+
+    if(exist_vj)
+    {
+      e_collision_obj = frame_msgs_[orig_j].end_shrinked_collision_object;
+      shrink_vert_ids.push_back(vj);
+    }
+  }
+
+  // add this edge to the planning scene
+  auto child_scene = planning_scene_->diff();
+
+  // TODO: pop collision obj
+//  if (!child_scene->processCollisionObjectMsg(e_collision_obj))
+//  {
+//    ROS_WARN_STREAM("[ts planning] Failed to add shrinked collision object: edge #" << orig_j);
+//  }
+
+  if(shrink)
+  {
+    // query connected & existing edges for these nodes, shrink them
+    for (const auto &connect_vert_id : shrink_vert_ids)
+    {
+      WF_edge *eu = ptr_frame_->GetNeighborEdge(connect_vert_id);
+
+      while (eu != NULL)
+      {
+        // pop the neighnor edge from existing planning scene
+
+        // replace with shrinked ones
+
+        eu = eu->pnext_;
+      }
+    }
+  }
 }
 
 bool SeqAnalyzer::TestifyStiffness(WF_edge *e)
@@ -317,7 +449,7 @@ bool SeqAnalyzer::TestifyStiffness(WF_edge *e)
 //  }
 
   /* insert a trail edge */
-  UpdateStructure(e);
+  UpdateStructure(e, false);
 
   /* examinate stiffness on printing subgraph */
   ptr_stiffness_->Init();
@@ -350,7 +482,7 @@ bool SeqAnalyzer::TestifyStiffness(WF_edge *e)
   D0_ = D;
 
   /* remove the trail edge */
-  RecoverStructure(e);
+  RecoverStructure(e, false);
 
 //  if (terminal_output_)
 //  {
