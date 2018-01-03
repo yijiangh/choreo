@@ -53,6 +53,13 @@
 #include "framefab_task_sequence_planner/utils/QuadricCollision.h"
 #include "framefab_task_sequence_planner/utils/ResolveAngle.h"
 
+// msgs
+#include <framefab_msgs/ElementCandidatePoses.h>
+
+// robot model
+#include <descartes_core/robot_model.h>
+#include <pluginlib/class_loader.h>
+
 class SeqAnalyzer
 {
  public:
@@ -62,17 +69,23 @@ class SeqAnalyzer
   typedef Eigen::Vector3d V3;
 
  public:
-  SeqAnalyzer();
-  SeqAnalyzer(
+//  SeqAnalyzer();
+  explicit SeqAnalyzer(
       DualGraph			*ptr_dualgraph,
       QuadricCollision	*ptr_collision,
       Stiffness			*ptr_stiffness,
       FiberPrintPARM	*ptr_parm,
       char				*ptr_path,
-      bool				terminal_output = false,
-      bool				file_output = false
-  );
+      bool				terminal_output,
+      bool				file_output,
+      descartes_core::RobotModelPtr hotend_model,
+      moveit::core::RobotModelConstPtr moveit_model,
+      std::string hotend_group_name
+  ) noexcept;
+
   virtual ~SeqAnalyzer();
+
+  void setFrameMsgs(const std::vector<framefab_msgs::ElementCandidatePoses>& frame_msg){ frame_msgs_ = frame_msg; };
 
  public:
   virtual bool SeqPrint();
@@ -91,6 +104,7 @@ class SeqAnalyzer
   void UpdateStateMap(WF_edge *e, vector<vector<lld>> &state_map);
   void RecoverStateMap(WF_edge *e, vector<vector<lld>> &state_map);
   bool TestifyStiffness(WF_edge *e);
+
   bool TestRobotKinematics(WF_edge* e);
 
  private:
@@ -106,6 +120,8 @@ class SeqAnalyzer
   Stiffness* ptr_stiffness_;
   QuadricCollision* ptr_collision_;
   char* ptr_path_;
+
+  std::vector<framefab_msgs::ElementCandidatePoses> frame_msgs_;
 
  protected:
   /* maintaining for sequence */
@@ -132,4 +148,8 @@ class SeqAnalyzer
   Timer	upd_map_collision_;
   Timer	rec_map_;
   Timer	test_stiff_;
+
+  descartes_core::RobotModelPtr hotend_model_;
+  moveit::core::RobotModelConstPtr moveit_model_;
+  std::string hotend_group_name_;
 };

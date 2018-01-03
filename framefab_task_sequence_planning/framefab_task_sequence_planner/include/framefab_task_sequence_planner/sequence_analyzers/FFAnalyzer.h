@@ -63,17 +63,21 @@ class FFAnalyzer : public SeqAnalyzer
   typedef Eigen::Vector3d V3;
 
  public:
-  FFAnalyzer(WireFrame *ptr_frame = NULL);
-  FFAnalyzer(
+  explicit FFAnalyzer(
 		  DualGraph			*ptr_dualgraph,
 		  QuadricCollision	*ptr_collision,
 		  Stiffness			*ptr_stiffness,
 		  FiberPrintPARM		*ptr_parm,
 		  char				*ptr_path,
-		  bool				terminal_output = false,
-		  bool				file_output = false
-  ) :SeqAnalyzer(ptr_dualgraph, ptr_collision, ptr_stiffness,
-				 ptr_parm, ptr_path, terminal_output, file_output){}
+		  bool				terminal_output,
+		  bool				file_output,
+		  descartes_core::RobotModelPtr hotend_model,
+		  moveit::core::RobotModelConstPtr moveit_model,
+		  std::string hotend_group_name
+  ) noexcept
+		  : SeqAnalyzer(ptr_dualgraph, ptr_collision, ptr_stiffness,
+						ptr_parm, ptr_path, terminal_output, file_output,
+						hotend_model, moveit_model, hotend_group_name){}
   ~FFAnalyzer();
 
  public:
@@ -85,7 +89,6 @@ class FFAnalyzer : public SeqAnalyzer
 
  public:
   void PrintOutTimer();
-  void WriteRenderPath(int min_layer, int max_layer, char *ptr_path);
 
  private:
   vector<vector<WF_edge*>> layers_; // store dual_node's id for each layers

@@ -51,6 +51,13 @@
 // ros srv
 #include <framefab_msgs/TaskSequencePlanning.h>
 
+// ros msg
+#include <framefab_msgs/ElementCandidatePoses.h>
+
+// robot model
+#include <descartes_core/robot_model.h>
+#include <pluginlib/class_loader.h>
+
 struct WFEdgeCollisionObject
 {
 
@@ -63,11 +70,10 @@ class FiberPrintPlugIn
   typedef Eigen::VectorXd VX;
 
  public:
-  FiberPrintPlugIn();
-  FiberPrintPlugIn(
-		  WireFrame *ptr_frame, FiberPrintPARM *ptr_parm, char *ptr_path = NULL,
-		  bool terminal_output = false, bool file_output = false
-  );
+  FiberPrintPlugIn(const std::string& world_frame,
+                   const std::string& hotend_group, const std::string& hotend_tcp,
+                   const std::string& robot_model_plugin);
+
   ~FiberPrintPlugIn();
 
  public:
@@ -102,6 +108,12 @@ class FiberPrintPlugIn
 
   bool terminal_output_;
   bool file_output_;
+
+ private:
+  descartes_core::RobotModelPtr hotend_model_;
+  moveit::core::RobotModelConstPtr moveit_model_;
+  pluginlib::ClassLoader<descartes_core::RobotModel> plugin_loader_; // kept around so code doesn't get unloaded
+  std::string hotend_group_name_;
 };
 
 #endif // FIBERPRINTPLUGIN_H

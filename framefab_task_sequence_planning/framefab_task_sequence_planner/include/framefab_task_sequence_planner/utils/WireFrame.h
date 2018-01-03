@@ -183,62 +183,62 @@ class WireFrame
   ~WireFrame();
 
  public:
-  void		LoadFromOBJ(const char *path);
-  void		LoadFromPWF(const char *path);
-  void		WriteToOBJ(const char *path);
-  void		WriteToPWF(
-		  bool bVert, bool bLine,
-		  bool bPillar, bool bCeiling,
-		  bool bCut, int min_layer, int max_layer,
-		  const char *path
+  void LoadFromOBJ(const char *path);
+  void LoadFromPWF(const char *path);
+  void WriteToOBJ(const char *path);
+  void WriteToPWF(
+      bool bVert, bool bLine,
+      bool bPillar, bool bCeiling,
+      bool bCut, int min_layer, int max_layer,
+      const char *path
   );
 
-  void		ImportFrom3DD(const char *path);
+  void ImportFrom3DD(const char *path);
 
-  void		ExportSubgraph(const char *path);
-  void		ExportPoints(int min_layer, int max_layer, const char *path);
-  void		ExportLines(int min_layer, int max_layer, const char *path);
+  void ExportSubgraph(const char *path);
+  void ExportPoints(int min_layer, int max_layer, const char *path);
+  void ExportLines(int min_layer, int max_layer, const char *path);
 
-  WF_vert*	InsertVertex(const Vec3f p);
-  WF_edge*	InsertEdge(WF_vert *u, WF_vert *v);
-  WF_edge*	InsertOneWayEdge(WF_vert *u, WF_vert *v);
+  WF_vert* InsertVertex(const Vec3f p);
+  WF_edge* InsertEdge(WF_vert *u, WF_vert *v);
+  WF_edge* InsertOneWayEdge(WF_vert *u, WF_vert *v);
 
-  void		Unify();
-  point		Unify(Vec3f p);
+  void Unify();
+  point Unify(Vec3f p);
 
-  void		SimplifyFrame();
-  void		ProjectBound(double len);
-  void		ModifyProjection(double len);
-  void		MakeBase(vector<WF_vert*> &base_v);
-  void		MakeCeiling(vector<WF_edge*> &bound_e);
-  void		MakeSubGraph(vector<WF_edge*> &subg_e);
+  void SimplifyFrame();
+  void ProjectBound(double len);
+  void ModifyProjection(double len);
+  void MakeBase(vector<WF_vert*> &base_v);
+  void MakeCeiling(vector<WF_edge*> &bound_e);
+  void MakeSubGraph(vector<WF_edge*> &subg_e);
 
   inline int SizeOfVertList() { return pvert_list_->size(); }
-  inline int SizeOfEdgeList()	{ return pedge_list_->size(); }
+  inline int SizeOfEdgeList() { return pedge_list_->size(); }
   inline int SizeOfFixedVert() { return fixed_vert_; }
-  inline int SizeOfBaseVert()	{ return base_vert_; }
+  inline int SizeOfBaseVert() { return base_vert_; }
   inline int SizeOfPillar() { return pillar_size_; }
   inline int SizeOfCeiling() { return ceiling_size_; }
   inline int SizeOfLayer() { return layer_size_; }
 
-  inline vector<WF_vert*>	*GetVertList() { return pvert_list_; }
-  inline vector<WF_edge*>	*GetEdgeList() { return pedge_list_; }
+  inline vector<WF_vert*> *GetVertList() { return pvert_list_; }
+  inline vector<WF_edge*> *GetEdgeList() { return pedge_list_; }
   inline WF_vert *GetVert(int u) { return (u >= SizeOfVertList() || u < 0) ? NULL : (*pvert_list_)[u]; }
   inline WF_edge *GetEdge(int i) { return (i >= SizeOfEdgeList() || i < 0) ? NULL : (*pedge_list_)[i]; }
   inline WF_edge *GetNeighborEdge(int u) { return (u >= SizeOfVertList() || u < 0) ? NULL : (*pvert_list_)[u]->pedge_; }
 
-  inline point GetPosition(int u)	{ assert(u < SizeOfVertList() && u >= 0); return((*pvert_list_)[u]->Position()); }
-  inline int	 GetDegree(int u)	{ assert(u < SizeOfVertList() && u >= 0); return((*pvert_list_)[u]->Degree()); }
+  inline point GetPosition(int u) { assert(u < SizeOfVertList() && u >= 0); return((*pvert_list_)[u]->Position()); }
+  inline int GetDegree(int u) { assert(u < SizeOfVertList() && u >= 0); return((*pvert_list_)[u]->Degree()); }
 
-  inline int	 GetEndu(int i)		 { assert(i < SizeOfEdgeList() && i >= 0); return((*pedge_list_)[i]->ppair_->pvert_->ID()); }
-  inline int	 GetEndv(int i)		 { assert(i < SizeOfEdgeList() && i >= 0); return((*pedge_list_)[i]->pvert_->ID()); }
+  inline int GetEndu(int i) { assert(i < SizeOfEdgeList() && i >= 0); return((*pedge_list_)[i]->ppair_->pvert_->ID()); }
+  inline int GetEndv(int i) { assert(i < SizeOfEdgeList() && i >= 0); return((*pedge_list_)[i]->pvert_->ID()); }
   inline point GetCenterPos(int i) { assert(i < SizeOfEdgeList() && i >= 0); return((*pedge_list_)[i]->CenterPos()); }
 
   inline Vec3f GetCenterPos() const { return center_pos_; }
   inline Vec3f GetBaseCenterPos() const { return base_center_pos_; }
 
-  inline bool	isFixed(int u)	{ assert(u < SizeOfVertList() && u >= 0); return((*pvert_list_)[u]->isFixed()); }
-  inline bool	isPillar(int i)	{ assert(i < SizeOfEdgeList() && i >= 0); return((*pedge_list_)[i]->isPillar()); }
+  inline bool isFixed(int u)	{ assert(u < SizeOfVertList() && u >= 0); return((*pvert_list_)[u]->isFixed()); }
+  inline bool isPillar(int i)	{ assert(i < SizeOfEdgeList() && i >= 0); return((*pedge_list_)[i]->isPillar()); }
 
   inline double maxX() { return maxx_; }
   inline double minX() { return minx_; }

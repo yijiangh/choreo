@@ -1,9 +1,9 @@
 #include "framefab_task_sequence_planner/sequence_analyzers/FFAnalyzer.h"
 
-FFAnalyzer::FFAnalyzer(WireFrame *ptr_frame)
-{
-  ptr_frame_ = ptr_frame;
-}
+//FFAnalyzer::FFAnalyzer(WireFrame *ptr_frame)
+//{
+//  ptr_frame_ = ptr_frame;
+//}
 
 FFAnalyzer::~FFAnalyzer()
 {

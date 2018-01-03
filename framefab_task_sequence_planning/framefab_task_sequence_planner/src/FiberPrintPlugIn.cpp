@@ -2,6 +2,9 @@
 
 #include "framefab_task_sequence_planner/FiberPrintPlugIn.h"
 
+// moveit model
+#include <moveit/robot_model_loader/robot_model_loader.h>
+
 // msg
 #include <framefab_msgs/ElementCandidatePoses.h>
 #include <framefab_msgs/ModelInputParameters.h>
@@ -179,7 +182,11 @@ void convertWireFrameToMsg(
 
 }// util namespace
 
-FiberPrintPlugIn::FiberPrintPlugIn()
+FiberPrintPlugIn::FiberPrintPlugIn(const std::string& world_frame,
+                                   const std::string& hotend_group, const std::string& hotend_tcp,
+                                   const std::string& robot_model_plugin)
+    : plugin_loader_("descartes_core", "descartes_core::RobotModel"),
+      hotend_group_name_(hotend_group)
 {
   ptr_frame_ = NULL;
   ptr_dualgraph_ = NULL;
@@ -194,23 +201,30 @@ FiberPrintPlugIn::FiberPrintPlugIn()
 
   terminal_output_ = false;
   file_output_ = false;
-}
 
-FiberPrintPlugIn::FiberPrintPlugIn(
-    WireFrame *ptr_frame, FiberPrintPARM *ptr_parm, char *ptr_path,
-    bool terminal_output, bool file_output
-)
-{
-  ptr_frame_ = ptr_frame;
+  // Attempt to load and initialize the printing robot model (hotend)
+  hotend_model_ = plugin_loader_.createInstance(robot_model_plugin);
+  if (!hotend_model_)
+  {
+    throw std::runtime_error(std::string("Could not load: ") + robot_model_plugin);
+  }
 
-  ptr_seqanalyzer_ = NULL;
-  ptr_procanalyzer_ = NULL;
+  if (!hotend_model_->initialize("robot_description", hotend_group, world_frame, hotend_tcp))
+  {
+    throw std::runtime_error("Unable to initialize printing robot model");
+  }
 
-  ptr_path_ = ptr_path;
-  ptr_parm_ = ptr_parm;
+  // Load the moveit model
+  robot_model_loader::RobotModelLoader robot_model_loader("robot_description");
+  moveit_model_ = robot_model_loader.getModel();
 
-  terminal_output_ = terminal_output;
-  file_output_ = file_output;
+  if (moveit_model_.get() == NULL)
+  {
+    throw std::runtime_error("Could not load moveit robot model");
+  }
+
+  // Enable Collision Checks
+  hotend_model_->setCheckCollisions(true);
 }
 
 FiberPrintPlugIn::~FiberPrintPlugIn()
@@ -272,6 +286,8 @@ bool FiberPrintPlugIn::DirectSearch()
 
   if(Init())
   {
+    assert(ptr_frame_->SizeOfEdgeList()/2 == frame_msgs_.size());
+
     ptr_seqanalyzer_ = new FFAnalyzer(
         ptr_dualgraph_,
         ptr_collision_,
@@ -279,8 +295,13 @@ bool FiberPrintPlugIn::DirectSearch()
         ptr_parm_,
         ptr_path_,
         terminal_output_,
-        file_output_
+        file_output_,
+        hotend_model_,
+        moveit_model_,
+        hotend_group_name_
     );
+
+    ptr_seqanalyzer_->setFrameMsgs(frame_msgs_);
 
     if (!ptr_seqanalyzer_->SeqPrint())
     {

@@ -11,6 +11,9 @@ find_package(catkin REQUIRED COMPONENTS
 	tf_conversions
 	eigen_conversions
 	framefab_rapidjson
+	descartes_core
+	roscpp
+	moveit_ros_planning_interface
 	)
 
 #--- Find LAPACK
@@ -42,6 +45,9 @@ catkin_package(
 		tf_conversions
 		eigen_conversions
 		framefab_rapidjson
+		descartes_core
+		roscpp
+		moveit_ros_planning_interface
 	DEPENDS
 		LAPACK
 		EIGEN3

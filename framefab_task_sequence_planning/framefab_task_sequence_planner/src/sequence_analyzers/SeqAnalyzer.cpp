@@ -5,25 +5,6 @@
 namespace{
 }// util namespace
 
-SeqAnalyzer::SeqAnalyzer()
-{
-  ptr_frame_		= NULL;
-  ptr_wholegraph_	= NULL;
-  ptr_dualgraph_	= NULL;
-  ptr_collision_	= NULL;
-  ptr_path_		= NULL;
-
-  Wp_ = 0;
-  Wa_ = 0;
-  Wi_ = 0;
-  D_tol_ = 0;
-
-  Nd_ = 0;
-
-  terminal_output_ = false;
-  file_output_ = false;
-}
-
 SeqAnalyzer::SeqAnalyzer(
     DualGraph			*ptr_dualgraph,
     QuadricCollision	*ptr_collision,
@@ -31,8 +12,11 @@ SeqAnalyzer::SeqAnalyzer(
     FiberPrintPARM		*ptr_parm,
     char				*ptr_path,
     bool				terminal_output,
-    bool				file_output
-)
+    bool				file_output,
+    descartes_core::RobotModelPtr hotend_model,
+    moveit::core::RobotModelConstPtr moveit_model,
+    std::string hotend_group_name
+) noexcept
 {
   ptr_frame_ = ptr_dualgraph->ptr_frame_;
   ptr_dualgraph_ = ptr_dualgraph;
@@ -51,6 +35,10 @@ SeqAnalyzer::SeqAnalyzer(
 
   terminal_output_ = terminal_output;
   file_output_ = file_output;
+
+  hotend_model_ = hotend_model;
+  moveit_model_ = moveit_model;
+  hotend_group_name_ = hotend_group_name;
 }
 
 SeqAnalyzer::~SeqAnalyzer()
@@ -130,6 +118,11 @@ void SeqAnalyzer::UpdateStructure(WF_edge *e, bool update_collision)
 //    upd_struct_.Start();
 //  }
 
+  if(update_collision)
+  {
+    UpdateCollisionObjects(e);
+  }
+
   int dual_upd = ptr_dualgraph_->UpdateDualization(e);
 
   /* modify D0 */
@@ -177,11 +170,6 @@ void SeqAnalyzer::UpdateStructure(WF_edge *e, bool update_collision)
 //  {
 //    upd_struct_.Stop();
 //  }
-
-  if(update_collision)
-  {
-    UpdateCollisionObjects(e);
-  }
 }
 
 void SeqAnalyzer::RecoverStructure(WF_edge *e, bool recover_collision)
@@ -290,6 +278,16 @@ void SeqAnalyzer::RecoverStateMap(WF_edge *order_e, vector<vector<lld>> &state_m
 void SeqAnalyzer::UpdateCollisionObjects(WF_edge* e)
 {
   // for connected vert of this edge
+  int orig_j = e->ID();
+  int uj = ptr_frame_->GetEndu(orig_j);
+  int vj = ptr_frame_->GetEndv(orig_j);
+  bool exist_uj = ptr_dualgraph_->isExistingVert(uj);
+  bool exist_vj = ptr_dualgraph_->isExistingVert(vj);
+
+//  if(exist_uj && exist_vj)
+//  {
+//
+//  }
 
   // shrink the connected sides of this edge
 

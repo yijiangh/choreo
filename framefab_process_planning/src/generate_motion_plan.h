@@ -24,7 +24,7 @@ bool generateMotionPlan(descartes_core::RobotModelPtr model,
                         const std::string& saved_graph_file_name,
                         moveit::core::RobotModelConstPtr moveit_model,
                         ros::ServiceClient& planning_scene_diff_client,
-                        const std::string& move_group_name,
+                        const std::string& hotend_group_name,
                         const std::vector<double>& start_state,
                         std::vector<framefab_msgs::UnitProcessPlan>& plan);
 
