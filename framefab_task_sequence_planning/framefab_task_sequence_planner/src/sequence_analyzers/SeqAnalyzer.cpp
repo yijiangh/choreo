@@ -8,6 +8,8 @@
 // msgs
 #include <moveit_msgs/CollisionObject.h>
 
+const static double ROBOT_KINEMATICS_CHECK_TIMEOUT = 2.0;
+
 namespace{
 }// util namespace
 
@@ -494,8 +496,38 @@ bool SeqAnalyzer::TestifyStiffness(WF_edge *e)
 
 bool SeqAnalyzer::TestRobotKinematics(WF_edge *e)
 {
+  // insert a trail edge, needs to shrink neighnoring edges
+  // to avoid collision check between end effector and elements
+  bool b_success = false;
+  UpdateCollisionObjects(e, true);
 
-  return false;
+  // RRT* improve on the tree
+  const auto check_start_time = ros::Time::now();
+
+  while((ros::Time::now() - check_start_time).toSec() < ROBOT_KINEMATICS_CHECK_TIMEOUT)
+  {
+    // make end effector pose
+    // sample one direction from the maintained eef direction
+    // sample one rotation angle from 2*pi
+    // make eef pose
+
+    std::vector <std::vector<double>> joint_poses;
+//    hotend_model_.getAllIK(pose, joint_poses);
+
+    if (joint_poses.empty())
+    {
+      b_success = false;
+    }
+    else
+    {
+      b_success = true;
+      break;
+    }
+  }
+
+  // remove the trail edge, change shrinked edges back to full collision objects
+  RecoverCollisionObjects(e, true);
+  return b_success;
 }
 
 bool SeqAnalyzer::InputPrintOrder(vector<int> &print_queue)
