@@ -29,13 +29,12 @@ ProcAnalyzer::ProcAnalyzer(SeqAnalyzer *seqanalyzer, const char *path)
 
 bool ProcAnalyzer::ProcPrint()
 {
-
   WireFrame *ptr_frame = ptr_seqanalyzer_->ptr_frame_;
   DualGraph *ptr_dualgraph = ptr_seqanalyzer_->ptr_dualgraph_;
 
   QuadricCollision collision_checker = QuadricCollision(ptr_frame);
 
-  vector<WF_edge*> print_queue;
+  std::vector<WF_edge*> print_queue;
 
   ptr_seqanalyzer_->OutputPrintOrder(print_queue);
 
@@ -54,6 +53,7 @@ bool ProcAnalyzer::ProcPrint()
     Process temp;
     int orig_e = layer_queue_[i];
     WF_edge *e = ptr_frame->GetEdge(orig_e);
+
     if (e->isPillar())
     {
       temp.normal_.push_back(GeoV3(0, 0, 1));
@@ -63,6 +63,7 @@ bool ProcAnalyzer::ProcPrint()
     {
       collision_checker.DetectCollision(e, exist_edge_, temp.normal_);
     }
+
     exist_edge_.push_back(e);
     process_list_.push_back(temp);
   }

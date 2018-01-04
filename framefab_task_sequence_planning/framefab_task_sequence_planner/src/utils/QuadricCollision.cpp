@@ -9,6 +9,9 @@ QuadricCollision::QuadricCollision()
 QuadricCollision::QuadricCollision(WireFrame *ptr_frame)
 {
   ptr_frame_ = ptr_frame;
+
+  // this shouldn't be changed, current implementation is highly
+  // crafted for this specific division resolution
   divide_ = 60;
 
   int halfM = ptr_frame->SizeOfEdgeList() / 2;
@@ -56,7 +59,6 @@ void QuadricCollision::DetectCollision(WF_edge *target_e, DualGraph *ptr_subgrap
   }
 }
 
-
 void QuadricCollision::DetectCollision(WF_edge *target_e, WF_edge *order_e,
                                        vector<lld> &result_map)
 {
@@ -67,40 +69,47 @@ void QuadricCollision::DetectCollision(WF_edge *target_e, WF_edge *order_e,
   DetectEdge(order_e, result_map);
 }
 
-
-void QuadricCollision::DetectCollision(WF_edge *target_e,
-                                       vector<WF_edge*> exist_edge, vector<GeoV3> &output)
+void QuadricCollision::DetectCollision(WF_edge *target_e, std::vector<WF_edge*> exist_edge,
+                                       std::vector<GeoV3>& output)
 {
   output.clear();
 
   double theta, phi;
   target_e_ = target_e;
+
   //North Point
-  if (!DetectEdges(exist_edge, 0, 0))
+  if(!DetectEdges(exist_edge, 0, 0))
+  {
     output.push_back(Orientation(0, 0));
+  }
+
   for (int j = 0; j < 3; j++)
   {
     for (int i = 0; i < divide_; i++)
     {
       if (i < 20)
       {
-        theta = (j * 3 + 1)*18.0 / 180.0*F_PI;
-        phi = i*18.0 / 180.0*F_PI;
+        theta = (j * 3 + 1) * 18.0 / 180.0 * F_PI;
       }
 
-      if (i>19 && i < 40)
+      if (i > 19 && i < 40)
       {
-        theta = (j * 3 + 2) * 18.0 / 180.0*F_PI;
-        phi = (i - 20)*18.0 / 180.0*F_PI;
+        theta = (j * 3 + 2) * 18.0 / 180.0 * F_PI;
       }
 
-      if (i>39)
+      if (i > 39)
       {
-        theta = (j * 3 + 3)* 18.0 / 180.0*F_PI;
-        phi = (i - 40)*18.0 / 180.0*F_PI;
+        theta = (j * 3 + 3) * 18.0 / 180.0 * F_PI;
       }
-      if (DetectEdges(exist_edge, theta, phi))
+
+      // divide = 60, 180 degree / 20 = 9 degree resolution
+      phi = (i % 20) * 18.0 / 180.0 * F_PI;
+
+      if(DetectEdges(exist_edge, theta, phi))
+      {
         continue;
+      }
+
       output.push_back(Orientation(theta, phi));
     }
   }
@@ -110,7 +119,100 @@ void QuadricCollision::DetectCollision(WF_edge *target_e,
   temp.push_back(Orientation(F_PI, 0));*/
 }
 
-void QuadricCollision::DetectEdge(WF_edge *order_e, vector<lld> &result_map)
+void QuadricCollision::ModifyAngle(std::vector<lld>& angle_state, const std::vector<lld>& colli_map)
+{
+  for (int i = 0; i < 3; i++)
+  {
+    angle_state[i] |= colli_map[i];
+  }
+}
+
+int QuadricCollision::ColFreeAngle(const std::vector<lld>& colli_map)
+{
+  if (colli_map[0] == (lld) 0 && colli_map[1] == (lld) 0 && colli_map[2] == (lld) 0)
+  {
+    // all directions are feasible
+    return Divide();
+  }
+
+  int sum_angle = 0;
+  for(int j = 0; j < 62; j++)
+  {
+    lld mask = ((lld) 1 << j);
+
+    for(int i = 0; i < 3; i++)
+    {
+      if(i != 2 && j > 59)
+      {
+        // south point is only recorded on channel 2 - 60 and 61 level
+        continue;
+      }
+
+      // j-th bit = 0 means it's feasible
+      if((colli_map[i] & mask) == 0)
+      {
+        sum_angle++;
+      }
+    }
+  }
+
+  return sum_angle;
+}
+
+std::vector<Eigen::Vector3d> QuadricCollision::ConvertCollisionMapToEigenDirections(const std::vector<lld>& colli_map)
+{
+  std::vector<Eigen::Vector3d> feasible_eef_directions;
+
+  for(int j = 0; j < 60; j++)
+  {
+    lld mask = ((lld) 1 << j);
+
+    for(int i = 0; i < 3; i++)
+    {
+      // j-th bit = 0 means it's feasible
+      if((colli_map[i] & mask) == 0)
+      {
+        double phi = (j % 20) * 18.0 / 180.0 * F_PI;
+
+        double theta = 0.0;
+        if (i < 20)
+        {
+          theta = (j * 3 + 1) * 18.0 / 180.0 * F_PI;
+        }
+
+        if (i > 19 && i < 40)
+        {
+          theta = (j * 3 + 2) * 18.0 / 180.0 * F_PI;
+        }
+
+        if (i > 39)
+        {
+          theta = (j * 3 + 3)* 18.0 / 180.0 * F_PI;
+        }
+
+        feasible_eef_directions.push_back(ConvertAngleToEigenDirection(theta, phi));
+      }
+    }
+  }
+
+  //North Point
+  lld north_mask = ((lld)1 << 60);
+  if((colli_map[2] & north_mask) == 0)
+  {
+    feasible_eef_directions.push_back(ConvertAngleToEigenDirection(0, 0));
+  }
+
+  //South Point
+  lld south_mask = ((lld)1 << 61);
+  if((colli_map[2] & south_mask) == 0)
+  {
+    feasible_eef_directions.push_back(ConvertAngleToEigenDirection(F_PI, 0));
+  }
+
+  return feasible_eef_directions;
+}
+
+void QuadricCollision::DetectEdge(WF_edge *order_e, std::vector<lld> &result_map)
 {
   if (Distance(order_e) > (extruder_.CyclinderLenth() + extruder_.Height()))
   {
@@ -121,15 +223,18 @@ void QuadricCollision::DetectEdge(WF_edge *order_e, vector<lld> &result_map)
 
   int halfM = ptr_frame_->SizeOfEdgeList() / 2;
   int mi = order_e->ID() / 2 * halfM + target_e_->ID() / 2;
+
   if (colli_map_[mi] == NULL)
   {
-    colli_map_[mi] = new vector<lld> ;
+    colli_map_[mi] = new vector<lld>;
     Init(*colli_map_[mi]);
 
-    // rotation angle about Z axis (rad)
+    // https://en.wikipedia.org/wiki/Spherical_coordinate_system
+    // ISO naming convention (commonly used in physics)
+    // polar angle theta (rad)
     double theta;
 
-    // angle with X axis (rad)
+    // azimuthal angle (rad)
     double phi;
 
     for (int j = 0; j < 3; j++)
@@ -138,28 +243,27 @@ void QuadricCollision::DetectEdge(WF_edge *order_e, vector<lld> &result_map)
       {
         if (i < 20)
         {
-          // 0 <= theta <= 58
-          // 0 <= phi <= 342
-          theta = (j * 3 + 1)*18.0 / 180.0 * F_PI;
-          phi = i*18.0 / 180.0 * F_PI;
+          theta = (j * 3 + 1) * 18.0 / 180.0 * F_PI;
         }
 
         if (i > 19 && i < 40)
         {
-          //
-          // 0 <= phi <= 342
-          theta = (j * 3 + 2) * 18.0 / 180.0*F_PI;
-          phi = (i - 20)*18.0 / 180.0*F_PI;
+          theta = (j * 3 + 2) * 18.0 / 180.0 * F_PI;
         }
 
         if (i > 39)
         {
-          theta = (j * 3 + 3)* 18.0 / 180.0*F_PI;
-          phi = (i - 40)*18.0 / 180.0*F_PI;
+          theta = (j * 3 + 3)* 18.0 / 180.0 * F_PI;
         }
+
+        phi = (i % 20) * 18.0 / 180.0 * F_PI;
+
+        // left shift 1 to i-th bit
         lld mask = ((lld)1 << i);
-        if (DetectBulk(order_e, theta, phi))
+
+        if(DetectBulk(order_e, theta, phi))
         {
+          // make i-th bit to 1, means collision
           (*colli_map_[mi])[j] |= mask;
         }
       }
@@ -195,6 +299,8 @@ bool QuadricCollision::DetectEdges(std::vector<WF_edge*> exist_edge, double thet
       return true;
     }
   }
+
+  // no collision
   return false;
 }
 
@@ -219,7 +325,7 @@ bool QuadricCollision::DetectBulk(WF_edge *order_e, double theta, double phi)
   //1
   if ((target_start - order_end).norm() < GEO_EPS)
   {
-    if ( SpecialCase(target_start,target_end,order_start,normal ))
+    if (SpecialCase(target_start,target_end,order_start,normal ))
     {
       return true;
     }
@@ -262,14 +368,12 @@ bool QuadricCollision::DetectBulk(WF_edge *order_e, double theta, double phi)
   return false;
 }
 
-
 bool QuadricCollision::DetectAngle(GeoV3 connect, GeoV3 end, GeoV3 target_end, GeoV3 normal)
 {
   if (angle(normal, target_end - connect) < extruder_.Angle())
     return true;
   return false;
 }
-
 
 bool QuadricCollision::Case(GeoV3 target_start, GeoV3 target_end,
                             GeoV3 order_start, GeoV3 order_end, GeoV3 normal)
@@ -446,7 +550,6 @@ bool QuadricCollision::DetectCylinder(GeoV3 start, GeoV3 normal, GeoV3 target_st
 
   cylinder.height = extruder_.CyclinderLenth();
   cylinder.radius = extruder_.Radii();
-
 
   gte::Segment<3, float> segment;
   segment = Seg(target_start, target_end);
@@ -709,10 +812,6 @@ gte::Triangle<3, float> QuadricCollision::Tri(GeoV3 a, GeoV3 b, GeoV3 c)
   triangle.v[2][1] = c.getY();
   triangle.v[2][2] = c.getZ();
   return triangle;
-}
-
-void QuadricCollision::Debug()
-{
 }
 
 

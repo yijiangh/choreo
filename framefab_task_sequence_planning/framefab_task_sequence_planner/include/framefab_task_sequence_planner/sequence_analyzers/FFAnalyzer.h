@@ -91,7 +91,7 @@ class FFAnalyzer : public SeqAnalyzer
   void PrintOutTimer();
 
  private:
-  vector<vector<WF_edge*>> layers_; // store dual_node's id for each layers
+  std::vector<std::vector<WF_edge*>> layers_; // store dual_node's id for each layers
 
   double min_z_;
   double max_z_;

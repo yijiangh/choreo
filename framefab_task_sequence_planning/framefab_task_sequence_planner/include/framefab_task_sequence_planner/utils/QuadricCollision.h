@@ -76,30 +76,40 @@ class QuadricCollision
   QuadricCollision(WireFrame *ptr_frame);
   ~QuadricCollision();
 
-/*public:
-    // for Usage of FIQuery:
-    // A FIQuery-base class B must define a B::Result struct with member
-    // 'bool intersect'.  A FIQuery-derived class D must also derive a
-    // D::Result from B:Result but may have no members.  The member
-    // 'intersect' is 'true' iff the primitives intersect.  The operator()
-    // is non-const to allow FIQuery to store and modify private state
-    // that supports the query.
-    struct Result
-    {
-        Result():intersect(false){}
-        bool intersect;
-    };*/
-
  public:
   void Init(vector <lld> &colli_map);
   void DetectCollision(WF_edge *target_e, DualGraph *ptr_subgraph, vector <lld> &result_map);
-  void DetectCollision(WF_edge *target_e, WF_edge *order_e, vector <lld> &colli_map);
+  void DetectCollision(WF_edge *target_e, WF_edge *order_e, std::vector<lld> &colli_map);
   void DetectCollision(WF_edge *target_e, vector<WF_edge *> exist_edge, vector <GeoV3> &output);
 
+ public:
+  void ModifyAngle(std::vector<lld>& angle_state, const std::vector<lld>& colli_map);
+
+  int ColFreeAngle(const std::vector<lld>& colli_map);
+
+  std::vector<Eigen::Vector3d> ConvertCollisionMapToEigenDirections(const std::vector<lld>& colli_map);
+
+  inline int Divide()
+  {
+    return 18 * 10 + 2;
+  }
+
  private:
+  // convert to eef direction 3d vector
+  inline GeoV3 Orientation(double theta, double phi)
+  {
+    return GeoV3(sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta));
+  }
+
+  inline Eigen::Vector3d ConvertAngleToEigenDirection(double theta, double phi)
+  {
+    return Eigen::Vector3d(sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta));
+  }
+
+ private:
+  bool DetectBulk(WF_edge *order_e, double theta, double phi);
   void DetectEdge(WF_edge *order_e, vector <lld> &colli_map);
   bool DetectEdges(std::vector<WF_edge*> exist_edge, double theta, double phi);
-  bool DetectBulk(WF_edge *order_e, double theta, double phi);
   bool DetectAngle(GeoV3 connect, GeoV3 end, GeoV3 target_end, GeoV3 normal);
 
   bool Case(GeoV3 target_start, GeoV3 target_end,
@@ -123,65 +133,18 @@ class QuadricCollision
   gte::Segment<3, float> Seg(GeoV3 target_start, GeoV3 target_end);
   gte::Triangle<3, float> Tri(GeoV3 a, GeoV3 b, GeoV3 c);
 
-  GeoV3 Orientation(double theta, double phi)
-  {
-    return GeoV3(sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta));
-  }
-
- public:
-  //output
-  void ModifyAngle(vector <lld> &angle_state, vector <lld> &colli_map)
-  {
-    for (int i = 0; i < 3; i++)
-    {
-      angle_state[i] |= colli_map[i];
-    }
-  }
-
-  int ColFreeAngle(vector <lld> &colli_map)
-  {
-    if (colli_map[0] == (lld) 0 && colli_map[1] == (lld) 0 && colli_map[2] == (lld) 0)
-      return Divide();
-
-    int sum_angle = 0;
-    for (int j = 0; j < 62; j++)
-    {
-      lld mask = ((lld) 1 << j);
-      for (int i = 0; i < 3; i++)
-      {
-        if (i < 2 && j > 59)
-          continue;
-
-        if ((colli_map[i] & mask) == 0)
-        {
-          sum_angle++;
-        }
-      }
-    }
-
-    return sum_angle;
-  }
-
-  int Divide()
-  {
-    return 18 * 10 + 2;
-  }
-
-  void Debug();
-
  public:
   WireFrame* ptr_frame_;
   WF_edge* target_e_;
 
  private:
   ExtruderCone extruder_;
-  vector <Triangle> bulk_;
+  std::vector<Triangle> bulk_;
   int divide_;
 
-  // Nd = size of edges in wireframe (single edge data) = size of vertices in dual graph
-  // Size of colli_map_ = (Nd * Nd) * (3)
-  // (i, j): j's angle map & i printed
-  std::vector<vector<lld>*> colli_map_;
+  // compact representation of end effector's feasible direction
+  // each lld is a bit-wise map, value 1 means it causes collision
+  std::vector<std::vector<lld>*> colli_map_;
 };
 
 #endif

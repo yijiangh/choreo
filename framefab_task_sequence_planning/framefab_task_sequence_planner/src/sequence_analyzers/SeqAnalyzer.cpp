@@ -112,7 +112,7 @@ void SeqAnalyzer::PrintPillars()
 
   if (terminal_output_)
   {
-    fprintf(stderr, "Size of base queue: %d\n", base_queue.size());
+    fprintf(stderr, "Size of base queue: %d\n", (int)base_queue.size());
   }
 
   /* angle state with pillars */
@@ -244,6 +244,7 @@ void SeqAnalyzer::UpdateStateMap(WF_edge *order_e, vector<vector<lld>> &state_ma
 //      }
 
       // prune order_e's domain with target_e's existence
+      // arc consistency pruning
       vector<lld> tmp(3);
       ptr_collision_->DetectCollision(target_e, order_e, tmp);
 
@@ -278,12 +279,14 @@ void SeqAnalyzer::RecoverStateMap(WF_edge *order_e, vector<vector<lld>> &state_m
   int dual_i = ptr_wholegraph_->e_dual_id(order_e->ID());
   int Nd = ptr_wholegraph_->SizeOfVertList();
   int p = 0;
-  for (int dual_j = 0; dual_j < Nd; dual_j++)
+
+  for(int dual_j = 0; dual_j < Nd; dual_j++)
   {
     WF_edge * target_e = ptr_frame_->GetEdge(ptr_wholegraph_->e_orig_id(dual_j));
-    if (dual_i != dual_j && !ptr_dualgraph_->isExistingEdge(target_e))
+
+    if(dual_i != dual_j && !ptr_dualgraph_->isExistingEdge(target_e))
     {
-      for (int k = 0; k < 3; k++)
+      for(int k = 0; k < 3; k++)
       {
         angle_state_[dual_j][k] = state_map[k][p];
       }

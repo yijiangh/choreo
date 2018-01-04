@@ -125,11 +125,17 @@ class SeqAnalyzer
 
  protected:
   /* maintaining for sequence */
+  // number of unique edges in wireframe = number of vertices in dual graph
   int Nd_;
+
   // entire dual graph copy
   DualGraph* ptr_wholegraph_;
-  vector<WF_edge*> print_queue_;
-  vector<vector<lld>> angle_state_;
+
+  std::vector<WF_edge*> print_queue_;
+
+  // feasible end effector direction record, bit-wise map
+  vector<vector<unsigned long long>> angle_state_;
+
   VX D0_;
 
   /* parameters */

@@ -32,7 +32,7 @@ bool FFAnalyzer::SeqPrint()
 
   for (int l = 0; l < layer_size; l++)
   {
-    fprintf(stderr, "Size of layer %d is %d\n", l, layers_[l].size());
+    fprintf(stderr, "Size of layer %d is %d\n", l, (int)layers_[l].size());
   }
 
   //Timer layer_search;
@@ -81,9 +81,7 @@ bool FFAnalyzer::SeqPrint()
     if (!GenerateSeq(l, h, t))
     {
       fprintf(stderr,
-              "All possible start edge at layer %d has been tried but no feasible sequence is obtained.\n",
-              l + 1
-      );
+              "All possible start edge at layer %d has been tried but no feasible sequence is obtained.\n", l);
       bSuccess = false;
       break;
     }
@@ -118,7 +116,7 @@ bool FFAnalyzer::GenerateSeq(int l, int h, int t)
   {
     fprintf(stderr, "-----------------------------------\n");
     fprintf(stderr, "Searching edge #%d in layer %d, head %d, tail %d\n",
-            ei->ID() / 2, l + 1, h, t);
+            ei->ID() / 2, l, h, t);
   }
 
   /* exit */
@@ -158,7 +156,8 @@ bool FFAnalyzer::GenerateSeq(int l, int h, int t)
     /* update printed subgraph */
     UpdateStructure(ej, update_collision_);
 
-    /* update collision (geometric domain) */
+    // update collision (geometric domain)
+    // tmp is the pruned domain by direct arc consistency pruning
     vector<vector<lld>> tmp_angle(3);
     UpdateStateMap(ej, tmp_angle);
 
@@ -197,8 +196,8 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej)
 
     if (terminal_output_)
     {
-      fprintf(stderr, "Attempting edge #%d\n",
-              orig_j / 2, ej->Layer() + 1, print_queue_.size());
+      fprintf(stderr, "Attempting edge #%d in layer #%d, queue size %d\n",
+              orig_j / 2, ej->Layer(), (int)print_queue_.size());
     }
 
     /* stabiliy weight */
@@ -260,7 +259,6 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej)
       return -1;
     }
 
-    // TODO: if free directions' number < threshold, check kinematics
     /* robot kinematics test */
 //    TestRobotKinematics();
 
