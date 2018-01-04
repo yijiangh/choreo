@@ -19,7 +19,6 @@ QuadricCollision::QuadricCollision(WireFrame *ptr_frame)
   }
 }
 
-
 QuadricCollision::~QuadricCollision()
 {
   int Nc = colli_map_.size();
@@ -30,6 +29,14 @@ QuadricCollision::~QuadricCollision()
   }
 }
 
+void QuadricCollision::Init(vector<lld> &colli_map)
+{
+  lld temp = 0;
+  colli_map.clear();
+  colli_map.push_back(temp);
+  colli_map.push_back(temp);
+  colli_map.push_back(temp);
+}
 
 void QuadricCollision::DetectCollision(WF_edge *target_e, DualGraph *ptr_subgraph,
                                        vector<lld> &result_map)
@@ -103,21 +110,12 @@ void QuadricCollision::DetectCollision(WF_edge *target_e,
   temp.push_back(Orientation(F_PI, 0));*/
 }
 
-
-void QuadricCollision::Init(vector<lld> &colli_map)
-{
-  lld temp = 0;
-  colli_map.clear();
-  colli_map.push_back(temp);
-  colli_map.push_back(temp);
-  colli_map.push_back(temp);
-}
-
-
 void QuadricCollision::DetectEdge(WF_edge *order_e, vector<lld> &result_map)
 {
   if (Distance(order_e) > (extruder_.CyclinderLenth() + extruder_.Height()))
   {
+    // if this existing edge is too far away from target_e_, we assume that
+    // there's no constraint arc between the target_e and order_e
     return;
   }
 
@@ -128,8 +126,11 @@ void QuadricCollision::DetectEdge(WF_edge *order_e, vector<lld> &result_map)
     colli_map_[mi] = new vector<lld> ;
     Init(*colli_map_[mi]);
 
-    double theta;								// angle with Z axis (rad)
-    double phi;								// angle with X axis (rad)
+    // rotation angle about Z axis (rad)
+    double theta;
+
+    // angle with X axis (rad)
+    double phi;
 
     for (int j = 0; j < 3; j++)
     {
@@ -137,12 +138,16 @@ void QuadricCollision::DetectEdge(WF_edge *order_e, vector<lld> &result_map)
       {
         if (i < 20)
         {
-          theta = (j * 3 + 1)*18.0 / 180.0*F_PI;
-          phi = i*18.0 / 180.0*F_PI;
+          // 0 <= theta <= 58
+          // 0 <= phi <= 342
+          theta = (j * 3 + 1)*18.0 / 180.0 * F_PI;
+          phi = i*18.0 / 180.0 * F_PI;
         }
 
         if (i > 19 && i < 40)
         {
+          //
+          // 0 <= phi <= 342
           theta = (j * 3 + 2) * 18.0 / 180.0*F_PI;
           phi = (i - 20)*18.0 / 180.0*F_PI;
         }
@@ -181,20 +186,17 @@ void QuadricCollision::DetectEdge(WF_edge *order_e, vector<lld> &result_map)
   }
 }
 
-
-bool QuadricCollision::DetectEdges(vector<WF_edge*> exist_edge, double theta, double phi)
+bool QuadricCollision::DetectEdges(std::vector<WF_edge*> exist_edge, double theta, double phi)
 {
-for (int i = 0; i < exist_edge.size(); i++)
-{
-if (DetectBulk(exist_edge[i], theta, phi))
-{
-
-return true;
+  for (int i = 0; i < exist_edge.size(); i++)
+  {
+    if (DetectBulk(exist_edge[i], theta, phi))
+    {
+      return true;
+    }
+  }
+  return false;
 }
-}
-return false;
-}
-
 
 bool QuadricCollision::DetectBulk(WF_edge *order_e, double theta, double phi)
 {

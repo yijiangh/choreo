@@ -135,6 +135,7 @@ bool FFAnalyzer::GenerateSeq(int l, int h, int t)
   int Nl = layers_[l].size();
 
   // for all the edges in current layer, generate cost (pruning in cost generation)
+  // constraint propagation (arc-consistency) in current layer
   for (int j = 0; j < Nl; j++)
   {
     WF_edge *ej = layers_[l][j];
@@ -143,6 +144,7 @@ bool FFAnalyzer::GenerateSeq(int l, int h, int t)
     double cost = GenerateCost(ei, ej);
     if (cost != -1)
     {
+      // eligible candidate, cost = -1 if stiffness or kinematic check not pass
       choice.insert(pair<double, WF_edge*>(cost, ej));
     }
   }
@@ -156,7 +158,7 @@ bool FFAnalyzer::GenerateSeq(int l, int h, int t)
     /* update printed subgraph */
     UpdateStructure(ej, update_collision_);
 
-    /* update collision */
+    /* update collision (geometric domain) */
     vector<vector<lld>> tmp_angle(3);
     UpdateStateMap(ej, tmp_angle);
 

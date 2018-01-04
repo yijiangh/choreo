@@ -230,9 +230,12 @@ void SeqAnalyzer::UpdateStateMap(WF_edge *order_e, vector<vector<lld>> &state_ma
 
   int dual_i = ptr_wholegraph_->e_dual_id(order_e->ID());
   int Nd = ptr_wholegraph_->SizeOfVertList();
+
   for (int dual_j = 0; dual_j < Nd; dual_j++)
   {
     WF_edge * target_e = ptr_frame_->GetEdge(ptr_wholegraph_->e_orig_id(dual_j));
+
+    // for each unprinted edge in wireframe
     if (dual_i != dual_j && !ptr_dualgraph_->isExistingEdge(target_e))
     {
 //      if (terminal_output_)
@@ -240,6 +243,7 @@ void SeqAnalyzer::UpdateStateMap(WF_edge *order_e, vector<vector<lld>> &state_ma
 //        upd_map_collision_.Start();
 //      }
 
+      // prune order_e's domain with target_e's existence
       vector<lld> tmp(3);
       ptr_collision_->DetectCollision(target_e, order_e, tmp);
 
@@ -252,6 +256,7 @@ void SeqAnalyzer::UpdateStateMap(WF_edge *order_e, vector<vector<lld>> &state_ma
       {
         state_map[k].push_back(angle_state_[dual_j][k]);
       }
+
       ptr_collision_->ModifyAngle(angle_state_[dual_j], tmp);
     }
   }

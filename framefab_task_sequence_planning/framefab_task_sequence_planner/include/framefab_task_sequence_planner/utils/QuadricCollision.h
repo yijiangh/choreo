@@ -58,15 +58,17 @@
 #include <Mathematics/GteIntrSegment3Triangle3.h>
 #include <Mathematics/GteDistSegmentSegment.h>
 
+#define	STRICT_COLLISION
+
+// used to express feasible end effector directions
 typedef unsigned long long lld;
 
 using namespace Geometry;
 using namespace std;
 
-#define	STRICT_COLLISION
-
 // theta=(0,180), phi=(0,360)
-// target means printing edge, order menas existing edge
+// target means unprinted edge under current consideration, order edge means existing edge
+
 class QuadricCollision
 {
  public:
@@ -89,15 +91,14 @@ class QuadricCollision
     };*/
 
  public:
+  void Init(vector <lld> &colli_map);
   void DetectCollision(WF_edge *target_e, DualGraph *ptr_subgraph, vector <lld> &result_map);
   void DetectCollision(WF_edge *target_e, WF_edge *order_e, vector <lld> &colli_map);
   void DetectCollision(WF_edge *target_e, vector<WF_edge *> exist_edge, vector <GeoV3> &output);
 
-  void Init(vector <lld> &colli_map);
-
  private:
   void DetectEdge(WF_edge *order_e, vector <lld> &colli_map);
-  bool DetectEdges(vector<WF_edge *> exist_edge, double theta, double phi);
+  bool DetectEdges(std::vector<WF_edge*> exist_edge, double theta, double phi);
   bool DetectBulk(WF_edge *order_e, double theta, double phi);
   bool DetectAngle(GeoV3 connect, GeoV3 end, GeoV3 target_end, GeoV3 normal);
 
@@ -169,17 +170,18 @@ class QuadricCollision
   void Debug();
 
  public:
-  WireFrame *ptr_frame_;
-  WF_edge *target_e_;
+  WireFrame* ptr_frame_;
+  WF_edge* target_e_;
 
  private:
   ExtruderCone extruder_;
   vector <Triangle> bulk_;
   int divide_;
 
-  /* (Nd * Nd) * (3) */
-  /* (i, j): j's angle map & i printed */
-  vector<vector<lld>*> colli_map_;
+  // Nd = size of edges in wireframe (single edge data) = size of vertices in dual graph
+  // Size of colli_map_ = (Nd * Nd) * (3)
+  // (i, j): j's angle map & i printed
+  std::vector<vector<lld>*> colli_map_;
 };
 
 #endif

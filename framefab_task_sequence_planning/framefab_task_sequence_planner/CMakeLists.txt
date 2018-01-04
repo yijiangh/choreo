@@ -25,6 +25,12 @@ if(NOT EIGEN3_INCLUDE_DIRS)
 	set(EIGEN3_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR})
 endif()
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LIBFCL REQUIRED fcl)
+find_library(LIBFCL_LIBRARIES_FULL ${LIBFCL_LIBRARIES} ${LIBFCL_LIBRARY_DIRS})
+set(LIBFCL_LIBRARIES "${LIBFCL_LIBRARIES_FULL}")
+
+# for geometric tool engine
 add_definitions("-std=c++11 -D__LINUX__ -DGTE_DEV_OPENGL -DGTE_DISABLE_PCH")
 add_definitions("-Wno-write-strings")
 
@@ -51,6 +57,7 @@ catkin_package(
 	DEPENDS
 		LAPACK
 		EIGEN3
+		LIBFCL
 )
 
 ###########

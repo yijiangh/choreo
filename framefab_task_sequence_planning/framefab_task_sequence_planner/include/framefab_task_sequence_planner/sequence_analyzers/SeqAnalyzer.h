@@ -126,6 +126,7 @@ class SeqAnalyzer
  protected:
   /* maintaining for sequence */
   int Nd_;
+  // entire dual graph copy
   DualGraph* ptr_wholegraph_;
   vector<WF_edge*> print_queue_;
   vector<vector<lld>> angle_state_;
