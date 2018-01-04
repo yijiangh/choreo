@@ -11,6 +11,135 @@
 const static double ROBOT_KINEMATICS_CHECK_TIMEOUT = 2.0;
 
 namespace{
+// copy from graph_builder.cpp
+// Generate evenly sampled point at some discretization 'ds' between start and stop.
+// ds must be > 0
+std::vector<Eigen::Vector3d> discretizePositions(const Eigen::Vector3d& start, const Eigen::Vector3d& stop, const double ds)
+{
+  auto dist = (stop - start).norm();
+
+  size_t n_intermediate_points = 0;
+  if (dist > ds)
+  {
+    n_intermediate_points = static_cast<size_t>(std::lround(dist / ds));
+  }
+
+  const auto total_points = 2 + n_intermediate_points;
+
+  std::vector<Eigen::Vector3d> result;
+  result.reserve(total_points);
+
+  for (std::size_t i = 0; i < total_points; ++i)
+  {
+    const double r = i / static_cast<double>(total_points - 1);
+    Eigen::Vector3d point = start + (stop - start) * r;
+    result.push_back(point);
+  }
+  return result;
+}
+
+// copy from descartes_planner::graph_builder.cpp
+Eigen::Affine3d makePose(const Eigen::Vector3d& position, const Eigen::Matrix3d& orientation,
+                         const double z_axis_angle)
+{
+  Eigen::Affine3d m = Eigen::Affine3d::Identity();
+  m.matrix().block<3,3>(0,0) = orientation;
+  m.matrix().col(3).head<3>() = position;
+
+  Eigen::AngleAxisd z_rot (z_axis_angle, Eigen::Vector3d::UnitZ());
+
+  return m * z_rot;
+}
+
+// copy from descartes_planner::capsulated_ladder_tree_RRTstar
+static int randomSampleInt(int lower, int upper)
+{
+  std::random_device rd;
+  std::mt19937 gen(rd());
+
+  if(upper > lower)
+  {
+    std::uniform_int_distribution<int> int_distr(0, upper);
+    return int_distr(gen);
+  }
+  else
+  {
+    return lower;
+  }
+}
+
+static double randomSampleDouble(double lower, double upper)
+{
+  std::random_device rd;
+  std::mt19937 gen(rd());
+
+  if(upper > lower)
+  {
+    std::uniform_real_distribution<double> double_distr(lower, upper);
+    return double_distr(gen);
+  }
+  else
+  {
+    return lower;
+  }
+}
+
+std::vector<Eigen::Affine3d> generateSampleEEFPoses(
+    const std::vector<Eigen::Vector3d>& path_pts,
+    const std::vector<Eigen::Matrix3d>& direction_list)
+{
+  // sample int for orientation
+  int o_sample = randomSampleInt(0, direction_list.size()-1);
+  Eigen::Matrix3d orientation_sample = direction_list[o_sample];
+
+  // sample [0,1] for axis, z_axis_angle = b_rand * 2 * Pi
+  double x_axis_sample = randomSampleDouble(0.0, 1.0) * 2 * M_PI;
+
+  std::vector<Eigen::Affine3d> poses;
+  poses.reserve(path_pts.size());
+
+  for(auto& pt : path_pts)
+  {
+    poses.push_back(makePose(pt, orientation_sample, x_axis_sample));
+  }
+
+  return poses;
+}
+
+void convertOrientationVector(
+    const std::vector<Eigen::Vector3d>& vec_orients,
+    std::vector<Eigen::Matrix3d>& m_orients)
+{
+  m_orients.clear();
+
+  for(auto eigen_vec : vec_orients)
+  {
+    // eigen_vec = local z axis
+    eigen_vec *= -1.0;
+    eigen_vec.normalize();
+
+    // construct local x axis & y axis
+    Eigen::Vector3d candidate_dir = Eigen::Vector3d::UnitX();
+    if ( std::abs(eigen_vec.dot(Eigen::Vector3d::UnitX())) > 0.8 )
+    {
+      // if z axis = UnitX,
+      candidate_dir = Eigen::Vector3d::UnitY();
+    }
+
+    Eigen::Vector3d y_vec = eigen_vec.cross(candidate_dir).normalized();
+
+    Eigen::Vector3d x_vec = y_vec.cross(eigen_vec).normalized();
+
+    // JM
+    Eigen::Matrix3d m = Eigen::Matrix3d::Identity();
+    m.col(0) = x_vec;
+    m.col(1) = y_vec;
+    m.col(2) = eigen_vec;
+
+    m_orients.push_back(m);
+  }
+}
+
 }// util namespace
 
 SeqAnalyzer::SeqAnalyzer(
@@ -303,7 +432,7 @@ void SeqAnalyzer::RecoverStateMap(WF_edge *order_e, vector<vector<lld>> &state_m
 void SeqAnalyzer::UpdateCollisionObjects(WF_edge* e, bool shrink)
 {
   int orig_j;
-  if(e->ID() < e->ppair_->ID())
+  if (e->ID() < e->ppair_->ID())
   {
     orig_j = e->ID();
   }
@@ -313,51 +442,42 @@ void SeqAnalyzer::UpdateCollisionObjects(WF_edge* e, bool shrink)
   }
 
   assert(orig_j < frame_msgs_.size());
-  moveit_msgs::CollisionObject e_collision_obj;
 
-  // st node index
-  int uj = ptr_frame_->GetEndu(orig_j);
-  bool exist_uj = ptr_dualgraph_->isExistingVert(uj);
-
-  // end node index
-  int vj = ptr_frame_->GetEndv(orig_j);
-  bool exist_vj = ptr_dualgraph_->isExistingVert(vj);
-
-  std::vector<int> shrink_vert_ids;
-
-  if(shrink || (exist_uj && exist_vj))
+  if(!shrink)
   {
-    // both vertices exist, <connect> type, shrink both side
+    // add input edge's collision object
+    moveit_msgs::CollisionObject e_collision_obj;
     e_collision_obj = frame_msgs_[orig_j].both_side_shrinked_collision_object;
-    shrink_vert_ids.push_back(uj);
-    shrink_vert_ids.push_back(vj);
+    e_collision_obj.operation = moveit_msgs::CollisionObject::ADD;
+
+    // add this edge to the planning scene
+    if (!planning_scene_->processCollisionObjectMsg(e_collision_obj))
+    {
+      ROS_WARN_STREAM("[ts planning] Failed to add shrinked collision object: edge #" << orig_j);
+    }
   }
   else
   {
-    // only one vertex exist, <create type>
-    if(exist_uj)
+    // st node index
+    int uj = ptr_frame_->GetEndu(orig_j);
+    bool exist_uj = ptr_dualgraph_->isExistingVert(uj);
+
+    // end node index
+    int vj = ptr_frame_->GetEndv(orig_j);
+    bool exist_vj = ptr_dualgraph_->isExistingVert(vj);
+
+    std::vector<int> shrink_vert_ids;
+
+    if (exist_uj)
     {
-      e_collision_obj = frame_msgs_[orig_j].st_shrinked_collision_object;
       shrink_vert_ids.push_back(uj);
     }
 
-    if(exist_vj)
+    if (exist_vj)
     {
-      e_collision_obj = frame_msgs_[orig_j].end_shrinked_collision_object;
       shrink_vert_ids.push_back(vj);
     }
-  }
 
-  // add this edge to the planning scene
-  auto child_scene = planning_scene_->diff();
-
-  if (!child_scene->processCollisionObjectMsg(e_collision_obj))
-  {
-    ROS_WARN_STREAM("[ts planning] Failed to add shrinked collision object: edge #" << orig_j);
-  }
-
-  if(shrink)
-  {
     // query connected & existing edges for these nodes, shrink them
     for (const auto &connect_vert_id : shrink_vert_ids)
     {
@@ -365,9 +485,34 @@ void SeqAnalyzer::UpdateCollisionObjects(WF_edge* e, bool shrink)
 
       while (eu != NULL)
       {
+        if(eu == e)
+        {
+          eu = eu->pnext_;
+          continue;
+        }
+
         // pop the neighnor edge from existing planning scene
+        int ne_id = eu->ID();
+        moveit_msgs::CollisionObject ne_collision_obj;
 
         // replace with shrinked ones
+        if(connect_vert_id == eu->ppair_->pvert_->ID())
+        {
+          ne_collision_obj = frame_msgs_[ne_id].st_shrinked_collision_object;
+        }
+
+        if(connect_vert_id == eu->pvert_->ID())
+        {
+          ne_collision_obj = frame_msgs_[ne_id].end_shrinked_collision_object;
+        }
+
+        // Adds the object to the planning scene. If the object previously existed, it is replaced.
+        ne_collision_obj.operation = moveit_msgs::CollisionObject::ADD;
+
+        if (!planning_scene_->processCollisionObjectMsg(ne_collision_obj))
+        {
+          ROS_WARN_STREAM("[ts planning] Failed to add collision object (shrinked neighnor): edge #" << orig_j);
+        }
 
         eu = eu->pnext_;
       }
@@ -378,7 +523,7 @@ void SeqAnalyzer::UpdateCollisionObjects(WF_edge* e, bool shrink)
 void SeqAnalyzer::RecoverCollisionObjects(WF_edge* e, bool shrink)
 {
   int orig_j;
-  if(e->ID() < e->ppair_->ID())
+  if (e->ID() < e->ppair_->ID())
   {
     orig_j = e->ID();
   }
@@ -388,52 +533,42 @@ void SeqAnalyzer::RecoverCollisionObjects(WF_edge* e, bool shrink)
   }
 
   assert(orig_j < frame_msgs_.size());
-  moveit_msgs::CollisionObject e_collision_obj;
 
-  // st node index
-  int uj = ptr_frame_->GetEndu(orig_j);
-  bool exist_uj = ptr_dualgraph_->isExistingVert(uj);
-
-  // end node index
-  int vj = ptr_frame_->GetEndv(orig_j);
-  bool exist_vj = ptr_dualgraph_->isExistingVert(vj);
-
-  std::vector<int> shrink_vert_ids;
-
-  if(shrink || (exist_uj && exist_vj))
+  if(!shrink)
   {
-    // both vertices exist, <connect> type, shrink both side
+    // add input edge's collision object
+    moveit_msgs::CollisionObject e_collision_obj;
     e_collision_obj = frame_msgs_[orig_j].both_side_shrinked_collision_object;
-    shrink_vert_ids.push_back(uj);
-    shrink_vert_ids.push_back(vj);
+    e_collision_obj.operation = moveit_msgs::CollisionObject::REMOVE;
+
+    // add this edge to the planning scene
+    if (!planning_scene_->processCollisionObjectMsg(e_collision_obj))
+    {
+      ROS_WARN_STREAM("[ts planning] Failed to add shrinked collision object: edge #" << orig_j);
+    }
   }
   else
   {
-    // only one vertex exist, <create type>
-    if(exist_uj)
+    // st node index
+    int uj = ptr_frame_->GetEndu(orig_j);
+    bool exist_uj = ptr_dualgraph_->isExistingVert(uj);
+
+    // end node index
+    int vj = ptr_frame_->GetEndv(orig_j);
+    bool exist_vj = ptr_dualgraph_->isExistingVert(vj);
+
+    std::vector<int> shrink_vert_ids;
+
+    if (exist_uj)
     {
-      e_collision_obj = frame_msgs_[orig_j].st_shrinked_collision_object;
       shrink_vert_ids.push_back(uj);
     }
 
-    if(exist_vj)
+    if (exist_vj)
     {
-      e_collision_obj = frame_msgs_[orig_j].end_shrinked_collision_object;
       shrink_vert_ids.push_back(vj);
     }
-  }
 
-  // add this edge to the planning scene
-  auto child_scene = planning_scene_->diff();
-
-  // TODO: pop collision obj
-//  if (!child_scene->processCollisionObjectMsg(e_collision_obj))
-//  {
-//    ROS_WARN_STREAM("[ts planning] Failed to add shrinked collision object: edge #" << orig_j);
-//  }
-
-  if(shrink)
-  {
     // query connected & existing edges for these nodes, shrink them
     for (const auto &connect_vert_id : shrink_vert_ids)
     {
@@ -441,9 +576,23 @@ void SeqAnalyzer::RecoverCollisionObjects(WF_edge* e, bool shrink)
 
       while (eu != NULL)
       {
-        // pop the neighnor edge from existing planning scene
+        if(eu == e)
+        {
+          eu = eu->pnext_;
+          continue;
+        }
 
-        // replace with shrinked ones
+        // pop the neighnor edge from existing planning scene
+        // Adds the object to the planning scene. If the object previously existed, it is replaced.
+        int ne_id = eu->ID();
+        moveit_msgs::CollisionObject ne_collision_obj;
+        ne_collision_obj = frame_msgs_[ne_id].both_side_shrinked_collision_object;
+        ne_collision_obj.operation = moveit_msgs::CollisionObject::ADD;
+
+        if (!planning_scene_->processCollisionObjectMsg(ne_collision_obj))
+        {
+          ROS_WARN_STREAM("[ts planning] Failed to delete collision object (shrinked neighnor): edge #" << orig_j);
+        }
 
         eu = eu->pnext_;
       }
@@ -502,32 +651,51 @@ bool SeqAnalyzer::TestifyStiffness(WF_edge *e)
   return bSuccess;
 }
 
-bool SeqAnalyzer::TestRobotKinematics(WF_edge *e)
+bool SeqAnalyzer::TestRobotKinematics(WF_edge *e, const std::vector<lld>& colli_map)
 {
   // insert a trail edge, needs to shrink neighnoring edges
   // to avoid collision check between end effector and elements
   bool b_success = false;
   UpdateCollisionObjects(e, true);
 
+  // generate feasible end effector directions for printing edge e
+  std::vector<Eigen::Vector3d> direction_vec_list =
+      ptr_collision_->ConvertCollisionMapToEigenDirections(colli_map);
+  std::vector<Eigen::Matrix3d> direction_matrix_list;
+  convertOrientationVector(direction_vec_list, direction_matrix_list);
+
+  // generate eef path points
+  const auto st_pt = e->ppair_->pvert_->Position();
+  const auto end_pt = e->pvert_->Position();
+
+  std::vector<Eigen::Vector3d> path_pts =
+      discretizePositions(Eigen::Vector3d(st_pt.x(), st_pt.y(), st_pt.z()),
+                          Eigen::Vector3d(end_pt.x(), end_pt.y(), end_pt.z()),
+                          0.005);
+
   // RRT* improve on the tree
   const auto check_start_time = ros::Time::now();
 
   while((ros::Time::now() - check_start_time).toSec() < ROBOT_KINEMATICS_CHECK_TIMEOUT)
   {
-    // make end effector pose
-    // sample one direction from the maintained eef direction
-    // sample one rotation angle from 2*pi
-    // make eef pose
+    std::vector<Eigen::Affine3d> poses = generateSampleEEFPoses(path_pts, direction_matrix_list);
 
-    std::vector <std::vector<double>> joint_poses;
-//    hotend_model_.getAllIK(pose, joint_poses);
-
-    if (joint_poses.empty())
+    bool empty_joint_pose_found = false;
+    for(const auto& pose : poses)
     {
-      b_success = false;
+      std::vector<std::vector<double>> joint_poses;
+      hotend_model_->getAllIK(pose, joint_poses);
+
+      if(joint_poses.empty())
+      {
+        empty_joint_pose_found = true;
+        break;
+      }
     }
-    else
+
+    if(false == empty_joint_pose_found)
     {
+      // all poses have feasible joint pose
       b_success = true;
       break;
     }

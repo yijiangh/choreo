@@ -260,7 +260,18 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej)
     }
 
     /* robot kinematics test */
-//    TestRobotKinematics();
+    if(update_collision_)
+    {
+      if (TestRobotKinematics(ej, angle_state_[dual_j]))
+      {
+        /* examination failed */
+        if (terminal_output_)
+        {
+          fprintf(stderr, "Robot kinematics examination failed at edge #%d.\n\n", ej->ID() / 2);
+        }
+        return -1;
+      }
+    }
 
     /* stiffness test */
     if (!TestifyStiffness(ej))

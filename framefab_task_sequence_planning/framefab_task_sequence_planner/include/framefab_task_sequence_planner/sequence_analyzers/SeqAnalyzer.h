@@ -105,7 +105,7 @@ class SeqAnalyzer
   void RecoverStateMap(WF_edge *e, vector<vector<lld>> &state_map);
   bool TestifyStiffness(WF_edge *e);
 
-  bool TestRobotKinematics(WF_edge* e);
+  bool TestRobotKinematics(WF_edge* e, const std::vector<lld>& colli_map);
 
  private:
   // robot kinematics related
