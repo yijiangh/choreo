@@ -267,7 +267,7 @@ bool FiberPrintPlugIn::Init()
     delete ptr_stiffness_;
     ptr_stiffness_ = new Stiffness(
         ptr_dualgraph_, ptr_parm_,
-        ptr_path_, true);
+        ptr_path_, false);
 
     delete ptr_seqanalyzer_;
     ptr_seqanalyzer_ = NULL;

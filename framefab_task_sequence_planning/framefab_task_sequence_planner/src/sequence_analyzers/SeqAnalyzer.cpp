@@ -657,6 +657,7 @@ bool SeqAnalyzer::TestRobotKinematics(WF_edge *e, const std::vector<lld>& colli_
   // to avoid collision check between end effector and elements
   bool b_success = false;
   UpdateCollisionObjects(e, true);
+  hotend_model_->setPlanningScene(planning_scene_);
 
   // generate feasible end effector directions for printing edge e
   std::vector<Eigen::Vector3d> direction_vec_list =
@@ -673,7 +674,6 @@ bool SeqAnalyzer::TestRobotKinematics(WF_edge *e, const std::vector<lld>& colli_
                           Eigen::Vector3d(end_pt.x(), end_pt.y(), end_pt.z()),
                           0.005);
 
-  // RRT* improve on the tree
   const auto check_start_time = ros::Time::now();
 
   while((ros::Time::now() - check_start_time).toSec() < ROBOT_KINEMATICS_CHECK_TIMEOUT)
@@ -684,6 +684,7 @@ bool SeqAnalyzer::TestRobotKinematics(WF_edge *e, const std::vector<lld>& colli_
     for(const auto& pose : poses)
     {
       std::vector<std::vector<double>> joint_poses;
+
       hotend_model_->getAllIK(pose, joint_poses);
 
       if(joint_poses.empty())
