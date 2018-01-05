@@ -2,6 +2,9 @@
 
 #include "framefab_task_sequence_planner/output_generator/ProcAnalyzer.h"
 
+// for task sequence planning result
+#include "framefab_task_sequence_planner/sequence_analyzers/SeqAnalyzer.h"
+
 #include <framefab_rapidjson/include/rapidjson/document.h>
 #include <framefab_rapidjson/include/rapidjson/prettywriter.h>
 #include <framefab_rapidjson/include/rapidjson/filewritestream.h>
@@ -24,19 +27,19 @@ ProcAnalyzer::ProcAnalyzer(SeqAnalyzer *seqanalyzer, const char *path)
 
   ROS_INFO_STREAM("[ts planner] json output path: " << std::string(path_));
 
-  MaxEdgeAngle_ = F_PI / 18*6;
+  // 60 degrees
+  MaxEdgeAngle_ = F_PI / 18 * 6;
 }
 
 bool ProcAnalyzer::ProcPrint()
 {
-  assert(ptr_seqanalyzer_);
-
   WireFrame *ptr_frame = ptr_seqanalyzer_->ptr_frame_;
   DualGraph *ptr_dualgraph = ptr_seqanalyzer_->ptr_dualgraph_;
 
   QuadricCollision collision_checker = QuadricCollision(ptr_frame);
 
-  const auto planning_result = ptr_seqanalyzer_->OutputPrintOrder();
+  std::vector<SingleTaskPlanningResult> planning_result;
+  ptr_seqanalyzer_->OutputTaskSequencePlanningResult(planning_result);
 
   process_list_.clear();
   support_ = 0;
@@ -44,36 +47,35 @@ bool ProcAnalyzer::ProcPrint()
   //angle
   for (int i = 0; i < planning_result.size(); i++)
   {
+    ROS_INFO_STREAM("[pA] angle process #" << i);
+
     Process temp;
-    const WF_edge* e = planning_result[i].e_;
+    WF_edge* e = planning_result[i].e_;
+
+    ROS_INFO_STREAM("[pA] edge id #" << e->ID() );
 
     if (e->isPillar())
     {
-      temp.normal_.push_back(GeoV3(0, 0, 1));
       support_++;
     }
-    else
+
+    for(const auto& v : planning_result[i].eef_directions_)
     {
-      for(const auto& v : planning_result[i].eef_directions_)
-      {
-        temp.normal_.push_back(GeoV3(v[0], v[1], v[2]));
-      }
+      temp.normal_.push_back(GeoV3(v[0], v[1], v[2]));
     }
 
-    cout << "edge id #" << e->ID() << ", directions num "
-         << process_list_.back().normal_.size() << endl;
-
     process_list_.push_back(temp);
+    ROS_INFO_STREAM("[pA] directions num " << process_list_.back().normal_.size());
   }
 
   //point
   for (int i = 0; i < planning_result.size(); i++)
   {
     Process temp = process_list_[i];
-    WF_edge *e = planning_result[i].e_;
+    WF_edge* e = planning_result[i].e_;
 
     point up, down;
-    if ((e->pvert_->Position()).z()>(e->ppair_->pvert_->Position()).z())
+    if ((e->pvert_->Position()).z() > (e->ppair_->pvert_->Position()).z())
     {
       up = e->pvert_->Position();
       down = e->ppair_->pvert_->Position();
@@ -89,10 +91,16 @@ bool ProcAnalyzer::ProcPrint()
       temp.start_ = down;
       temp.end_ = up;
       temp.fan_state_ = true;
+
       if (!IfPointInVector(down))
+      {
         exist_point_.push_back(down);
+      }
+
       if (!IfPointInVector(up))
+      {
         exist_point_.push_back(up);
+      }
     }
     else
     {
@@ -120,17 +128,17 @@ bool ProcAnalyzer::ProcPrint()
     process_list_[i] = temp;
   }
 
-  for (int i = 0; i < process_list_.size(); i++)
-  {
-    if (process_list_[i].fan_state_)
-    {
-      Fitler(process_list_[i]);
-    }
-    else
-    {
-      CheckProcess(process_list_[i]);
-    }
-  }
+//  for (int i = 0; i < process_list_.size(); i++)
+//  {
+//    if (process_list_[i].fan_state_)
+//    {
+//      Fitler(process_list_[i]);
+//    }
+//    else
+//    {
+//      CheckProcess(process_list_[i]);
+//    }
+//  }
 
   return(WriteJson());
 }
@@ -293,7 +301,9 @@ bool ProcAnalyzer::IfCoOrientation(GeoV3 a, vector<GeoV3> &b)
   for (int i = 0; i < b.size(); i++)
   {
     if (angle(a, b[i]) < (F_PI / 2))
+    {
       return true;
+    }
   }
   return false;
 }
@@ -304,6 +314,7 @@ void ProcAnalyzer::CheckProcess(Process &a)
 
   t.normalize();
   vector<GeoV3> temp_normal;
+
   if (!IfCoOrientation(t, a.normal_))
   {
     point temp = a.end_;
@@ -311,20 +322,27 @@ void ProcAnalyzer::CheckProcess(Process &a)
     a.start_ = temp;
     for (int i = 0; i < a.normal_.size(); i++)
     {
-      if (angle(t, a.normal_[i]) <(F_PI / 2))
+      if (angle(t, a.normal_[i]) < (F_PI / 2))
+      {
         continue;
+      }
       else
+      {
         temp_normal.push_back(a.normal_[i]);
+      }
     }
   }
   else
   {
     for (int i = 0; i < a.normal_.size(); i++)
     {
-      if (angle(t, a.normal_[i]) <(F_PI / 2))
+      if (angle(t, a.normal_[i]) < (F_PI / 2))
+      {
         temp_normal.push_back(a.normal_[i]);
+      }
     }
   }
+
   a.normal_ = temp_normal;
 }
 

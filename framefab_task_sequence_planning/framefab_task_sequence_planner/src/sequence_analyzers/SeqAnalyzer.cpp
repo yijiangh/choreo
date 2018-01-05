@@ -173,7 +173,7 @@ SeqAnalyzer::SeqAnalyzer(
   terminal_output_ = terminal_output;
   file_output_ = file_output;
 
-  update_collision_ = true;
+  update_collision_ = false;
 
   hotend_model_ = hotend_model;
   moveit_model_ = moveit_model;
@@ -231,6 +231,8 @@ void SeqAnalyzer::PrintPillars()
       point center = e->CenterPos();
       base_queue.insert(make_pair(center.x(), e));
       UpdateStructure(e);
+
+      // TODO: enable collision checking and greedy tsp here
     }
   }
 
@@ -247,7 +249,8 @@ void SeqAnalyzer::PrintPillars()
   /* angle state with pillars */
   for (int dual_i = 0; dual_i < Nd_; dual_i++)
   {
-    WF_edge *e = ptr_frame_->GetEdge(ptr_wholegraph_->e_orig_id(dual_i));
+    WF_edge* e = ptr_frame_->GetEdge(ptr_wholegraph_->e_orig_id(dual_i));
+
     if (!ptr_dualgraph_->isExistingEdge(e))
     {
       ptr_collision_->DetectCollision(e, ptr_dualgraph_, angle_state_[dual_i]);
@@ -737,30 +740,36 @@ void SeqAnalyzer::OutputPrintOrder(vector<WF_edge*> &print_queue)
     print_queue.push_back(print_queue_[i]);
   }
 }
-std::vector<SeqAnalyzer::SingleTaskPlanningResult> SeqAnalyzer::OutputPrintOrder()
+void SeqAnalyzer::OutputTaskSequencePlanningResult(std::vector<SingleTaskPlanningResult>& planning_result)
 {
-  std::vector<SeqAnalyzer::SingleTaskPlanningResult> planning_result;
-
   int Nq = print_queue_.size();
   planning_result.reserve(Nq);
 
   for (int i = 0; i < Nq; i++)
   {
-    WF_edge* ptr_e = print_queue_[i];
-    int dual_j = ptr_wholegraph_->e_dual_id(ptr_e->ID());
+    WF_edge* e = print_queue_[i];
 
-    // generate feasible end effector directions for printing edge e
-    std::vector<Eigen::Vector3d> direction_vec_list =
-        ptr_collision_->ConvertCollisionMapToEigenDirections(angle_state_[dual_j]);
+    int dual_j = ptr_wholegraph_->e_dual_id(e->ID());
+
+    std::vector<Eigen::Vector3d> direction_vec_list;
+
+    if(e->isPillar())
+    {
+      direction_vec_list.push_back(Eigen::Vector3d(0,0,1));
+    }
+    else
+    {
+      assert(angle_state_[dual_j].size() > 0);
+      // generate feasible end effector directions for printing edge e
+      direction_vec_list = ptr_collision_->ConvertCollisionMapToEigenDirections(angle_state_[dual_j]);
+    }
 
     assert(direction_vec_list.size() > 0);
 
-    SeqAnalyzer::SingleTaskPlanningResult result;
-    result.e_ = ptr_e;
+    SingleTaskPlanningResult result;
+    result.e_ = e;
     result.eef_directions_ = direction_vec_list;
 
     planning_result.push_back(result);
   }
-
-  return planning_result;
 }

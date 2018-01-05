@@ -50,7 +50,7 @@ bool FFAnalyzer::SeqPrint()
     //layer_search.Start();
 
     int Nl = layers_[l].size();
-    int h = print_queue_.size();
+    int h = print_queue_.size(); // print queue size so far
     int t;
     if (l == 0)
     {
@@ -71,7 +71,7 @@ bool FFAnalyzer::SeqPrint()
     max_z_ = -min_z_;
     for (int i = 0; i < Nl; i++)
     {
-      WF_edge *e = layers_[l][i];
+      WF_edge* e = layers_[l][i];
       point u = e->pvert_->Position();
       point v = e->ppair_->pvert_->Position();
       min_z_ = min(min_z_, (double)min(u.z(), v.z()));
@@ -109,7 +109,7 @@ bool FFAnalyzer::SeqPrint()
 bool FFAnalyzer::GenerateSeq(int l, int h, int t)
 {
   /* last edge */
-  assert(h != 0);						// there must be pillars
+  assert(h != 0); // there must be pillars
   WF_edge *ei = print_queue_[h - 1];
 
   if (terminal_output_)

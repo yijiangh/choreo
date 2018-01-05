@@ -84,12 +84,12 @@ class WF_vert
   bool isBase() const { return b_base_; }
   bool isSubgraph()	const { return b_subg_; }
 
-  void SetPosition(point p)						{ position_ = p; }
-  void SetPosition(double x, double y, double z)	{ position_ = point(x, y, z); }
-  void SetRenderPos(point p)						{ render_pos_ = p; }
-  void SetRenderPos(double x, double y, double z)	{ render_pos_ = point(x, y, z); }
-  void SetID(int id)								{ id_ = id; }
-  void IncreaseDegree()							{ degree_++; }
+  void SetPosition(point p) { position_ = p; }
+  void SetPosition(double x, double y, double z) { position_ = point(x, y, z); }
+  void SetRenderPos(point p) { render_pos_ = p; }
+  void SetRenderPos(double x, double y, double z) { render_pos_ = point(x, y, z); }
+  void SetID(int id) { id_ = id; }
+  void IncreaseDegree() { degree_++; }
 
   void SetFixed(bool b_fixed)	 { b_fixed_ = b_fixed; }
   void SetBase(bool b_base)	 { b_base_ = b_base; }
@@ -277,11 +277,11 @@ class WireFrame
   vector<WF_vert*> *pvert_list_;
   vector<WF_edge*> *pedge_list_;
 
-  int	fixed_vert_;
-  int	base_vert_;
-  int	pillar_size_;
-  int	ceiling_size_;
-  int	layer_size_;
+  int fixed_vert_;
+  int base_vert_;
+  int pillar_size_;
+  int ceiling_size_;
+  int layer_size_;
 
   double maxx_;
   double maxy_;

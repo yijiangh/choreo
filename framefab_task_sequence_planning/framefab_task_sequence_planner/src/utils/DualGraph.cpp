@@ -36,7 +36,7 @@ void DualGraph::Init()
 	vert_list_->resize(M);
 	for (int i = 0; i < M; i++)
 	{
-		(*vert_list_)[i] = new DualVertex();
+      (*vert_list_)[i] = new DualVertex();
 	}
 
 	edge_list_ = new vector<DualEdge*>;
@@ -45,7 +45,7 @@ void DualGraph::Init()
 	face_list_->resize(N);
 	for (int i = 0; i < N; i++)
 	{
-		(*face_list_)[i] = new DualFace();
+      (*face_list_)[i] = new DualFace();
 	}
 
 	Nd_ = 0;

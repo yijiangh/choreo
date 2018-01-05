@@ -60,13 +60,13 @@
 #include <descartes_core/robot_model.h>
 #include <pluginlib/class_loader.h>
 
+struct SingleTaskPlanningResult{
+  WF_edge* e_;
+  std::vector<Eigen::Vector3d> eef_directions_;
+};
+
 class SeqAnalyzer
 {
-  struct SingleTaskPlanningResult{
-    WF_edge* e_;
-    std::vector<Eigen::Vector3d> eef_directions_;
-  };
-
  public:
   typedef Eigen::MatrixXd MX;
   typedef Eigen::Matrix3d M3;
@@ -99,7 +99,7 @@ class SeqAnalyzer
  public:
   bool InputPrintOrder(vector<int> &print_queue);
   void OutputPrintOrder(vector<WF_edge*> &print_queue);
-  std::vector<SingleTaskPlanningResult> OutputPrintOrder();
+  void OutputTaskSequencePlanningResult(std::vector<SingleTaskPlanningResult>& planning_result);
 
  protected:
   void Init();

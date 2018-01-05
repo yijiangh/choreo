@@ -16,6 +16,7 @@ QuadricCollision::QuadricCollision(WireFrame *ptr_frame)
 
   int halfM = ptr_frame->SizeOfEdgeList() / 2;
   colli_map_.resize(halfM*halfM);
+
   for (int i = 0; i < halfM*halfM; i++)
   {
     colli_map_[i] = NULL;
@@ -27,8 +28,11 @@ QuadricCollision::~QuadricCollision()
   int Nc = colli_map_.size();
   for (int i = 0; i < Nc; i++)
   {
-    delete colli_map_[i];
-    colli_map_[i] = NULL;
+    if (NULL != colli_map_[i])
+    {
+      delete colli_map_[i];
+      colli_map_[i] = NULL;
+    }
   }
 }
 
@@ -51,7 +55,8 @@ void QuadricCollision::DetectCollision(WF_edge *target_e, DualGraph *ptr_subgrap
   int Nd = ptr_subgraph->SizeOfVertList();
   for (int i = 0; i < Nd; i++)
   {
-    WF_edge *e = ptr_frame_->GetEdge(ptr_subgraph->e_orig_id(i));
+    WF_edge* e = ptr_frame_->GetEdge(ptr_subgraph->e_orig_id(i));
+
     if (e != target_e_ && e != target_e_->ppair_)
     {
       DetectEdge(e, result_map);
