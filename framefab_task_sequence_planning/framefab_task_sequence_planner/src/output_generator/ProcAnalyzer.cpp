@@ -29,30 +29,23 @@ ProcAnalyzer::ProcAnalyzer(SeqAnalyzer *seqanalyzer, const char *path)
 
 bool ProcAnalyzer::ProcPrint()
 {
+  assert(ptr_seqanalyzer_);
+
   WireFrame *ptr_frame = ptr_seqanalyzer_->ptr_frame_;
   DualGraph *ptr_dualgraph = ptr_seqanalyzer_->ptr_dualgraph_;
 
   QuadricCollision collision_checker = QuadricCollision(ptr_frame);
 
-  std::vector<WF_edge*> print_queue;
+  const auto planning_result = ptr_seqanalyzer_->OutputPrintOrder();
 
-  ptr_seqanalyzer_->OutputPrintOrder(print_queue);
-
-  for (int i = 0; i < print_queue.size(); i++)
-  {
-    layer_queue_.push_back(print_queue[i]->ID());
-  }
-
-  exist_point_.clear();
   process_list_.clear();
   support_ = 0;
 
   //angle
-  for (int i = 0; i < layer_queue_.size(); i++)
+  for (int i = 0; i < planning_result.size(); i++)
   {
     Process temp;
-    int orig_e = layer_queue_[i];
-    WF_edge *e = ptr_frame->GetEdge(orig_e);
+    const WF_edge* e = planning_result[i].e_;
 
     if (e->isPillar())
     {
@@ -61,19 +54,23 @@ bool ProcAnalyzer::ProcPrint()
     }
     else
     {
-      collision_checker.DetectCollision(e, exist_edge_, temp.normal_);
+      for(const auto& v : planning_result[i].eef_directions_)
+      {
+        temp.normal_.push_back(GeoV3(v[0], v[1], v[2]));
+      }
     }
 
-    exist_edge_.push_back(e);
+    cout << "edge id #" << e->ID() << ", directions num "
+         << process_list_.back().normal_.size() << endl;
+
     process_list_.push_back(temp);
   }
 
   //point
-  for (int i = 0; i < layer_queue_.size(); i++)
+  for (int i = 0; i < planning_result.size(); i++)
   {
     Process temp = process_list_[i];
-    int orig_e = layer_queue_[i];
-    WF_edge *e = ptr_frame->GetEdge(orig_e);
+    WF_edge *e = planning_result[i].e_;
 
     point up, down;
     if ((e->pvert_->Position()).z()>(e->ppair_->pvert_->Position()).z())
@@ -123,7 +120,6 @@ bool ProcAnalyzer::ProcPrint()
     process_list_[i] = temp;
   }
 
-
   for (int i = 0; i < process_list_.size(); i++)
   {
     if (process_list_[i].fan_state_)
@@ -131,7 +127,9 @@ bool ProcAnalyzer::ProcPrint()
       Fitler(process_list_[i]);
     }
     else
+    {
       CheckProcess(process_list_[i]);
+    }
   }
 
   return(WriteJson());

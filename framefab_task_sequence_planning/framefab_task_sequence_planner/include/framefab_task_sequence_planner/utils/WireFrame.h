@@ -75,41 +75,40 @@ class WF_vert
   ~WF_vert(){}
 
  public:
-  point		Position()		{ return position_; }
-  point		RenderPos()		{ return render_pos_; }
-  int		ID()			{ return id_; }
-  int		Degree()		{ return degree_; }
+  point	Position() const { return position_; }
+  point	RenderPos() const { return render_pos_; }
+  int ID() const { return id_; }
+  int Degree() const { return degree_; }
 
-  bool		isFixed()		{ return b_fixed_; }
-  bool		isBase()		{ return b_base_; }
-  bool		isSubgraph()	{ return b_subg_; }
+  bool isFixed() const { return b_fixed_; }
+  bool isBase() const { return b_base_; }
+  bool isSubgraph()	const { return b_subg_; }
 
-  void		SetPosition(point p)						{ position_ = p; }
-  void		SetPosition(double x, double y, double z)	{ position_ = point(x, y, z); }
-  void		SetRenderPos(point p)						{ render_pos_ = p; }
-  void		SetRenderPos(double x, double y, double z)	{ render_pos_ = point(x, y, z); }
-  void		SetID(int id)								{ id_ = id; }
-  void		IncreaseDegree()							{ degree_++; }
+  void SetPosition(point p)						{ position_ = p; }
+  void SetPosition(double x, double y, double z)	{ position_ = point(x, y, z); }
+  void SetRenderPos(point p)						{ render_pos_ = p; }
+  void SetRenderPos(double x, double y, double z)	{ render_pos_ = point(x, y, z); }
+  void SetID(int id)								{ id_ = id; }
+  void IncreaseDegree()							{ degree_++; }
 
-  void		SetFixed(bool b_fixed)	 { b_fixed_ = b_fixed; }
-  void		SetBase(bool b_base)	 { b_base_ = b_base; }
-  void		SetSubgraph(bool b_subg) { b_subg_ = b_subg; }
+  void SetFixed(bool b_fixed)	 { b_fixed_ = b_fixed; }
+  void SetBase(bool b_base)	 { b_base_ = b_base; }
+  void SetSubgraph(bool b_subg) { b_subg_ = b_subg; }
 
  public:
-  WF_edge		*pedge_;
+  WF_edge *pedge_;
 
  private:
-  point		position_;
-  point		render_pos_;
+  point	position_;
+  point	render_pos_;
 
-  int			id_;
-  int			degree_;
+  int id_;
+  int degree_;
 
-  bool		b_base_;
-  bool		b_fixed_;
-  bool		b_subg_;
+  bool b_base_;
+  bool b_fixed_;
+  bool b_subg_;
 };
-
 
 class WF_edge
 {
@@ -121,26 +120,26 @@ class WF_edge
   ~WF_edge(){}
 
  public:
-  int ID()			{ return id_; }
-  int Layer()			{ return layer_; }
-  bool isPillar()		{ return b_pillar_; }
-  bool isCeiling()		{ return b_ceiling_; }
-  bool isSubgraph()	{ return b_subg_; }
+  int ID() const { return id_; }
+  int Layer() const { return layer_; }
+  bool isPillar() const { return b_pillar_; }
+  bool isCeiling() const { return b_ceiling_; }
+  bool isSubgraph()	const { return b_subg_; }
 
-  void SetID(int id)				{ id_ = id; }
-  void SetLayer(int layer)			{ layer_ = layer; }
+  void SetID(int id) { id_ = id; }
+  void SetLayer(int layer) { layer_ = layer; }
   void SetPillar(bool b_pillar)	{ b_pillar_ = b_pillar; }
-  void SetCeiling(bool b_ceiling)	{ b_ceiling_ = b_ceiling; }
+  void SetCeiling(bool b_ceiling) { b_ceiling_ = b_ceiling; }
   void SetSubgraph(bool b_subg)	{ b_subg_ = b_subg; }
 
-  point CenterPos()
+  point CenterPos() const
   {
 	  point u = pvert_->Position();
 	  point v = ppair_->pvert_->Position();
 	  return point((u.x() + v.x()) / 2, (u.y() + v.y()) / 2, (u.z() + v.z()) / 2);
   }
 
-  double Length()
+  double Length() const
   {
 	  point u = pvert_->Position();
 	  point v = ppair_->pvert_->Position();
@@ -151,16 +150,16 @@ class WF_edge
   }
 
  public:
-  WF_vert		*pvert_;
-  WF_edge		*pnext_;
-  WF_edge		*ppair_;
+  WF_vert *pvert_;
+  WF_edge *pnext_;
+  WF_edge *ppair_;
 
  private:
-  int			id_;
-  int			layer_;
-  bool		b_pillar_;
-  bool		b_ceiling_;
-  bool		b_subg_;
+  int id_;
+  int layer_;
+  bool b_pillar_;
+  bool b_ceiling_;
+  bool b_subg_;
 };
 
 
@@ -168,10 +167,10 @@ class WF_face
 {
  public:
   WF_face()	{ bound_points_ = new vector<WF_vert*>; }
-  ~WF_face()	{ delete bound_points_; }
+  ~WF_face() { delete bound_points_; }
 
  public:
-  vector<WF_vert*>	*bound_points_;
+  vector<WF_vert*>* bound_points_;
 };
 
 
@@ -213,13 +212,13 @@ class WireFrame
   void MakeCeiling(vector<WF_edge*> &bound_e);
   void MakeSubGraph(vector<WF_edge*> &subg_e);
 
-  inline int SizeOfVertList() { return pvert_list_->size(); }
-  inline int SizeOfEdgeList() { return pedge_list_->size(); }
-  inline int SizeOfFixedVert() { return fixed_vert_; }
-  inline int SizeOfBaseVert() { return base_vert_; }
-  inline int SizeOfPillar() { return pillar_size_; }
-  inline int SizeOfCeiling() { return ceiling_size_; }
-  inline int SizeOfLayer() { return layer_size_; }
+  inline int SizeOfVertList() const { return pvert_list_->size(); }
+  inline int SizeOfEdgeList() const { return pedge_list_->size(); }
+  inline int SizeOfFixedVert() const { return fixed_vert_; }
+  inline int SizeOfBaseVert() const { return base_vert_; }
+  inline int SizeOfPillar() const { return pillar_size_; }
+  inline int SizeOfCeiling() const { return ceiling_size_; }
+  inline int SizeOfLayer() const { return layer_size_; }
 
   inline vector<WF_vert*> *GetVertList() { return pvert_list_; }
   inline vector<WF_edge*> *GetEdgeList() { return pedge_list_; }
@@ -227,32 +226,32 @@ class WireFrame
   inline WF_edge *GetEdge(int i) { return (i >= SizeOfEdgeList() || i < 0) ? NULL : (*pedge_list_)[i]; }
   inline WF_edge *GetNeighborEdge(int u) { return (u >= SizeOfVertList() || u < 0) ? NULL : (*pvert_list_)[u]->pedge_; }
 
-  inline point GetPosition(int u) { assert(u < SizeOfVertList() && u >= 0); return((*pvert_list_)[u]->Position()); }
-  inline int GetDegree(int u) { assert(u < SizeOfVertList() && u >= 0); return((*pvert_list_)[u]->Degree()); }
+  inline point GetPosition(int u) const { assert(u < SizeOfVertList() && u >= 0); return((*pvert_list_)[u]->Position()); }
+  inline int GetDegree(int u) const { assert(u < SizeOfVertList() && u >= 0); return((*pvert_list_)[u]->Degree()); }
 
-  inline int GetEndu(int i) { assert(i < SizeOfEdgeList() && i >= 0); return((*pedge_list_)[i]->ppair_->pvert_->ID()); }
-  inline int GetEndv(int i) { assert(i < SizeOfEdgeList() && i >= 0); return((*pedge_list_)[i]->pvert_->ID()); }
-  inline point GetCenterPos(int i) { assert(i < SizeOfEdgeList() && i >= 0); return((*pedge_list_)[i]->CenterPos()); }
+  inline int GetEndu(int i) const { assert(i < SizeOfEdgeList() && i >= 0); return((*pedge_list_)[i]->ppair_->pvert_->ID()); }
+  inline int GetEndv(int i) const { assert(i < SizeOfEdgeList() && i >= 0); return((*pedge_list_)[i]->pvert_->ID()); }
 
+  inline point GetCenterPos(int i) const { assert(i < SizeOfEdgeList() && i >= 0); return((*pedge_list_)[i]->CenterPos()); }
   inline Vec3f GetCenterPos() const { return center_pos_; }
   inline Vec3f GetBaseCenterPos() const { return base_center_pos_; }
 
-  inline bool isFixed(int u)	{ assert(u < SizeOfVertList() && u >= 0); return((*pvert_list_)[u]->isFixed()); }
-  inline bool isPillar(int i)	{ assert(i < SizeOfEdgeList() && i >= 0); return((*pedge_list_)[i]->isPillar()); }
+  inline bool isFixed(int u) const { assert(u < SizeOfVertList() && u >= 0); return((*pvert_list_)[u]->isFixed()); }
+  inline bool isPillar(int i) const	{ assert(i < SizeOfEdgeList() && i >= 0); return((*pedge_list_)[i]->isPillar()); }
 
-  inline double maxX() { return maxx_; }
-  inline double minX() { return minx_; }
-  inline double maxY() { return maxy_; }
-  inline double minY() { return miny_; }
-  inline double maxZ() { return maxz_; }
-  inline double minZ() { return minz_; }
+  inline double maxX() const { return maxx_; }
+  inline double minX() const { return minx_; }
+  inline double maxY() const { return maxy_; }
+  inline double minY() const { return miny_; }
+  inline double maxZ() const { return maxz_; }
+  inline double minZ() const { return minz_; }
 
-  inline double Norm(point u)
+  inline double Norm(point u) const
   {
 	  return sqrt(u.x()*u.x() + u.y()*u.y() + u.z()*u.z());
   }
 
-  inline double Dist(point u, point v)
+  inline double Dist(point u, point v) const
   {
 	  double dx = u.x() - v.x();
 	  double dy = u.y() - v.y();
@@ -260,13 +259,13 @@ class WireFrame
 	  return sqrt(dx*dx + dy*dy + dz*dz);
   }
 
-  inline point CrossProduct(point u, point v)
+  inline point CrossProduct(point u, point v) const
   {
 	  return point(u.y() * v.z() - u.z() * v.y(), u.z() * v.x() - u.x() * v.z(),
 				   u.x() * v.y() - u.y() * v.x());
   }
 
-  inline double ArcHeight(point u, point v1, point v2)
+  inline double ArcHeight(point u, point v1, point v2) const
   {
 	  point alpha = u - v1;
 	  point beta = v2 - v1;

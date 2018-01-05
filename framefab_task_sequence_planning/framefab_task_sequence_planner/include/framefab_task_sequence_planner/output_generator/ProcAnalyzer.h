@@ -61,7 +61,6 @@ class ProcAnalyzer
 
   vector<int> layer_queue_;
   vector<point>	exist_point_;
-  vector<WF_edge*> exist_edge_;
   ExtruderCone extruder_;
 
   vector<Process> process_list_;

@@ -313,7 +313,7 @@ bool FiberPrintPlugIn::DirectSearch()
     }
 
     fiber_print_.Stop();
-    fiber_print_.Print("OneLayer:");
+    fiber_print_.Print("Direct Search:");
 
     return true;
   }

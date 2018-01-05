@@ -737,3 +737,30 @@ void SeqAnalyzer::OutputPrintOrder(vector<WF_edge*> &print_queue)
     print_queue.push_back(print_queue_[i]);
   }
 }
+std::vector<SeqAnalyzer::SingleTaskPlanningResult> SeqAnalyzer::OutputPrintOrder()
+{
+  std::vector<SeqAnalyzer::SingleTaskPlanningResult> planning_result;
+
+  int Nq = print_queue_.size();
+  planning_result.reserve(Nq);
+
+  for (int i = 0; i < Nq; i++)
+  {
+    WF_edge* ptr_e = print_queue_[i];
+    int dual_j = ptr_wholegraph_->e_dual_id(ptr_e->ID());
+
+    // generate feasible end effector directions for printing edge e
+    std::vector<Eigen::Vector3d> direction_vec_list =
+        ptr_collision_->ConvertCollisionMapToEigenDirections(angle_state_[dual_j]);
+
+    assert(direction_vec_list.size() > 0);
+
+    SeqAnalyzer::SingleTaskPlanningResult result;
+    result.e_ = ptr_e;
+    result.eef_directions_ = direction_vec_list;
+
+    planning_result.push_back(result);
+  }
+
+  return planning_result;
+}
