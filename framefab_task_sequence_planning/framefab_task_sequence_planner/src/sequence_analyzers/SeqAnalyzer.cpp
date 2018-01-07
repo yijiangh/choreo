@@ -173,7 +173,7 @@ SeqAnalyzer::SeqAnalyzer(
   terminal_output_ = terminal_output;
   file_output_ = file_output;
 
-  update_collision_ = false;
+  update_collision_ = true;
 
   hotend_model_ = hotend_model;
   moveit_model_ = moveit_model;

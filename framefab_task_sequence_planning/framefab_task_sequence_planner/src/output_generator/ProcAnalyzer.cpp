@@ -128,17 +128,17 @@ bool ProcAnalyzer::ProcPrint()
     process_list_[i] = temp;
   }
 
-//  for (int i = 0; i < process_list_.size(); i++)
-//  {
-//    if (process_list_[i].fan_state_)
-//    {
-//      Fitler(process_list_[i]);
-//    }
-//    else
-//    {
-//      CheckProcess(process_list_[i]);
-//    }
-//  }
+  for (int i = 0; i < process_list_.size(); i++)
+  {
+    if (process_list_[i].fan_state_)
+    {
+      Fitler(process_list_[i]);
+    }
+    else
+    {
+      CheckProcess(process_list_[i]);
+    }
+  }
 
   return(WriteJson());
 }

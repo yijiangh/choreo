@@ -168,16 +168,16 @@ std::vector<Eigen::Vector3d> QuadricCollision::ConvertCollisionMapToEigenDirecti
 {
   std::vector<Eigen::Vector3d> feasible_eef_directions;
 
-  for(int j = 0; j < 60; j++)
+  for(int i = 0; i < 60; i++)
   {
-    lld mask = ((lld) 1 << j);
+    lld mask = ((lld) 1 << i);
 
-    for(int i = 0; i < 3; i++)
+    for(int j = 0; j < 3; j++)
     {
-      // j-th bit = 0 means it's feasible
-      if((colli_map[i] & mask) == 0)
+      // i-th bit = 0 means it's feasible
+      if((colli_map[j] & mask) == 0)
       {
-        double phi = (j % 20) * 18.0 / 180.0 * F_PI;
+        double phi = (i % 20) * 18.0 / 180.0 * F_PI;
 
         double theta = 0.0;
         if (i < 20)
