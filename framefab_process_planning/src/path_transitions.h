@@ -36,6 +36,7 @@ toDescartesConstrainedPath(
     const int selected_path_id, const ConstrainedSegParameters& transition_params);
 
 bool retractPath(const std::vector<double>& start_joint, double retract_dist, double TCP_speed,
+                 const std::vector<Eigen::Matrix3d>& eef_directions,
                  descartes_core::RobotModelPtr& descartes_model,
                  std::vector<std::vector<double>>& retract_jt_traj);
 }

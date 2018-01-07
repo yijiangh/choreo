@@ -204,6 +204,7 @@ void retractionPlanning(descartes_core::RobotModelPtr model,
 
     std::vector<std::vector<double>> approach_retract_traj;
     if(!framefab_process_planning::retractPath(start_process_joint, segs[i].retract_dist, segs[i].linear_vel,
+                                               segs[i].orientations,
                                                model, approach_retract_traj))
     {
       ROS_ERROR_STREAM("[retraction planning] process #" << i << " failed to find feasible approach retract motion!");
@@ -228,6 +229,7 @@ void retractionPlanning(descartes_core::RobotModelPtr model,
 
     std::vector<std::vector<double>> depart_retract_traj;
     if(!framefab_process_planning::retractPath(end_process_joint, segs[i].retract_dist, segs[i].linear_vel,
+                                               segs[i].orientations,
                                                model, depart_retract_traj))
     {
       ROS_ERROR_STREAM("[retraction planning] process #" << i << " failed to find feasible depart retract motion!");
