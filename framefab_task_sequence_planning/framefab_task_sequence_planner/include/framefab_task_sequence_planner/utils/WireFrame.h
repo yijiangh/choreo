@@ -59,18 +59,18 @@ class WF_vert
 {
  public:
   WF_vert()
-		  : pedge_(NULL), id_(0), degree_(0),
-			b_fixed_(false), b_base_(false), b_subg_(false)
+      : pedge_(NULL), id_(0), degree_(0),
+        b_fixed_(false), b_base_(false), b_subg_(false)
   {}
   WF_vert(Vec3f p)
-		  : pedge_(NULL), position_(p), render_pos_(p),
-			id_(0), degree_(0),
-			b_fixed_(false), b_base_(false), b_subg_(false)
+      : pedge_(NULL), position_(p), render_pos_(p),
+        id_(0), degree_(0),
+        b_fixed_(false), b_base_(false), b_subg_(false)
   {}
   WF_vert(double x, double y, double z)
-		  : pedge_(NULL), position_(point(x, y, z)), render_pos_(point(x, y, z)),
-			id_(0), degree_(0),
-			b_fixed_(false), b_base_(false), b_subg_(false)
+      : pedge_(NULL), position_(point(x, y, z)), render_pos_(point(x, y, z)),
+        id_(0), degree_(0),
+        b_fixed_(false), b_base_(false), b_subg_(false)
   {}
   ~WF_vert(){}
 
@@ -114,8 +114,8 @@ class WF_edge
 {
  public:
   WF_edge()
-		  :pvert_(NULL), pnext_(NULL), ppair_(NULL),
-		   id_(0), layer_(0), b_pillar_(false), b_ceiling_(false), b_subg_(false)
+      :pvert_(NULL), pnext_(NULL), ppair_(NULL),
+       id_(0), layer_(0), b_pillar_(false), b_ceiling_(false), b_subg_(false)
   {}
   ~WF_edge(){}
 
@@ -134,19 +134,19 @@ class WF_edge
 
   point CenterPos() const
   {
-	  point u = pvert_->Position();
-	  point v = ppair_->pvert_->Position();
-	  return point((u.x() + v.x()) / 2, (u.y() + v.y()) / 2, (u.z() + v.z()) / 2);
+    point u = pvert_->Position();
+    point v = ppair_->pvert_->Position();
+    return point((u.x() + v.x()) / 2, (u.y() + v.y()) / 2, (u.z() + v.z()) / 2);
   }
 
   double Length() const
   {
-	  point u = pvert_->Position();
-	  point v = ppair_->pvert_->Position();
-	  double dx = u.x() - v.x();
-	  double dy = u.y() - v.y();
-	  double dz = u.z() - v.z();
-	  return sqrt(dx*dx + dy*dy + dz*dz);
+    point u = pvert_->Position();
+    point v = ppair_->pvert_->Position();
+    double dx = u.x() - v.x();
+    double dy = u.y() - v.y();
+    double dz = u.z() - v.z();
+    return sqrt(dx*dx + dy*dy + dz*dz);
   }
 
  public:
@@ -178,7 +178,6 @@ class WireFrame
 {
  public:
   WireFrame();
-  WireFrame(vector<int> *bound);
   ~WireFrame();
 
  public:
@@ -212,6 +211,8 @@ class WireFrame
   void MakeCeiling(vector<WF_edge*> &bound_e);
   void MakeSubGraph(vector<WF_edge*> &subg_e);
 
+  void SetUnitScale(double unit_scale) { unit_scale_ = unit_scale; }
+
   inline int SizeOfVertList() const { return pvert_list_->size(); }
   inline int SizeOfEdgeList() const { return pedge_list_->size(); }
   inline int SizeOfFixedVert() const { return fixed_vert_; }
@@ -236,6 +237,8 @@ class WireFrame
   inline Vec3f GetCenterPos() const { return center_pos_; }
   inline Vec3f GetBaseCenterPos() const { return base_center_pos_; }
 
+  inline double GetUnitScale() const { return unit_scale_; }
+
   inline bool isFixed(int u) const { assert(u < SizeOfVertList() && u >= 0); return((*pvert_list_)[u]->isFixed()); }
   inline bool isPillar(int i) const	{ assert(i < SizeOfEdgeList() && i >= 0); return((*pedge_list_)[i]->isPillar()); }
 
@@ -248,29 +251,29 @@ class WireFrame
 
   inline double Norm(point u) const
   {
-	  return sqrt(u.x()*u.x() + u.y()*u.y() + u.z()*u.z());
+    return sqrt(u.x()*u.x() + u.y()*u.y() + u.z()*u.z());
   }
 
   inline double Dist(point u, point v) const
   {
-	  double dx = u.x() - v.x();
-	  double dy = u.y() - v.y();
-	  double dz = u.z() - v.z();
-	  return sqrt(dx*dx + dy*dy + dz*dz);
+    double dx = u.x() - v.x();
+    double dy = u.y() - v.y();
+    double dz = u.z() - v.z();
+    return sqrt(dx*dx + dy*dy + dz*dz);
   }
 
   inline point CrossProduct(point u, point v) const
   {
-	  return point(u.y() * v.z() - u.z() * v.y(), u.z() * v.x() - u.x() * v.z(),
-				   u.x() * v.y() - u.y() * v.x());
+    return point(u.y() * v.z() - u.z() * v.y(), u.z() * v.x() - u.x() * v.z(),
+                 u.x() * v.y() - u.y() * v.x());
   }
 
   inline double ArcHeight(point u, point v1, point v2) const
   {
-	  point alpha = u - v1;
-	  point beta = v2 - v1;
+    point alpha = u - v1;
+    point beta = v2 - v1;
 
-	  return Norm(CrossProduct(alpha, beta)) / Norm(beta);
+    return Norm(CrossProduct(alpha, beta)) / Norm(beta);
   }
 
  private:
@@ -296,4 +299,7 @@ class WireFrame
   float scaleV_;
   double unify_size_;
   double delta_tol_;
+
+  // from millimeter to ..
+  double unit_scale_;
 };

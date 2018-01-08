@@ -95,12 +95,12 @@ moveit_msgs::CollisionObject convertWFEdgeToCollisionObject(
 
 void convertWireFrameToMsg(
     const framefab_msgs::ModelInputParameters& model_params,
-    WireFrame& wire_frame, std::vector<framefab_msgs::ElementCandidatePoses>& wf_msgs)
+    WireFrame& wire_frame, std::vector<framefab_msgs::ElementCandidatePoses>& wf_msgs,
+    double unit_scale)
 {
   wf_msgs.clear();
 
   // set unit scale
-  double unit_scale = 1.0;
   switch (model_params.unit_type)
   {
     case framefab_msgs::ModelInputParameters::MILLIMETER:
@@ -358,7 +358,10 @@ bool FiberPrintPlugIn::handleTaskSequencePlanning(
       ptr_frame_ = new WireFrame();
       ptr_frame_->LoadFromPWF(&fp[0]);
 
-      convertWireFrameToMsg(req.model_params, *ptr_frame_, frame_msgs_);
+      double unit_scale;
+      convertWireFrameToMsg(req.model_params, *ptr_frame_, frame_msgs_, unit_scale);
+
+      ptr_frame_->SetUnitScale(unit_scale);
       res.element_array = frame_msgs_;
 
       break;

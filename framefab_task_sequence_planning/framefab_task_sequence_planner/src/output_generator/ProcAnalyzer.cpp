@@ -42,17 +42,15 @@ bool ProcAnalyzer::ProcPrint()
   ptr_seqanalyzer_->OutputTaskSequencePlanningResult(planning_result);
 
   process_list_.clear();
+  process_list_.reserve(planning_result.size());
+
   support_ = 0;
 
-  //angle
+  // extracting feasible angles
   for (int i = 0; i < planning_result.size(); i++)
   {
-    ROS_INFO_STREAM("[pA] angle process #" << i);
-
     Process temp;
     WF_edge* e = planning_result[i].e_;
-
-    ROS_INFO_STREAM("[pA] edge id #" << e->ID() );
 
     if (e->isPillar())
     {
@@ -65,77 +63,117 @@ bool ProcAnalyzer::ProcPrint()
     }
 
     process_list_.push_back(temp);
-    ROS_INFO_STREAM("[pA] directions num " << process_list_.back().normal_.size());
   }
 
-  //point
+  // extracting start and end nodes
+  point prev_end_node(0, 0, 0);
+
   for (int i = 0; i < planning_result.size(); i++)
   {
     Process temp = process_list_[i];
     WF_edge* e = planning_result[i].e_;
 
-    point up, down;
-    if ((e->pvert_->Position()).z() > (e->ppair_->pvert_->Position()).z())
-    {
-      up = e->pvert_->Position();
-      down = e->ppair_->pvert_->Position();
-    }
-    else
-    {
-      up = e->ppair_->pvert_->Position();
-      down = e->pvert_->Position();
-    }
-
     if (e->isPillar())
     {
-      temp.start_ = down;
-      temp.end_ = up;
-      temp.fan_state_ = true;
-
-      if (!IfPointInVector(down))
+      if ((e->pvert_->Position()).z() > (e->ppair_->pvert_->Position()).z())
       {
-        exist_point_.push_back(down);
-      }
-
-      if (!IfPointInVector(up))
-      {
-        exist_point_.push_back(up);
-      }
-    }
-    else
-    {
-      if (IfPointInVector(down) && IfPointInVector(up))
-      {
-        temp.fan_state_ = false;
-        temp.start_ = down;
-        temp.end_ = up;
-      }
-      else if (IfPointInVector(down))
-      {
-        temp.fan_state_ = true;
-        temp.start_ = down;
-        temp.end_ = up;
-        exist_point_.push_back(up);
+        temp.end_ = e->pvert_->Position();
+        temp.start_ = e->ppair_->pvert_->Position();
       }
       else
       {
-        temp.fan_state_ = true;
-        temp.start_ = up;
-        temp.end_ = down;
-        exist_point_.push_back(down);
+        temp.start_ = e->pvert_->Position();
+        temp.end_ = e->ppair_->pvert_->Position();
+      }
+
+      temp.fan_state_ = true;
+
+      // pillar shouldn't have been printed yet
+      if (!IfPointInVector(temp.end_))
+      {
+        exist_point_.push_back(temp.end_);
+      }
+      if (!IfPointInVector(temp.start_))
+      {
+        exist_point_.push_back(temp.start_);
       }
     }
+    else
+    {
+      // non-pillar element
+      // init
+      point start_node = e->pvert_->Position();
+      point end_node = e->ppair_->pvert_->Position();
+      const bool start_node_exist = IfPointInVector(start_node);
+      const bool end_node_exist = IfPointInVector(end_node);
+
+      // sanity check: at least one of the nodes should exist
+      assert(start_node_exist || end_node_exist);
+
+      // XOR - only one of them exist, "create type"
+      if (start_node_exist != end_node_exist)
+      {
+        temp.fan_state_ = true;
+        if (start_node_exist)
+        {
+          temp.start_ = start_node;
+          temp.end_ = end_node;
+        }
+        else
+        {
+          temp.start_ = end_node;
+          temp.end_ = start_node;
+        }
+        exist_point_.push_back(temp.end_);
+      }
+      else
+      {
+        // AND - both of them exist, "connect type"
+        // use previous end point as start node if possible
+        // i.e. prefer continuous printing
+        if (prev_end_node == end_node || prev_end_node == start_node)
+        {
+          if (prev_end_node == end_node)
+          {
+            point tmp_swap = start_node;
+            start_node = end_node;
+            end_node = tmp_swap;
+          }
+          //else start node already agrees with prev_end_node, then keep rolling!
+        }
+        else
+        {
+          // we prefer the start node to be close
+          if (trimesh::dist(end_node, prev_end_node) < trimesh::dist(start_node, prev_end_node))
+          {
+            point tmp_swap = start_node;
+            start_node = end_node;
+            end_node = tmp_swap;
+          }
+        }
+
+        temp.fan_state_ = false;
+        temp.start_ = start_node;
+        temp.end_ = end_node;
+      }
+    }
+
+    prev_end_node = temp.end_;
     process_list_[i] = temp;
-  }
+  } // end loop for all elements (planning_result)
 
   for (int i = 0; i < process_list_.size(); i++)
   {
     if (process_list_[i].fan_state_)
     {
-      Fitler(process_list_[i]);
+      // prune orientation domain based on fabrication constraint
+      // for "create type", we only allow orientations whose angle to the element
+      // is smaller than max_edge_angle
+      Filter(process_list_[i]);
     }
     else
     {
+      // disable pruning on "connect type" domain prunning
       CheckProcess(process_list_[i]);
     }
   }
@@ -346,7 +384,7 @@ void ProcAnalyzer::CheckProcess(Process &a)
   a.normal_ = temp_normal;
 }
 
-void ProcAnalyzer::Fitler(Process &a)
+void ProcAnalyzer::Filter(Process &a)
 {
   GeoV3 t = a.end_ - a.start_;
   t.normalize();

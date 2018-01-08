@@ -330,7 +330,7 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej)
       fprintf(stderr, "P: %lf, A: %lf, I: %lf\ncost: %f\n\n", P, A, I, cost);
     }
     return cost;
-  }
+  } // end if exist_edge ej
 
   return -1;
 }

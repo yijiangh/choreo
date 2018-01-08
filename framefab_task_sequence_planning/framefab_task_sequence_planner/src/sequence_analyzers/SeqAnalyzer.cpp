@@ -488,8 +488,9 @@ void SeqAnalyzer::UpdateCollisionObjects(WF_edge* e, bool shrink)
 
       while (eu != NULL)
       {
-        if(eu == e)
+        if(eu == e || !ptr_dualgraph_->isExistingEdge(eu))
         {
+          // skip if edge = input edge OR current edge doesn't exist yet
           eu = eu->pnext_;
           continue;
         }
@@ -579,7 +580,7 @@ void SeqAnalyzer::RecoverCollisionObjects(WF_edge* e, bool shrink)
 
       while (eu != NULL)
       {
-        if(eu == e)
+        if(eu == e || !ptr_dualgraph_->isExistingEdge(eu))
         {
           eu = eu->pnext_;
           continue;
@@ -662,6 +663,12 @@ bool SeqAnalyzer::TestRobotKinematics(WF_edge *e, const std::vector<lld>& colli_
   UpdateCollisionObjects(e, true);
   hotend_model_->setPlanningScene(planning_scene_);
 
+//  std::ostream stream(nullptr);
+//  std::stringbuf str;
+//  stream.rdbuf(&str);
+//  planning_scene_->printKnownObjects(stream);
+//  ROS_INFO_STREAM("planning scene " << str.str());
+
   // generate feasible end effector directions for printing edge e
   std::vector<Eigen::Vector3d> direction_vec_list =
       ptr_collision_->ConvertCollisionMapToEigenDirections(colli_map);
@@ -669,12 +676,13 @@ bool SeqAnalyzer::TestRobotKinematics(WF_edge *e, const std::vector<lld>& colli_
   convertOrientationVector(direction_vec_list, direction_matrix_list);
 
   // generate eef path points
+  double unit_scale = ptr_frame_->GetUnitScale();
   const auto st_pt = e->ppair_->pvert_->Position();
   const auto end_pt = e->pvert_->Position();
 
   std::vector<Eigen::Vector3d> path_pts =
-      discretizePositions(Eigen::Vector3d(st_pt.x(), st_pt.y(), st_pt.z()),
-                          Eigen::Vector3d(end_pt.x(), end_pt.y(), end_pt.z()),
+      discretizePositions(Eigen::Vector3d(st_pt.x(), st_pt.y(), st_pt.z()) * unit_scale,
+                          Eigen::Vector3d(end_pt.x(), end_pt.y(), end_pt.z()) * unit_scale,
                           0.005);
 
   const auto check_start_time = ros::Time::now();
@@ -690,7 +698,7 @@ bool SeqAnalyzer::TestRobotKinematics(WF_edge *e, const std::vector<lld>& colli_
 
       hotend_model_->getAllIK(pose, joint_poses);
 
-      if(joint_poses.empty())
+      if(joint_poses.size() == 0)
       {
         empty_joint_pose_found = true;
         break;
@@ -729,7 +737,6 @@ bool SeqAnalyzer::InputPrintOrder(vector<int> &print_queue)
   return true;
 }
 
-
 void SeqAnalyzer::OutputPrintOrder(vector<WF_edge*> &print_queue)
 {
   print_queue.clear();
@@ -740,6 +747,7 @@ void SeqAnalyzer::OutputPrintOrder(vector<WF_edge*> &print_queue)
     print_queue.push_back(print_queue_[i]);
   }
 }
+
 void SeqAnalyzer::OutputTaskSequencePlanningResult(std::vector<SingleTaskPlanningResult>& planning_result)
 {
   int Nq = print_queue_.size();

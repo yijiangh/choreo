@@ -1,7 +1,7 @@
 #include "framefab_task_sequence_planner/utils/WireFrame.h"
 
 WireFrame::WireFrame()
-	:delta_tol_(1e-1), unify_size_(2.0), layer_size_(0)
+	:delta_tol_(1e-1), unify_size_(2.0), layer_size_(0), unit_scale_(1.0)
 {
 	pvert_list_ = new vector<WF_vert*>;
 	pedge_list_ = new vector<WF_edge*>;
