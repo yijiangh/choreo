@@ -154,203 +154,144 @@ bool framefab_process_planning::retractPath(
     descartes_core::RobotModelPtr& model,
     std::vector<std::vector<double>>& retract_jt_traj)
 {
-//  const int dof = model->getDOF();
-//
-//  // solve FK to retrieve start eef plane
-//  Eigen::Affine3d start_pose;
-//  model->getFK(start_joint, start_pose);
-//
-//  const auto retract_sample_start = ros::Time::now();
-//
-//  // TODO: better strategy to generate retract pose?
-//  // transit the start eef plane along the direction of the local z axis
-//  std::vector<Eigen::Affine3d> retract_eef_poses;
-//  descartes_planner::LadderGraph graph(model->getDOF());
-//
-//  // sample feasible directions for offset movement vector
-//  while((ros::Time::now() - retract_sample_start).toSec() < RETRACT_OFFSET_SAMPLE_TIMEOUT)
-//  {
-//    // generate index sample
-//    retract_eef_poses.clear();
-//    graph.clear();
-//
-//    int sample_id = randomSampleInt(0, eef_directions.size()-1);
-//    Eigen::Matrix3d offset_vec = eef_directions[sample_id];
-//
-//    Eigen::Affine3d retract_pose =
-//        start_pose * Eigen::Translation3d(retract_dist * offset_vec.col(2));
-//
-//    auto st_pt = start_pose.matrix().col(3).head<3>();
-//    auto end_pt = retract_pose.matrix().col(3).head<3>();
-//    double ds = (st_pt - end_pt).norm() / 5;
-//
-//    std::vector<Eigen::Vector3d> path_pts = discretizePositions(st_pt, end_pt, ds);
-//    const descartes_core::TimingConstraint timing(retract_dist / TCP_speed);
-//
-//    for(auto& pt : path_pts)
-//    {
-//      Eigen::Affine3d pose = start_pose;
-//      pose.matrix().col(3).head<3>() = pt;
-//
-//      retract_eef_poses.push_back(pose);
-//    }
-//
-//    bool exist_pose_not_feasible = false;
-//
-//    for(int i=0; i < retract_eef_poses.size(); i++)
-//    {
-//      std::vector <std::vector<double>> retract_jt_vec;
-//      model->getAllIK(retract_eef_poses[i], retract_jt_vec);
-//
-//      if(0 == retract_jt_vec.size())
-//      {
-//        exist_pose_not_feasible = true;
-//        break;
-//      }
-//      else
-//      {
-//        graph.assignRung(i, descartes_core::TrajectoryID::make_nil(), timing, retract_jt_vec);
-//      }
-//    }
-//
-//    if(!exist_pose_not_feasible && graph.size() == retract_eef_poses.size())
-//    {
-//      break;
-//    }
-//  }
-//
-//  if(graph.size() != retract_eef_poses.size())
-//  {
-//    ROS_WARN_STREAM("[process planning] retraction sampling failed to find feasible retraction pose.");
-//    return false;
-//  }
-//
-//  // build edges
-//  for (std::size_t i = 0; i < graph.size() - 1; ++i)
-//  {
-//    const auto start_idx = i;
-//    const auto end_idx = i + 1;
-//    const auto& joints1 = graph.getRung(start_idx).data;
-//    const auto& joints2 = graph.getRung(end_idx).data;
-//    const auto& tm = graph.getRung(end_idx).timing;
-//
-//    const auto start_size = joints1.size() / dof;
-//    const auto end_size = joints2.size() / dof;
-//
-//    descartes_planner::DefaultEdgesWithTime builder (start_size, end_size, dof, tm.upper,
-//                                                     model->getJointVelocityLimits());
-//    for (size_t k = 0; k < start_size; k++) // from rung
-//    {
-//      const auto start_index = k * dof;
-//
-//      for (size_t j = 0; j < end_size; j++) // to rung
-//      {
-//        const auto end_index = j * dof;
-//
-//        builder.consider(&joints1[start_index], &joints2[end_index], j);
-//      }
-//      builder.next(k);
-//    }
-//
-//    std::vector<descartes_planner::LadderGraph::EdgeList> edges = builder.result();
-//
-//    graph.assignEdges(i, std::move(edges));
-//  }
-//
-//  descartes_planner::DAGSearch search(graph);
-//  double cost = search.run();
-//  auto path_idxs = search.shortestPath();
-//
-//  retract_jt_traj.clear();
-//  for (size_t j = 0; j < path_idxs.size(); ++j)
-//  {
-//    const auto idx = path_idxs[j];
-//    const auto* data = graph.vertex(j, idx);
-//    retract_jt_traj.push_back(std::vector<double>(data, data + 6));
-//  }
-//
-//  return true;
-
   const int dof = model->getDOF();
 
   // solve FK to retrieve start eef plane
   Eigen::Affine3d start_pose;
   model->getFK(start_joint, start_pose);
 
-  // transit the start eef plane along the direction of the local z axis
-  Eigen::Affine3d retract_pose = start_pose * Eigen::Translation3d(retract_dist * start_pose.linear().col(2));
+  const auto retract_sample_start = ros::Time::now();
 
-  // debug visualization
-//  auto rvz = rviz_visual_tools::RvizVisualTools("world_frame", "pose_v");
-//  rvz.publishXArrow(retract_pose, rviz_visual_tools::RED, rviz_visual_tools::XXXXSMALL, 0.1);
-//  rvz.publishYArrow(retract_pose, rviz_visual_tools::GREEN, rviz_visual_tools::XXXXSMALL, 0.1);
-//  rvz.publishZArrow(retract_pose, rviz_visual_tools::BLUE, rviz_visual_tools::XXXXSMALL, 0.1);
-//  rvz.trigger();
+  std::vector<Eigen::Affine3d> retract_eef_poses;
+  descartes_planner::LadderGraph graph(model->getDOF());
 
-  // solve IK for retract plane, and use a two_rung ladder graph to
-  // pick the one with the minimal joint distance to start joint config
-  std::vector <std::vector<double>> retract_jt_vec;
-  model->getAllIK(retract_pose, retract_jt_vec);
+  const descartes_core::TimingConstraint timing(retract_dist / TCP_speed);
 
-  if (retract_jt_vec.size() == 0)
+  // sample feasible directions for offset movement vector
+  bool first_try = true;
+  while((ros::Time::now() - retract_sample_start).toSec() < RETRACT_OFFSET_SAMPLE_TIMEOUT)
   {
-    ROS_WARN_STREAM("[RetractPath] failed to directly generate feasible IK for retracted pose!");
-    return false;
-  }
-  else
-  {
-    // sample around the eef orientation
-  }
+    // generate index sample
+    retract_eef_poses.clear();
+    graph.clear();
 
-  const int end_size = retract_jt_vec.size() / dof;
-
-  double delta = 10e4;
-  int min_id = -1;
-  int cnt = 0;
-
-  // select valid ik solution with min(delta_Jt)
-  for (auto &retract_jt : retract_jt_vec)
-  {
-    double temp_delta = 0;
-
-    if (model->isValid(retract_jt))
+    Eigen::Matrix3d offset_vec;
+    if(first_try)
     {
-      // calculate joint dist
-      for (size_t i = 0; i < dof; i++)
+      // transit the start eef plane along the direction of the local z axis
+      offset_vec = start_pose.matrix().block<3,3>(0,0);
+    }
+    else
+    {
+      int sample_id = randomSampleInt(0, eef_directions.size() - 1);
+      offset_vec = eef_directions[sample_id];
+    }
+
+    Eigen::Affine3d retract_pose =
+        start_pose * Eigen::Translation3d(retract_dist * offset_vec.col(2));
+
+    auto st_pt = start_pose.matrix().col(3).head<3>();
+    auto end_pt = retract_pose.matrix().col(3).head<3>();
+    double ds = (st_pt - end_pt).norm() / 2;
+
+    std::vector<Eigen::Vector3d> path_pts = discretizePositions(st_pt, end_pt, ds);
+    graph.resize(path_pts.size());
+
+    for(auto& pt : path_pts)
+    {
+      Eigen::Affine3d pose = start_pose;
+      pose.matrix().col(3).head<3>() = pt;
+
+      retract_eef_poses.push_back(pose);
+    }
+
+    bool exist_pose_not_feasible = false;
+
+    for(int i=0; i < retract_eef_poses.size(); i++)
+    {
+      std::vector<std::vector<double>> retract_jt_vec;
+
+      if(0 == i)
       {
-        temp_delta += abs(retract_jt[i] - start_joint[i]);
+        retract_jt_vec.push_back(start_joint);
+      }
+      else
+      {
+        model->getAllIK(retract_eef_poses[i], retract_jt_vec);
       }
 
-      // update min delta value and id
-      if (temp_delta < delta)
+      if(0 == retract_jt_vec.size())
       {
-        delta = temp_delta;
-        min_id = cnt;
+        exist_pose_not_feasible = true;
+        break;
+      }
+      else
+      {
+        graph.assignRung(i, descartes_core::TrajectoryID::make_nil(), timing, retract_jt_vec);
       }
     }
-    cnt++;
+
+    if(!exist_pose_not_feasible && graph.size() == retract_eef_poses.size())
+    {
+      if(!first_try)
+      {
+        ROS_INFO_STREAM("[retraction planning] sampled retraction pose used.");
+      }
+
+      break;
+    }
+    first_try = false;
   }
 
-  if (-1 == min_id)
+  if(graph.size() != retract_eef_poses.size())
   {
-    // no valid joint found
-    ROS_ERROR("[retract planning] interpolated joint pose is not valid!");
+    ROS_WARN_STREAM("[process planning] retraction sampling failed to find feasible retraction pose.");
     return false;
   }
-  else
-  {
-    // interpolate start pose and target pose
-    retract_jt_traj = interpolateJoint(start_joint, retract_jt_vec[min_id], JTS_DISC_DELTA);
 
-    // check the validity of the pose, if not, send out warning and return nothing
-    for (auto &jt : retract_jt_traj)
+  // build edges
+  for (std::size_t i = 0; i < graph.size() - 1; ++i)
+  {
+    const auto start_idx = i;
+    const auto end_idx = i + 1;
+    const auto& joints1 = graph.getRung(start_idx).data;
+    const auto& joints2 = graph.getRung(end_idx).data;
+    const auto& tm = graph.getRung(end_idx).timing;
+
+    const auto start_size = joints1.size() / dof;
+    const auto end_size = joints2.size() / dof;
+
+    descartes_planner::DefaultEdgesWithTime builder (start_size, end_size, dof, tm.upper,
+                                                     model->getJointVelocityLimits());
+    for (size_t k = 0; k < start_size; k++) // from rung
     {
-      if (!model->isValid(jt))
+      const auto start_index = k * dof;
+
+      for (size_t j = 0; j < end_size; j++) // to rung
       {
-        ROS_ERROR("[retract planning] interpolated joint pose is not valid!");
-        return false;
+        const auto end_index = j * dof;
+
+        builder.consider(&joints1[start_index], &joints2[end_index], j);
       }
+      builder.next(k);
     }
-    return true;
+
+    std::vector<descartes_planner::LadderGraph::EdgeList> edges = builder.result();
+
+    graph.assignEdges(i, std::move(edges));
   }
+
+  descartes_planner::DAGSearch search(graph);
+  double cost = search.run();
+  auto path_idxs = search.shortestPath();
+
+  retract_jt_traj.clear();
+  for (size_t j = 0; j < path_idxs.size(); ++j)
+  {
+    const auto idx = path_idxs[j];
+    const auto* data = graph.vertex(j, idx);
+    retract_jt_traj.push_back(std::vector<double>(data, data + 6));
+  }
+
+  return true;
 }
