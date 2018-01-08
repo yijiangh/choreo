@@ -515,6 +515,8 @@ void framefab_gui::SelectionWidget::buttonSelectForPlan()
   setInputEnabled(false);
 
   framefab_msgs::QueryComputationRecord srv;
+  bool saved_record_found = false;
+
   srv.request.action = framefab_msgs::QueryComputationRecordRequest::SAVED_LADDER_GRAPH;
   srv.request.file_name = model_file_name_;
 
@@ -524,7 +526,7 @@ void framefab_gui::SelectionWidget::buttonSelectForPlan()
   {
 //    ROS_INFO_STREAM("[Selection Widget] select path panel fetch saved ladder graph info successfully.");
 
-    const bool saved_record_found = srv.response.record_found;
+    saved_record_found = srv.response.record_found;
     const int found_record_size = srv.response.found_record_size;
 
     // set pop up widget text
@@ -540,14 +542,16 @@ void framefab_gui::SelectionWidget::buttonSelectForPlan()
       std::string msg = "No previous ladder graph record found.";
       select_for_plan_pop_up_->setDisplayText(msg);
     }
-
-    select_for_plan_pop_up_->enableButtons(saved_record_found);
-    select_for_plan_pop_up_->show();
   }
   else
   {
-    ROS_ERROR_STREAM("[Selection Widget] Unable to fetch model's element number!");
+    std::string msg = "Unable to fetch model's element number.";
+    select_for_plan_pop_up_->setDisplayText(msg);
+    saved_record_found = false;
   }
+
+  select_for_plan_pop_up_->enableButtons(saved_record_found);
+  select_for_plan_pop_up_->show();
 
   setMode(ZOOM_IN_SELECTION);
   setInputEnabled(true);

@@ -14,6 +14,7 @@
     <depend>geometry_msgs</depend>
     <depend>framefab_msgs</depend>
     <depend>moveit_msgs</depend>
+    <depend>descartes_msgs</depend>
     <depend>tf_conversions</depend>
     <depend>eigen_conversions</depend>
     <depend>framefab_rapidjson</depend>

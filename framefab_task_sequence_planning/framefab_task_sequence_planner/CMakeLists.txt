@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
 	geometry_msgs
 	framefab_msgs
 	moveit_msgs
+	descartes_msgs
 	tf_conversions
 	eigen_conversions
 	framefab_rapidjson
@@ -48,6 +49,7 @@ catkin_package(
 		geometry_msgs
 		framefab_msgs
 		moveit_msgs
+		descartes_msgs
 		tf_conversions
 		eigen_conversions
 		framefab_rapidjson
