@@ -36,6 +36,7 @@
 #include <trajectory_msgs/JointTrajectoryPoint.h>
 #include <framefab_msgs/SubProcess.h>
 #include <framefab_msgs/ElementCandidatePoses.h>
+#include <descartes_msgs/LadderGraphList.h>
 
 // srv
 #include <moveit_msgs/ApplyPlanningScene.h>
@@ -101,28 +102,76 @@ void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
                                                                           << " seconds.");
 }
 
+bool saveLadderGraph(const std::string& filename, const descartes_msgs::LadderGraphList& graph_list_msg)
+{
+  if (!framefab_param_helpers::toFile(filename, graph_list_msg))
+  {
+    ROS_WARN_STREAM("Unable to save ladder graph list to: " << filename);
+  }
+}
+
 void CLTRRTforProcessROSTraj(descartes_core::RobotModelPtr model,
                              std::vector<descartes_planner::ConstrainedSegment>& segs,
                              const std::vector<planning_scene::PlanningScenePtr>& planning_scenes,
                              const std::vector<framefab_msgs::ElementCandidatePoses>& task_seq,
-                             std::vector<framefab_msgs::UnitProcessPlan>& plans)
+                             std::vector<framefab_msgs::UnitProcessPlan>& plans,
+                             const std::string& saved_graph_file_name,
+                             bool use_saved_graph)
 {
   // sanity check
   assert(segs.size() == task_seq.size());
 
   const auto clt_start = ros::Time::now();
 
-  descartes_planner::CapsulatedLadderTreeRRTstar CLT_RRT(segs, planning_scenes);
-  double clt_cost = 0;
-  std::vector<std::size_t> graph_indices;
   framefab_process_planning::DescartesTraj sol;
 
-  clt_cost = CLT_RRT.solve(*model);
-  CLT_RRT.extractSolution(*model, sol, graph_indices);
+  std::vector<descartes_planner::LadderGraph> graphs;
+  std::vector<int> graph_indices;
+  descartes_msgs::LadderGraphList graph_list_msg;
+  double clt_cost = 0;
+
+  if(use_saved_graph)
+  {
+    if(framefab_param_helpers::fromFile(saved_graph_file_name, graph_list_msg))
+    {
+      ROS_INFO_STREAM("[CLR RRT*] use saved ladder graph.");
+
+      //parse saved ladder graph
+      graphs = descartes_parser::convertToLadderGraphList(graph_list_msg);
+    }
+    else
+    {
+      ROS_WARN_STREAM("[CLT RRT*] read saved ladder graph list fails. Reconstruct graph.");
+      // reading msg fails, reconstruct ladder graph
+      use_saved_graph = false;
+    }
+  }
+
+  descartes_planner::CapsulatedLadderTreeRRTstar CLT_RRT(segs, planning_scenes);
+
+  if(!use_saved_graph || segs.size() > graphs.size())
+  {
+    // reconstruct and search, output sol, graphs, graph_indices
+    clt_cost = CLT_RRT.solve(*model);
+    CLT_RRT.extractSolution(*model, sol,
+                            graphs,
+                            graph_indices, use_saved_graph);
+
+    graph_list_msg = descartes_parser::convertToLadderGraphMsg(graphs);
+    saveLadderGraph(saved_graph_file_name, graph_list_msg);
+  }
+  else
+  {
+    // default start from begin
+    std::vector<descartes_planner::LadderGraph> chosen_graphs(graphs.begin(), graphs.begin() + segs.size());
+    CLT_RRT.extractSolution(*model, sol,
+                            chosen_graphs,
+                            graph_indices, use_saved_graph);
+  }
 
   const auto clt_end = ros::Time::now();
   ROS_INFO_STREAM("[CLT RRT*] CLT RRT* Search took " << (clt_end-clt_start).toSec()
-                                                     << " seconds and produced a result with dist = " << clt_cost);
+                                                     << " seconds");
 
   trajectory_msgs::JointTrajectory ros_traj = framefab_process_planning::toROSTrajectory(sol, *model);
 
@@ -204,6 +253,7 @@ void retractionPlanning(descartes_core::RobotModelPtr model,
 
     std::vector<std::vector<double>> approach_retract_traj;
     if(!framefab_process_planning::retractPath(start_process_joint, segs[i].retract_dist, segs[i].linear_vel,
+                                               segs[i].orientations,
                                                model, approach_retract_traj))
     {
       ROS_ERROR_STREAM("[retraction planning] process #" << i << " failed to find feasible approach retract motion!");
@@ -228,6 +278,7 @@ void retractionPlanning(descartes_core::RobotModelPtr model,
 
     std::vector<std::vector<double>> depart_retract_traj;
     if(!framefab_process_planning::retractPath(end_process_joint, segs[i].retract_dist, segs[i].linear_vel,
+                                               segs[i].orientations,
                                                model, depart_retract_traj))
     {
       ROS_ERROR_STREAM("[retraction planning] process #" << i << " failed to find feasible depart retract motion!");
@@ -371,16 +422,6 @@ void adjustTrajectoryTiming(std::vector<framefab_msgs::UnitProcessPlan>& plans,
   }
 }
 
-bool saveLadderGraph(const std::string& filename, const descartes_msgs::LadderGraphList& graph_list_msg)
-{
-  if (!framefab_param_helpers::toFile(filename, graph_list_msg))
-  {
-    ROS_WARN_STREAM("Unable to save ladder graph list to: " << filename);
-    return false;
-  }
-  return true;
-}
-
 void appendTCPPosetoPlans(const descartes_core::RobotModelPtr model,
                           const std::vector<planning_scene::PlanningScenePtr>& planning_scenes_shrinked,
                           const std::vector<planning_scene::PlanningScenePtr>& planning_scenes_full,
@@ -455,7 +496,8 @@ bool framefab_process_planning::generateMotionPlan(
   constructPlanningScenes(moveit_model, task_seq, planning_scenes_shrinked, planning_scenes_full);
 
   // Step 2: CLT RRT* to solve process trajectory
-  CLTRRTforProcessROSTraj(model, segs, planning_scenes_shrinked, task_seq, plans);
+  CLTRRTforProcessROSTraj(model, segs, planning_scenes_shrinked, task_seq, plans,
+                          saved_graph_file_name, use_saved_graph);
 
   // retract planning
   retractionPlanning(model, planning_scenes_shrinked, segs, plans);

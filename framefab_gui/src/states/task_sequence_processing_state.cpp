@@ -11,8 +11,13 @@
 #include <framefab_msgs/ModelInputParameters.h>
 #include <framefab_msgs/TaskSequenceInputParameters.h>
 
+// note: this action client's name MUST be the same to server's name
+const static std::string TASK_SEQUENCE_PROCESSING_ACTION_CLIENT_NAME = "task_sequence_processing_action";
+const static std::string TASK_SEQUENCE_PLANNING_ACTION_CLIENT_NAME = "task_sequence_planning_action";
+
 framefab_gui::TaskSequenceProcessingState::TaskSequenceProcessingState()
-    : task_sequence_processing_action_client_(TASK_SEQUENCE_PROCESSING_ACTION_CLIENT_NAME, true)
+    : task_sequence_processing_action_client_(TASK_SEQUENCE_PROCESSING_ACTION_CLIENT_NAME, true),
+      task_sequence_planning_action_client_(TASK_SEQUENCE_PLANNING_ACTION_CLIENT_NAME, true)
 {
 }
 
@@ -29,8 +34,10 @@ void framefab_gui::TaskSequenceProcessingState::onStart(FrameFabWidget& gui)
   gui_ptr_ = &gui;
 
   QObject::connect(this, SIGNAL(feedbackReceived(QString)), this, SLOT(setFeedbackText(QString)));
-  QtConcurrent::run(this, &TaskSequenceProcessingState::makeRequest, gui.params().modelInputParams(),
-                    gui.params().taskSequenceInputParams());
+  QObject::connect(&gui.selection_widget(), SIGNAL(closeWidgetAndContinue()), this, SLOT(toNextState()));
+  QObject::connect(&gui.selection_widget(), SIGNAL(recomputeTaskSequenceChosen()), this, SLOT(taskSequencePlanningOn()));
+
+  taskSequenceProcessOrPlan();
 }
 
 void framefab_gui::TaskSequenceProcessingState::onExit(FrameFabWidget& gui) { gui.setButtonsEnabled(true); }
@@ -52,7 +59,26 @@ void framefab_gui::TaskSequenceProcessingState::onReset(FrameFabWidget& gui)
   Q_EMIT newStateAvailable(new SystemInitState());
 }
 
-void framefab_gui::TaskSequenceProcessingState::makeRequest(
+void framefab_gui::TaskSequenceProcessingState::toNextState()
+{
+  this->onNext(*gui_ptr_);
+}
+
+void framefab_gui::TaskSequenceProcessingState::taskSequenceProcessOrPlan()
+{
+  gui_ptr_->setButtonsEnabled(false);
+  if(makeTaskSequenceProcessingRequest(gui_ptr_->params().modelInputParams(),
+                                       gui_ptr_->params().taskSequenceInputParams()))
+  {
+    gui_ptr_->selection_widget().showTaskSequenceRecomputePopUp(true);
+  }
+  else
+  {
+    gui_ptr_->selection_widget().showTaskSequenceRecomputePopUp(false);
+  }
+}
+
+bool framefab_gui::TaskSequenceProcessingState::makeTaskSequenceProcessingRequest(
     framefab_msgs::ModelInputParameters model_params,
     framefab_msgs::TaskSequenceInputParameters task_sequence_params)
 {
@@ -65,7 +91,7 @@ void framefab_gui::TaskSequenceProcessingState::makeRequest(
   task_sequence_processing_action_client_.waitForServer();
   if(task_sequence_processing_action_client_.isServerConnected())
   {
-    ROS_INFO_STREAM("[UI] task sequence processing action server connected!");
+//    ROS_INFO_STREAM("[UI] task sequence processing action server connected!");
   }
   else
   {
@@ -77,11 +103,14 @@ void framefab_gui::TaskSequenceProcessingState::makeRequest(
       boost::bind(&framefab_gui::TaskSequenceProcessingState::taskSequenceProcessingDoneCallback, this, _1, _2),
       boost::bind(&framefab_gui::TaskSequenceProcessingState::taskSequenceProcessingActiveCallback, this),
       boost::bind(&framefab_gui::TaskSequenceProcessingState::taskSequenceProcessingFeedbackCallback, this, _1));
+
+  task_sequence_processing_action_client_.waitForResult();
+  return task_sequence_processing_action_client_.getResult()->succeeded;
 }
 
 void framefab_gui::TaskSequenceProcessingState::setFeedbackText(QString feedback)
 {
-  gui_ptr_->appendText("-----------ACTION FEEDBACK-----------\n" + feedback.toStdString());
+  gui_ptr_->appendText(feedback.toStdString());
 }
 
 // Action Callbacks
@@ -89,14 +118,6 @@ void framefab_gui::TaskSequenceProcessingState::taskSequenceProcessingDoneCallba
     const actionlib::SimpleClientGoalState& state,
     const framefab_msgs::TaskSequenceProcessingResultConstPtr& result)
 {
-  if(result->succeeded)
-  {
-    gui_ptr_->setButtonsEnabled(true);
-  }
-  else
-  {
-    Q_EMIT newStateAvailable(new SystemInitState());
-  }
 }
 
 void framefab_gui::TaskSequenceProcessingState::taskSequenceProcessingActiveCallback()
@@ -105,6 +126,63 @@ void framefab_gui::TaskSequenceProcessingState::taskSequenceProcessingActiveCall
 
 void framefab_gui::TaskSequenceProcessingState::taskSequenceProcessingFeedbackCallback(
     const framefab_msgs::TaskSequenceProcessingFeedbackConstPtr& feedback)
+{
+  Q_EMIT feedbackReceived(QString::fromStdString((feedback->last_completed).c_str()));
+}
+
+void framefab_gui::TaskSequenceProcessingState::taskSequencePlanningOn()
+{
+  gui_ptr_->setButtonsEnabled(false);
+  QtConcurrent::run(this, &TaskSequenceProcessingState::makeTaskSequencePlanningRequest,
+                    gui_ptr_->params().modelInputParams(),
+                    gui_ptr_->params().taskSequenceInputParams());
+}
+
+bool framefab_gui::TaskSequenceProcessingState::makeTaskSequencePlanningRequest(
+    framefab_msgs::ModelInputParameters model_params,
+    framefab_msgs::TaskSequenceInputParameters task_sequence_params)
+{
+  framefab_msgs::TaskSequencePlanningGoal goal;
+  goal.model_params = model_params;
+  goal.task_sequence_params = task_sequence_params;
+
+  ROS_INFO("[UI] Waiting for task sequence planning action server to start.");
+  task_sequence_planning_action_client_.waitForServer();
+  if(task_sequence_planning_action_client_.isServerConnected())
+  {
+    ROS_INFO_STREAM("[UI] task seq planning action server connected!");
+  }
+  else
+  {
+    ROS_WARN_STREAM("[UI] action task seq planning server not connected");
+  }
+
+  task_sequence_planning_action_client_.sendGoal(
+      goal,
+      boost::bind(&framefab_gui::TaskSequenceProcessingState::taskSequencePlanningDoneCallback, this, _1, _2),
+      boost::bind(&framefab_gui::TaskSequenceProcessingState::taskSequencePlanningActiveCallback, this),
+      boost::bind(&framefab_gui::TaskSequenceProcessingState::taskSequencePlanningFeedbackCallback, this, _1));
+  ROS_INFO_STREAM("[UI] Goal sent from task sequence planning state");
+}
+
+// Action Callbacks
+void framefab_gui::TaskSequenceProcessingState::taskSequencePlanningDoneCallback(
+    const actionlib::SimpleClientGoalState& state,
+    const framefab_msgs::TaskSequencePlanningResultConstPtr& result)
+{
+  if (result->succeeded && makeTaskSequenceProcessingRequest(gui_ptr_->params().modelInputParams(),
+                                                             gui_ptr_->params().taskSequenceInputParams()))
+  {
+    gui_ptr_->setButtonsEnabled(true);
+  }
+}
+
+void framefab_gui::TaskSequenceProcessingState::taskSequencePlanningActiveCallback()
+{
+}
+
+void framefab_gui::TaskSequenceProcessingState::taskSequencePlanningFeedbackCallback(
+    const framefab_msgs::TaskSequencePlanningFeedbackConstPtr& feedback)
 {
   Q_EMIT feedbackReceived(QString::fromStdString((feedback->last_completed).c_str()));
 }

@@ -40,12 +40,12 @@ bool processTaskSequenceCallback(framefab_msgs::TaskSequenceProcessingRequest& r
   std::vector<moveit_msgs::CollisionObject> env_objs =
       ts_processor.getEnvCollisionObjs();
 
-  for(auto unit_process : process_array)
+  for(auto& unit_process : process_array)
   {
     res.process.push_back(unit_process.asElementCandidatePoses());
   }
 
-  for(auto env_obj : env_objs)
+  for(auto& env_obj : env_objs)
   {
     res.env_collision_objs.push_back(env_obj);
   }

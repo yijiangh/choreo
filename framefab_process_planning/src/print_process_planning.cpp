@@ -42,7 +42,7 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
     return true;
   }
 
-  const static double LINEAR_VEL = 0.01; // (m/s)
+  const static double LINEAR_VEL = 0.1; // (m/s)
   const static double RETRACT_DISTANCE = 0.010; // meters
 
   const static double LINEAR_DISCRETIZATION = 0.005; // meters
