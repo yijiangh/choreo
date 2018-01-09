@@ -8,7 +8,10 @@
 // msgs
 #include <moveit_msgs/CollisionObject.h>
 
-const static double ROBOT_KINEMATICS_CHECK_TIMEOUT = 2.0;
+// msg-eigen conversion
+#include <eigen_conversions/eigen_msg.h>
+
+const static double ROBOT_KINEMATICS_CHECK_TIMEOUT = 10.0;
 
 namespace{
 // copy from graph_builder.cpp
@@ -16,7 +19,7 @@ namespace{
 // ds must be > 0
 std::vector<Eigen::Vector3d> discretizePositions(const Eigen::Vector3d& start, const Eigen::Vector3d& stop, const double ds)
 {
-  auto dist = (stop - start).norm();
+  double dist = (stop - start).norm();
 
   size_t n_intermediate_points = 0;
   if (dist > ds)
@@ -98,7 +101,7 @@ std::vector<Eigen::Affine3d> generateSampleEEFPoses(
   std::vector<Eigen::Affine3d> poses;
   poses.reserve(path_pts.size());
 
-  for(auto& pt : path_pts)
+  for(const auto& pt : path_pts)
   {
     poses.push_back(makePose(pt, orientation_sample, x_axis_sample));
   }
@@ -450,7 +453,7 @@ void SeqAnalyzer::UpdateCollisionObjects(WF_edge* e, bool shrink)
   {
     // add input edge's collision object
     moveit_msgs::CollisionObject e_collision_obj;
-    e_collision_obj = frame_msgs_[orig_j].both_side_shrinked_collision_object;
+    e_collision_obj = frame_msgs_[orig_j].full_collision_object;
     e_collision_obj.operation = moveit_msgs::CollisionObject::ADD;
 
     // add this edge to the planning scene
@@ -488,7 +491,8 @@ void SeqAnalyzer::UpdateCollisionObjects(WF_edge* e, bool shrink)
 
       while (eu != NULL)
       {
-        if(eu == e || !ptr_dualgraph_->isExistingEdge(eu))
+        if(eu->ID() == e->ID() || eu->ID() == e->ppair_->ID()
+            || !ptr_dualgraph_->isExistingEdge(eu))
         {
           // skip if edge = input edge OR current edge doesn't exist yet
           eu = eu->pnext_;
@@ -515,7 +519,8 @@ void SeqAnalyzer::UpdateCollisionObjects(WF_edge* e, bool shrink)
 
         if (!planning_scene_->processCollisionObjectMsg(ne_collision_obj))
         {
-          ROS_WARN_STREAM("[ts planning] Failed to add collision object (shrinked neighnor): edge #" << orig_j);
+          ROS_WARN_STREAM("[ts planning] Update collision Obj:"
+                              << " Failed to add collision object (shrinked neighnor): edge #" << orig_j);
         }
 
         eu = eu->pnext_;
@@ -542,13 +547,14 @@ void SeqAnalyzer::RecoverCollisionObjects(WF_edge* e, bool shrink)
   {
     // add input edge's collision object
     moveit_msgs::CollisionObject e_collision_obj;
-    e_collision_obj = frame_msgs_[orig_j].both_side_shrinked_collision_object;
+    e_collision_obj = frame_msgs_[orig_j].full_collision_object;
     e_collision_obj.operation = moveit_msgs::CollisionObject::REMOVE;
 
     // add this edge to the planning scene
     if (!planning_scene_->processCollisionObjectMsg(e_collision_obj))
     {
-      ROS_WARN_STREAM("[ts planning] Failed to add shrinked collision object: edge #" << orig_j);
+      ROS_WARN_STREAM("[ts planning] Remove collision obj"
+                          << "Failed to remove full collision object: edge #" << orig_j);
     }
   }
   else
@@ -580,7 +586,8 @@ void SeqAnalyzer::RecoverCollisionObjects(WF_edge* e, bool shrink)
 
       while (eu != NULL)
       {
-        if(eu == e || !ptr_dualgraph_->isExistingEdge(eu))
+        if(eu->ID() == e->ID() || eu->ID() == e->ppair_->ID()
+            || !ptr_dualgraph_->isExistingEdge(eu))
         {
           eu = eu->pnext_;
           continue;
@@ -590,12 +597,13 @@ void SeqAnalyzer::RecoverCollisionObjects(WF_edge* e, bool shrink)
         // Adds the object to the planning scene. If the object previously existed, it is replaced.
         int ne_id = eu->ID();
         moveit_msgs::CollisionObject ne_collision_obj;
-        ne_collision_obj = frame_msgs_[ne_id].both_side_shrinked_collision_object;
+        ne_collision_obj = frame_msgs_[ne_id].full_collision_object;
         ne_collision_obj.operation = moveit_msgs::CollisionObject::ADD;
 
         if (!planning_scene_->processCollisionObjectMsg(ne_collision_obj))
         {
-          ROS_WARN_STREAM("[ts planning] Failed to delete collision object (shrinked neighnor): edge #" << orig_j);
+          ROS_WARN_STREAM("[ts planning] Remove collision obj:"
+                              << "Failed to replace collision object (shrinked neighnor): edge #" << orig_j);
         }
 
         eu = eu->pnext_;
@@ -676,14 +684,15 @@ bool SeqAnalyzer::TestRobotKinematics(WF_edge *e, const std::vector<lld>& colli_
   convertOrientationVector(direction_vec_list, direction_matrix_list);
 
   // generate eef path points
-  double unit_scale = ptr_frame_->GetUnitScale();
-  const auto st_pt = e->ppair_->pvert_->Position();
-  const auto end_pt = e->pvert_->Position();
+  Eigen::Vector3d st_pt;
+  Eigen::Vector3d end_pt;
 
-  std::vector<Eigen::Vector3d> path_pts =
-      discretizePositions(Eigen::Vector3d(st_pt.x(), st_pt.y(), st_pt.z()) * unit_scale,
-                          Eigen::Vector3d(end_pt.x(), end_pt.y(), end_pt.z()) * unit_scale,
-                          0.005);
+  tf::pointMsgToEigen(frame_msgs_[e->ID()].start_pt, st_pt);
+  tf::pointMsgToEigen(frame_msgs_[e->ID()].end_pt, end_pt);
+
+  std::vector<Eigen::Vector3d> path_pts = discretizePositions(st_pt, end_pt, 0.005);
+
+  ROS_INFO_STREAM("path pts size: " << path_pts.size());
 
   const auto check_start_time = ros::Time::now();
 
@@ -692,6 +701,8 @@ bool SeqAnalyzer::TestRobotKinematics(WF_edge *e, const std::vector<lld>& colli_
     std::vector<Eigen::Affine3d> poses = generateSampleEEFPoses(path_pts, direction_matrix_list);
 
     bool empty_joint_pose_found = false;
+    int cnt = 0;
+
     for(const auto& pose : poses)
     {
       std::vector<std::vector<double>> joint_poses;
@@ -703,13 +714,23 @@ bool SeqAnalyzer::TestRobotKinematics(WF_edge *e, const std::vector<lld>& colli_
         empty_joint_pose_found = true;
         break;
       }
+      else
+      {
+//        ROS_INFO_STREAM("non-zero jt pose found: " << cnt << "/" << poses.size());
+        cnt++;
+      }
     }
 
-    if(false == empty_joint_pose_found)
+    if(!empty_joint_pose_found)
     {
       // all poses have feasible joint pose
       b_success = true;
       break;
+    }
+    else
+    {
+      b_success = false;
+      continue;
     }
   }
 

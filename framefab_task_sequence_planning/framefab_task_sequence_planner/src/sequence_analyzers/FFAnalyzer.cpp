@@ -258,18 +258,25 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej)
       }
       return -1;
     }
-
-    /* robot kinematics test */
-    if(update_collision_)
+    else
     {
-      if (TestRobotKinematics(ej, angle_state_[dual_j]))
+      if(free_angle < ptr_collision_->Divide() * 0.1)
       {
-        /* examination failed */
-        if (terminal_output_)
+        ROS_INFO_STREAM("robot kinematics check: free angle num: " << free_angle << "/"
+                                                                   << ptr_collision_->Divide() * 0.1);
+        /* robot kinematics test */
+        if(update_collision_)
         {
-          fprintf(stderr, "Robot kinematics examination failed at edge #%d.\n\n", ej->ID() / 2);
+          if (!TestRobotKinematics(ej, angle_state_[dual_j]))
+          {
+            /* examination failed */
+            if (terminal_output_)
+            {
+              fprintf(stderr, "Robot kinematics examination failed at edge #%d.\n\n", ej->ID() / 2);
+            }
+            return -1;
+          }
         }
-        return -1;
       }
     }
 

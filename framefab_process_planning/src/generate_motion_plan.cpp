@@ -69,6 +69,7 @@ void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
 
   for (std::size_t i = 1; i < task_seq.size(); ++i) // We use all but the last collision object
   {
+    // TODO: use wireframe to shrink only connected edges' node
     auto last_scene_shrinked = planning_scenes_shrinked.back();
     auto child_shrinked = last_scene_shrinked->diff();
 

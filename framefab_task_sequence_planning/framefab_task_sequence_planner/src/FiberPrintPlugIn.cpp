@@ -170,10 +170,13 @@ void convertWireFrameToMsg(
           e->ID(), shrinked_st_pt, shrinked_end_pt, model_params.element_diameter);
 
       element_msg.st_shrinked_collision_object = convertWFEdgeToCollisionObject(
-          e->ID(), shrinked_st_pt, eigen_st_pt, model_params.element_diameter);
+          e->ID(), shrinked_st_pt, eigen_end_pt, model_params.element_diameter);
 
-      element_msg.end_shrinked_collision_object= convertWFEdgeToCollisionObject(
-          e->ID(), eigen_st_pt, shrinked_st_pt, model_params.element_diameter);
+      element_msg.end_shrinked_collision_object = convertWFEdgeToCollisionObject(
+          e->ID(), eigen_st_pt, shrinked_end_pt, model_params.element_diameter);
+
+      element_msg.full_collision_object = convertWFEdgeToCollisionObject(
+          e->ID(), eigen_st_pt, eigen_end_pt, model_params.element_diameter);
 
       // TODO: this is redundant, a quick patch to make it work with wireframe's double-edge
       // data structure
