@@ -213,6 +213,8 @@ bool ProcAnalyzer::WriteJson()
   {
     rapidjson::Value element_object_container(rapidjson::kObjectType);
 
+    element_object_container.AddMember("order_id", i, allocator);
+
     // start & end node coordination
     Process temp = process_list_[i];
     point p_st = temp.start_;

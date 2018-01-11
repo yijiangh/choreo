@@ -237,42 +237,32 @@ void SeqAnalyzer::PrintPillars()
     {
       point center = e->CenterPos();
       base_queue.insert(make_pair(center.x(), e));
-      UpdateStructure(e);
-
       // TODO: enable collision checking and greedy tsp here
     }
   }
 
-  for (it = base_queue.begin(); it != base_queue.end(); it++)
-  {
-    print_queue_.push_back(it->second);
-  }
-
   if (terminal_output_)
   {
-    fprintf(stderr, "Size of base queue: %d\n", (int)base_queue.size());
+    fprintf(stderr, "Size of base queue: %d, full graph domain pruning in progress.\n", (int)base_queue.size());
   }
 
-  /* angle state with pillars */
-  // forward checking all the remaining edges in the graph
-  for (int dual_i = 0; dual_i < Nd_; dual_i++)
+  for (it = base_queue.begin(); it != base_queue.end(); it++)
   {
-    WF_edge* e = ptr_frame_->GetEdge(ptr_wholegraph_->e_orig_id(dual_i));
+    auto& e = it->second;
+    print_queue_.push_back(e);
 
-    if (!ptr_dualgraph_->isExistingEdge(e))
-    {
-      ptr_collision_->DetectCollision(e, ptr_dualgraph_, angle_state_[dual_i]);
-    }
+    // update printed graph
+    UpdateStructure(e, update_collision_);
+
+    // update collision (geometric domain)
+    // tmp is the pruned domain by direct arc consistency pruning
+    vector<vector<lld>> tmp_angle(3);
+    UpdateStateMap(e, tmp_angle);
   }
 }
 
 void SeqAnalyzer::UpdateStructure(WF_edge *e, bool update_collision)
 {
-//  if (terminal_output_)
-//  {
-//    upd_struct_.Start();
-//  }
-
   if(update_collision)
   {
     // add full collision obj without shrinking
@@ -321,20 +311,10 @@ void SeqAnalyzer::UpdateStructure(WF_edge *e, bool update_collision)
       D0_[6 * (Ns - 1) + i] = sum_D[i];
     }
   }
-
-//  if (terminal_output_)
-//  {
-//    upd_struct_.Stop();
-//  }
 }
 
 void SeqAnalyzer::RecoverStructure(WF_edge *e, bool update_collision)
 {
-//  if (terminal_output_)
-//  {
-//    rec_struct_.Start();
-//  }
-
   int dual_del = ptr_dualgraph_->RemoveUpdation(e);
 
   /* modify D0 */
@@ -349,11 +329,6 @@ void SeqAnalyzer::RecoverStructure(WF_edge *e, bool update_collision)
     D0_.conservativeResize(6 * Ns);
   }
 
-//  if (terminal_output_)
-//  {
-//    rec_struct_.Stop();
-//  }
-
   if(update_collision)
   {
     // pop full collision obj without dealing with neighnoring edges
@@ -363,11 +338,6 @@ void SeqAnalyzer::RecoverStructure(WF_edge *e, bool update_collision)
 
 void SeqAnalyzer::UpdateStateMap(WF_edge *order_e, vector<vector<lld>> &state_map)
 {
-//  if (terminal_output_)
-//  {
-//    upd_map_.Start();
-//  }
-
   int dual_i = ptr_wholegraph_->e_dual_id(order_e->ID());
   int Nd = ptr_wholegraph_->SizeOfVertList();
 
@@ -376,22 +346,14 @@ void SeqAnalyzer::UpdateStateMap(WF_edge *order_e, vector<vector<lld>> &state_ma
     WF_edge * target_e = ptr_frame_->GetEdge(ptr_wholegraph_->e_orig_id(dual_j));
 
     // for each unprinted edge in wireframe, full graph arc consistency
-    if (dual_i != dual_j && !ptr_dualgraph_->isExistingEdge(target_e))
+    // it makes no sense to prune pillar's domain, since we only allow z-axis for pillar's printing
+    // (and they are printed first)
+    if (dual_i != dual_j && !ptr_dualgraph_->isExistingEdge(target_e) && !target_e->isPillar())
     {
-//      if (terminal_output_)
-//      {
-//        upd_map_collision_.Start();
-//      }
-
       // prune order_e's domain with target_e's existence
       // arc consistency pruning
       vector<lld> tmp(3);
       ptr_collision_->DetectCollision(target_e, order_e, tmp);
-
-//      if (terminal_output_)
-//      {
-//        upd_map_collision_.Stop();
-//      }
 
       for (int k = 0; k < 3; k++)
       {
@@ -401,21 +363,11 @@ void SeqAnalyzer::UpdateStateMap(WF_edge *order_e, vector<vector<lld>> &state_ma
       ptr_collision_->ModifyAngle(angle_state_[dual_j], tmp);
     }
   }
-
-//  if (terminal_output_)
-//  {
-//    upd_map_.Stop();
-//  }
 }
 
 
-void SeqAnalyzer::RecoverStateMap(WF_edge *order_e, vector<vector<lld>> &state_map)
+void SeqAnalyzer::RecoverStateMap(WF_edge* order_e, vector<vector<lld>>& state_map)
 {
-//  if (terminal_output_)
-//  {
-//    rec_map_.Start();
-//  }
-
   int dual_i = ptr_wholegraph_->e_dual_id(order_e->ID());
   int Nd = ptr_wholegraph_->SizeOfVertList();
   int p = 0;
@@ -424,7 +376,7 @@ void SeqAnalyzer::RecoverStateMap(WF_edge *order_e, vector<vector<lld>> &state_m
   {
     WF_edge * target_e = ptr_frame_->GetEdge(ptr_wholegraph_->e_orig_id(dual_j));
 
-    if(dual_i != dual_j && !ptr_dualgraph_->isExistingEdge(target_e))
+    if(dual_i != dual_j && !ptr_dualgraph_->isExistingEdge(target_e) && !target_e->isPillar())
     {
       for(int k = 0; k < 3; k++)
       {
@@ -433,11 +385,6 @@ void SeqAnalyzer::RecoverStateMap(WF_edge *order_e, vector<vector<lld>> &state_m
       p++;
     }
   }
-
-//  if (terminal_output_)
-//  {
-//    rec_map_.Stop();
-//  }
 }
 
 void SeqAnalyzer::UpdateCollisionObjects(WF_edge* e, bool shrink)
@@ -619,11 +566,6 @@ void SeqAnalyzer::RecoverCollisionObjects(WF_edge* e, bool shrink)
 
 bool SeqAnalyzer::TestifyStiffness(WF_edge *e)
 {
-//  if (terminal_output_)
-//  {
-//    test_stiff_.Start();
-//  }
-
   /* insert a trail edge */
   UpdateStructure(e, false);
 
@@ -659,11 +601,6 @@ bool SeqAnalyzer::TestifyStiffness(WF_edge *e)
 
   /* remove the trail edge */
   RecoverStructure(e, false);
-
-//  if (terminal_output_)
-//  {
-//    test_stiff_.Stop();
-//  }
 
   return bSuccess;
 }
@@ -790,6 +727,11 @@ void SeqAnalyzer::OutputTaskSequencePlanningResult(std::vector<SingleTaskPlannin
       assert(angle_state_[dual_j].size() > 0);
       // generate feasible end effector directions for printing edge e
       direction_vec_list = ptr_collision_->ConvertCollisionMapToEigenDirections(angle_state_[dual_j]);
+
+      int free_angle = ptr_collision_->ColFreeAngle(angle_state_[dual_j]);
+
+      ROS_INFO_STREAM("#" << i << ", edge #" << dual_j
+                          << "col free angle: " << free_angle << ", d-vec size: " << direction_vec_list.size());
     }
 
     assert(direction_vec_list.size() > 0);

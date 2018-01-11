@@ -150,7 +150,7 @@ int QuadricCollision::ColFreeAngle(const std::vector<lld>& colli_map)
     {
       if(i != 2 && j > 59)
       {
-        // south point is only recorded on channel 2 - 60 and 61 level
+        // south and north point is only recorded on channel 2 - 60 and 61 level
         continue;
       }
 
