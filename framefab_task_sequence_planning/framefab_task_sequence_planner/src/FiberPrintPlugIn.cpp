@@ -371,16 +371,16 @@ bool FiberPrintPlugIn::handleTaskSequencePlanning(
     }
     case framefab_msgs::TaskSequencePlanning::Request::TASK_SEQUENCE_SEARCHING:
     {
-      double Wl = 1.0;
       double Wp = 1.0;
       double Wa = 1.0;
+      double Wi = 3.0;
 
       if(NULL != ptr_parm_)
       {
         delete ptr_parm_;
       }
 
-      ptr_parm_ = new FiberPrintPARM(Wl, Wp, Wa);
+      ptr_parm_ = new FiberPrintPARM(Wp, Wa, Wi);
 
       // dummy framefab output path
       ptr_path_ = "/home";

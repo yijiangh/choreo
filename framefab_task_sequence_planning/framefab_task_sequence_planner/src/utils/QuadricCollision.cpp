@@ -36,7 +36,7 @@ QuadricCollision::~QuadricCollision()
   }
 }
 
-void QuadricCollision::Init(vector<lld> &colli_map)
+void QuadricCollision::Init(vector<lld>& colli_map)
 {
   lld temp = 0;
   colli_map.clear();
@@ -55,9 +55,10 @@ void QuadricCollision::DetectCollision(WF_edge *target_e, DualGraph *ptr_subgrap
   int Nd = ptr_subgraph->SizeOfVertList();
   for (int i = 0; i < Nd; i++)
   {
+    // prune target_e's domain with existing edges
     WF_edge* e = ptr_frame_->GetEdge(ptr_subgraph->e_orig_id(i));
 
-    if (e != target_e_ && e != target_e_->ppair_)
+    if (ptr_subgraph->isExistingEdge(e) && e != target_e_ && e != target_e_->ppair_)
     {
       DetectEdge(e, result_map);
     }

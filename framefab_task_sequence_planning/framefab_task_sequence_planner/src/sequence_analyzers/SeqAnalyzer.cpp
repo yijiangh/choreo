@@ -11,7 +11,7 @@
 // msg-eigen conversion
 #include <eigen_conversions/eigen_msg.h>
 
-const static double ROBOT_KINEMATICS_CHECK_TIMEOUT = 10.0;
+const static double ROBOT_KINEMATICS_CHECK_TIMEOUT = 5.0;
 
 namespace{
 // copy from graph_builder.cpp
@@ -210,6 +210,10 @@ void SeqAnalyzer::Init()
 
   angle_state_.clear();
   angle_state_.resize(Nd_);
+  for(int i = 0; i < Nd_; i++)
+  {
+    ptr_collision_->Init(angle_state_[i]);
+  }
 
   ptr_dualgraph_->Init();
 
@@ -250,6 +254,7 @@ void SeqAnalyzer::PrintPillars()
   }
 
   /* angle state with pillars */
+  // forward checking all the remaining edges in the graph
   for (int dual_i = 0; dual_i < Nd_; dual_i++)
   {
     WF_edge* e = ptr_frame_->GetEdge(ptr_wholegraph_->e_orig_id(dual_i));
@@ -370,7 +375,7 @@ void SeqAnalyzer::UpdateStateMap(WF_edge *order_e, vector<vector<lld>> &state_ma
   {
     WF_edge * target_e = ptr_frame_->GetEdge(ptr_wholegraph_->e_orig_id(dual_j));
 
-    // for each unprinted edge in wireframe
+    // for each unprinted edge in wireframe, full graph arc consistency
     if (dual_i != dual_j && !ptr_dualgraph_->isExistingEdge(target_e))
     {
 //      if (terminal_output_)
@@ -701,7 +706,6 @@ bool SeqAnalyzer::TestRobotKinematics(WF_edge *e, const std::vector<lld>& colli_
     std::vector<Eigen::Affine3d> poses = generateSampleEEFPoses(path_pts, direction_matrix_list);
 
     bool empty_joint_pose_found = false;
-    int cnt = 0;
 
     for(const auto& pose : poses)
     {
@@ -713,11 +717,6 @@ bool SeqAnalyzer::TestRobotKinematics(WF_edge *e, const std::vector<lld>& colli_
       {
         empty_joint_pose_found = true;
         break;
-      }
-      else
-      {
-//        ROS_INFO_STREAM("non-zero jt pose found: " << cnt << "/" << poses.size());
-        cnt++;
       }
     }
 

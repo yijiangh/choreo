@@ -69,6 +69,7 @@ bool FFAnalyzer::SeqPrint()
     /* max_z_ and min_z_ in current layer */
     min_z_ = 1e20;
     max_z_ = -min_z_;
+
     for (int i = 0; i < Nl; i++)
     {
       WF_edge* e = layers_[l][i];
@@ -77,6 +78,8 @@ bool FFAnalyzer::SeqPrint()
       min_z_ = min(min_z_, (double)min(u.z(), v.z()));
       max_z_ = max(max_z_, (double)max(u.z(), v.z()));
     }
+
+    ROS_INFO_STREAM("Layer #" << l << ", min z: " << min_z_ << ", max z: " << max_z_);
 
     if (!GenerateSeq(l, h, t))
     {
@@ -139,7 +142,13 @@ bool FFAnalyzer::GenerateSeq(int l, int h, int t)
     WF_edge *ej = layers_[l][j];
 
     /* cost weight */
-    double cost = GenerateCost(ei, ej);
+    if (terminal_output_)
+    {
+      fprintf(stderr, "Look-ahead #%d/%d, in layer %d/%d - head %d/tail %d \n",
+              j, Nl, l, layers_.size(), h, t);
+    }
+    
+    double cost = GenerateCost(ei, ej, l);
     if (cost != -1)
     {
       // eligible candidate, cost = -1 if stiffness or kinematic check not pass
@@ -182,7 +191,7 @@ bool FFAnalyzer::GenerateSeq(int l, int h, int t)
 }
 
 
-double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej)
+double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej, const int l)
 {
   int orig_j = ej->ID();
   int dual_j = ptr_wholegraph_->e_dual_id(orig_j);
@@ -190,9 +199,9 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej)
   // check arc consistency for all unprinted elements
   if (!ptr_dualgraph_->isExistingEdge(ej))
   {
-    double	P = 0;							// stabiliy weight
-    double  A = 0;							// adjacency weight
-    double	I = 0;							// influence weight
+    double	P = 0; // stabiliy weight
+    double  A = 0; // adjacency weight
+    double	I = 0; // influence weight
 
     if (terminal_output_)
     {
@@ -205,7 +214,16 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej)
     int vj = ptr_frame_->GetEndv(orig_j);
     bool exist_uj = ptr_dualgraph_->isExistingVert(uj);
     bool exist_vj = ptr_dualgraph_->isExistingVert(vj);
-    double z = (ej->CenterPos().z() - min_z_) / (max_z_ - min_z_);
+    double z;
+
+    if(max_z_ != min_z_)
+    {
+      z = (ej->CenterPos().z() - min_z_) / (max_z_ - min_z_);
+    }
+    else
+    {
+      z = 0.0;
+    }
 
     // prune floating edge
     if (exist_uj && exist_vj)
@@ -218,34 +236,38 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej)
       P = z;
     }
     else
-    if (exist_uj || exist_vj)
     {
-      /* edge j share one end with printed structure */
+      if (exist_uj || exist_vj)
+      {
+        /* edge j share one end with printed structure */
 //      if (terminal_output_)
 //      {
 //        fprintf(stderr, "It shares only one ends with printed structure\n");
 //      }
 
-      double ang;
-      point pos_uj = ptr_frame_->GetPosition(uj);
-      point pos_vj = ptr_frame_->GetPosition(vj);
-      if (exist_uj)
-      {
-        ang = Geometry::angle(point(0, 0, 1), pos_vj - pos_uj);
+        double ang;
+        point pos_uj = ptr_frame_->GetPosition(uj);
+        point pos_vj = ptr_frame_->GetPosition(vj);
+
+        if (exist_uj)
+        {
+          ang = Geometry::angle(point(0, 0, 1), pos_vj - pos_uj);
+        }
+        else
+        {
+          ang = Geometry::angle(point(0, 0, 1), pos_uj - pos_vj);
+        }
+
+        P = z * exp(ang);
       }
       else
       {
-        ang = Geometry::angle(point(0, 0, 1), pos_uj - pos_vj);
+        if (terminal_output_)
+        {
+          fprintf(stderr, "It floats, skip\n\n");
+        }
+        return -1;
       }
-      P = z * exp(ang);
-    }
-    else
-    {
-      if (terminal_output_)
-      {
-        fprintf(stderr, "It floats, skip\n\n");
-      }
-      return -1;
     }
 
     /* collision test */
@@ -254,16 +276,16 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej)
     {
       if (terminal_output_)
       {
-        fprintf(stderr, "...collision examination failed at edge #%d.\n\n", ej->ID() / 2);
+        fprintf(stderr, "...collision test failed at edge #%d.\n\n", ej->ID() / 2);
       }
       return -1;
     }
     else
     {
-      if(free_angle < ptr_collision_->Divide() * 0.1)
+      if(free_angle < ptr_collision_->Divide() * 0.15)
       {
         ROS_INFO_STREAM("robot kinematics check: free angle num: " << free_angle << "/"
-                                                                   << ptr_collision_->Divide() * 0.1);
+                                                                   << int(ptr_collision_->Divide() * 0.15));
         /* robot kinematics test */
         if(update_collision_)
         {
@@ -272,10 +294,14 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej)
             /* examination failed */
             if (terminal_output_)
             {
-              fprintf(stderr, "Robot kinematics examination failed at edge #%d.\n\n", ej->ID() / 2);
+              fprintf(stderr, "Robot kinematics test failed at edge #%d.\n\n", ej->ID() / 2);
             }
             return -1;
           }
+        }
+        else
+        {
+          ROS_INFO_STREAM("Robot kinematics test passed.");
         }
       }
     }
@@ -311,27 +337,46 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej)
     }
 
     // TODO: should change into forward checking (one-step arc consistency)
+    // limit forward checking only to current layer
     /* influence weight */
-    int remaining = Nd_ - ptr_dualgraph_->SizeOfVertList();
-    for (int dual_k = 0; dual_k < Nd_; dual_k++)
+    int Nl = layers_[l].size();
+    int remaining_num = 0;
+    double forward_checking_factor = 1.0;
+
+    for (int k = 0; k < Nl; k++)
     {
-      WF_edge *ek = ptr_frame_->GetEdge(ptr_wholegraph_->e_orig_id(dual_k));
+      WF_edge* ek = layers_[l][k];
+      int dual_k = ptr_wholegraph_->e_dual_id(ek->ID());
+
+      // considered edge is not ej itself and it's not printed yet
       if (dual_j != dual_k && !ptr_dualgraph_->isExistingEdge(ek))
       {
         vector<lld> tmp(3);
         ptr_collision_->DetectCollision(ek, ej, tmp);
+
         for (int o = 0; o < 3; o++)
         {
           tmp[o] |= angle_state_[dual_k][o];
         }
 
-        double tmp_range = ptr_collision_->ColFreeAngle(tmp) * 1.0 / ptr_collision_->Divide();
-        I += exp(-5 * tmp_range * tmp_range);
+        double d_ratio = ptr_collision_->ColFreeAngle(tmp) / ptr_collision_->Divide();
+        I += exp(- forward_checking_factor * d_ratio * d_ratio);
+
+        remaining_num++;
       }
     }
-    I /= remaining;
+
+    if(0 != remaining_num)
+    {
+      I /= remaining_num;
+    }
+    else
+    {
+      I = 0.0;
+    }
 
     double cost = Wp_*P + Wa_*A + Wi_*I;
+
     if (terminal_output_)
     {
       fprintf(stderr, "P: %lf, A: %lf, I: %lf\ncost: %f\n\n", P, A, I, cost);

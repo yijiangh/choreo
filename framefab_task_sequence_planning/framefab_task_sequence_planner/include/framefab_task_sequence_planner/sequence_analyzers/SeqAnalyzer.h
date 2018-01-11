@@ -74,7 +74,6 @@ class SeqAnalyzer
   typedef Eigen::Vector3d V3;
 
  public:
-//  SeqAnalyzer();
   explicit SeqAnalyzer(
       DualGraph			*ptr_dualgraph,
       QuadricCollision	*ptr_collision,
