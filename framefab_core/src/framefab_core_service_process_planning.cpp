@@ -58,6 +58,8 @@ ProcessPlanResult FrameFabCoreService::generateProcessPlan(const int selected_pa
   else
   {
     ts_srv.request.action = ts_srv.request.REQUEST_COLLISION_OBJS;
+    ts_srv.request.element_array = std::vector<framefab_msgs::ElementCandidatePoses>(
+        task_sequence_.begin(), task_sequence_.begin() + selected_path_index + 1);
 
     if (!task_sequence_planning_srv_client_.call(ts_srv))
     {
@@ -66,6 +68,7 @@ ProcessPlanResult FrameFabCoreService::generateProcessPlan(const int selected_pa
     }
     else
     {
+      srv.request.collision_obj_lists = ts_srv.response.collision_obj_lists;
       success = true;
     }
   }

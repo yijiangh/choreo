@@ -387,7 +387,7 @@ void SeqAnalyzer::RecoverStateMap(WF_edge* order_e, vector<vector<lld>>& state_m
   }
 }
 
-void SeqAnalyzer::UpdateCollisionObjects(WF_edge* e, bool shrink)
+std::vector<moveit_msgs::CollisionObject> SeqAnalyzer::UpdateCollisionObjects(WF_edge* e, bool shrink)
 {
   int orig_j;
   if (e->ID() < e->ppair_->ID())
@@ -401,6 +401,8 @@ void SeqAnalyzer::UpdateCollisionObjects(WF_edge* e, bool shrink)
 
   assert(orig_j < frame_msgs_.size());
 
+  std::vector<moveit_msgs::CollisionObject> added_collision_objs;
+
   if(!shrink)
   {
     // add input edge's collision object
@@ -413,6 +415,8 @@ void SeqAnalyzer::UpdateCollisionObjects(WF_edge* e, bool shrink)
     {
       ROS_WARN_STREAM("[ts planning] Failed to add shrinked collision object: edge #" << orig_j);
     }
+
+    added_collision_objs.push_back(e_collision_obj);
   }
   else
   {
@@ -475,13 +479,17 @@ void SeqAnalyzer::UpdateCollisionObjects(WF_edge* e, bool shrink)
                               << " Failed to add collision object (shrinked neighnor): edge #" << orig_j);
         }
 
+        added_collision_objs.push_back(ne_collision_obj);
+
         eu = eu->pnext_;
       }
     }
   }
+
+  return added_collision_objs;
 }
 
-void SeqAnalyzer::RecoverCollisionObjects(WF_edge* e, bool shrink)
+std::vector<moveit_msgs::CollisionObject> SeqAnalyzer::RecoverCollisionObjects(WF_edge* e, bool shrink)
 {
   int orig_j;
   if (e->ID() < e->ppair_->ID())
@@ -494,6 +502,8 @@ void SeqAnalyzer::RecoverCollisionObjects(WF_edge* e, bool shrink)
   }
 
   assert(orig_j < frame_msgs_.size());
+
+  std::vector<moveit_msgs::CollisionObject> recovered_collision_objs;
 
   if(!shrink)
   {
@@ -508,6 +518,8 @@ void SeqAnalyzer::RecoverCollisionObjects(WF_edge* e, bool shrink)
       ROS_WARN_STREAM("[ts planning] Remove collision obj"
                           << "Failed to remove full collision object: edge #" << orig_j);
     }
+
+    recovered_collision_objs.push_back(e_collision_obj);
   }
   else
   {
@@ -558,10 +570,14 @@ void SeqAnalyzer::RecoverCollisionObjects(WF_edge* e, bool shrink)
                               << "Failed to replace collision object (shrinked neighnor): edge #" << orig_j);
         }
 
+        recovered_collision_objs.push_back(ne_collision_obj);
+
         eu = eu->pnext_;
       }
     }
   }
+
+  return recovered_collision_objs;
 }
 
 bool SeqAnalyzer::TestifyStiffness(WF_edge *e)
@@ -675,7 +691,7 @@ bool SeqAnalyzer::TestRobotKinematics(WF_edge *e, const std::vector<lld>& colli_
   return b_success;
 }
 
-bool SeqAnalyzer::InputPrintOrder(vector<int> &print_queue)
+bool SeqAnalyzer::InputPrintOrder(const std::vector<int>& print_queue)
 {
   print_queue_.clear();
 
@@ -695,9 +711,44 @@ bool SeqAnalyzer::InputPrintOrder(vector<int> &print_queue)
 }
 
 bool SeqAnalyzer::ConstructCollisionObjsInQueue(const std::vector<int>& print_queue_edge_ids,
-                                                std::vector<framefab_msgs::CollisionObjectList>& collision_objs)
+                                                std::vector<std::vector<moveit_msgs::CollisionObject>>& collision_objs)
 {
-  return false;
+  if(!InputPrintOrder(print_queue_edge_ids))
+  {
+    ROS_ERROR_STREAM("[ts planner] edge id error, not matched to wire frame id. "
+                         << "Please re-run sequence planner to re-generate sequence result.");
+    return false;
+  }
+
+  collision_objs.clear();
+  collision_objs.resize(print_queue_.size());
+
+  Init();
+
+  for (int i=0; i < print_queue_.size(); i++)
+  {
+    WF_edge* e = print_queue_[i];
+
+    collision_objs[i] = std::vector<moveit_msgs::CollisionObject>();
+
+    if(i > 0)
+    {
+      const auto& recover_previous_neighbors = UpdateCollisionObjects(print_queue_[i-1], true);
+      collision_objs[i].insert(collision_objs[i].end(),
+                               recover_previous_neighbors.begin(), recover_previous_neighbors.end());
+
+      const auto& previous_obj = UpdateCollisionObjects(print_queue_[i-1], false);
+      collision_objs[i].insert(collision_objs[i].end(), previous_obj.begin(), previous_obj.end());
+    }
+
+    // add full collision obj without shrinking
+    const auto& shrinked_neighbors = UpdateCollisionObjects(e, true);
+
+    collision_objs[i].insert(collision_objs[i].end(), shrinked_neighbors.begin(), shrinked_neighbors.end());
+    ptr_dualgraph_->UpdateDualization(e);
+  }
+
+  return true;
 }
 
 void SeqAnalyzer::OutputPrintOrder(vector<WF_edge*> &print_queue)

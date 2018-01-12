@@ -54,6 +54,7 @@
 #include "framefab_task_sequence_planner/utils/ResolveAngle.h"
 
 // msgs
+#include <moveit_msgs/CollisionObject.h>
 #include <framefab_msgs/ElementCandidatePoses.h>
 #include <framefab_msgs/CollisionObjectList.h>
 
@@ -97,11 +98,11 @@ class SeqAnalyzer
   virtual void PrintOutTimer();
 
  public:
-  bool InputPrintOrder(vector<int>& print_queue);
+  bool InputPrintOrder(const std::vector<int>& print_queue);
   bool ConstructCollisionObjsInQueue(const std::vector<int>& print_queue_edge_ids,
-                                     std::vector<framefab_msgs::CollisionObjectList>& collision_objs);
+                                     std::vector<std::vector<moveit_msgs::CollisionObject>>& collision_obj_lists);
 
-  void OutputPrintOrder(vector<WF_edge*> &print_queue);
+  void OutputPrintOrder(std::vector<WF_edge*>& print_queue);
   void OutputTaskSequencePlanningResult(std::vector<SingleTaskPlanningResult>& planning_result);
 
  protected:
@@ -120,8 +121,8 @@ class SeqAnalyzer
   // robot kinematics related
   // the collision obj's update and recover are called
   // inside UpdateStructure and RecoverStructure.
-  void UpdateCollisionObjects(WF_edge* e, bool shrink = false);
-  void RecoverCollisionObjects(WF_edge* e, bool shrink = false);
+  std::vector<moveit_msgs::CollisionObject> UpdateCollisionObjects(WF_edge* e, bool shrink = false);
+  std::vector<moveit_msgs::CollisionObject> RecoverCollisionObjects(WF_edge* e, bool shrink = false);
 
  public:
   WireFrame* ptr_frame_;

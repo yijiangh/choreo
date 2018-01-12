@@ -81,7 +81,7 @@ class FiberPrintPlugIn
 
   bool DirectSearch();
   bool ConstructCollisionObjects(const std::vector<int>& print_queue_edge_ids,
-                                 std::vector<framefab_msgs::CollisionObjectList>& collision_objs);
+                                 std::vector<std::vector<moveit_msgs::CollisionObject>>& collision_objs);
 
   /* apply stiffness computation directly to the input frame shape */
   void GetDeformation();
