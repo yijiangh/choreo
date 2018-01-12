@@ -51,6 +51,7 @@ bool ProcAnalyzer::ProcPrint()
   {
     Process temp;
     WF_edge* e = planning_result[i].e_;
+    temp.wireframe_id_ = e->ID();
 
     if (e->isPillar())
     {
@@ -213,10 +214,11 @@ bool ProcAnalyzer::WriteJson()
   {
     rapidjson::Value element_object_container(rapidjson::kObjectType);
 
+    Process temp = process_list_[i];
     element_object_container.AddMember("order_id", i, allocator);
+    element_object_container.AddMember("wireframe_id", temp.wireframe_id_, allocator);
 
     // start & end node coordination
-    Process temp = process_list_[i];
     point p_st = temp.start_;
 
     rapidjson::Value st_pt(rapidjson::kArrayType);

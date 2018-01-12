@@ -8,6 +8,7 @@
 // services
 #include <framefab_msgs/ProcessPlanning.h>
 #include <framefab_msgs/MoveToTargetPose.h>
+#include <framefab_msgs/TaskSequencePlanning.h>
 
 bool FrameFabCoreService::generateMotionLibrary(
     const int selected_path_index, framefab_core_service::TrajectoryLibrary& traj_lib)
@@ -20,7 +21,7 @@ bool FrameFabCoreService::generateMotionLibrary(
     traj_lib.get()[std::to_string(k)] = plan.plans[k];
   }
 
-  return true;
+  return plan.plans.size() > 0;
 }
 
 ProcessPlanResult FrameFabCoreService::generateProcessPlan(const int selected_path_index)
@@ -43,19 +44,47 @@ ProcessPlanResult FrameFabCoreService::generateProcessPlan(const int selected_pa
   srv.request.use_saved_graph = use_saved_graph_;
   srv.request.file_name = saved_graph_file_name;
 
-  success = process_planning_client_.call(srv);
-  process_plan = srv.response.plan;
+  // construct sequenced collision objects
+  framefab_msgs::TaskSequencePlanning ts_srv;
+  ts_srv.request.action = ts_srv.request.READ_WIREFRAME;
+  ts_srv.request.model_params = model_input_params_;
+  ts_srv.request.task_sequence_params = task_sequence_input_params_;
 
-  if (success)
+  if(!task_sequence_planning_srv_client_.call(ts_srv))
   {
-    for (auto v : process_plan)
-    {
-      result.plans.push_back(v);
-    }
+    ROS_ERROR_STREAM("[Core] task sequence planning service read wireframe failed.");
+    success = false;
   }
   else
   {
-    ROS_ERROR_STREAM("[Core] Failed to plan for path #" << selected_path_index << ", planning failed.");
+    ts_srv.request.action = ts_srv.request.REQUEST_COLLISION_OBJS;
+
+    if (!task_sequence_planning_srv_client_.call(ts_srv))
+    {
+      ROS_WARN_STREAM("[Core] task sequence planning service construct collision objects failed.");
+      success = false;
+    }
+    else
+    {
+      success = true;
+    }
+  }
+
+  if(success)
+  {
+    if (process_planning_client_.call(srv))
+    {
+      process_plan = srv.response.plan;
+
+      for (auto v : process_plan)
+      {
+        result.plans.push_back(v);
+      }
+    }
+    else
+    {
+      ROS_ERROR_STREAM("[Core] Failed to plan until path #" << selected_path_index << ", planning failed.");
+    }
   }
 
   return result;

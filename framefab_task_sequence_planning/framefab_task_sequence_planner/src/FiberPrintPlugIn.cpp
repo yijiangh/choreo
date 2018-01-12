@@ -430,12 +430,7 @@ bool FiberPrintPlugIn::ConstructCollisionObjects(const std::vector<int>& print_q
 
     ptr_seqanalyzer_->setFrameMsgs(frame_msgs_);
 
-    if (!ptr_seqanalyzer_->ConstructCollisionObjsInQueue(print_queue_edge_ids, collision_objs))
-    {
-      return false;
-    }
-
-    return true;
+    return ptr_seqanalyzer_->ConstructCollisionObjsInQueue(print_queue_edge_ids, collision_objs);
   }
   else
   {
@@ -545,7 +540,19 @@ bool FiberPrintPlugIn::handleTaskSequencePlanning(
 
       terminal_output_ = true;
 
+      // construct wireframe ids in the queue
+      std::vector<int> wireframe_ids;
 
+      for(const auto& element : req.element_array)
+      {
+        wireframe_ids.push_back(element.wireframe_id);
+      }
+
+      if(!ConstructCollisionObjects(wireframe_ids, res.collision_obj_lists))
+      {
+        ROS_ERROR_STREAM("[ts planner] construct collision objects failed.");
+        return false;
+      }
 
       break;
     }

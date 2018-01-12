@@ -30,6 +30,7 @@ using namespace std;
 struct Process
 {
   bool fan_state_;
+  int wireframe_id_;
   point	start_;
   point	end_;
   std::vector<GeoV3> normal_;
