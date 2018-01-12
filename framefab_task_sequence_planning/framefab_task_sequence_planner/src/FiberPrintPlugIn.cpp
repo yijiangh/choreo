@@ -198,7 +198,7 @@ moveit_msgs::CollisionObject createPrintTable(const Eigen::Vector3d& ref_pt, con
   // https://github.com/JeroenDM/descartes_tutorials/blob/indigo-devel/tutorial_utilities/src/collision_object_utils.cpp
 
   moveit_msgs::CollisionObject collision_env_obj;
-  std::string env_obj_id = "env_obj_table";
+  std::string env_obj_id = "ts_planning_env_obj_table";
 
   // table box's dimension
   double dx = 1;

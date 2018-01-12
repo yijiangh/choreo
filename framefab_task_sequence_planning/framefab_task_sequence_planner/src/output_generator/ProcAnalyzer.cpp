@@ -162,21 +162,21 @@ bool ProcAnalyzer::ProcPrint()
     process_list_[i] = temp;
   } // end loop for all elements (planning_result)
 
-  for (int i = 0; i < process_list_.size(); i++)
-  {
-    if (process_list_[i].fan_state_)
-    {
-      // prune orientation domain based on fabrication constraint
-      // for "create type", we only allow orientations whose angle to the element
-      // is smaller than max_edge_angle
-      Filter(process_list_[i]);
-    }
-    else
-    {
-      // disable pruning on "connect type" domain prunning
-      CheckProcess(process_list_[i]);
-    }
-  }
+//  for (int i = 0; i < process_list_.size(); i++)
+//  {
+//    if (process_list_[i].fan_state_)
+//    {
+//      // prune orientation domain based on fabrication constraint
+//      // for "create type", we only allow orientations whose angle to the element
+//      // is smaller than max_edge_angle
+//      Filter(process_list_[i]);
+//    }
+//    else
+//    {
+//      // disable pruning on "connect type" domain prunning
+//      CheckProcess(process_list_[i]);
+//    }
+//  }
 
   return(WriteJson());
 }
@@ -255,7 +255,7 @@ bool ProcAnalyzer::WriteJson()
 //    assert(temp.normal_.size() != 0);
     if (temp.normal_.size() == 0)
     {
-      cout << "error:normal vector empty" << endl;
+      cout << "Error: normal vector empty" << endl;
       return false;
     }
     rapidjson::Value feasible_orients(rapidjson::kArrayType);

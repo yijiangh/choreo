@@ -170,12 +170,6 @@ bool FFAnalyzer::GenerateSeq(int l, int h, int t)
       fprintf(stderr, "Choose edge #%d in with cost %lf\n\n", ej->ID() / 2, it->first);
     }
 
-//    if(142 == h)
-//    {
-//      ROS_INFO_STREAM("#142 reached!!! Press enter to continue.");
-//      getchar();
-//    }
-
     if(GenerateSeq(l, h + 1, t))
     {
       return true;

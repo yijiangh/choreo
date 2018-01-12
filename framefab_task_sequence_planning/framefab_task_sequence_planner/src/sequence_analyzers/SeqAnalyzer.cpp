@@ -727,11 +727,6 @@ void SeqAnalyzer::OutputTaskSequencePlanningResult(std::vector<SingleTaskPlannin
       assert(angle_state_[dual_j].size() > 0);
       // generate feasible end effector directions for printing edge e
       direction_vec_list = ptr_collision_->ConvertCollisionMapToEigenDirections(angle_state_[dual_j]);
-
-      int free_angle = ptr_collision_->ColFreeAngle(angle_state_[dual_j]);
-
-      ROS_INFO_STREAM("#" << i << ", edge #" << dual_j
-                          << "col free angle: " << free_angle << ", d-vec size: " << direction_vec_list.size());
     }
 
     assert(direction_vec_list.size() > 0);

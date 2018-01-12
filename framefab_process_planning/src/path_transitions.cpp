@@ -29,7 +29,7 @@ typedef boost::function<double(const double*, const double*)> CostFunction;
 #include "trajectory_utils.h"
 
 const static double JTS_DISC_DELTA = 0.01; // radians
-const static double RETRACT_OFFSET_SAMPLE_TIMEOUT = 5.0;
+const static double RETRACT_OFFSET_SAMPLE_TIMEOUT = 15.0;
 
 namespace // anon namespace to hide utility functions
 {
@@ -169,6 +169,8 @@ bool framefab_process_planning::retractPath(
 
   // sample feasible directions for offset movement vector
   bool first_try = true;
+  bool exist_pose_not_feasible = true;
+
   while((ros::Time::now() - retract_sample_start).toSec() < RETRACT_OFFSET_SAMPLE_TIMEOUT)
   {
     // generate index sample
@@ -205,11 +207,12 @@ bool framefab_process_planning::retractPath(
       retract_eef_poses.push_back(pose);
     }
 
-    bool exist_pose_not_feasible = false;
+    exist_pose_not_feasible = false;
 
-    for(int i=0; i < retract_eef_poses.size(); i++)
+    for(int i = 0; i < retract_eef_poses.size(); i++)
     {
       std::vector<std::vector<double>> retract_jt_vec;
+      retract_jt_vec.clear();
 
       if(0 == i)
       {
@@ -217,21 +220,17 @@ bool framefab_process_planning::retractPath(
       }
       else
       {
-        model->getAllIK(retract_eef_poses[i], retract_jt_vec);
+        if(!model->getAllIK(retract_eef_poses[i], retract_jt_vec))
+        {
+          exist_pose_not_feasible = true;
+          break;
+        }
       }
 
-      if(0 == retract_jt_vec.size())
-      {
-        exist_pose_not_feasible = true;
-        break;
-      }
-      else
-      {
-        graph.assignRung(i, descartes_core::TrajectoryID::make_nil(), timing, retract_jt_vec);
-      }
+      graph.assignRung(i, descartes_core::TrajectoryID::make_nil(), timing, retract_jt_vec);
     }
 
-    if(!exist_pose_not_feasible && graph.size() == retract_eef_poses.size())
+    if(!exist_pose_not_feasible)
     {
       if(!first_try)
       {
@@ -240,10 +239,11 @@ bool framefab_process_planning::retractPath(
 
       break;
     }
+
     first_try = false;
   }
 
-  if(graph.size() != retract_eef_poses.size())
+  if(exist_pose_not_feasible)
   {
     ROS_WARN_STREAM("[process planning] retraction sampling failed to find feasible retraction pose.");
     return false;
@@ -252,6 +252,12 @@ bool framefab_process_planning::retractPath(
   // build edges
   for (std::size_t i = 0; i < graph.size() - 1; ++i)
   {
+    if(0 == graph.rungSize(i))
+    {
+      ROS_WARN_STREAM("[process planning] retraction sampling failed to find feasible retraction pose.");
+      return false;
+    }
+
     const auto start_idx = i;
     const auto end_idx = i + 1;
     const auto& joints1 = graph.getRung(start_idx).data;
