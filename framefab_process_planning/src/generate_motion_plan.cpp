@@ -363,8 +363,6 @@ void transitionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
     // TODO: recover from transition planning failure
     if(ros_trans_traj.points.empty())
     {
-      ROS_WARN_STREAM("transition planning fails. Press <enter> to continue.");
-      getchar();
       continue;
     }
 

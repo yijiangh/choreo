@@ -29,7 +29,8 @@ typedef boost::function<double(const double*, const double*)> CostFunction;
 #include "trajectory_utils.h"
 
 const static double JTS_DISC_DELTA = 0.01; // radians
-const static double RETRACT_OFFSET_SAMPLE_TIMEOUT = 15.0;
+const static double RETRACT_OFFSET_SAMPLE_TIMEOUT = 5.0;
+const static double MIN_RETRACTION_DIST = 0.003; // m
 
 namespace // anon namespace to hide utility functions
 {
@@ -154,6 +155,13 @@ bool framefab_process_planning::retractPath(
     descartes_core::RobotModelPtr& model,
     std::vector<std::vector<double>>& retract_jt_traj)
 {
+  if(retract_dist < MIN_RETRACTION_DIST)
+  {
+    ROS_ERROR_STREAM("[process planning] recursive retraction sampling fails, retraction dist "
+                        << retract_dist << "/" << MIN_RETRACTION_DIST);
+    return false;
+  }
+
   const int dof = model->getDOF();
 
   // solve FK to retrieve start eef plane
@@ -243,21 +251,20 @@ bool framefab_process_planning::retractPath(
     first_try = false;
   }
 
-  if(exist_pose_not_feasible)
+
+  for(std::size_t i = 0; i < graph.size(); i++)
   {
-    ROS_WARN_STREAM("[process planning] retraction sampling failed to find feasible retraction pose.");
-    return false;
+    if(0 == graph.rungSize(i) || exist_pose_not_feasible)
+    {
+      ROS_WARN_STREAM("[process planning] retraction sampling fails, recursively decrease retract dist to "
+                          << retract_dist * 0.8);
+      return retractPath(start_joint, retract_dist * 0.8, TCP_speed, eef_directions, model, retract_jt_traj);
+    }
   }
 
   // build edges
   for (std::size_t i = 0; i < graph.size() - 1; ++i)
   {
-    if(0 == graph.rungSize(i))
-    {
-      ROS_WARN_STREAM("[process planning] retraction sampling failed to find feasible retraction pose.");
-      return false;
-    }
-
     const auto start_idx = i;
     const auto end_idx = i + 1;
     const auto& joints1 = graph.getRung(start_idx).data;
