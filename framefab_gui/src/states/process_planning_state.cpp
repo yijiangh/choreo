@@ -77,7 +77,7 @@ void framefab_gui::ProcessPlanningState::makeRequest()
 
 void framefab_gui::ProcessPlanningState::setFeedbackText(QString feedback)
 {
-  gui_ptr_->appendText("-----------ACTION FEEDBACK-----------\n" + feedback.toStdString());
+  gui_ptr_->appendText(feedback.toStdString());
 }
 
 // Action Callbacks

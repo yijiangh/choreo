@@ -9,8 +9,9 @@ add_definitions("-std=c++11 -D__LINUX__ -DGTE_DEV_OPENGL -DGTE_DISABLE_PCH")
 ## catkin specific configuration ##
 ###################################
 catkin_package(
-  INCLUDE_DIRS include
-  LIBRARIES 
+  INCLUDE_DIRS 
+		include
+  LIBRARIES
 		${PROJECT_NAME}
 )
 
@@ -25,9 +26,13 @@ INCLUDE_DIRECTORIES (
 #		LINKER_LANGUAGE CXX
 #)
 
-file(GLOB ${PROJECT_NAME}_ROOT_SRC source/*.cpp)
-file(GLOB ${PROJECT_NAME}_MATHEMATICS_SRC source/Mathematics/*.cpp)
+file(GLOB ${PROJECT_NAME}_MATHEMATICS_SRC src/Mathematics/*.cpp)
+add_library(${PROJECT_NAME}_MATHEMATICS ${${PROJECT_NAME}_MATHEMATICS_SRC})
 
-add_library(${PROJECT_NAME} ${${PROJECT_NAME}_ROOT_SRC} ${${PROJECT_NAME}_MATHEMATICS_SRC})
+add_library(${PROJECT_NAME}
+	src/GTEnginePCH.cpp
+	)
+
+target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_MATHEMATICS)
 
 #set_target_properties(GTEngine PROPERTIES COMPILE_FLAGS -fPIC)

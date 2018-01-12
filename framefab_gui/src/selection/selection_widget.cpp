@@ -33,11 +33,18 @@ framefab_gui::SelectionWidget::SelectionWidget(QWidget* parent) : QWidget(parent
   this->setWindowFlags(Qt::WindowStaysOnTopHint);
 
   select_for_plan_pop_up_ = new SelectForPlanPopUpWidget();
+  task_seq_recompute_pop_up_ =  new SelectForPlanPopUpWidget();
+
   this->select_for_plan_pop_up_->setWindowFlags(Qt::WindowStaysOnTopHint);
+  this->task_seq_recompute_pop_up_->setWindowFlags(Qt::WindowStaysOnTopHint);
 
   // wire in pop up widget signals
   connect(select_for_plan_pop_up_, SIGNAL(buttonRecompute()), this, SLOT(recomputeChosen()));
   connect(select_for_plan_pop_up_, SIGNAL(buttonKeepRecord()), this, SLOT(useSavedResultChosen()));
+
+   // wire in pop up widget signals
+  connect(task_seq_recompute_pop_up_, SIGNAL(buttonRecompute()), this, SIGNAL(recomputeTaskSequenceChosen()));
+  connect(task_seq_recompute_pop_up_, SIGNAL(buttonKeepRecord()), this, SLOT(useSavedTaskSequenceResultChosen()));
 
   // Wire in buttons
   connect(ui_->pushbutton_select_backward, SIGNAL(clicked()), this, SLOT(buttonBackwardUpdateOrderValue()));
@@ -274,6 +281,25 @@ void framefab_gui::SelectionWidget::cleanUpVisual()
   }
 }
 
+void framefab_gui::SelectionWidget::showTaskSequenceRecomputePopUp(bool found_task_plan)
+{
+  if(found_task_plan)
+  {
+    std::string msg = "Saved task sequence plan record found.";
+    task_seq_recompute_pop_up_->setDisplayText(msg);
+  }
+  else
+  {
+    ROS_WARN_STREAM("[UI] No saved task sequence plan found.");
+
+    std::string msg = "No saved task sequence plan record found.";
+    task_seq_recompute_pop_up_->setDisplayText(msg);
+  }
+
+  task_seq_recompute_pop_up_->enableButtons(found_task_plan);
+  task_seq_recompute_pop_up_->show();
+}
+
 void framefab_gui::SelectionWidget::showEvent(QShowEvent *ev)
 {
   Q_EMIT enterSelectionWidget();
@@ -489,6 +515,8 @@ void framefab_gui::SelectionWidget::buttonSelectForPlan()
   setInputEnabled(false);
 
   framefab_msgs::QueryComputationRecord srv;
+  bool saved_record_found = false;
+
   srv.request.action = framefab_msgs::QueryComputationRecordRequest::SAVED_LADDER_GRAPH;
   srv.request.file_name = model_file_name_;
 
@@ -498,7 +526,7 @@ void framefab_gui::SelectionWidget::buttonSelectForPlan()
   {
 //    ROS_INFO_STREAM("[Selection Widget] select path panel fetch saved ladder graph info successfully.");
 
-    const bool saved_record_found = srv.response.record_found;
+    saved_record_found = srv.response.record_found;
     const int found_record_size = srv.response.found_record_size;
 
     // set pop up widget text
@@ -514,14 +542,16 @@ void framefab_gui::SelectionWidget::buttonSelectForPlan()
       std::string msg = "No previous ladder graph record found.";
       select_for_plan_pop_up_->setDisplayText(msg);
     }
-
-    select_for_plan_pop_up_->enableButtons(saved_record_found);
-    select_for_plan_pop_up_->show();
   }
   else
   {
-    ROS_ERROR_STREAM("[Selection Widget] Unable to fetch model's element number!");
+    std::string msg = "Unable to fetch model's element number.";
+    select_for_plan_pop_up_->setDisplayText(msg);
+    saved_record_found = false;
   }
+
+  select_for_plan_pop_up_->enableButtons(saved_record_found);
+  select_for_plan_pop_up_->show();
 
   setMode(ZOOM_IN_SELECTION);
   setInputEnabled(true);
@@ -549,7 +579,6 @@ void framefab_gui::SelectionWidget::lineeditUpdateOrderValue()
 void framefab_gui::SelectionWidget::recomputeChosen()
 {
   use_saved_result_ = false;
-  this->select_for_plan_pop_up_->close();
   this->close();
 
   Q_EMIT closeWidgetAndContinue();
@@ -558,8 +587,12 @@ void framefab_gui::SelectionWidget::recomputeChosen()
 void framefab_gui::SelectionWidget::useSavedResultChosen()
 {
   use_saved_result_ = true;
-  this->select_for_plan_pop_up_->close();
   this->close();
 
+  Q_EMIT closeWidgetAndContinue();
+}
+
+void framefab_gui::SelectionWidget::useSavedTaskSequenceResultChosen()
+{
   Q_EMIT closeWidgetAndContinue();
 }

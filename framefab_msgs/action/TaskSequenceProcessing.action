@@ -1,6 +1,5 @@
 # Goal
 int32 FIND_AND_PROCESS=0
-int32 COMPUTE_AND_PROCESS=1 #not supported now
 
 # action specification, see enumeration above
 int32 action

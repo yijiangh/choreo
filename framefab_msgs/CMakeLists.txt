@@ -24,6 +24,7 @@ add_action_files(
     action
     FILES
 		TaskSequenceProcessing.action
+		TaskSequencePlanning.action
     ProcessPlanning.action
     SimulateMotionPlan.action
     ProcessExecution.action
@@ -49,6 +50,7 @@ add_service_files(
 		FILES
 		FrameFabParameters.srv
 		TaskSequenceProcessing.srv
+		TaskSequencePlanning.srv
 		ElementNumberRequest.srv
 		VisualizeSelectedPath.srv
 		ProcessPlanning.srv

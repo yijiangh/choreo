@@ -84,6 +84,12 @@ bool framefab_task_sequence_processing::TaskSequenceProcessor::createCandidatePo
 
   FILE* fp = fopen(fpath.c_str(), "r");
 
+  if(NULL == fp)
+  {
+    ROS_WARN_STREAM("[ts processor] seq result json file not found.");
+    return false;
+  }
+
   char readBuffer[65536];
   FileReadStream is(fp, readBuffer, sizeof(readBuffer));
 
