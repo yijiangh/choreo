@@ -1,5 +1,6 @@
 int32 READ_WIREFRAME=0
 int32 TASK_SEQUENCE_SEARCHING=1
+int32 REQUEST_COLLISION_OBJS=2
 
 int32 action
 
@@ -13,3 +14,6 @@ bool succeeded
 
 # joint pose for reset position
 framefab_msgs/ElementCandidatePoses[] element_array
+
+# partially shrinked collision objs
+framefab_msgs/CollisionObjectList collision_obj_lists

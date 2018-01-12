@@ -55,6 +55,7 @@
 
 // msgs
 #include <framefab_msgs/ElementCandidatePoses.h>
+#include <framefab_msgs/CollisionObjectList.h>
 
 // robot model
 #include <descartes_core/robot_model.h>
@@ -96,7 +97,10 @@ class SeqAnalyzer
   virtual void PrintOutTimer();
 
  public:
-  bool InputPrintOrder(vector<int> &print_queue);
+  bool InputPrintOrder(vector<int>& print_queue);
+  bool ConstructCollisionObjsInQueue(const std::vector<int>& print_queue_edge_ids,
+                                     std::vector<framefab_msgs::CollisionObjectList>& collision_objs);
+
   void OutputPrintOrder(vector<WF_edge*> &print_queue);
   void OutputTaskSequencePlanningResult(std::vector<SingleTaskPlanningResult>& planning_result);
 

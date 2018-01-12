@@ -694,6 +694,12 @@ bool SeqAnalyzer::InputPrintOrder(vector<int> &print_queue)
   return true;
 }
 
+bool SeqAnalyzer::ConstructCollisionObjsInQueue(const std::vector<int>& print_queue_edge_ids,
+                                                std::vector<framefab_msgs::CollisionObjectList>& collision_objs)
+{
+  return false;
+}
+
 void SeqAnalyzer::OutputPrintOrder(vector<WF_edge*> &print_queue)
 {
   print_queue.clear();
