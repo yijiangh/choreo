@@ -71,7 +71,14 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
     addCollisionObject(planning_scene_diff_client_, obj);
   }
 
-  if(generateMotionPlan(hotend_model_, constrained_segs, chosen_task_seq,
+  std::vector<std::vector<moveit_msgs::CollisionObject>> c_obj_lists;
+
+  for(const auto& c_list : req.collision_obj_lists)
+  {
+    c_obj_lists.push_back(c_list.collision_objs);
+  }
+
+  if(generateMotionPlan(hotend_model_, constrained_segs, chosen_task_seq, c_obj_lists,
                         req.use_saved_graph, req.file_name,
                         moveit_model_, planning_scene_diff_client_,
                         hotend_group_name_, current_joints, res.plan))

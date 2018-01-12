@@ -51,9 +51,12 @@ namespace{ //util function namespace
 
 void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
                              const std::vector<framefab_msgs::ElementCandidatePoses>& task_seq,
+                             const std::vector<std::vector<moveit_msgs::CollisionObject>>& c_obj_lists,
                              std::vector<planning_scene::PlanningScenePtr>& planning_scenes_shrinked,
                              std::vector<planning_scene::PlanningScenePtr>& planning_scenes_full)
 {
+  assert(task_seq.size() == c_obj_lists.size());
+
   const auto build_scenes_start = ros::Time::now();
 
   planning_scenes_shrinked.reserve(task_seq.size());
@@ -78,9 +81,12 @@ void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
 
     // query for existing connected elements to element[i] and shared node info (st, end or both?)
     // substitute them with geometry shrinked at the shared node side
-    if (!child_shrinked->processCollisionObjectMsg(task_seq[i-1].both_side_shrinked_collision_object))
+    for(const auto& c_obj : c_obj_lists[i])
     {
-      ROS_WARN("[Process Planning] Failed to process shrinked collision object");
+      if (!child_shrinked->processCollisionObjectMsg(c_obj))
+      {
+        ROS_WARN("[Process Planning] Failed to process shrinked collision object");
+      }
     }
 
     // push in partial_collision_geometry_planning_scene
@@ -472,6 +478,7 @@ bool framefab_process_planning::generateMotionPlan(
     descartes_core::RobotModelPtr model,
     std::vector<descartes_planner::ConstrainedSegment>& segs,
     const std::vector<framefab_msgs::ElementCandidatePoses>& task_seq,
+    const std::vector<std::vector<moveit_msgs::CollisionObject>>& collision_obj_lists,
     const bool use_saved_graph,
     const std::string& saved_graph_file_name,
     moveit::core::RobotModelConstPtr moveit_model,
@@ -494,7 +501,8 @@ bool framefab_process_planning::generateMotionPlan(
   // Step 1: Let's create all of our planning scenes to collision check against
   std::vector<planning_scene::PlanningScenePtr> planning_scenes_shrinked;
   std::vector<planning_scene::PlanningScenePtr> planning_scenes_full;
-  constructPlanningScenes(moveit_model, task_seq, planning_scenes_shrinked, planning_scenes_full);
+  constructPlanningScenes(moveit_model, task_seq, collision_obj_lists,
+                          planning_scenes_shrinked, planning_scenes_full);
 
   // Step 2: CLT RRT* to solve process trajectory
   CLTRRTforProcessROSTraj(model, segs, planning_scenes_shrinked, task_seq, plans,
