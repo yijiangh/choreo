@@ -46,7 +46,7 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
   const static double RETRACT_DISTANCE = 0.010; // meters
 
   const static double LINEAR_DISCRETIZATION = 0.005; // meters
-  // the distance between angular steps about z for each orientation
+  // the distance between angular steps about z for each orientationcreateCollisionObject
   const static double ANGULAR_DISCRETIZATION = PRINT_ANGLE_DISCRETIZATION; // radians
 
   ConstrainedSegParameters constrained_seg_params;
@@ -71,14 +71,7 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
     addCollisionObject(planning_scene_diff_client_, obj);
   }
 
-  std::vector<std::vector<moveit_msgs::CollisionObject>> c_obj_lists;
-
-  for(const auto& c_list : req.collision_obj_lists)
-  {
-    c_obj_lists.push_back(c_list.collision_objs);
-  }
-
-  if(generateMotionPlan(hotend_model_, constrained_segs, chosen_task_seq, c_obj_lists,
+  if(generateMotionPlan(hotend_model_, constrained_segs, chosen_task_seq, req.wf_collision_objs,
                         req.use_saved_graph, req.file_name,
                         moveit_model_, planning_scene_diff_client_,
                         hotend_group_name_, current_joints, res.plan))

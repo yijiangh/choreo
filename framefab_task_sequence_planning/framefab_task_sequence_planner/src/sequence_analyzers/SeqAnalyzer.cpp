@@ -711,42 +711,42 @@ bool SeqAnalyzer::InputPrintOrder(const std::vector<int>& print_queue)
 }
 
 bool SeqAnalyzer::ConstructCollisionObjsInQueue(const std::vector<int>& print_queue_edge_ids,
-                                                std::vector<std::vector<moveit_msgs::CollisionObject>>& collision_objs)
+                                                std::vector<framefab_msgs::WireFrameCollisionObject>& collision_objs)
 {
-  if(!InputPrintOrder(print_queue_edge_ids))
-  {
-    ROS_ERROR_STREAM("[ts planner] edge id error, not matched to wire frame id. "
-                         << "Please re-run sequence planner to re-generate sequence result.");
-    return false;
-  }
-
-  collision_objs.clear();
-  collision_objs.resize(print_queue_.size());
-
-  Init();
-
-  for (int i=0; i < print_queue_.size(); i++)
-  {
-    WF_edge* e = print_queue_[i];
-
-    collision_objs[i] = std::vector<moveit_msgs::CollisionObject>();
-
-    if(i > 0)
-    {
-      const auto& recover_previous_neighbors = UpdateCollisionObjects(print_queue_[i-1], true);
-      collision_objs[i].insert(collision_objs[i].end(),
-                               recover_previous_neighbors.begin(), recover_previous_neighbors.end());
-
-      const auto& previous_obj = UpdateCollisionObjects(print_queue_[i-1], false);
-      collision_objs[i].insert(collision_objs[i].end(), previous_obj.begin(), previous_obj.end());
-    }
-
-    // add full collision obj without shrinking
-    const auto& shrinked_neighbors = UpdateCollisionObjects(e, true);
-
-    collision_objs[i].insert(collision_objs[i].end(), shrinked_neighbors.begin(), shrinked_neighbors.end());
-    ptr_dualgraph_->UpdateDualization(e);
-  }
+//  if(!InputPrintOrder(print_queue_edge_ids))
+//  {
+//    ROS_ERROR_STREAM("[ts planner] edge id error, not matched to wire frame id. "
+//                         << "Please re-run sequence planner to re-generate sequence result.");
+//    return false;
+//  }
+//
+//  collision_obj_lists.clear();
+//  collision_obj_lists.resize(print_queue_.size());
+//
+//  Init();
+//
+//  for (int i=0; i < print_queue_.size(); i++)
+//  {
+//    WF_edge* e = print_queue_[i];
+//
+//    collision_obj_lists[i] = std::vector<moveit_msgs::CollisionObject>();
+//
+//    if(i > 0)
+//    {
+//      const auto& recover_previous_neighbors = RecoverCollisionObjects(print_queue_[i-1], true);
+//      collision_obj_lists[i].insert(collision_objs[i].end(),
+//                               recover_previous_neighbors.begin(), recover_previous_neighbors.end());
+//
+//      // add full collision obj without shrinking
+//      const auto& previous_obj = UpdateCollisionObjects(print_queue_[i-1], false);
+//      collision_objs[i].insert(collision_objs[i].end(), previous_obj.begin(), previous_obj.end());
+//    }
+//
+//    const auto& shrinked_neighbors = UpdateCollisionObjects(e, true);
+//
+//    collision_objs[i].insert(collision_objs[i].end(), shrinked_neighbors.begin(), shrinked_neighbors.end());
+//    ptr_dualgraph_->UpdateDualization(e);
+//  }
 
   return true;
 }

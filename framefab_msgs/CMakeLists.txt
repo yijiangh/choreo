@@ -44,6 +44,7 @@ add_message_files(
 		SubProcess.msg
 		ElementCandidatePoses.msg
 		CollisionObjectList.msg
+		WireFrameCollisionObject.msg
 )
 
 ## Generate services in the 'srv' folder

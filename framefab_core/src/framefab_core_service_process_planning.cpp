@@ -68,7 +68,7 @@ ProcessPlanResult FrameFabCoreService::generateProcessPlan(const int selected_pa
     }
     else
     {
-      srv.request.collision_obj_lists = ts_srv.response.collision_obj_lists;
+      srv.request.wf_collision_objs = ts_srv.response.wf_collision_objs;
       success = true;
     }
   }

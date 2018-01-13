@@ -18,7 +18,7 @@
 #include <tf_conversions/tf_eigen.h>
 #include <eigen_conversions/eigen_msg.h>
 
-const static std::string COLLISION_OBJ_PREFIX = "tsp_wireframe_element";
+const static std::string COLLISION_OBJ_PREFIX = "wireframe_element";
 const static std::string APPLY_PLANNING_SCENE_SERVICE = "apply_planning_scene";
 
 namespace{
@@ -409,7 +409,7 @@ bool FiberPrintPlugIn::DirectSearch()
 }
 
 bool FiberPrintPlugIn::ConstructCollisionObjects(const std::vector<int>& print_queue_edge_ids,
-                                                 std::vector<std::vector<moveit_msgs::CollisionObject>>& collision_objs)
+                                                 std::vector<framefab_msgs::WireFrameCollisionObject>& collision_objs)
 {
   if(Init())
   {
@@ -548,22 +548,10 @@ bool FiberPrintPlugIn::handleTaskSequencePlanning(
         wireframe_ids.push_back(element.wireframe_id);
       }
 
-      std::vector<std::vector<moveit_msgs::CollisionObject>> collision_obj_list;
-
-      if(!ConstructCollisionObjects(wireframe_ids, collision_obj_list))
+      if(!ConstructCollisionObjects(wireframe_ids, res.wf_collision_objs))
       {
         ROS_ERROR_STREAM("[ts planner] construct collision objects failed.");
         return false;
-      }
-      else
-      {
-        for(const auto& c_list : collision_obj_list)
-        {
-          framefab_msgs::CollisionObjectList c_list_msg;
-          c_list_msg.collision_objs = c_list;
-
-          res.collision_obj_lists.push_back(c_list_msg);
-        }
       }
 
       break;

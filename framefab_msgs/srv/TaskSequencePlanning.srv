@@ -17,4 +17,4 @@ bool succeeded
 framefab_msgs/ElementCandidatePoses[] element_array
 
 # partially shrinked collision objs
-framefab_msgs/CollisionObjectList[] collision_obj_lists
+framefab_msgs/WireFrameCollisionObject[] wf_collision_objs
