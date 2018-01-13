@@ -713,40 +713,44 @@ bool SeqAnalyzer::InputPrintOrder(const std::vector<int>& print_queue)
 bool SeqAnalyzer::ConstructCollisionObjsInQueue(const std::vector<int>& print_queue_edge_ids,
                                                 std::vector<framefab_msgs::WireFrameCollisionObject>& collision_objs)
 {
-//  if(!InputPrintOrder(print_queue_edge_ids))
-//  {
-//    ROS_ERROR_STREAM("[ts planner] edge id error, not matched to wire frame id. "
-//                         << "Please re-run sequence planner to re-generate sequence result.");
-//    return false;
-//  }
-//
-//  collision_obj_lists.clear();
-//  collision_obj_lists.resize(print_queue_.size());
-//
-//  Init();
-//
-//  for (int i=0; i < print_queue_.size(); i++)
-//  {
-//    WF_edge* e = print_queue_[i];
-//
-//    collision_obj_lists[i] = std::vector<moveit_msgs::CollisionObject>();
-//
-//    if(i > 0)
-//    {
-//      const auto& recover_previous_neighbors = RecoverCollisionObjects(print_queue_[i-1], true);
-//      collision_obj_lists[i].insert(collision_objs[i].end(),
-//                               recover_previous_neighbors.begin(), recover_previous_neighbors.end());
-//
-//      // add full collision obj without shrinking
-//      const auto& previous_obj = UpdateCollisionObjects(print_queue_[i-1], false);
-//      collision_objs[i].insert(collision_objs[i].end(), previous_obj.begin(), previous_obj.end());
-//    }
-//
-//    const auto& shrinked_neighbors = UpdateCollisionObjects(e, true);
-//
-//    collision_objs[i].insert(collision_objs[i].end(), shrinked_neighbors.begin(), shrinked_neighbors.end());
-//    ptr_dualgraph_->UpdateDualization(e);
-//  }
+  if(!InputPrintOrder(print_queue_edge_ids))
+  {
+    ROS_ERROR_STREAM("[ts planner] edge id error, not matched to wire frame id. "
+                         << "Please re-run sequence planner to re-generate sequence result.");
+    return false;
+  }
+
+  collision_objs.clear();
+  collision_objs.resize(print_queue_.size());
+
+  Init();
+
+  for (int i = 0; i < print_queue_.size(); i++)
+  {
+    WF_edge* e = print_queue_[i];
+
+    if(i > 0)
+    {
+      collision_objs[i].recovered_last_neighbor_objs = RecoverCollisionObjects(print_queue_[i-1], true);
+
+      moveit_msgs::CollisionObject last_e_collision_obj;
+      last_e_collision_obj = frame_msgs_[print_queue_[i-1]->ID()].full_collision_object;
+      last_e_collision_obj.operation = moveit_msgs::CollisionObject::ADD;
+      collision_objs[i].last_full_obj = last_e_collision_obj;
+    }
+
+    collision_objs[i].shrinked_neighbor_objs = UpdateCollisionObjects(e, true);
+
+    moveit_msgs::CollisionObject e_collision_obj;
+    e_collision_obj = frame_msgs_[e->ID()].full_collision_object;
+    e_collision_obj.operation = moveit_msgs::CollisionObject::ADD;
+    collision_objs[i].full_obj = e_collision_obj;
+
+    e_collision_obj = frame_msgs_[e->ID()].both_side_shrinked_collision_object;
+    collision_objs[i].both_side_shrinked_obj = e_collision_obj;
+
+    ptr_dualgraph_->UpdateDualization(e);
+  }
 
   return true;
 }
