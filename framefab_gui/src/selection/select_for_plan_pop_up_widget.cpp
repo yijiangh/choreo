@@ -40,3 +40,8 @@ void framefab_gui::SelectForPlanPopUpWidget::closeWindow()
 {
   this->close();
 }
+
+void framefab_gui::SelectForPlanPopUpWidget::closeEvent(QCloseEvent *ev)
+{
+  Q_EMIT exitSelectForPlanPopUpWidget();
+}

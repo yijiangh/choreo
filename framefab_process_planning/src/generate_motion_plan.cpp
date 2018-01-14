@@ -299,6 +299,7 @@ void retractionPlanning(descartes_core::RobotModelPtr model,
                                                model, approach_retract_traj))
     {
       ROS_ERROR_STREAM("[retraction planning] process #" << i << " failed to find feasible approach retract motion!");
+      assert(false);
     }
     else
     {
@@ -326,6 +327,7 @@ void retractionPlanning(descartes_core::RobotModelPtr model,
                                                model, depart_retract_traj))
     {
       ROS_ERROR_STREAM("[retraction planning] process #" << i << " failed to find feasible depart retract motion!");
+      assert(false);
     }
     else
     {
@@ -406,7 +408,8 @@ void transitionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
     // TODO: recover from transition planning failure
     if(ros_trans_traj.points.empty())
     {
-      continue;
+      ROS_ERROR_STREAM("[Process Planning] Transition planning fails.");
+      assert(ros_trans_traj.points.size() == 0);
     }
 
     framefab_msgs::SubProcess sub_process;

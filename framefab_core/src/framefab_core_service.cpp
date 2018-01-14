@@ -65,10 +65,10 @@ void visualizePrintBedBoundary(rviz_visual_tools::RvizVisualToolsPtr visual_tool
   visual_tools->deleteAllMarkers();
 
   // in meter
-  Eigen::Vector3d pt1(0.400, -0.270, 0.0171);
-  Eigen::Vector3d pt2(0.750, -0.270, 0.0171);
-  Eigen::Vector3d pt3(0.750, 0.290, 0.0171);
-  Eigen::Vector3d pt4(0.400, 0.290, 0.0171);
+  Eigen::Vector3d pt1(0.515, -0.318, 0.0235);
+  Eigen::Vector3d pt2(0.862, -0.318, 0.0235);
+  Eigen::Vector3d pt3(0.862, 0.306, 0.0235);
+  Eigen::Vector3d pt4(0.515, 0.306, 0.0235);
 
   auto color = rvt::colors::BLUE;
   auto scale = rvt::scales::XXXSMALL;

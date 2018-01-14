@@ -166,7 +166,10 @@ bool framefab_process_planning::retractPath(
 
   // solve FK to retrieve start eef plane
   Eigen::Affine3d start_pose;
-  model->getFK(start_joint, start_pose);
+  if(model->getFK(start_joint, start_pose))
+  {
+    return false;
+  }
 
   const auto retract_sample_start = ros::Time::now();
 
