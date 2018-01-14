@@ -153,7 +153,8 @@ bool saveLadderGraph(const std::string& filename, const descartes_msgs::LadderGr
 
 void CLTRRTforProcessROSTraj(descartes_core::RobotModelPtr model,
                              std::vector<descartes_planner::ConstrainedSegment>& segs,
-                             const std::vector<planning_scene::PlanningScenePtr>& planning_scenes,
+                             const std::vector<planning_scene::PlanningScenePtr>& planning_scenes_approach,
+                             const std::vector<planning_scene::PlanningScenePtr>& planning_scenes_depart,
                              const std::vector<framefab_msgs::ElementCandidatePoses>& task_seq,
                              std::vector<framefab_msgs::UnitProcessPlan>& plans,
                              const std::string& saved_graph_file_name,
@@ -188,7 +189,7 @@ void CLTRRTforProcessROSTraj(descartes_core::RobotModelPtr model,
     }
   }
 
-  descartes_planner::CapsulatedLadderTreeRRTstar CLT_RRT(segs, planning_scenes);
+  descartes_planner::CapsulatedLadderTreeRRTstar CLT_RRT(segs, planning_scenes_approach, planning_scenes_depart);
 
   if(!use_saved_graph || segs.size() > graphs.size())
   {
@@ -299,7 +300,6 @@ void retractionPlanning(descartes_core::RobotModelPtr model,
                                                model, approach_retract_traj))
     {
       ROS_ERROR_STREAM("[retraction planning] process #" << i << " failed to find feasible approach retract motion!");
-      assert(false);
     }
     else
     {
@@ -327,7 +327,6 @@ void retractionPlanning(descartes_core::RobotModelPtr model,
                                                model, depart_retract_traj))
     {
       ROS_ERROR_STREAM("[retraction planning] process #" << i << " failed to find feasible depart retract motion!");
-      assert(false);
     }
     else
     {
@@ -549,8 +548,8 @@ bool framefab_process_planning::generateMotionPlan(
                           planning_scenes_full);
 
   // Step 2: CLT RRT* to solve process trajectory
-  CLTRRTforProcessROSTraj(model, segs, planning_scenes_shrinked_approach, task_seq, plans,
-                          saved_graph_file_name, use_saved_graph);
+  CLTRRTforProcessROSTraj(model, segs, planning_scenes_shrinked_approach, planning_scenes_shrinked_depart,
+                          task_seq, plans, saved_graph_file_name, use_saved_graph);
 
   // retract planning
   retractionPlanning(model, planning_scenes_shrinked_approach, planning_scenes_shrinked_depart, segs, plans);

@@ -64,11 +64,11 @@ public:
 
 public:
 	/* Data I/O */
-	double	Height() { return height_; }
-	double	Angle()	 { return angle_; }
-	double	WaveAngle() { return wave_angle_; }
-	double ToolLenth(){ return tool_lenth_; }
-	double Radii(){ return radii_; }
+	double Height() { return height_; }
+	double Angle() { return angle_; }
+	double WaveAngle() { return wave_angle_; }
+	double ToolLenth() { return tool_lenth_; }
+	double Radii() { return radii_; }
 	double CyclinderLenth(){ return cyclinder_height_; }
 	point	BasePoint() { return base_point_; }
 	Vec3f	Normal()	{ return normal_; }
@@ -95,21 +95,21 @@ public:
 
 private:
 	/* Extruder Property Data */
-	double				angle_;
-	double				height_;
-	double          tool_lenth_;
+	double angle_;
+	double height_;
+	double tool_lenth_;
 	double radii_;
 	double cyclinder_height_;
 
-	double				wave_angle_;
-    vector<Triangle>	side_;
-	point				base_point_;
-	Vec3f				normal_;
+	double			 wave_angle_;
+    vector<Triangle> side_;
+	point			 base_point_;
+	Vec3f			 normal_;
 
 	/* Extruder Render Data */
-	int					divide_;	/* Traingle division for cone	  */
-	vector<Triangle>	side_end_;  /* Triangle Approx for the cone   */
-	vector<point>		top_;		/* Ploygon represent top covering */
+	int				 divide_;	/* Traingle division for cone	  */
+	vector<Triangle> side_end_;  /* Triangle Approx for the cone   */
+	vector<point>	 top_;		/* Ploygon represent top covering */
 
 	/* Transformation for Rendering */
 	float rotate_[4][4];
