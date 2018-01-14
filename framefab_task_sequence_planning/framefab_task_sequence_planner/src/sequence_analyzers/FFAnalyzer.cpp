@@ -269,7 +269,6 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej, const int l)
     else
     {
 //      if(free_angle < ptr_collision_->Divide() * 0.15)
-//      {
       ROS_INFO_STREAM("robot kinematics check: free angle num: " << free_angle << "/"
                                                                  << int(ptr_collision_->Divide()));
       /* robot kinematics test */
@@ -289,7 +288,6 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej, const int l)
           ROS_INFO_STREAM("Robot kinematics test passed.");
         }
       }
-//      }
     }
 
     /* stiffness test */

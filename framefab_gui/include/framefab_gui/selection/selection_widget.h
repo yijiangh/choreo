@@ -99,6 +99,7 @@ class SelectionWidget : public QWidget
   void enterSelectionWidget();
   void exitSelectionWidget();
   void recomputeTaskSequenceChosen();
+  void enableFrameFabWidgetButtons();
 
  protected Q_SLOTS:
   // different source that changes order_value
@@ -126,6 +127,8 @@ class SelectionWidget : public QWidget
   void useSavedResultChosen();
 
   void useSavedTaskSequenceResultChosen();
+
+  void popUpWindowClosed();
 
  private:
   ros::NodeHandle nh_;

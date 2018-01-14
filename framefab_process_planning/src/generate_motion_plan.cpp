@@ -36,60 +36,100 @@
 #include <trajectory_msgs/JointTrajectoryPoint.h>
 #include <framefab_msgs/SubProcess.h>
 #include <framefab_msgs/ElementCandidatePoses.h>
+#include <framefab_msgs/WireFrameCollisionObject.h>
 #include <descartes_msgs/LadderGraphList.h>
+
+// msg
+#include <moveit_msgs/PlanningSceneComponents.h>
+#include <moveit_msgs/PlanningScene.h>
 
 // srv
 #include <moveit_msgs/ApplyPlanningScene.h>
+#include <moveit_msgs/GetPlanningScene.h>
 #include <eigen_conversions/eigen_msg.h>
 
 // serialization
 #include <framefab_param_helpers/framefab_param_helpers.h>
 
-#define SANITY_CHECK(cond) do { if ( !(cond) ) { throw std::runtime_error(#cond); } } while (false);
+const static std::string GET_PLANNING_SCENE_SERVICE = "get_planning_scene";
 
 namespace{ //util function namespace
 
 void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
-                             const std::vector<framefab_msgs::ElementCandidatePoses>& task_seq,
-                             std::vector<planning_scene::PlanningScenePtr>& planning_scenes_shrinked,
+                             const std::vector<framefab_msgs::WireFrameCollisionObject>& wf_collision_objs,
+                             std::vector<planning_scene::PlanningScenePtr>& planning_scenes_shrinked_approach,
+                             std::vector<planning_scene::PlanningScenePtr>& planning_scenes_shrinked_depart,
                              std::vector<planning_scene::PlanningScenePtr>& planning_scenes_full)
 {
   const auto build_scenes_start = ros::Time::now();
 
-  planning_scenes_shrinked.reserve(task_seq.size());
-  planning_scenes_full.reserve(task_seq.size());
+  planning_scenes_shrinked_approach.reserve(wf_collision_objs.size());
+  planning_scenes_shrinked_depart.reserve(wf_collision_objs.size());
+  planning_scenes_full.reserve(wf_collision_objs.size());
+
+  ros::NodeHandle nh;
+  auto planning_scene_client = nh.serviceClient<moveit_msgs::GetPlanningScene>(GET_PLANNING_SCENE_SERVICE);
+
+  if(!planning_scene_client.waitForExistence())
+  {
+    ROS_ERROR_STREAM("[Process Planning] cannot connect with get planning scene server...");
+  }
+
+  moveit_msgs::GetPlanningScene srv;
+  srv.request.components.components =
+      moveit_msgs::PlanningSceneComponents::ROBOT_STATE
+          | moveit_msgs::PlanningSceneComponents::WORLD_OBJECT_GEOMETRY;
+
+  if(!planning_scene_client.call(srv))
+  {
+    ROS_ERROR_STREAM("[Process Planning] Failed to fetch planning scene srv!");
+  }
 
   planning_scene::PlanningScenePtr root_scene(new planning_scene::PlanningScene(moveit_model));
   root_scene->getCurrentStateNonConst().setToDefaultValues();
   root_scene->getCurrentStateNonConst().update();
+  root_scene->setPlanningSceneDiffMsg(srv.response.scene);
 
   // start with no element constructed in the scene
-  planning_scenes_shrinked.push_back(root_scene);
+  planning_scenes_shrinked_approach.push_back(root_scene);
+  planning_scenes_shrinked_depart.push_back(root_scene);
   planning_scenes_full.push_back(root_scene);
 
-  for (std::size_t i = 1; i < task_seq.size(); ++i) // We use all but the last collision object
+  for (std::size_t i = 1; i < wf_collision_objs.size(); ++i) // We use all but the last collision object
   {
-    // TODO: use wireframe to shrink only connected edges' node
-    auto last_scene_shrinked = planning_scenes_shrinked.back();
+    auto last_scene_shrinked = planning_scenes_shrinked_approach.back();
     auto child_shrinked = last_scene_shrinked->diff();
 
-    auto last_scene_full = planning_scenes_full.back();
-    auto child_full = last_scene_full->diff();
+    auto c_list = wf_collision_objs[i].recovered_last_neighbor_objs;
+    c_list.push_back(wf_collision_objs[i].last_full_obj);
 
-    // query for existing connected elements to element[i] and shared node info (st, end or both?)
-    // substitute them with geometry shrinked at the shared node side
-    if (!child_shrinked->processCollisionObjectMsg(task_seq[i-1].both_side_shrinked_collision_object))
+    const auto& shrinked_neighbor_objs = wf_collision_objs[i].shrinked_neighbor_objs;
+    c_list.insert(c_list.begin(), shrinked_neighbor_objs.begin(), shrinked_neighbor_objs.end());
+
+    for(const auto& c_obj : c_list)
+    {
+      if (!child_shrinked->processCollisionObjectMsg(c_obj))
+      {
+        ROS_WARN("[Process Planning] Failed to process shrinked collision object");
+      }
+    }
+
+    auto child_shrinked_depart = child_shrinked->diff();
+    if (!child_shrinked_depart->processCollisionObjectMsg(wf_collision_objs[i].both_side_shrinked_obj))
     {
       ROS_WARN("[Process Planning] Failed to process shrinked collision object");
     }
 
     // push in partial_collision_geometry_planning_scene
-    planning_scenes_shrinked.push_back(child_shrinked);
+    planning_scenes_shrinked_approach.push_back(child_shrinked);
+    planning_scenes_shrinked_depart.push_back(child_shrinked_depart);
 
     // get diff as child
     // restore changed element back to full geometry
     // push in full_collision_geometry_planning_scene
-    if (!child_full->processCollisionObjectMsg(task_seq[i-1].full_collision_object))
+    auto last_scene_full = planning_scenes_full.back();
+    auto child_full = last_scene_full->diff();
+    if (!child_full->processCollisionObjectMsg(wf_collision_objs[i-1].full_obj))
     {
       ROS_WARN("[Process Planning] Failed to process full collision object");
     }
@@ -113,7 +153,8 @@ bool saveLadderGraph(const std::string& filename, const descartes_msgs::LadderGr
 
 void CLTRRTforProcessROSTraj(descartes_core::RobotModelPtr model,
                              std::vector<descartes_planner::ConstrainedSegment>& segs,
-                             const std::vector<planning_scene::PlanningScenePtr>& planning_scenes,
+                             const std::vector<planning_scene::PlanningScenePtr>& planning_scenes_approach,
+                             const std::vector<planning_scene::PlanningScenePtr>& planning_scenes_depart,
                              const std::vector<framefab_msgs::ElementCandidatePoses>& task_seq,
                              std::vector<framefab_msgs::UnitProcessPlan>& plans,
                              const std::string& saved_graph_file_name,
@@ -148,7 +189,7 @@ void CLTRRTforProcessROSTraj(descartes_core::RobotModelPtr model,
     }
   }
 
-  descartes_planner::CapsulatedLadderTreeRRTstar CLT_RRT(segs, planning_scenes);
+  descartes_planner::CapsulatedLadderTreeRRTstar CLT_RRT(segs, planning_scenes_approach, planning_scenes_depart);
 
   if(!use_saved_graph || segs.size() > graphs.size())
   {
@@ -218,7 +259,8 @@ void CLTRRTforProcessROSTraj(descartes_core::RobotModelPtr model,
 }
 
 void retractionPlanning(descartes_core::RobotModelPtr model,
-                        const std::vector<planning_scene::PlanningScenePtr>& planning_scenes,
+                        const std::vector<planning_scene::PlanningScenePtr>& planning_scenes_approach,
+                        const std::vector<planning_scene::PlanningScenePtr>& planning_scenes_depart,
                         const std::vector<descartes_planner::ConstrainedSegment>& segs,
                         std::vector<framefab_msgs::UnitProcessPlan>& plans)
 {
@@ -250,7 +292,7 @@ void retractionPlanning(descartes_core::RobotModelPtr model,
 //      }
     }
 
-    model->setPlanningScene(planning_scenes[i]);
+    model->setPlanningScene(planning_scenes_approach[i]);
 
     std::vector<std::vector<double>> approach_retract_traj;
     if(!framefab_process_planning::retractPath(start_process_joint, segs[i].retract_dist, segs[i].linear_vel,
@@ -276,6 +318,8 @@ void retractionPlanning(descartes_core::RobotModelPtr model,
 
       plans[i].sub_process_array.insert(plans[i].sub_process_array.begin(), sub_process_approach);
     }
+
+    model->setPlanningScene(planning_scenes_depart[i]);
 
     std::vector<std::vector<double>> depart_retract_traj;
     if(!framefab_process_planning::retractPath(end_process_joint, segs[i].retract_dist, segs[i].linear_vel,
@@ -363,7 +407,8 @@ void transitionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
     // TODO: recover from transition planning failure
     if(ros_trans_traj.points.empty())
     {
-      continue;
+      ROS_ERROR_STREAM("[Process Planning] Transition planning fails.");
+      assert(ros_trans_traj.points.size() == 0);
     }
 
     framefab_msgs::SubProcess sub_process;
@@ -472,6 +517,7 @@ bool framefab_process_planning::generateMotionPlan(
     descartes_core::RobotModelPtr model,
     std::vector<descartes_planner::ConstrainedSegment>& segs,
     const std::vector<framefab_msgs::ElementCandidatePoses>& task_seq,
+    const std::vector<framefab_msgs::WireFrameCollisionObject>& wf_collision_objs,
     const bool use_saved_graph,
     const std::string& saved_graph_file_name,
     moveit::core::RobotModelConstPtr moveit_model,
@@ -486,22 +532,27 @@ bool framefab_process_planning::generateMotionPlan(
     ROS_ERROR_STREAM("[Process Planning] input descartes Constrained Segment size" << segs.size());
     return false;
   }
+  assert(task_seq.size() == wf_collision_objs.size());
 
   plans.resize(segs.size());
   const std::vector<std::string> &joint_names =
       moveit_model->getJointModelGroup(move_group_name)->getActiveJointModelNames();
 
   // Step 1: Let's create all of our planning scenes to collision check against
-  std::vector<planning_scene::PlanningScenePtr> planning_scenes_shrinked;
+  std::vector<planning_scene::PlanningScenePtr> planning_scenes_shrinked_approach;
+  std::vector<planning_scene::PlanningScenePtr> planning_scenes_shrinked_depart;
   std::vector<planning_scene::PlanningScenePtr> planning_scenes_full;
-  constructPlanningScenes(moveit_model, task_seq, planning_scenes_shrinked, planning_scenes_full);
+  constructPlanningScenes(moveit_model, wf_collision_objs,
+                          planning_scenes_shrinked_approach,
+                          planning_scenes_shrinked_depart,
+                          planning_scenes_full);
 
   // Step 2: CLT RRT* to solve process trajectory
-  CLTRRTforProcessROSTraj(model, segs, planning_scenes_shrinked, task_seq, plans,
-                          saved_graph_file_name, use_saved_graph);
+  CLTRRTforProcessROSTraj(model, segs, planning_scenes_shrinked_approach, planning_scenes_shrinked_depart,
+                          task_seq, plans, saved_graph_file_name, use_saved_graph);
 
   // retract planning
-  retractionPlanning(model, planning_scenes_shrinked, segs, plans);
+  retractionPlanning(model, planning_scenes_shrinked_approach, planning_scenes_shrinked_depart, segs, plans);
 
   // Step 5 : Plan for transition between each pair of sequential path
   transitionPlanning(plans, moveit_model, planning_scene_diff_client, move_group_name,
@@ -512,7 +563,7 @@ bool framefab_process_planning::generateMotionPlan(
   adjustTrajectoryTiming(plans, joint_names);
 
   // Step 8: fill in TCP pose according to trajectories
-  appendTCPPosetoPlans(model, planning_scenes_shrinked, planning_scenes_full, plans);
+  appendTCPPosetoPlans(model, planning_scenes_shrinked_approach, planning_scenes_full, plans);
 
   ROS_INFO("[Process Planning] trajectories solved and packing finished");
   return true;

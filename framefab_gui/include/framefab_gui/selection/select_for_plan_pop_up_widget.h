@@ -31,9 +31,13 @@ class SelectForPlanPopUpWidget : public QWidget
   Q_SIGNALS:
   void buttonRecompute();
   void buttonKeepRecord();
+  void exitSelectForPlanPopUpWidget();
 
  protected Q_SLOTS:
   void closeWindow();
+
+ protected:
+  virtual void closeEvent(QCloseEvent *ev);
 
  private:
   // Display layout

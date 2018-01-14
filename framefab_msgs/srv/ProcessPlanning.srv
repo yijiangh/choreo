@@ -6,6 +6,9 @@ int32 index
 # working env collision objs
 moveit_msgs/CollisionObject[] env_collision_objs
 
+# sequenced collision objs
+framefab_msgs/WireFrameCollisionObject[] wf_collision_objs
+
 # the actual path the tool will follow
 framefab_msgs/ElementCandidatePoses[] task_sequence
 

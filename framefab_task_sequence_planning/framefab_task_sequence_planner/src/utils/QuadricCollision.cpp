@@ -40,9 +40,42 @@ void QuadricCollision::Init(vector<lld>& colli_map)
 {
   lld temp = 0;
   colli_map.clear();
+  colli_map.reserve(3);
   colli_map.push_back(temp);
   colli_map.push_back(temp);
   colli_map.push_back(temp);
+
+  // initial domain pruning
+  for(int i = 0; i < divide_; i++)
+  {
+    lld mask = ((lld) 1 << i);
+
+    for(int j = 0; j < 3; j++)
+    {
+      // i-th bit = 0 means it's feasible
+      double theta = 0.0;
+      if (i < 20)
+      {
+        theta = (j * 3 + 1) * 18.0 / 180.0 * F_PI;
+      }
+
+      if (i > 19 && i < 40)
+      {
+        theta = (j * 3 + 2) * 18.0 / 180.0 * F_PI;
+      }
+
+      if (i > 39)
+      {
+        theta = (j * 3 + 3)* 18.0 / 180.0 * F_PI;
+      }
+
+//      if(theta > F_PI - extruder_.Angle())
+      if(theta > F_PI - 75.0 / 180.0 * F_PI)
+      {
+        colli_map[j] |= mask;
+      }
+    }
+  }
 }
 
 void QuadricCollision::DetectCollision(WF_edge *target_e, DualGraph *ptr_subgraph,
@@ -298,16 +331,16 @@ void QuadricCollision::DetectEdge(WF_edge *order_e, std::vector<lld> &result_map
 
 bool QuadricCollision::DetectEdges(std::vector<WF_edge*> exist_edge, double theta, double phi)
 {
-  for (int i = 0; i < exist_edge.size(); i++)
-  {
-    if (DetectBulk(exist_edge[i], theta, phi))
-    {
-      return true;
-    }
-  }
+for (int i = 0; i < exist_edge.size(); i++)
+{
+if (DetectBulk(exist_edge[i], theta, phi))
+{
+return true;
+}
+}
 
-  // no collision
-  return false;
+// no collision
+return false;
 }
 
 bool QuadricCollision::DetectBulk(WF_edge *order_e, double theta, double phi)

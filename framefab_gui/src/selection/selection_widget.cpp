@@ -45,6 +45,7 @@ framefab_gui::SelectionWidget::SelectionWidget(QWidget* parent) : QWidget(parent
    // wire in pop up widget signals
   connect(task_seq_recompute_pop_up_, SIGNAL(buttonRecompute()), this, SIGNAL(recomputeTaskSequenceChosen()));
   connect(task_seq_recompute_pop_up_, SIGNAL(buttonKeepRecord()), this, SLOT(useSavedTaskSequenceResultChosen()));
+//  connect(task_seq_recompute_pop_up_, SIGNAL(exitSelectForPlanPopUpWidget()), this, SLOT(popUpWindowClosed()));
 
   // Wire in buttons
   connect(ui_->pushbutton_select_backward, SIGNAL(clicked()), this, SLOT(buttonBackwardUpdateOrderValue()));
@@ -595,4 +596,9 @@ void framefab_gui::SelectionWidget::useSavedResultChosen()
 void framefab_gui::SelectionWidget::useSavedTaskSequenceResultChosen()
 {
   Q_EMIT closeWidgetAndContinue();
+}
+
+void framefab_gui::SelectionWidget::popUpWindowClosed()
+{
+  Q_EMIT enableFrameFabWidgetButtons();
 }

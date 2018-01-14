@@ -9,6 +9,7 @@
 #include <framefab_msgs/ElementCandidatePoses.h>
 #include <framefab_msgs/ModelInputParameters.h>
 #include <framefab_msgs/TaskSequenceInputParameters.h>
+#include <framefab_msgs/CollisionObjectList.h>
 
 // srv
 #include <moveit_msgs/ApplyPlanningScene.h>
@@ -17,7 +18,7 @@
 #include <tf_conversions/tf_eigen.h>
 #include <eigen_conversions/eigen_msg.h>
 
-const static std::string COLLISION_OBJ_PREFIX = "tsp_wireframe_element";
+const static std::string COLLISION_OBJ_PREFIX = "wireframe_element";
 const static std::string APPLY_PLANNING_SCENE_SERVICE = "apply_planning_scene";
 
 namespace{
@@ -133,11 +134,13 @@ void convertWireFrameToMsg(
     }
   }
 
-  double element_diameter = model_params.element_diameter;
+  // TODO: this might cause out-of-scale problem!!!
+  // default wireframe is in millimeter and might be different to user-specified unit in mpp
+  // wireframe default unit is mm, convert to meter
   const auto &base_pt = wire_frame.GetBaseCenterPos();
-  Eigen::Vector3d transf_vec = Eigen::Vector3d(model_params.ref_pt_x - base_pt.x(),
-                                               model_params.ref_pt_y - base_pt.y(),
-                                               model_params.ref_pt_z - base_pt.z());
+  Eigen::Vector3d transf_vec = Eigen::Vector3d(model_params.ref_pt_x * unit_scale - base_pt.x() * 0.001,
+                                               model_params.ref_pt_y * unit_scale - base_pt.y() * 0.001,
+                                               model_params.ref_pt_z * unit_scale - base_pt.z() * 0.001);
 
   wf_msgs.resize(wire_frame.SizeOfEdgeList());
 
@@ -150,16 +153,21 @@ void convertWireFrameToMsg(
       framefab_msgs::ElementCandidatePoses element_msg;
       element_msg.element_id = e->ID();
 
+      // notice these node positions are out-of-scale, default wireframe unit is millimeter
+      // unit converted to meter
       Eigen::Vector3d eigen_st_pt(e->ppair_->pvert_->Position().x(),
                                   e->ppair_->pvert_->Position().y(),
                                   e->ppair_->pvert_->Position().z());
+      eigen_st_pt = eigen_st_pt * 0.001 + transf_vec;
 
       Eigen::Vector3d eigen_end_pt(e->pvert_->Position().x(),
                                    e->pvert_->Position().y(),
                                    e->pvert_->Position().z());
+      eigen_end_pt = eigen_end_pt * 0.001 + transf_vec;
 
-      tf::pointEigenToMsg((eigen_st_pt + transf_vec) * unit_scale, element_msg.start_pt);
-      tf::pointEigenToMsg((eigen_end_pt + transf_vec) * unit_scale, element_msg.end_pt);
+      // in meter
+      tf::pointEigenToMsg(eigen_st_pt, element_msg.start_pt);
+      tf::pointEigenToMsg(eigen_end_pt, element_msg.end_pt);
 
       element_msg.element_diameter = model_params.element_diameter * unit_scale;
 
@@ -168,19 +176,19 @@ void convertWireFrameToMsg(
       // create collision objs
       Eigen::Vector3d shrinked_st_pt = eigen_st_pt;
       Eigen::Vector3d shrinked_end_pt = eigen_end_pt;
-      createShrinkedEndPoint(shrinked_st_pt, shrinked_end_pt, model_params.shrink_length);
+      createShrinkedEndPoint(shrinked_st_pt, shrinked_end_pt, model_params.shrink_length * unit_scale);
 
       element_msg.both_side_shrinked_collision_object = convertWFEdgeToCollisionObject(
-          e->ID(), shrinked_st_pt, shrinked_end_pt, model_params.element_diameter);
+          e->ID(), shrinked_st_pt, shrinked_end_pt, element_msg.element_diameter);
 
       element_msg.st_shrinked_collision_object = convertWFEdgeToCollisionObject(
-          e->ID(), shrinked_st_pt, eigen_end_pt, model_params.element_diameter);
+          e->ID(), shrinked_st_pt, eigen_end_pt, element_msg.element_diameter);
 
       element_msg.end_shrinked_collision_object = convertWFEdgeToCollisionObject(
-          e->ID(), eigen_st_pt, shrinked_end_pt, model_params.element_diameter);
+          e->ID(), eigen_st_pt, shrinked_end_pt, element_msg.element_diameter);
 
       element_msg.full_collision_object = convertWFEdgeToCollisionObject(
-          e->ID(), eigen_st_pt, eigen_end_pt, model_params.element_diameter);
+          e->ID(), eigen_st_pt, eigen_end_pt, element_msg.element_diameter);
 
       // TODO: this is redundant, a quick patch to make it work with wireframe's double-edge
       // data structure
@@ -198,7 +206,7 @@ moveit_msgs::CollisionObject createPrintTable(const Eigen::Vector3d& ref_pt, con
   // https://github.com/JeroenDM/descartes_tutorials/blob/indigo-devel/tutorial_utilities/src/collision_object_utils.cpp
 
   moveit_msgs::CollisionObject collision_env_obj;
-  std::string env_obj_id = "ts_planning_env_obj_table";
+  std::string env_obj_id = "env_obj_table";
 
   // table box's dimension
   double dx = 1;
@@ -407,6 +415,38 @@ bool FiberPrintPlugIn::DirectSearch()
   }
 }
 
+bool FiberPrintPlugIn::ConstructCollisionObjects(const std::vector<int>& print_queue_edge_ids,
+                                                 std::vector<framefab_msgs::WireFrameCollisionObject>& collision_objs)
+{
+  if(Init())
+  {
+    assert(ptr_frame_->SizeOfEdgeList() == frame_msgs_.size());
+
+    ptr_seqanalyzer_ = new FFAnalyzer(
+        ptr_dualgraph_,
+        ptr_collision_,
+        ptr_stiffness_,
+        ptr_parm_,
+        ptr_path_,
+        terminal_output_,
+        file_output_,
+        hotend_model_,
+        moveit_model_,
+        hotend_group_name_
+    );
+
+    ptr_seqanalyzer_->setFrameMsgs(frame_msgs_);
+
+    return ptr_seqanalyzer_->ConstructCollisionObjsInQueue(print_queue_edge_ids, collision_objs);
+  }
+  else
+  {
+    ROS_WARN_STREAM("[ts planning] wireframe, fiber_print parm or output_path not initiated."
+                        << "constructing collision objs in ts planning failed.");
+    return false;
+  }
+}
+
 void FiberPrintPlugIn::GetDeformation()
 {
   ptr_dualgraph_->Dualization();
@@ -433,7 +473,7 @@ bool FiberPrintPlugIn::handleTaskSequencePlanning(
 
       if(NULL != ptr_frame_)
       {
-        delete  ptr_frame_;
+        delete ptr_frame_;
       }
 
       // TODO: if contains keyword "pwf"
@@ -445,6 +485,7 @@ bool FiberPrintPlugIn::handleTaskSequencePlanning(
 
       // TODO: temp functions
       convertWireFrameToMsg(req.model_params, *ptr_frame_, frame_msgs_, unit_scale);
+
       moveit_msgs::CollisionObject table = createPrintTable(ref_pt, unit_scale);
       addCollisionObject(table);
 
@@ -471,10 +512,6 @@ bool FiberPrintPlugIn::handleTaskSequencePlanning(
 
       terminal_output_ = true;
 
-      // TODO: temp
-      // add printing table to global planning scene
-
-
       if(DirectSearch())
       {
         assert(NULL != ptr_seqanalyzer_);
@@ -490,6 +527,37 @@ bool FiberPrintPlugIn::handleTaskSequencePlanning(
       else
       {
         ROS_ERROR_STREAM("[ts planner] direct searching failed.");
+        return false;
+      }
+
+      break;
+    }
+    case framefab_msgs::TaskSequencePlanning::Request::REQUEST_COLLISION_OBJS:
+    {
+      if(NULL != ptr_parm_)
+      {
+        delete ptr_parm_;
+      }
+
+      // dummy parm
+      ptr_parm_ = new FiberPrintPARM(1,0, 1.0, 1.0);
+
+      // dummy framefab output path
+      ptr_path_ = "/home";
+
+      terminal_output_ = true;
+
+      // construct wireframe ids in the queue
+      std::vector<int> wireframe_ids;
+
+      for(const auto& element : req.element_array)
+      {
+        wireframe_ids.push_back(element.wireframe_id);
+      }
+
+      if(!ConstructCollisionObjects(wireframe_ids, res.wf_collision_objs))
+      {
+        ROS_ERROR_STREAM("[ts planner] construct collision objects failed.");
         return false;
       }
 

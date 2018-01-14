@@ -16,13 +16,15 @@ class UnitProcess
 {
  public:
   UnitProcess(int index,
-                  Eigen::Vector3d st_pt, Eigen::Vector3d end_pt,
-                  std::vector<Eigen::Vector3d> feasible_orients,
-                  std::string type_str,
-                  double element_diameter,
-                  double shrink_length)
+              int wireframe_id,
+              Eigen::Vector3d st_pt, Eigen::Vector3d end_pt,
+              std::vector<Eigen::Vector3d> feasible_orients,
+              std::string type_str,
+              double element_diameter,
+              double shrink_length)
   {
     id_ = index;
+    wireframe_id_ = wireframe_id;
     st_pt_ = st_pt;
     end_pt_ = end_pt;
     feasible_orients_ = feasible_orients;
@@ -52,6 +54,7 @@ class UnitProcess
 
  private:
   int id_;
+  int wireframe_id_;
   Eigen::Vector3d st_pt_;
   Eigen::Vector3d end_pt_;
   std::vector<Eigen::Vector3d> feasible_orients_;

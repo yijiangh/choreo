@@ -90,6 +90,7 @@ framefab_msgs::ElementCandidatePoses framefab_task_sequence_processing_utils::Un
 
   // element index
   msg.element_id = id_;
+  msg.wireframe_id = wireframe_id_;
 
   // process element's type
   if("support" == type_)

@@ -53,6 +53,7 @@
 
 // ros msg
 #include <framefab_msgs/ElementCandidatePoses.h>
+#include <framefab_msgs/WireFrameCollisionObject.h>
 
 // robot model
 #include <descartes_core/robot_model.h>
@@ -80,6 +81,8 @@ class FiberPrintPlugIn
   bool Init();
 
   bool DirectSearch();
+  bool ConstructCollisionObjects(const std::vector<int>& print_queue_edge_ids,
+                                 std::vector<framefab_msgs::WireFrameCollisionObject>& collision_objs);
 
   /* apply stiffness computation directly to the input frame shape */
   void GetDeformation();
