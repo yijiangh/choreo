@@ -32,6 +32,8 @@
 #include <framefab_core/visual_tools/framefab_visual_tool.h>
 #include "framefab_core/trajectory_library.h"
 
+#include <rviz_visual_tools/rviz_visual_tools.h>
+
 /**
  * Associates a name with a joint trajectory
  */
@@ -138,6 +140,7 @@ class FrameFabCoreService
 
   // Core Service Instances
   framefab_visual_tools::FrameFabVisualTool visual_tool_;
+  rviz_visual_tools::RvizVisualToolsPtr print_bed_visual_tool_;
 
   // working environment collision objects
   std::vector<moveit_msgs::CollisionObject> env_objs_;

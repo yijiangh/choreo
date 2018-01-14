@@ -39,14 +39,19 @@
 #include <framefab_msgs/WireFrameCollisionObject.h>
 #include <descartes_msgs/LadderGraphList.h>
 
+// msg
+#include <moveit_msgs/PlanningSceneComponents.h>
+#include <moveit_msgs/PlanningScene.h>
+
 // srv
 #include <moveit_msgs/ApplyPlanningScene.h>
+#include <moveit_msgs/GetPlanningScene.h>
 #include <eigen_conversions/eigen_msg.h>
 
 // serialization
 #include <framefab_param_helpers/framefab_param_helpers.h>
 
-#define SANITY_CHECK(cond) do { if ( !(cond) ) { throw std::runtime_error(#cond); } } while (false);
+const static std::string GET_PLANNING_SCENE_SERVICE = "get_planning_scene";
 
 namespace{ //util function namespace
 
@@ -62,9 +67,28 @@ void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
   planning_scenes_shrinked_depart.reserve(wf_collision_objs.size());
   planning_scenes_full.reserve(wf_collision_objs.size());
 
+  ros::NodeHandle nh;
+  auto planning_scene_client = nh.serviceClient<moveit_msgs::GetPlanningScene>(GET_PLANNING_SCENE_SERVICE);
+
+  if(!planning_scene_client.waitForExistence())
+  {
+    ROS_ERROR_STREAM("[Process Planning] cannot connect with get planning scene server...");
+  }
+
+  moveit_msgs::GetPlanningScene srv;
+  srv.request.components.components =
+      moveit_msgs::PlanningSceneComponents::ROBOT_STATE
+          | moveit_msgs::PlanningSceneComponents::WORLD_OBJECT_GEOMETRY;
+
+  if(!planning_scene_client.call(srv))
+  {
+    ROS_ERROR_STREAM("[Process Planning] Failed to fetch planning scene srv!");
+  }
+
   planning_scene::PlanningScenePtr root_scene(new planning_scene::PlanningScene(moveit_model));
   root_scene->getCurrentStateNonConst().setToDefaultValues();
   root_scene->getCurrentStateNonConst().update();
+  root_scene->setPlanningSceneDiffMsg(srv.response.scene);
 
   // start with no element constructed in the scene
   planning_scenes_shrinked_approach.push_back(root_scene);

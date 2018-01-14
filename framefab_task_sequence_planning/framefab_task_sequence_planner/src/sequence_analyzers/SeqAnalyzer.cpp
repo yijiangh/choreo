@@ -7,10 +7,16 @@
 
 // msgs
 #include <moveit_msgs/CollisionObject.h>
+#include <moveit_msgs/PlanningSceneComponents.h>
+#include <moveit_msgs/PlanningScene.h>
+
+// srv
+#include <moveit_msgs/GetPlanningScene.h>
 
 // msg-eigen conversion
 #include <eigen_conversions/eigen_msg.h>
 
+const static std::string GET_PLANNING_SCENE_SERVICE = "get_planning_scene";
 const static double ROBOT_KINEMATICS_CHECK_TIMEOUT = 5.0;
 
 namespace{
@@ -218,9 +224,29 @@ void SeqAnalyzer::Init()
   ptr_dualgraph_->Init();
 
   // init base planning scene
+  ros::NodeHandle nh;
+  auto planning_scene_client = nh.serviceClient<moveit_msgs::GetPlanningScene>(GET_PLANNING_SCENE_SERVICE);
+
+  if(!planning_scene_client.waitForExistence())
+  {
+    ROS_ERROR_STREAM("[ts planning] cannot connect with get planning scene server...");
+  }
+
+  moveit_msgs::GetPlanningScene srv;
+  srv.request.components.components =
+      moveit_msgs::PlanningSceneComponents::ROBOT_STATE
+          | moveit_msgs::PlanningSceneComponents::WORLD_OBJECT_GEOMETRY;
+
+  if(!planning_scene_client.call(srv))
+  {
+    ROS_ERROR_STREAM("[ts planning] Failed to fetch planning scene srv!");
+  }
+
   planning_scene_ = planning_scene::PlanningScenePtr(new planning_scene::PlanningScene(moveit_model_));
   planning_scene_->getCurrentStateNonConst().setToDefaultValues();
   planning_scene_->getCurrentStateNonConst().update();
+
+  planning_scene_->setPlanningSceneDiffMsg(srv.response.scene);
 }
 
 void SeqAnalyzer::PrintPillars()
@@ -713,6 +739,9 @@ bool SeqAnalyzer::InputPrintOrder(const std::vector<int>& print_queue)
 bool SeqAnalyzer::ConstructCollisionObjsInQueue(const std::vector<int>& print_queue_edge_ids,
                                                 std::vector<framefab_msgs::WireFrameCollisionObject>& collision_objs)
 {
+  // notice that init clear the print_queue_
+  Init();
+
   if(!InputPrintOrder(print_queue_edge_ids))
   {
     ROS_ERROR_STREAM("[ts planner] edge id error, not matched to wire frame id. "
@@ -722,8 +751,6 @@ bool SeqAnalyzer::ConstructCollisionObjsInQueue(const std::vector<int>& print_qu
 
   collision_objs.clear();
   collision_objs.resize(print_queue_.size());
-
-  Init();
 
   for (int i = 0; i < print_queue_.size(); i++)
   {
@@ -735,15 +762,14 @@ bool SeqAnalyzer::ConstructCollisionObjsInQueue(const std::vector<int>& print_qu
 
       moveit_msgs::CollisionObject last_e_collision_obj;
       last_e_collision_obj = frame_msgs_[print_queue_[i-1]->ID()].full_collision_object;
-      last_e_collision_obj.operation = moveit_msgs::CollisionObject::ADD;
       collision_objs[i].last_full_obj = last_e_collision_obj;
     }
 
     collision_objs[i].shrinked_neighbor_objs = UpdateCollisionObjects(e, true);
 
     moveit_msgs::CollisionObject e_collision_obj;
+
     e_collision_obj = frame_msgs_[e->ID()].full_collision_object;
-    e_collision_obj.operation = moveit_msgs::CollisionObject::ADD;
     collision_objs[i].full_obj = e_collision_obj;
 
     e_collision_obj = frame_msgs_[e->ID()].both_side_shrinked_collision_object;

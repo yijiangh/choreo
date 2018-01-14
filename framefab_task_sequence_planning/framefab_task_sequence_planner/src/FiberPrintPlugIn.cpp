@@ -134,11 +134,13 @@ void convertWireFrameToMsg(
     }
   }
 
-  double element_diameter = model_params.element_diameter;
+  // TODO: this might cause out-of-scale problem!!!
+  // default wireframe is in millimeter and might be different to user-specified unit in mpp
+  // wireframe default unit is mm, convert to meter
   const auto &base_pt = wire_frame.GetBaseCenterPos();
-  Eigen::Vector3d transf_vec = Eigen::Vector3d(model_params.ref_pt_x - base_pt.x(),
-                                               model_params.ref_pt_y - base_pt.y(),
-                                               model_params.ref_pt_z - base_pt.z());
+  Eigen::Vector3d transf_vec = Eigen::Vector3d(model_params.ref_pt_x * unit_scale - base_pt.x() * 0.001,
+                                               model_params.ref_pt_y * unit_scale - base_pt.y() * 0.001,
+                                               model_params.ref_pt_z * unit_scale - base_pt.z() * 0.001);
 
   wf_msgs.resize(wire_frame.SizeOfEdgeList());
 
@@ -151,16 +153,21 @@ void convertWireFrameToMsg(
       framefab_msgs::ElementCandidatePoses element_msg;
       element_msg.element_id = e->ID();
 
+      // notice these node positions are out-of-scale, default wireframe unit is millimeter
+      // unit converted to meter
       Eigen::Vector3d eigen_st_pt(e->ppair_->pvert_->Position().x(),
                                   e->ppair_->pvert_->Position().y(),
                                   e->ppair_->pvert_->Position().z());
+      eigen_st_pt = eigen_st_pt * 0.001 + transf_vec;
 
       Eigen::Vector3d eigen_end_pt(e->pvert_->Position().x(),
                                    e->pvert_->Position().y(),
                                    e->pvert_->Position().z());
+      eigen_end_pt = eigen_end_pt * 0.001 + transf_vec;
 
-      tf::pointEigenToMsg((eigen_st_pt + transf_vec) * unit_scale, element_msg.start_pt);
-      tf::pointEigenToMsg((eigen_end_pt + transf_vec) * unit_scale, element_msg.end_pt);
+      // in meter
+      tf::pointEigenToMsg(eigen_st_pt, element_msg.start_pt);
+      tf::pointEigenToMsg(eigen_end_pt, element_msg.end_pt);
 
       element_msg.element_diameter = model_params.element_diameter * unit_scale;
 
@@ -169,19 +176,19 @@ void convertWireFrameToMsg(
       // create collision objs
       Eigen::Vector3d shrinked_st_pt = eigen_st_pt;
       Eigen::Vector3d shrinked_end_pt = eigen_end_pt;
-      createShrinkedEndPoint(shrinked_st_pt, shrinked_end_pt, model_params.shrink_length);
+      createShrinkedEndPoint(shrinked_st_pt, shrinked_end_pt, model_params.shrink_length * unit_scale);
 
       element_msg.both_side_shrinked_collision_object = convertWFEdgeToCollisionObject(
-          e->ID(), shrinked_st_pt, shrinked_end_pt, model_params.element_diameter);
+          e->ID(), shrinked_st_pt, shrinked_end_pt, element_msg.element_diameter);
 
       element_msg.st_shrinked_collision_object = convertWFEdgeToCollisionObject(
-          e->ID(), shrinked_st_pt, eigen_end_pt, model_params.element_diameter);
+          e->ID(), shrinked_st_pt, eigen_end_pt, element_msg.element_diameter);
 
       element_msg.end_shrinked_collision_object = convertWFEdgeToCollisionObject(
-          e->ID(), eigen_st_pt, shrinked_end_pt, model_params.element_diameter);
+          e->ID(), eigen_st_pt, shrinked_end_pt, element_msg.element_diameter);
 
       element_msg.full_collision_object = convertWFEdgeToCollisionObject(
-          e->ID(), eigen_st_pt, eigen_end_pt, model_params.element_diameter);
+          e->ID(), eigen_st_pt, eigen_end_pt, element_msg.element_diameter);
 
       // TODO: this is redundant, a quick patch to make it work with wireframe's double-edge
       // data structure
@@ -199,7 +206,7 @@ moveit_msgs::CollisionObject createPrintTable(const Eigen::Vector3d& ref_pt, con
   // https://github.com/JeroenDM/descartes_tutorials/blob/indigo-devel/tutorial_utilities/src/collision_object_utils.cpp
 
   moveit_msgs::CollisionObject collision_env_obj;
-  std::string env_obj_id = "ts_planning_env_obj_table";
+  std::string env_obj_id = "env_obj_table";
 
   // table box's dimension
   double dx = 1;
