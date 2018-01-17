@@ -328,7 +328,7 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej, const int h, const int
 //      }
 //    }
 
-    // TODO: should change into forward checking (one-step arc consistency)
+    // Forward Checking
     // limit forward checking only to current layer
     /* influence weight */
     int Nl = layers_[l].size();
@@ -351,7 +351,16 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej, const int h, const int
           tmp[o] |= angle_state_[dual_k][o];
         }
 
-        double d_ratio = (double)ptr_collision_->ColFreeAngle(tmp) / (double)ptr_collision_->Divide();
+        int future_angle = ptr_collision_->ColFreeAngle(tmp);
+
+        if(0 == future_angle)
+        {
+          fprintf(stderr, "...FC pruning - collision test failed at edge #%d to future edge #%d.\n\n",
+                  ej->ID() / 2, ek->ID() / 2);
+          return -1;
+        }
+
+        double d_ratio = (double)future_angle / (double)ptr_collision_->Divide();
         I += exp(- forward_checking_factor * d_ratio * d_ratio);
 
         remaining_num++;
