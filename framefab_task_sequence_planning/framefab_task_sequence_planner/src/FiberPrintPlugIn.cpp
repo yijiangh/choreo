@@ -381,7 +381,7 @@ bool FiberPrintPlugIn::DirectSearch()
   {
     assert(ptr_frame_->SizeOfEdgeList() == frame_msgs_.size());
 
-    ptr_seqanalyzer_ = new FFAnalyzer(
+    ptr_seqanalyzer_ = new GecodeAnalyzer(
         ptr_dualgraph_,
         ptr_collision_,
         ptr_stiffness_,
