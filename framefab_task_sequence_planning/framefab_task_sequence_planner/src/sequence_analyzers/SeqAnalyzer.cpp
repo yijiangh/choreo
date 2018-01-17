@@ -676,7 +676,7 @@ bool SeqAnalyzer::TestRobotKinematics(WF_edge *e, const std::vector<lld>& colli_
 
   std::vector<Eigen::Vector3d> path_pts = discretizePositions(st_pt, end_pt, 0.005);
 
-  ROS_INFO_STREAM("path pts size: " << path_pts.size());
+//  ROS_INFO_STREAM("path pts size: " << path_pts.size());
 
   const auto check_start_time = ros::Time::now();
 

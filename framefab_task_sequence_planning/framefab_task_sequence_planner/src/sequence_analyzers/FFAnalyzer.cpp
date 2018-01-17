@@ -120,6 +120,11 @@ bool FFAnalyzer::GenerateSeq(int l, int h, int t)
   /* exit */
   if (h == t)
   {
+    if (terminal_output_)
+    {
+      fprintf(stderr, "++++ Head meets tail! Current layer solution found.\n\n");
+    }
+
     return true;
   }
 
@@ -137,13 +142,7 @@ bool FFAnalyzer::GenerateSeq(int l, int h, int t)
     WF_edge *ej = layers_[l][j];
 
     /* cost weight */
-    if (terminal_output_)
-    {
-      fprintf(stderr, "Look-ahead #%d/%d, in layer %d/%d - head %d/tail %d \n",
-              j, Nl, l, (int)layers_.size(), h, t);
-    }
-
-    double cost = GenerateCost(ei, ej, l);
+    double cost = GenerateCost(ei, ej, h, t, l);
     if (cost != -1)
     {
       // eligible candidate, cost = -1 if stiffness or kinematic check not pass
@@ -151,6 +150,7 @@ bool FFAnalyzer::GenerateSeq(int l, int h, int t)
     }
   }
 
+  int cnt = 0;
   /* ranked by weight */
   for (it = choice.begin(); it != choice.end(); it++)
   {
@@ -162,15 +162,16 @@ bool FFAnalyzer::GenerateSeq(int l, int h, int t)
 
     // update collision (geometric domain)
     // tmp is the pruned domain by direct arc consistency pruning
-    vector<vector<lld>> tmp_angle(3);
+    vector <vector<lld>> tmp_angle(3);
     UpdateStateMap(ej, tmp_angle);
 
-    if(terminal_output_)
+    if (terminal_output_)
     {
-      fprintf(stderr, "Choose edge #%d in with cost %lf\n\n", ej->ID() / 2, it->first);
+      fprintf(stderr, "Choose edge #%d in with cost %lf - candidates %d/%d \n\n",
+              ej->ID() / 2, it->first, cnt, (int)choice.size());
     }
 
-    if(GenerateSeq(l, h + 1, t))
+    if (GenerateSeq(l, h + 1, t))
     {
       return true;
     }
@@ -180,13 +181,20 @@ bool FFAnalyzer::GenerateSeq(int l, int h, int t)
     RecoverStructure(ej, update_collision_);
 
     print_queue_.pop_back();
+
+    if (terminal_output_)
+    {
+      fprintf(stderr, "---- Backtrack - head %d/tail %d\n", h, t);
+    }
+
+    cnt++;
   }
 
   return false;
 }
 
 
-double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej, const int l)
+double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej, const int h, const int t, const int l)
 {
   int orig_j = ej->ID();
   int dual_j = ptr_wholegraph_->e_dual_id(orig_j);
@@ -200,8 +208,8 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej, const int l)
 
     if (terminal_output_)
     {
-      fprintf(stderr, "Attempting edge #%d in layer #%d, queue size %d\n",
-              orig_j / 2, ej->Layer(), (int)print_queue_.size());
+      fprintf(stderr, "Look-ahead in layer %d/%d - head %d/tail %d: Attempting edge #%d, queue size %d\n",
+              l, (int)layers_.size(), h, t, orig_j / 2, (int)print_queue_.size());
     }
 
     /* stabiliy weight */
@@ -250,7 +258,7 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej, const int l)
       {
         if (terminal_output_)
         {
-          fprintf(stderr, "It floats, skip\n\n");
+          fprintf(stderr, "...floating edge, skip\n\n");
         }
         return -1;
       }
@@ -269,8 +277,8 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej, const int l)
     else
     {
 //      if(free_angle < ptr_collision_->Divide() * 0.15)
-      ROS_INFO_STREAM("robot kinematics check: free angle num: " << free_angle << "/"
-                                                                 << int(ptr_collision_->Divide()));
+//      ROS_INFO_STREAM("robot kinematics check: free angle num: " << free_angle << "/"
+//                                                                 << int(ptr_collision_->Divide()));
       /* robot kinematics test */
       if(update_collision_)
       {
@@ -279,14 +287,14 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej, const int l)
           /* examination failed */
           if (terminal_output_)
           {
-            fprintf(stderr, "Robot kinematics test failed at edge #%d.\n\n", ej->ID() / 2);
+            fprintf(stderr, "...robot kinematics test failed at edge #%d.\n\n", ej->ID() / 2);
           }
           return -1;
         }
-        else
-        {
-          ROS_INFO_STREAM("Robot kinematics test passed.");
-        }
+//        else
+//        {
+//          ROS_INFO_STREAM("Robot kinematics test passed.");
+//        }
       }
     }
 
@@ -296,7 +304,7 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej, const int l)
       /* examination failed */
       if (terminal_output_)
       {
-        fprintf(stderr, "Stiffness examination failed at edge #%d.\n\n", ej->ID() / 2);
+        fprintf(stderr, "...stiffness examination failed at edge #%d.\n\n", ej->ID() / 2);
       }
       return -1;
     }
@@ -320,7 +328,7 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej, const int l)
 //      }
 //    }
 
-    // TODO: should change into forward checking (one-step arc consistency)
+    // Forward Checking
     // limit forward checking only to current layer
     /* influence weight */
     int Nl = layers_[l].size();
@@ -343,7 +351,16 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej, const int l)
           tmp[o] |= angle_state_[dual_k][o];
         }
 
-        double d_ratio = (double)ptr_collision_->ColFreeAngle(tmp) / (double)ptr_collision_->Divide();
+        int future_angle = ptr_collision_->ColFreeAngle(tmp);
+
+        if(0 == future_angle)
+        {
+          fprintf(stderr, "...FC pruning - collision test failed at edge #%d to future edge #%d.\n\n",
+                  ej->ID() / 2, ek->ID() / 2);
+          return -1;
+        }
+
+        double d_ratio = (double)future_angle / (double)ptr_collision_->Divide();
         I += exp(- forward_checking_factor * d_ratio * d_ratio);
 
         remaining_num++;
