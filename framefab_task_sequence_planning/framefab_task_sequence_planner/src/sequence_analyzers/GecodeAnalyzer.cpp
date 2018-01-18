@@ -405,11 +405,11 @@ void GecodeAnalyzer::debug()
 {
   using namespace Gecode;
 
-  Gist::Print<SendMostMoney> p("Print solution");
-  Gist::Options o;
-  o.inspect.click(&p);
-
-  Gecode::Gist::dfs(&gecode_instance_, o);
+//  Gist::Print<SendMostMoney> p("Print solution");
+//  Gist::Options o;
+//  o.inspect.click(&p);
+//
+//  Gecode::Gist::dfs(&gecode_instance_, o);
 
   // Branch & Bound search engine
 //  Gecode::BAB<Gecode::SendMostMoney> e(&gecode_instance_);

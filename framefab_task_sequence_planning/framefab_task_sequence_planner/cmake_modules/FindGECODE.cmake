@@ -9,8 +9,7 @@
 
 # please refer to chapter 2.3.3 in <Modeling and Programming with Gecode>
 # to find more about Gecode installation directory. Here we use the default one.
-FIND_PATH(GECODE_INCLUDE_DIR gecode/search.hh gecode/kernel.hh
-					PATHS /usr/local/include/)
+FIND_PATH(GECODE_INCLUDE_DIR gecode/kernel.hh PATHS /usr/local/include/)
 
 FIND_LIBRARY(GECODE_SEARCH_LIBRARY
 	NAMES gecodesearch
@@ -32,12 +31,22 @@ FIND_LIBRARY(GECODE_GIST_LIBRARY
 	NAMES gecodegist
 	PATHS "${GECODE_INCLUDE_DIR}/../lib")
 
+FIND_LIBRARY(GECODE_DRIVER_LIBRARY
+	NAMES gecodedriver
+	PATHS "${GECODE_INCLUDE_DIR}/../lib")
+
+FIND_LIBRARY(GECODE_MINIMODEL_LIBRARY
+	NAMES gecodeminimodel
+	PATHS "${GECODE_INCLUDE_DIR}/../lib")
+
 SET(GECODE_LIBRARY
 	${GECODE_SEARCH_LIBRARY}
 	${GECODE_KERNEL_LIBRARY}
 	${GECODE_INT_LIBRARY}
 	${GECODE_SUPPORT_LIBRARY}
 	${GECODE_GIST_LIBRARY}
+	${GECODE_DRIVER_LIBRARY}
+	${GECODE_MINIMODEL_LIBRARY}
 	)
 
 #	NAMES gecodeflatzinc gecodedriver gecodegist gecodesearch gecodeminimodel gecodeset gecodefloat gecodeint gecodekernel gecodesupport
