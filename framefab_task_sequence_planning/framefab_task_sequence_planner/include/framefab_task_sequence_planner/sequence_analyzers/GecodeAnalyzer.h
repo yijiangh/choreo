@@ -10,6 +10,8 @@
 
 #include "framefab_task_sequence_planner/sequence_analyzers/SeqAnalyzer.h"
 
+// Gecode
+// int variable & search engines
 #include <gecode/int.hh>
 #include <gecode/search.hh>
 
@@ -20,15 +22,25 @@ class SendMostMoney : public Space
  protected:
   IntVarArray l;
  public:
+
+  // array l with 8 integer vars, each var's domain = (int)[0, 9]
   SendMostMoney(void) : l(*this, 8, 0, 9)
   {
+    // variable init
     IntVar s(l[0]), e(l[1]), n(l[2]), d(l[3]), m(l[4]),
         o(l[5]), t(l[6]), y(l[7]);
+
+    // no leading zeros
     rel(*this, s, IRT_NQ, 0);
     rel(*this, m, IRT_NQ, 0);
+
+    // All Diff
     distinct(*this, l);
+
+    // init coeff in linear equation
     IntArgs c(4 + 4 + 5);
     IntVarArgs x(4 + 4 + 5);
+
     c[0] = 1000;
     c[1] = 100;
     c[2] = 10;
@@ -37,6 +49,7 @@ class SendMostMoney : public Space
     x[1] = e;
     x[2] = n;
     x[3] = d;
+
     c[4] = 1000;
     c[5] = 100;
     c[6] = 10;
@@ -45,6 +58,7 @@ class SendMostMoney : public Space
     x[5] = o;
     x[6] = s;
     x[7] = t;
+
     c[8] = -10000;
     c[9] = -1000;
     c[10] = -100;
@@ -55,22 +69,36 @@ class SendMostMoney : public Space
     x[10] = n;
     x[11] = e;
     x[12] = y;
+
+    // linear equation
     linear(*this, c, x, IRT_EQ, 0);
+
+    // post branching
     branch(*this, l, INT_VAR_SIZE_MIN(), INT_VAL_MIN());
   }
+
   SendMostMoney(bool share, SendMostMoney &s) : Space(share, s)
   {
     l.update(*this, share, s.l);
   }
+
   virtual Space *copy(bool share)
   {
     return new SendMostMoney(share, *this);
   }
+
   void print(void) const
   {
     std::cout << l << std::endl;
   }
+
+  void print(std::ostream& os) const
+  {
+    os << l << std::endl;
+  }
+
   // constrain function
+  //
   virtual void constrain(const Space &_b)
   {
     const SendMostMoney &b = static_cast<const SendMostMoney &>(_b);
@@ -79,8 +107,10 @@ class SendMostMoney : public Space
         b_o(b.l[5]), b_y(b.l[7]);
     int money = (10000 * b_m.val() + 1000 * b_o.val() + 100 * b_n.val() +
         10 * b_e.val() + b_y.val());
+
     IntArgs c(5);
     IntVarArgs x(5);
+
     c[0] = 10000;
     c[1] = 1000;
     c[2] = 100;

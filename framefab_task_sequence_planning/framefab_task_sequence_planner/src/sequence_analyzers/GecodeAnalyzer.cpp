@@ -4,6 +4,8 @@
 
 #include "framefab_task_sequence_planner/sequence_analyzers/GecodeAnalyzer.h"
 
+#include <gecode/gist.hh>
+
 GecodeAnalyzer::~GecodeAnalyzer()
 {
 }
@@ -403,11 +405,18 @@ void GecodeAnalyzer::debug()
 {
   using namespace Gecode;
 
-  Gecode::BAB<Gecode::SendMostMoney> e(&gecode_instance_);
+  Gist::Print<SendMostMoney> p("Print solution");
+  Gist::Options o;
+  o.inspect.click(&p);
 
-  while(Gecode::SendMostMoney* s = e.next())
-  {
-    s->print();
-    delete s;
-  }
+  Gecode::Gist::dfs(&gecode_instance_, o);
+
+  // Branch & Bound search engine
+//  Gecode::BAB<Gecode::SendMostMoney> e(&gecode_instance_);
+//
+//  while(Gecode::SendMostMoney* s = e.next())
+//  {
+//    s->print();
+//    delete s;
+//  }
 }
