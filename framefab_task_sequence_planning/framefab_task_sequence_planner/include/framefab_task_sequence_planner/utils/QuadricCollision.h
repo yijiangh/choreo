@@ -78,9 +78,9 @@ class QuadricCollision
 
  public:
   void Init(vector <lld> &colli_map);
-  void DetectCollision(WF_edge *target_e, DualGraph *ptr_subgraph, vector <lld> &result_map);
-  void DetectCollision(WF_edge *target_e, WF_edge *order_e, std::vector<lld> &colli_map);
-  void DetectCollision(WF_edge *target_e, vector<WF_edge *> exist_edge, vector <GeoV3> &output);
+  void DetectCollision(WF_edge* target_e, DualGraph* ptr_subgraph, std::vector<lld>& result_map);
+  void DetectCollision(WF_edge* target_e, WF_edge* order_e, std::vector<lld>& colli_map);
+  void DetectCollision(WF_edge* target_e, std::vector<WF_edge*> exist_edge, std::vector<GeoV3>& output);
 
  public:
   void ModifyAngle(std::vector<lld>& angle_state, const std::vector<lld>& colli_map);
@@ -88,6 +88,7 @@ class QuadricCollision
   int ColFreeAngle(const std::vector<lld>& colli_map);
 
   std::vector<Eigen::Vector3d> ConvertCollisionMapToEigenDirections(const std::vector<lld>& colli_map);
+  std::vector<int> ConvertCollisionMapToIntMap(const std::vector<lld>& colli_map);
 
   inline int Divide()
   {

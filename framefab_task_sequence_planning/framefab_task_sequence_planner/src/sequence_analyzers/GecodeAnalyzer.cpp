@@ -36,38 +36,11 @@ bool GecodeAnalyzer::SeqPrint()
     fprintf(stderr, "Size of layer %d is %d\n", l, (int)layers_[l].size());
   }
 
-  //Timer layer_search;
-
   /* print starting from the first layer */
   bool bSuccess = true;
   for (int l = 0; l < layer_size; l++)
   {
-    /*
-    * Nl: number of dual verts in current layer
-    * h : head for printing queue of the layer
-    * t : tail for printing queue of the layer
-    */
-    //layer_search.Reset();
-    //layer_search.Start();
-
     int Nl = layers_[l].size();
-    int h = print_queue_.size(); // print queue size so far
-    int t;
-
-    if (l == 0)
-    {
-      // first layer, pillars are included in layer 0
-      t = Nl;
-    }
-    else
-    {
-      t = h + Nl;
-    }
-
-    if (h == t)
-    {
-      continue;
-    }
 
     /* max_z_ and min_z_ in current layer */
     min_z_ = 1e20;
@@ -82,33 +55,101 @@ bool GecodeAnalyzer::SeqPrint()
       max_z_ = max(max_z_, (double)max(u.z(), v.z()));
     }
 
-    if (!GenerateSeq(l, h, t))
-    {
-      fprintf(stderr,
-              "All possible start edge at layer %d has been tried but no feasible sequence is obtained.\n", l);
-      bSuccess = false;
-      break;
-    }
+    // compute input for gecode solver
+    int n;
+    int m = ptr_collision_->Divide();
+    std::vector<int> A, G, T;
 
-    //layer_search.Stop();
-    //
-    //string str = std::to_string(l) + ":";
-    //const char *msg = str.c_str();
-    //char* cstr = new char[str.length() + 1];
-    //strcpy(cstr, msg);
+    ComputeGecodeInput(layers_[l], A, G, T);
 
-    //layer_search.Print(cstr);
-    //printf("layer size: %d\n", Nl);
-    //printf("layer %d finished\n", l);
-    //printf("--------------\n");
+    // feed data in gecode option
+    Gecode::AssemblySequenceOptions opt("TS-Planning", A, G, T, n, m);
 
-    //getchar();
+    // gecode solve
+    Gecode::Script::run<Gecode::AssemblySequence, Gecode::DFS, Gecode::AssemblySequenceOptions>(opt);
+
+    // how to get result???
+    // push in print queue
+    // update dual graph
   }
 
   gecode_analyzer_.Stop();
   return bSuccess;
 }
 
+void GecodeAnalyzer::ComputeGecodeInput(const std::vector<WF_edge*>& layer_e,
+                                        std::vector<int>& A, std::vector<int>& G, std::vector<int>& T)
+{
+  int n = layer_e.size();
+  int m = ptr_collision_->Divide();
+
+  A = std::vector<int>(n*n, 0);
+  G = std::vector<int>(n, 0);
+  T = std::vector<int>(n*n*m, 0);
+
+  for(int i=0; i < n; i++)
+  {
+    WF_edge* e = layer_e[i];
+
+    // connectivity
+    // if node exist, grounded
+    if(ptr_dualgraph_->isExistingEdge(e) && e->isPillar())
+    {
+      G[i] = 1;
+    }
+
+    // for current layer's edge, if share node = 1
+    std::vector<int> connect_vert_id(2);
+    connect_vert_id[0] = ptr_frame_->GetEndu(e->ID());
+    connect_vert_id[1] = ptr_frame_->GetEndv(e->ID());
+
+    for(const auto id : connect_vert_id)
+    {
+      WF_edge* eu = ptr_frame_->GetNeighborEdge(id);
+
+      while (eu != NULL)
+      {
+        if (eu->ID() == e->ID() || eu->ID() == e->ppair_->ID())
+        {
+          eu = eu->pnext_;
+          continue;
+        }
+
+        for(int j=0; j < n; j++)
+        {
+          if(eu->ID() == layer_e[j]->ID() || eu->ID() == layer_e[j]->ppair_->ID())
+          {
+            A[i*n + j] = 1;
+          }
+        }
+
+        eu = eu->pnext_;
+      }
+    }
+
+    int dual_i = ptr_wholegraph_->e_dual_id(e->ID());
+
+    for (int j = 0; j < n; j++)
+    {
+      WF_edge* ej = layer_e[j];
+      int dual_j = ptr_wholegraph_->e_dual_id(ej->ID());
+
+      if (dual_i != dual_j)
+      {
+        std::vector<lld> tmp(3);
+        ptr_collision_->DetectCollision(ej, e, tmp);
+
+        std::vector<int> tmp_vector = ptr_collision_->ConvertCollisionMapToIntMap(tmp);
+
+        for(int k=0; k<m; k++)
+        {
+          T[(i*n + j)*m + k] = tmp_vector[k];
+        }
+      }
+    }
+
+  } // end loop for i
+}
 
 bool GecodeAnalyzer::GenerateSeq(int l, int h, int t)
 {

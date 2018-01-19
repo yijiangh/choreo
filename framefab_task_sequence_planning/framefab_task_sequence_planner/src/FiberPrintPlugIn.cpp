@@ -381,28 +381,7 @@ bool FiberPrintPlugIn::DirectSearch()
   {
     assert(ptr_frame_->SizeOfEdgeList() == frame_msgs_.size());
 
-//    ptr_seqanalyzer_ = new GecodeAnalyzer(
-//        ptr_dualgraph_,
-//        ptr_collision_,
-//        ptr_stiffness_,
-//        ptr_parm_,
-//        ptr_path_,
-//        terminal_output_,
-//        file_output_,
-//        hotend_model_,
-//        moveit_model_,
-//        hotend_group_name_
-//    );
-//
-//    ptr_seqanalyzer_->setFrameMsgs(frame_msgs_);
-//
-//    if (!ptr_seqanalyzer_->SeqPrint())
-//    {
-//      ROS_WARN("Model not printable!");
-//      return false;
-//    }
-
-    auto p = new GecodeAnalyzer(
+    ptr_seqanalyzer_ = new GecodeAnalyzer(
         ptr_dualgraph_,
         ptr_collision_,
         ptr_stiffness_,
@@ -415,7 +394,13 @@ bool FiberPrintPlugIn::DirectSearch()
         hotend_group_name_
     );
 
-    p->debug();
+    ptr_seqanalyzer_->setFrameMsgs(frame_msgs_);
+
+    if (!ptr_seqanalyzer_->SeqPrint())
+    {
+      ROS_WARN("Model not printable!");
+      return false;
+    }
 
     fiber_print_.Stop();
     fiber_print_.Print("Direct Search:");

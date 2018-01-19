@@ -17,34 +17,27 @@
 #include <gecode/search.hh>
 #include <gecode/minimodel.hh>
 
-namespace Eigen
-{
-typedef Array<bool,Dynamic,1> ArrayXb;
-typedef Matrix<bool,Dynamic,Dynamic> MatrixXb;
-};
-
 namespace Gecode
 {
-
 class AssemblySequenceOptions : public Options
 {
  public:
-  const Eigen::MatrixXb A;
-  const Eigen::ArrayXb G;
-  const std::vector<Eigen::MatrixXb> T;
+  const std::vector<int>& A;
+  const std::vector<int>& G;
+  const std::vector<int>& T;
 
   int n;
   int m;
 
   // convert Eigen matrix to Gecode Matrix
 
-  AssemblySequenceOptions(const char*s,
-                          const Eigen::MatrixXb& input_A,
-                          const Eigen::ArrayXb& input_G,
-                          const std::vector<Eigen::MatrixXb>& input_T,
-                          const int input_n,
-                          const int input_m)
-      : Options(s), A(input_A), G(input_G), T(input_T), n(input_n), m(input_m)
+  AssemblySequenceOptions(const char* s,
+                          const std::vector<int>& _A,
+                          const std::vector<int>& _G,
+                          const std::vector<int>& _T,
+                          const int _n,
+                          const int _m)
+      : Options(s), A(_A), G(_G), T(_T), n(_n), m(_m)
   {
   }
 };
@@ -62,17 +55,13 @@ class AssemblySequence : public Script
     int n = opt.n;
     int m = opt.m;
 
-    // connectivity matrix
-//    BoolArgs A(n*n); // int*
-//    BoolArgs G(n);
-
-    // collision matrix (per edge)
-//    BoolArgs T(n*m*n);
-
     // create shared int array, ref. Gecode MPG Pg.70 - Tip 4.9
-    BoolVarArray A;
-    BoolVarArray G;
-    BoolVarArray T;
+    // connectivity matrix
+    IntArgs A(opt.A);
+    IntArgs G(opt.G);
+
+    // collision matrix
+    IntArgs T(opt.T);
 
     // C1: AllDiff
     distinct(*this, o);
@@ -81,7 +70,7 @@ class AssemblySequence : public Script
     for(int i=0; i < n; i++)
     {
       // get A's row O_i
-      BoolVarArgs connect_num(i+1);
+      IntVarArgs connect_num(i+1);
 
       for(int j=0; j < i; j++)
       {
@@ -97,7 +86,9 @@ class AssemblySequence : public Script
     // C4: ExistValidEEFPose
     for(int i=0; i < n; i++)
     {
+      // num of collision free prev edge j's num for each direction k
       IntVarArgs B(m);
+      IntArgs free_num(m);
 
       for(int k=0; k < m; k++)
       {
@@ -108,14 +99,20 @@ class AssemblySequence : public Script
           // id = (o[i]*n + o[j])*m + k
           IntVar id = expr(*this, o[i]*(n*m) + o[j]*m + k);
 
+          // d_sum[j] = T[o_i][o_j][k]
           element(*this, T, id, d_sum[j]);
         }
 
+        // B[k] = sum{j} d_sum[j]
         linear(*this, d_sum, IRT_EQ, B[k]);
+
+        free_num[k] = i-1;
       }
 
-      linear(*this, B, IRT_GQ, 1);
+      count(*this, B, free_num, IRT_GQ, 1);
     }
+
+    branch(*this, o, INT_VAR_MIN_MIN(), INT_VAL_SPLIT_MIN());
   }
 
   AssemblySequence(bool share, AssemblySequence& s)
@@ -171,7 +168,11 @@ class GecodeAnalyzer : public SeqAnalyzer
   void debug();
 
  private:
-  bool	 GenerateSeq(int l, int h, int t);
+  void ComputeGecodeInput(
+      const std::vector<WF_edge*>& layer_e,
+      std::vector<int>& A, std::vector<int>& G, std::vector<int>& T);
+
+  bool GenerateSeq(int l, int h, int t);
   double GenerateCost(WF_edge* ei, WF_edge* ej, const int h, const int t, const int layer_id);
 
  public:
