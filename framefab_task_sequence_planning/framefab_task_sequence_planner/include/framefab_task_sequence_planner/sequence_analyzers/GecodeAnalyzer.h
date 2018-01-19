@@ -128,11 +128,12 @@ class AssemblySequence : public Script
 
   void print(void) const
   {
+    std::cout << o << std::endl;
   }
 
-  void print(std::ostream& os) const
-  {
-  }
+//  void print(std::ostream& os) const
+//  {
+//  }
 
 };
 } // end Gecode namespace

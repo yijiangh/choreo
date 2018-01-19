@@ -56,17 +56,28 @@ bool GecodeAnalyzer::SeqPrint()
     }
 
     // compute input for gecode solver
-    int n;
+    int n = layers_[l].size();
     int m = ptr_collision_->Divide();
     std::vector<int> A, G, T;
 
     ComputeGecodeInput(layers_[l], A, G, T);
 
     // feed data in gecode option
-    Gecode::AssemblySequenceOptions opt("TS-Planning", A, G, T, n, m);
+    const Gecode::AssemblySequenceOptions opt("Gecode-TS-Planning", A, G, T, n, m);
+
+    Gecode::AssemblySequence* ptr_as = new Gecode::AssemblySequence(opt);
+    Gecode::DFS<Gecode::AssemblySequence> e(ptr_as, opt);
+
+    delete(ptr_as);
+
+    while (Gecode::AssemblySequence* s = e.next())
+    {
+      s->print();
+      delete s;
+    }
 
     // gecode solve
-    Gecode::Script::run<Gecode::AssemblySequence, Gecode::DFS, Gecode::AssemblySequenceOptions>(opt);
+//    Gecode::Script::run<Gecode::AssemblySequence, Gecode::DFS, Gecode::AssemblySequenceOptions>(opt);
 
     // how to get result???
     // push in print queue
