@@ -193,9 +193,6 @@ class GecodeAnalyzer : public SeqAnalyzer
       const std::vector<WF_edge*>& layer_e,
       std::vector<int>& A, std::vector<int>& G, std::vector<int>& T, CSPDataMatrixStorageType m_type);
 
-  bool GenerateSeq(int l, int h, int t);
-  double GenerateCost(WF_edge* ei, WF_edge* ej, const int h, const int t, const int layer_id);
-
  public:
   void PrintOutTimer();
 
