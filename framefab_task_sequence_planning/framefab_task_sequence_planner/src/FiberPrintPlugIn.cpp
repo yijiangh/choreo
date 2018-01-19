@@ -402,6 +402,22 @@ bool FiberPrintPlugIn::DirectSearch()
       return false;
     }
 
+//    auto a = new GecodeAnalyzer(
+//        ptr_dualgraph_,
+//        ptr_collision_,
+//        ptr_stiffness_,
+//        ptr_parm_,
+//        ptr_path_,
+//        terminal_output_,
+//        file_output_,
+//        hotend_model_,
+//        moveit_model_,
+//        hotend_group_name_
+//    );
+//
+//    a->debug();
+//    delete a;
+
     fiber_print_.Stop();
     fiber_print_.Print("Direct Search:");
 

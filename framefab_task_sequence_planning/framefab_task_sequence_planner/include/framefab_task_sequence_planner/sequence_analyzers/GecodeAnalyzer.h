@@ -61,7 +61,7 @@ class AssemblySequence : public Script
     IntArgs G(opt.G);
 
     // collision matrix
-    IntArgs T(opt.T);
+//    IntArgs T(opt.T);
 
     // C1: AllDiff
     distinct(*this, o);
@@ -84,33 +84,33 @@ class AssemblySequence : public Script
     }
 
     // C4: ExistValidEEFPose
-    for(int i=0; i < n; i++)
-    {
-      // num of collision free prev edge j's num for each direction k
-      IntVarArgs B(m);
-      IntArgs free_num(m);
-
-      for(int k=0; k < m; k++)
-      {
-        BoolVarArgs d_sum(i);
-
-        for (int j = 0; j < i; j++)
-        {
-          // id = (o[i]*n + o[j])*m + k
-          IntVar id = expr(*this, o[i]*(n*m) + o[j]*m + k);
-
-          // d_sum[j] = T[o_i][o_j][k]
-          element(*this, T, id, d_sum[j]);
-        }
-
-        // B[k] = sum{j} d_sum[j]
-        linear(*this, d_sum, IRT_EQ, B[k]);
-
-        free_num[k] = i-1;
-      }
-
-      count(*this, B, free_num, IRT_GQ, 1);
-    }
+//    for(int i=0; i < n; i++)
+//    {
+//      // num of collision free prev edge j's num for each direction k
+//      IntVarArgs B(m);
+//      IntArgs free_num(m);
+//
+//      for(int k=0; k < m; k++)
+//      {
+//        BoolVarArgs d_sum(i);
+//
+//        for (int j = 0; j < i; j++)
+//        {
+//          // id = (o[i]*n + o[j])*m + k
+//          IntVar id = expr(*this, o[i]*(n*m) + o[j]*m + k);
+//
+//          // d_sum[j] = T[o_i][o_j][k]
+//          element(*this, T, id, d_sum[j]);
+//        }
+//
+//        // B[k] = sum{j} d_sum[j]
+//        linear(*this, d_sum, IRT_EQ, B[k]);
+//
+//        free_num[k] = i-1;
+//      }
+//
+//      count(*this, B, free_num, IRT_GQ, 1);
+//    }
 
     branch(*this, o, INT_VAR_MIN_MIN(), INT_VAL_SPLIT_MIN());
   }
@@ -131,11 +131,144 @@ class AssemblySequence : public Script
     std::cout << o << std::endl;
   }
 
-//  void print(std::ostream& os) const
-//  {
-//  }
+  void print(std::ostream& os) const
+  {
+    os << "\tAssembly Sequence(n: "
+       << opt.n << ", m: " << opt.m << ")"
+       << std::endl;
+
+    os << "Order: " << o << std::endl;
+
+//    Matrix<BoolVarArray> p(_p,opt.b,opt.v);
+
+//    for (int i = 0; i<opt.v; i++)
+//    {
+//      os << "\t\t";
+//      for (int j = 0; j<opt.b; j++)
+//      {
+//        os << p(j, i) << " ";
+//      }
+//
+//      os << std::endl;
+//    }
+
+    os << std::endl;
+  }
+};
+
+class BIBDOptions : public Options
+{
+ public:
+  int v, k, lambda;
+  int b, r;
+
+  void derive(void) {
+    b = (v*(v-1)*lambda)/(k*(k-1));
+    r = (lambda*(v-1)) / (k-1);
+  }
+  BIBDOptions(const char* s,
+              int v0, int k0, int lambda0)
+      : Options(s), v(v0), k(k0), lambda(lambda0) {
+    derive();
+  }
+  void parse(int& argc, char* argv[]) {
+    Options::parse(argc,argv);
+    if (argc < 4)
+      return;
+    v = atoi(argv[1]);
+    k = atoi(argv[2]);
+    lambda = atoi(argv[3]);
+    derive();
+  }
+  virtual void help(void) {
+    Options::help();
+    std::cerr << "\t(unsigned int) default: " << v << std::endl
+              << "\t\tparameter v" << std::endl
+              << "\t(unsigned int) default: " << k << std::endl
+              << "\t\tparameter k" << std::endl
+              << "\t(unsigned int) default: " << lambda << std::endl
+              << "\t\tparameter lambda" << std::endl;
+  }
+};
+
+class BIBD : public Script {
+ protected:
+  const BIBDOptions& opt;
+  BoolVarArray _p;
+ public:
+  enum {
+    SYMMETRY_NONE,
+    SYMMETRY_LEX,
+    SYMMETRY_LDSB
+  };
+
+  BIBD(const BIBDOptions& o)
+      : Script(o), opt(o), _p(*this,opt.v*opt.b,0,1)
+  {
+    Matrix<BoolVarArray> p(_p,opt.b,opt.v);
+
+    // r ones per row
+    for (int i=0; i<opt.v; i++)
+      linear(*this, p.row(i), IRT_EQ, opt.r);
+
+    // k ones per column
+    for (int j=0; j<opt.b; j++)
+      linear(*this, p.col(j), IRT_EQ, opt.k);
+
+    // Exactly lambda ones in scalar product between two different rows
+    for (int i1=0; i1<opt.v; i1++)
+      for (int i2=i1+1; i2<opt.v; i2++) {
+        BoolVarArgs row(opt.b);
+        for (int j=0; j<opt.b; j++)
+          row[j] = expr(*this, p(j,i1) && p(j,i2));
+        linear(*this, row, IRT_EQ, opt.lambda);
+      }
+
+    if (opt.symmetry() == SYMMETRY_LDSB) {
+      Symmetries s;
+      s << rows_interchange(p);
+      s << columns_interchange(p);
+      branch(*this, _p, BOOL_VAR_NONE(), BOOL_VAL_MIN(), s);
+    } else {
+      if (opt.symmetry() == SYMMETRY_LEX) {
+        for (int i=1; i<opt.v; i++)
+          rel(*this, p.row(i-1), IRT_GQ, p.row(i));
+        for (int j=1; j<opt.b; j++)
+          rel(*this, p.col(j-1), IRT_GQ, p.col(j));
+      }
+      branch(*this, _p, BOOL_VAR_NONE(), BOOL_VAL_MIN());
+    }
+
+  }
+
+  virtual void
+  print(std::ostream& os) const {
+    os << "\tBIBD("
+       << opt.v << "," << opt.k << ","
+       << opt.lambda << ")" << std::endl;
+    Matrix<BoolVarArray> p(_p,opt.b,opt.v);
+    for (int i = 0; i<opt.v; i++) {
+      os << "\t\t";
+      for (int j = 0; j<opt.b; j++)
+        os << p(j,i) << " ";
+      os << std::endl;
+    }
+    os << std::endl;
+  }
+
+  BIBD(bool share, BIBD& s)
+      : Script(share,s), opt(s.opt)
+  {
+    _p.update(*this,share,s._p);
+  }
+
+  virtual Space* copy(bool share)
+  {
+    return new BIBD(share,*this);
+  }
 
 };
+
 } // end Gecode namespace
 
 class GecodeAnalyzer : public SeqAnalyzer

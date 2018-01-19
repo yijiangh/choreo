@@ -19,6 +19,7 @@ bool GecodeAnalyzer::SeqPrint()
   /* split layers */
   /* label stores layer index of each dual node */
   int layer_size = ptr_frame_->SizeOfLayer();
+
   layers_.clear();
   layers_.resize(layer_size);
   for (int i = 0; i < Nd_; i++)
@@ -26,10 +27,6 @@ bool GecodeAnalyzer::SeqPrint()
     WF_edge *e = ptr_frame_->GetEdge(ptr_wholegraph_->e_orig_id(i));
     layers_[e->Layer()].push_back(e);
   }
-
-  /* printing */
-  /* set pillars as starting edges */
-  PrintPillars();
 
   for (int l = 0; l < layer_size; l++)
   {
@@ -40,6 +37,13 @@ bool GecodeAnalyzer::SeqPrint()
   bool bSuccess = true;
   for (int l = 0; l < layer_size; l++)
   {
+    if(0 == l)
+    {
+      /* set pillars as starting edges */
+      PrintPillars();
+      continue;
+    }
+
     int Nl = layers_[l].size();
 
     /* max_z_ and min_z_ in current layer */
@@ -62,22 +66,21 @@ bool GecodeAnalyzer::SeqPrint()
 
     ComputeGecodeInput(layers_[l], A, G, T);
 
-    // feed data in gecode option
-    const Gecode::AssemblySequenceOptions opt("Gecode-TS-Planning", A, G, T, n, m);
-
-    Gecode::AssemblySequence* ptr_as = new Gecode::AssemblySequence(opt);
-    Gecode::DFS<Gecode::AssemblySequence> e(ptr_as, opt);
-
-    delete(ptr_as);
-
-    while (Gecode::AssemblySequence* s = e.next())
+    for(int i = 0; i<G.size(); i++)
     {
-      s->print();
-      delete s;
+      std::cout << "G[" << i << "]: " << G[i] << std::endl;
     }
 
+    for(int i = 0; i<A.size(); i++)
+    {
+      std::cout << "A[" << i << "]: " << A[i] << std::endl;
+    }
+
+    // feed data in gecode option
+    const Gecode::AssemblySequenceOptions opt("Gecode-TS-Planning", A, G, T, n, m);
+    
     // gecode solve
-//    Gecode::Script::run<Gecode::AssemblySequence, Gecode::DFS, Gecode::AssemblySequenceOptions>(opt);
+    Gecode::Script::run<Gecode::AssemblySequence, Gecode::DFS, Gecode::AssemblySequenceOptions>(opt);
 
     // how to get result???
     // push in print queue
@@ -103,8 +106,16 @@ void GecodeAnalyzer::ComputeGecodeInput(const std::vector<WF_edge*>& layer_e,
     WF_edge* e = layer_e[i];
 
     // connectivity
-    // if node exist, grounded
-    if(ptr_dualgraph_->isExistingEdge(e) && e->isPillar())
+    // if one of the nodes exist, grounded
+    // st node index
+    int uj = ptr_frame_->GetEndu(e->ID());
+    bool exist_uj = ptr_dualgraph_->isExistingVert(uj);
+
+    // end node index
+    int vj = ptr_frame_->GetEndv(e->ID());
+    bool exist_vj = ptr_dualgraph_->isExistingVert(vj);
+
+    if(exist_uj || exist_vj || e->isPillar())
     {
       G[i] = 1;
     }
@@ -149,6 +160,8 @@ void GecodeAnalyzer::ComputeGecodeInput(const std::vector<WF_edge*>& layer_e,
       {
         std::vector<lld> tmp(3);
         ptr_collision_->DetectCollision(ej, e, tmp);
+
+        // TODO: should use tmp as a mask and impose it on angle_map_ to include previous layers' influence
 
         std::vector<int> tmp_vector = ptr_collision_->ConvertCollisionMapToIntMap(tmp);
 
@@ -456,6 +469,17 @@ void GecodeAnalyzer::PrintOutTimer()
 void GecodeAnalyzer::debug()
 {
   using namespace Gecode;
+
+  BIBDOptions opt("BIBD",7,3,60);
+
+   opt.symmetry(BIBD::SYMMETRY_LEX);
+   opt.symmetry(BIBD::SYMMETRY_NONE,"none");
+   opt.symmetry(BIBD::SYMMETRY_LEX,"lex");
+   opt.symmetry(BIBD::SYMMETRY_LDSB,"ldsb");
+
+//   opt.parse(argc,argv);
+
+   Script::run<BIBD,DFS,BIBDOptions>(opt);
 
 //  Gist::Print<SendMostMoney> p("Print solution");
 //  Gist::Options o;

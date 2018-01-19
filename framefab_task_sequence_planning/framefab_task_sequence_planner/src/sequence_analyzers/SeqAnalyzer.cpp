@@ -251,8 +251,6 @@ void SeqAnalyzer::Init()
 
 void SeqAnalyzer::PrintPillars()
 {
-  int layer_size = ptr_frame_->SizeOfLayer();
-
   /* ranked by x */
   multimap<double, WF_edge*>base_queue;
   multimap<double, WF_edge*>::iterator it;
@@ -265,6 +263,12 @@ void SeqAnalyzer::PrintPillars()
       base_queue.insert(make_pair(center.x(), e));
       // TODO: enable collision checking and greedy tsp here
     }
+  }
+
+  if(0 == base_queue.size())
+  {
+    ROS_ERROR("[Ts planner] Model must has pillars!");
+    assert(false);
   }
 
   if (terminal_output_)
