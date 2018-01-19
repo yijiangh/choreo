@@ -22,9 +22,9 @@ namespace Gecode
 class AssemblySequenceOptions : public Options
 {
  public:
-  const std::vector<int>& A;
-  const std::vector<int>& G;
-  const std::vector<int>& T;
+  std::vector<int> A;
+  std::vector<int> G;
+  std::vector<int> T;
 
   int n;
   int m;
@@ -108,11 +108,10 @@ class AssemblySequence : public Script
 //
 //        free_num[k] = i-1;
 //      }
-//
 //      count(*this, B, free_num, IRT_GQ, 1);
 //    }
 
-    branch(*this, o, INT_VAR_MIN_MIN(), INT_VAL_SPLIT_MIN());
+//    branch(*this, o, INT_VAR_MIN_MIN(), INT_VAL_SPLIT_MIN());
   }
 
   AssemblySequence(bool share, AssemblySequence& s)
@@ -124,11 +123,6 @@ class AssemblySequence : public Script
   virtual Space *copy(bool share)
   {
     return new AssemblySequence(share, *this);
-  }
-
-  void print(void) const
-  {
-    std::cout << o << std::endl;
   }
 
   void print(std::ostream& os) const
@@ -156,124 +150,17 @@ class AssemblySequence : public Script
   }
 };
 
-class BIBDOptions : public Options
-{
- public:
-  int v, k, lambda;
-  int b, r;
-
-  void derive(void) {
-    b = (v*(v-1)*lambda)/(k*(k-1));
-    r = (lambda*(v-1)) / (k-1);
-  }
-  BIBDOptions(const char* s,
-              int v0, int k0, int lambda0)
-      : Options(s), v(v0), k(k0), lambda(lambda0) {
-    derive();
-  }
-  void parse(int& argc, char* argv[]) {
-    Options::parse(argc,argv);
-    if (argc < 4)
-      return;
-    v = atoi(argv[1]);
-    k = atoi(argv[2]);
-    lambda = atoi(argv[3]);
-    derive();
-  }
-  virtual void help(void) {
-    Options::help();
-    std::cerr << "\t(unsigned int) default: " << v << std::endl
-              << "\t\tparameter v" << std::endl
-              << "\t(unsigned int) default: " << k << std::endl
-              << "\t\tparameter k" << std::endl
-              << "\t(unsigned int) default: " << lambda << std::endl
-              << "\t\tparameter lambda" << std::endl;
-  }
-};
-
-class BIBD : public Script {
- protected:
-  const BIBDOptions& opt;
-  BoolVarArray _p;
- public:
-  enum {
-    SYMMETRY_NONE,
-    SYMMETRY_LEX,
-    SYMMETRY_LDSB
-  };
-
-  BIBD(const BIBDOptions& o)
-      : Script(o), opt(o), _p(*this,opt.v*opt.b,0,1)
-  {
-    Matrix<BoolVarArray> p(_p,opt.b,opt.v);
-
-    // r ones per row
-    for (int i=0; i<opt.v; i++)
-      linear(*this, p.row(i), IRT_EQ, opt.r);
-
-    // k ones per column
-    for (int j=0; j<opt.b; j++)
-      linear(*this, p.col(j), IRT_EQ, opt.k);
-
-    // Exactly lambda ones in scalar product between two different rows
-    for (int i1=0; i1<opt.v; i1++)
-      for (int i2=i1+1; i2<opt.v; i2++) {
-        BoolVarArgs row(opt.b);
-        for (int j=0; j<opt.b; j++)
-          row[j] = expr(*this, p(j,i1) && p(j,i2));
-        linear(*this, row, IRT_EQ, opt.lambda);
-      }
-
-    if (opt.symmetry() == SYMMETRY_LDSB) {
-      Symmetries s;
-      s << rows_interchange(p);
-      s << columns_interchange(p);
-      branch(*this, _p, BOOL_VAR_NONE(), BOOL_VAL_MIN(), s);
-    } else {
-      if (opt.symmetry() == SYMMETRY_LEX) {
-        for (int i=1; i<opt.v; i++)
-          rel(*this, p.row(i-1), IRT_GQ, p.row(i));
-        for (int j=1; j<opt.b; j++)
-          rel(*this, p.col(j-1), IRT_GQ, p.col(j));
-      }
-      branch(*this, _p, BOOL_VAR_NONE(), BOOL_VAL_MIN());
-    }
-
-  }
-
-  virtual void
-  print(std::ostream& os) const {
-    os << "\tBIBD("
-       << opt.v << "," << opt.k << ","
-       << opt.lambda << ")" << std::endl;
-    Matrix<BoolVarArray> p(_p,opt.b,opt.v);
-    for (int i = 0; i<opt.v; i++) {
-      os << "\t\t";
-      for (int j = 0; j<opt.b; j++)
-        os << p(j,i) << " ";
-      os << std::endl;
-    }
-    os << std::endl;
-  }
-
-  BIBD(bool share, BIBD& s)
-      : Script(share,s), opt(s.opt)
-  {
-    _p.update(*this,share,s._p);
-  }
-
-  virtual Space* copy(bool share)
-  {
-    return new BIBD(share,*this);
-  }
-
-};
-
 } // end Gecode namespace
 
 class GecodeAnalyzer : public SeqAnalyzer
 {
  public:
+  enum CSPDataMatrixStorageType
+  {
+    ROW_MAJOR,
+    COL_MAJOR
+  };
+
   typedef Eigen::MatrixXd MX;
   typedef Eigen::Matrix3d M3;
   typedef Eigen::VectorXd VX;
@@ -304,7 +191,7 @@ class GecodeAnalyzer : public SeqAnalyzer
  private:
   void ComputeGecodeInput(
       const std::vector<WF_edge*>& layer_e,
-      std::vector<int>& A, std::vector<int>& G, std::vector<int>& T);
+      std::vector<int>& A, std::vector<int>& G, std::vector<int>& T, CSPDataMatrixStorageType m_type);
 
   bool GenerateSeq(int l, int h, int t);
   double GenerateCost(WF_edge* ei, WF_edge* ej, const int h, const int t, const int layer_id);

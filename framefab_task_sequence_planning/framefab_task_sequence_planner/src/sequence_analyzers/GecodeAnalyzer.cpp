@@ -6,12 +6,78 @@
 
 #include <gecode/gist.hh>
 
+namespace {
+bool writeMiniZincData(
+    const char* path,
+    const int n, const int m,
+    const std::vector<int>& A, const std::vector<int>& G, const std::vector<int>& T)
+{
+  FILE *fp = fopen(path, "wb+");
+
+  assert(n*n == A.size());
+  assert(n == G.size());
+  assert(n*n*m == T.size());
+
+  if(!fp)
+  {
+    ROS_ERROR("[Gecode-ts planning] fails to output minizinc data.");
+    return false;
+  }
+
+  fprintf(fp, "n = %d;\n\n", n);
+  fprintf(fp, "m = %d;\n\n", m);
+
+  fprintf(fp, "G_data = [");
+  for(int i = 0; i < G.size(); i++)
+  {
+    fprintf(fp, "%d,", G[i]);
+    if(i == G.size()-1)
+    {
+      fprintf(fp, "];\n\n");
+    }
+  }
+
+  fprintf(fp, "A_data = [");
+  for(int i = 0; i < A.size(); i++)
+  {
+    fprintf(fp, "%d,", A[i]);
+    if(i == A.size()-1)
+    {
+      fprintf(fp, "];\n\n");
+    }
+  }
+
+  fprintf(fp, "T_data = [");
+  for(int i = 0; i < T.size(); i++)
+  {
+    fprintf(fp, "%d,", T[i]);
+    if(i == T.size()-1)
+    {
+      fprintf(fp, "];\n\n");
+    }
+  }
+
+  if(0 == fclose(fp))
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
+
+
+} // anon util namespace
+
 GecodeAnalyzer::~GecodeAnalyzer()
 {
 }
 
 bool GecodeAnalyzer::SeqPrint()
 {
+  using namespace Gecode;
+
   gecode_analyzer_.Start();
 
   Init();
@@ -64,23 +130,19 @@ bool GecodeAnalyzer::SeqPrint()
     int m = ptr_collision_->Divide();
     std::vector<int> A, G, T;
 
-    ComputeGecodeInput(layers_[l], A, G, T);
+    ComputeGecodeInput(layers_[l], A, G, T, CSPDataMatrixStorageType::ROW_MAJOR);
 
-    for(int i = 0; i<G.size(); i++)
-    {
-      std::cout << "G[" << i << "]: " << G[i] << std::endl;
-    }
-
-    for(int i = 0; i<A.size(); i++)
-    {
-      std::cout << "A[" << i << "]: " << A[i] << std::endl;
-    }
+    // output minizinc data
+    const char* path = "/home/yijiangh/Documents/as_minizinc_data.dzn";
+    bSuccess = writeMiniZincData(path, n, m, A, G, T);
 
     // feed data in gecode option
-    const Gecode::AssemblySequenceOptions opt("Gecode-TS-Planning", A, G, T, n, m);
-    
+//    const Gecode::AssemblySequenceOptions opt("Gecode-TS-Planning", A, G, T, n, m);
+
     // gecode solve
-    Gecode::Script::run<Gecode::AssemblySequence, Gecode::DFS, Gecode::AssemblySequenceOptions>(opt);
+//    Gecode::Script::run<Gecode::AssemblySequence, Gecode::DFS, Gecode::AssemblySequenceOptions>(opt);
+
+//    std::cout << "as gecode finish" << std::endl;
 
     // how to get result???
     // push in print queue
@@ -92,7 +154,8 @@ bool GecodeAnalyzer::SeqPrint()
 }
 
 void GecodeAnalyzer::ComputeGecodeInput(const std::vector<WF_edge*>& layer_e,
-                                        std::vector<int>& A, std::vector<int>& G, std::vector<int>& T)
+                                        std::vector<int>& A, std::vector<int>& G, std::vector<int>& T,
+                                        CSPDataMatrixStorageType m_type)
 {
   int n = layer_e.size();
   int m = ptr_collision_->Divide();
@@ -141,7 +204,20 @@ void GecodeAnalyzer::ComputeGecodeInput(const std::vector<WF_edge*>& layer_e,
         {
           if(eu->ID() == layer_e[j]->ID() || eu->ID() == layer_e[j]->ppair_->ID())
           {
-            A[i*n + j] = 1;
+            int index_2d;
+
+            // https://en.wikipedia.org/wiki/Row-_and_column-major_order
+            if(m_type == CSPDataMatrixStorageType::ROW_MAJOR)
+            {
+              // n1: i(n), n2: j(n);
+              index_2d = j + n * i;
+            }
+            else
+            {
+              index_2d = i + n * j;
+            }
+
+            A[index_2d] = 1;
           }
         }
 
@@ -162,12 +238,24 @@ void GecodeAnalyzer::ComputeGecodeInput(const std::vector<WF_edge*>& layer_e,
         ptr_collision_->DetectCollision(ej, e, tmp);
 
         // TODO: should use tmp as a mask and impose it on angle_map_ to include previous layers' influence
-
         std::vector<int> tmp_vector = ptr_collision_->ConvertCollisionMapToIntMap(tmp);
 
         for(int k=0; k<m; k++)
         {
-          T[(i*n + j)*m + k] = tmp_vector[k];
+          int index_3d;
+
+          // https://en.wikipedia.org/wiki/Row-_and_column-major_order
+          if(m_type == CSPDataMatrixStorageType::ROW_MAJOR)
+          {
+            // n1: i(n), n2: j(n), n3: k(m)
+            index_3d = k + m * (j + n * i);
+          }
+          else
+          {
+            index_3d = i + n * (j + n * k);
+          }
+
+          T[index_3d] = tmp_vector[k];
         }
       }
     }
@@ -469,30 +557,4 @@ void GecodeAnalyzer::PrintOutTimer()
 void GecodeAnalyzer::debug()
 {
   using namespace Gecode;
-
-  BIBDOptions opt("BIBD",7,3,60);
-
-   opt.symmetry(BIBD::SYMMETRY_LEX);
-   opt.symmetry(BIBD::SYMMETRY_NONE,"none");
-   opt.symmetry(BIBD::SYMMETRY_LEX,"lex");
-   opt.symmetry(BIBD::SYMMETRY_LDSB,"ldsb");
-
-//   opt.parse(argc,argv);
-
-   Script::run<BIBD,DFS,BIBDOptions>(opt);
-
-//  Gist::Print<SendMostMoney> p("Print solution");
-//  Gist::Options o;
-//  o.inspect.click(&p);
-//
-//  Gecode::Gist::dfs(&gecode_instance_, o);
-
-  // Branch & Bound search engine
-//  Gecode::BAB<Gecode::SendMostMoney> e(&gecode_instance_);
-//
-//  while(Gecode::SendMostMoney* s = e.next())
-//  {
-//    s->print();
-//    delete s;
-//  }
 }
