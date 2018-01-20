@@ -82,6 +82,98 @@ bool FFAnalyzer::SeqPrint()
   return bSuccess;
 }
 
+bool FFAnalyzer::SeqPrintLayer(int layer_id)
+{
+  assert(ptr_frame_->SizeOfLayer() > layer_id);
+
+  FF_analyzer_.Start();
+
+  Init();
+
+  /* split layers */
+  /* label stores layer index of each dual node */
+  int layer_size = ptr_frame_->SizeOfLayer();
+  layers_.clear();
+  layers_.resize(layer_size);
+  for (int i = 0; i < Nd_; i++)
+  {
+    WF_edge *e = ptr_frame_->GetEdge(ptr_wholegraph_->e_orig_id(i));
+    layers_[e->Layer()].push_back(e);
+  }
+
+  fprintf(stderr, "Size of target layer %d is %d\n", layer_id, (int)layers_[layer_id].size());
+
+  bool bSuccess = true;
+
+  for(int l=0; l < layer_id; l++)
+  {
+    std::cout << "layer #" << l << std::endl;
+
+    for(int s=0; s < layers_[l].size(); s++)
+    {
+      WF_edge* e = layers_[l][s];
+
+      print_queue_.push_back(e);
+
+      // update printed graph
+      UpdateStructure(e, update_collision_);
+
+      // only update state map for edges in target layer
+      int Nd = layers_[layer_id].size();
+
+      for (int k = 0; k < Nd; k++)
+      {
+        WF_edge* ek = layers_[layer_id][k];
+        int dual_k = ptr_wholegraph_->e_dual_id(ek->ID());
+
+        std::vector<lld> tmp(3);
+        ptr_collision_->DetectCollision(ek, e, tmp);
+
+        ptr_collision_->ModifyAngle(angle_state_[dual_k], tmp);
+      }
+    }
+  }
+
+  std::cout << "Update finished." << std::endl;
+
+  int target_size = 0;
+
+  for(int lb = layer_id; lb < layer_size; lb++)
+  {
+    // search in target layer
+    int Nl = layers_[lb].size();
+    int h = print_queue_.size(); // print queue size so far
+    int t = h + Nl;
+
+    target_size += Nl;
+
+    /* max_z_ and min_z_ in current layer */
+    min_z_ = 1e20;
+    max_z_ = -min_z_;
+
+    for (int i = 0; i < Nl; i++)
+    {
+      WF_edge *e = layers_[lb][i];
+      point u = e->pvert_->Position();
+      point v = e->ppair_->pvert_->Position();
+      min_z_ = min(min_z_, (double) min(u.z(), v.z()));
+      max_z_ = max(max_z_, (double) max(u.z(), v.z()));
+    }
+
+    if (!GenerateSeq(lb, h, t))
+    {
+      fprintf(stderr,
+              "All possible start edge at layer %d has been tried but no feasible sequence is obtained.\n", lb);
+      bSuccess = false;
+      break;
+    }
+  }
+
+  fprintf(stderr, "****Reminder: Start of target layers is %d\n", Nd_ - target_size);
+
+  FF_analyzer_.Stop();
+  return bSuccess;
+}
 
 bool FFAnalyzer::GenerateSeq(int l, int h, int t)
 {
@@ -141,7 +233,7 @@ bool FFAnalyzer::GenerateSeq(int l, int h, int t)
 
     // update collision (geometric domain)
     // tmp is the pruned domain by direct arc consistency pruning
-    vector <vector<lld>> tmp_angle(3);
+    std::vector<std::vector<lld>> tmp_angle(3);
     UpdateStateMap(ej, tmp_angle);
 
     if (terminal_output_)

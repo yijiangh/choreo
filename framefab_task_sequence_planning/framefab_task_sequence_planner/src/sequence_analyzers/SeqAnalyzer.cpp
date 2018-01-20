@@ -197,7 +197,12 @@ SeqAnalyzer::~SeqAnalyzer()
 
 bool SeqAnalyzer::SeqPrint()
 {
-  return true;
+  return false;
+}
+
+bool SeqAnalyzer::SeqPrintLayer(int layer_id)
+{
+  return false;
 }
 
 void SeqAnalyzer::PrintOutTimer()
@@ -657,7 +662,17 @@ bool SeqAnalyzer::TestRobotKinematics(WF_edge *e, const std::vector<lld>& colli_
   // to avoid collision check between end effector and elements
   bool b_success = false;
   UpdateCollisionObjects(e, true);
-  hotend_model_->setPlanningScene(planning_scene_);
+
+  auto planning_scene_depart = planning_scene_->diff();
+  moveit_msgs::CollisionObject e_collision_obj;
+  e_collision_obj = frame_msgs_[e->ID()].both_side_shrinked_collision_object;
+  e_collision_obj.operation = moveit_msgs::CollisionObject::ADD;
+
+  // add this edge to the planning scene
+  if (!planning_scene_depart->processCollisionObjectMsg(e_collision_obj))
+  {
+    ROS_WARN_STREAM("[ts planning robot kinematics] Failed to add shrinked collision object: edge #" << e->ID());
+  }
 
 //  std::ostream stream(nullptr);
 //  std::stringbuf str;
@@ -690,11 +705,20 @@ bool SeqAnalyzer::TestRobotKinematics(WF_edge *e, const std::vector<lld>& colli_
 
     bool empty_joint_pose_found = false;
 
-    for(const auto& pose : poses)
+    for(std::size_t c_id=0; c_id < poses.size(); c_id++)
     {
       std::vector<std::vector<double>> joint_poses;
 
-      hotend_model_->getAllIK(pose, joint_poses);
+      if(c_id < poses.size() - 1)
+      {
+        hotend_model_->setPlanningScene(planning_scene_);
+      }
+      else
+      {
+        hotend_model_->setPlanningScene(planning_scene_depart);
+      }
+
+      hotend_model_->getAllIK(poses[c_id], joint_poses);
 
       if(joint_poses.size() == 0)
       {

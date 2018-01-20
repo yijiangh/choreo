@@ -109,7 +109,14 @@ bool ProcAnalyzer::ProcPrint()
       const bool end_node_exist = IfPointInVector(end_node);
 
       // sanity check: at least one of the nodes should exist
-      assert(start_node_exist || end_node_exist);
+//      assert(start_node_exist || end_node_exist);
+      // TODO: temp
+      if(!start_node_exist && !end_node_exist)
+      {
+        temp.fan_state_ = true;
+        temp.start_ = start_node;
+        temp.end_ = end_node;
+      }
 
       // XOR - only one of them exist, "create type"
       if (start_node_exist != end_node_exist)
