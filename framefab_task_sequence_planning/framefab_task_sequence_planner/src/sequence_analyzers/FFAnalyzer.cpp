@@ -21,16 +21,10 @@ bool FFAnalyzer::SeqPrint()
     layers_[e->Layer()].push_back(e);
   }
 
-  /* printing */
-  /* set pillars as starting edges */
-  PrintPillars();
-
   for (int l = 0; l < layer_size; l++)
   {
     fprintf(stderr, "Size of layer %d is %d\n", l, (int)layers_[l].size());
   }
-
-  //Timer layer_search;
 
   /* print starting from the first layer */
   bool bSuccess = true;
@@ -41,8 +35,6 @@ bool FFAnalyzer::SeqPrint()
     * h : head for printing queue of the layer
     * t : tail for printing queue of the layer
     */
-    //layer_search.Reset();
-    //layer_search.Start();
 
     int Nl = layers_[l].size();
     int h = print_queue_.size(); // print queue size so far
@@ -50,8 +42,9 @@ bool FFAnalyzer::SeqPrint()
 
     if (l == 0)
     {
-      // first layer, pillars are included in layer 0
-      t = Nl;
+      /* set pillars as starting edges */
+      PrintPillars();
+      continue;
     }
     else
     {
@@ -83,20 +76,6 @@ bool FFAnalyzer::SeqPrint()
       bSuccess = false;
       break;
     }
-
-    //layer_search.Stop();
-    //
-    //string str = std::to_string(l) + ":";
-    //const char *msg = str.c_str();
-    //char* cstr = new char[str.length() + 1];
-    //strcpy(cstr, msg);
-
-    //layer_search.Print(cstr);
-    //printf("layer size: %d\n", Nl);
-    //printf("layer %d finished\n", l);
-    //printf("--------------\n");
-
-    //getchar();
   }
 
   FF_analyzer_.Stop();

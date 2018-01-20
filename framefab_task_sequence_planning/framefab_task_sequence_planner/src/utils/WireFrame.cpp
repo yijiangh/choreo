@@ -819,8 +819,6 @@ void WireFrame::Unify()
       layer_size_ = (*pedge_list_)[i]->Layer();
     }
   }
-  // default: wireframe has at least one layer
-  layer_size_++;
 
   if(pillar_size_ > 0)
   {
@@ -829,10 +827,18 @@ void WireFrame::Unify()
     {
       if (!(*pedge_list_)[i]->isPillar())
       {
-        int l = (*pedge_list_)[i]->Layer();
-        (*pedge_list_)[i]->SetLayer(l+1);
+        if(0 == layer_size_)
+        {
+          (*pedge_list_)[i]->SetLayer(1);
+        }
+        else
+        {
+          assert(0 != (*pedge_list_)[i]->Layer());
+        };
       }
     }
+
+    // add base
     layer_size_++;
   }
 
