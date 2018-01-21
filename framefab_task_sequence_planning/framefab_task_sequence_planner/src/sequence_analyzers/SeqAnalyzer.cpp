@@ -656,12 +656,23 @@ bool SeqAnalyzer::TestifyStiffness(WF_edge *e)
   return bSuccess;
 }
 
-bool SeqAnalyzer::TestRobotKinematics(WF_edge *e, const std::vector<lld>& colli_map)
+bool SeqAnalyzer::TestRobotKinematics(WF_edge* e, const std::vector<lld>& colli_map)
 {
   // insert a trail edge, needs to shrink neighnoring edges
   // to avoid collision check between end effector and elements
   bool b_success = false;
   UpdateCollisionObjects(e, true);
+
+  // st node index
+  int orig_j = e->ID();
+  // ppair vert
+  int uj = ptr_frame_->GetEndu(orig_j);
+  bool exist_uj = ptr_dualgraph_->isExistingVert(uj);
+
+  // end node index
+  // pvert
+  int vj = ptr_frame_->GetEndv(orig_j);
+  bool exist_vj = ptr_dualgraph_->isExistingVert(vj);
 
   auto planning_scene_depart = planning_scene_->diff();
   moveit_msgs::CollisionObject e_collision_obj;
@@ -674,12 +685,6 @@ bool SeqAnalyzer::TestRobotKinematics(WF_edge *e, const std::vector<lld>& colli_
     ROS_WARN_STREAM("[ts planning robot kinematics] Failed to add shrinked collision object: edge #" << e->ID());
   }
 
-//  std::ostream stream(nullptr);
-//  std::stringbuf str;
-//  stream.rdbuf(&str);
-//  planning_scene_->printKnownObjects(stream);
-//  ROS_INFO_STREAM("planning scene " << str.str());
-
   // generate feasible end effector directions for printing edge e
   std::vector<Eigen::Vector3d> direction_vec_list =
       ptr_collision_->ConvertCollisionMapToEigenDirections(colli_map);
@@ -690,8 +695,18 @@ bool SeqAnalyzer::TestRobotKinematics(WF_edge *e, const std::vector<lld>& colli_
   Eigen::Vector3d st_pt;
   Eigen::Vector3d end_pt;
 
-  tf::pointMsgToEigen(frame_msgs_[e->ID()].start_pt, st_pt);
-  tf::pointMsgToEigen(frame_msgs_[e->ID()].end_pt, end_pt);
+  // for creation type, name the existing vert as start pt
+  // for connection type, it doesn't matter which one is the start
+  if(exist_uj)
+  {
+    tf::pointMsgToEigen(frame_msgs_[e->ID()].start_pt, st_pt);
+    tf::pointMsgToEigen(frame_msgs_[e->ID()].end_pt, end_pt);
+  }
+  else
+  {
+    tf::pointMsgToEigen(frame_msgs_[e->ID()].end_pt, st_pt);
+    tf::pointMsgToEigen(frame_msgs_[e->ID()].start_pt, end_pt);
+  }
 
   std::vector<Eigen::Vector3d> path_pts = discretizePositions(st_pt, end_pt, 0.005);
 

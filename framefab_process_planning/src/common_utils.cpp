@@ -436,7 +436,9 @@ trajectory_msgs::JointTrajectory framefab_process_planning::getMoveitTransitionP
     {
      ROS_ERROR("%s: Unable to call MoveIt path planning service: '%s' or planning failed, AFTER RESETTING POSE",
               __FUNCTION__, DEFAULT_MOVEIT_PLANNING_SERVICE_NAME.c_str());
-//      throw std::runtime_error("Unable to generate MoveIt path plan");
+      throw std::runtime_error("Unable to generate reset MoveIt path plan");
+      jt.points.clear();
+
       return jt;
     }
 
@@ -450,7 +452,9 @@ trajectory_msgs::JointTrajectory framefab_process_planning::getMoveitTransitionP
     {
      ROS_ERROR("%s: Unable to call MoveIt path planning service: '%s' or planning failed, AFTER RESETTING POSE",
               __FUNCTION__, DEFAULT_MOVEIT_PLANNING_SERVICE_NAME.c_str());
-//      throw std::runtime_error("Unable to generate MoveIt path plan");
+      throw std::runtime_error("Unable to generate reset to goal MoveIt path plan");
+      jt.points.clear();
+
       return jt;
     }
 

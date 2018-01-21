@@ -21,14 +21,16 @@ bool FFAnalyzer::SeqPrint()
     layers_[e->Layer()].push_back(e);
   }
 
-  for (int l = 0; l < layer_size; l++)
+  int print_until = layer_size;
+
+  for (int l = 0; l < print_until; l++)
   {
     fprintf(stderr, "Size of layer %d is %d\n", l, (int)layers_[l].size());
   }
 
   /* print starting from the first layer */
   bool bSuccess = true;
-  for (int l = 0; l < layer_size; l++)
+  for (int l = 0; l < print_until; l++)
   {
     /*
     * Nl: number of dual verts in current layer
@@ -118,18 +120,21 @@ bool FFAnalyzer::SeqPrintLayer(int layer_id)
       // update printed graph
       UpdateStructure(e, update_collision_);
 
-      // only update state map for edges in target layer
-      int Nd = layers_[layer_id].size();
-
-      for (int k = 0; k < Nd; k++)
+      if(layer_id - 1 == l)
       {
-        WF_edge* ek = layers_[layer_id][k];
-        int dual_k = ptr_wholegraph_->e_dual_id(ek->ID());
+        // only update state map for edges in target layer
+        int Nd = layers_[layer_id].size();
 
-        std::vector<lld> tmp(3);
-        ptr_collision_->DetectCollision(ek, e, tmp);
+        for (int k = 0; k < Nd; k++)
+        {
+          WF_edge *ek = layers_[layer_id][k];
+          int dual_k = ptr_wholegraph_->e_dual_id(ek->ID());
 
-        ptr_collision_->ModifyAngle(angle_state_[dual_k], tmp);
+          std::vector <lld> tmp(3);
+          ptr_collision_->DetectCollision(ek, e, tmp);
+
+          ptr_collision_->ModifyAngle(angle_state_[dual_k], tmp);
+        }
       }
     }
   }
@@ -214,6 +219,12 @@ bool FFAnalyzer::GenerateSeq(int l, int h, int t)
 
     /* cost weight */
     double cost = GenerateCost(ei, ej, h, t, l);
+
+    if (cost == -2)
+    {
+      return false;
+    }
+
     if (cost != -1)
     {
       // eligible candidate, cost = -1 if stiffness or kinematic check not pass
@@ -341,15 +352,17 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej, const int h, const int
     {
       if (terminal_output_)
       {
-        fprintf(stderr, "...collision test failed at edge #%d.\n\n", ej->ID() / 2);
+        fprintf(stderr, "...collision test failed at edge #%d.\n", ej->ID() / 2);
       }
-      return -1;
+
+      fprintf(stderr, "fail edge vert u: (%f, %f, %f), vert v: (%f, %f, %f)\n\n",
+              ej->pvert_->Position().x(), ej->pvert_->Position().y(), ej->pvert_->Position().z(),
+              ej->ppair_->pvert_->Position().x(), ej->ppair_->pvert_->Position().y(), ej->ppair_->pvert_->Position().z());
+
+      return -2;
     }
     else
     {
-//      if(free_angle < ptr_collision_->Divide() * 0.15)
-//      ROS_INFO_STREAM("robot kinematics check: free angle num: " << free_angle << "/"
-//                                                                 << int(ptr_collision_->Divide()));
       /* robot kinematics test */
       if(update_collision_)
       {
@@ -358,14 +371,14 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej, const int h, const int
           /* examination failed */
           if (terminal_output_)
           {
-            fprintf(stderr, "...robot kinematics test failed at edge #%d.\n\n", ej->ID() / 2);
+            fprintf(stderr, "...robot kinematics test failed at edge #%d.\n", ej->ID() / 2);
+            fprintf(stderr, "fail edge vert u: (%f, %f, %f), vert v: (%f, %f, %f)\n\n",
+                    ej->pvert_->Position().x(), ej->pvert_->Position().y(), ej->pvert_->Position().z(),
+                    ej->ppair_->pvert_->Position().x(), ej->ppair_->pvert_->Position().y(), ej->ppair_->pvert_->Position().z());
           }
-          return -1;
+
+          return -2;
         }
-//        else
-//        {
-//          ROS_INFO_STREAM("Robot kinematics test passed.");
-//        }
       }
     }
 
@@ -453,9 +466,11 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej, const int h, const int
     {
       fprintf(stderr, "P: %lf, A: %lf, I: %lf\ncost: %f\n\n", P, A, I, cost);
     }
+
     return cost;
   } // end if exist_edge ej
 
+  // ej exists already, skip
   return -1;
 }
 

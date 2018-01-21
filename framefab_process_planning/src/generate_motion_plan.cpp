@@ -405,7 +405,7 @@ void transitionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
                                                            moveit_model);
 
     // TODO: recover from transition planning failure
-    if(ros_trans_traj.points.empty())
+    if(0 == ros_trans_traj.points.size())
     {
       ROS_ERROR_STREAM("[Process Planning] Transition planning fails.");
       assert(ros_trans_traj.points.size() == 0);
@@ -465,6 +465,8 @@ void adjustTrajectoryTiming(std::vector<framefab_msgs::UnitProcessPlan>& plans,
 
       adjustTrajectoryHeaders(last_filled_jts, plans[i].sub_process_array[j], sim_speed);
     }
+
+    ROS_INFO_STREAM("[Process Planning] process #" << i << " time stamp adjusted.");
   }
 }
 
@@ -507,6 +509,7 @@ void appendTCPPosetoPlans(const descartes_core::RobotModelPtr model,
         sub_process.TCP_pose_array.push_back(geo_pose_msg);
       }
     }
+    ROS_INFO_STREAM("[Process Planning] process #" << process_id_count << "TCP added.");
     process_id_count++;
   }
 }

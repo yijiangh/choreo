@@ -110,7 +110,8 @@ bool ProcAnalyzer::ProcPrint()
 
       // sanity check: at least one of the nodes should exist
 //      assert(start_node_exist || end_node_exist);
-      // TODO: temp
+
+      // TODO: temp, to enable output for chosen layers' result
       if(!start_node_exist && !end_node_exist)
       {
         temp.fan_state_ = true;
