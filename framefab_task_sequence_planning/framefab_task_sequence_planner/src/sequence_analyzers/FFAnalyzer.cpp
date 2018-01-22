@@ -70,10 +70,10 @@ bool FFAnalyzer::SeqPrint()
       min_z_ = min(min_z_, (double)min(u.z(), v.z()));
       max_z_ = max(max_z_, (double)max(u.z(), v.z()));
 
-//      point c_pt = e->CenterPos();
-//      double dist = sqrt(pow(c_pt.x(), 2) + pow(c_pt.y(), 2) + pow(c_pt.z(), 2));
-//      min_base_dist_ = min(min_base_dist_, dist);
-//      max_base_dist_ = max(max_base_dist_, dist);
+      point c_pt = e->CenterPos();
+      double dist = sqrt(pow(c_pt.x(), 2) + pow(c_pt.y(), 2) + pow(c_pt.z(), 2));
+      min_base_dist_ = min(min_base_dist_, dist);
+      max_base_dist_ = max(max_base_dist_, dist);
     }
 
     if (!GenerateSeq(l, h, t))
@@ -148,7 +148,7 @@ bool FFAnalyzer::SeqPrintLayer(int layer_id)
 
   int target_size = 0;
 
-  for(int lb = layer_id; lb < layer_size; lb++)
+  for(int lb = layer_id; lb < layer_id+1; lb++)
   {
     // search in target layer
     int Nl = layers_[lb].size();
@@ -169,10 +169,10 @@ bool FFAnalyzer::SeqPrintLayer(int layer_id)
       min_z_ = min(min_z_, (double) min(u.z(), v.z()));
       max_z_ = max(max_z_, (double) max(u.z(), v.z()));
 
-//      point c_pt = e->CenterPos();
-//      double dist = sqrt(pow(c_pt.x(), 2) + pow(c_pt.y(), 2) + pow(c_pt.z(), 2));
-//      min_base_dist_ = min(min_base_dist_, dist);
-//      max_base_dist_ = max(max_base_dist_, dist);
+      point c_pt = e->CenterPos();
+      double dist = sqrt(pow(c_pt.x(), 2) + pow(c_pt.y(), 2) + pow(c_pt.z(), 2));
+      min_base_dist_ = min(min_base_dist_, dist);
+      max_base_dist_ = max(max_base_dist_, dist);
     }
 
     if (!GenerateSeq(lb, h, t))
@@ -321,9 +321,13 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej, const int h, const int
 //    }
 
     // use dist to robot base as heuristic
-//    point c_pt = ej->CenterPos();
-//    double dist = sqrt(pow(c_pt.x(), 2) + pow(c_pt.y(), 2) + pow(c_pt.z(), 2));
-//    z = 1 - (dist - min_base_dist_) / (max_base_dist_ - min_base_dist_);
+    point c_pt = ej->CenterPos();
+    double dist = sqrt(pow(c_pt.x(), 2) + pow(c_pt.y(), 2) + pow(c_pt.z(), 2));
+
+    if(min_base_dist_ != max_base_dist_)
+    {
+      z = 1 - (dist - min_base_dist_) / (max_base_dist_ - min_base_dist_);
+    }
 
     // prune floating edge
     if (exist_uj && exist_vj)
