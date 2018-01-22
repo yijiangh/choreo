@@ -396,7 +396,7 @@ bool FiberPrintPlugIn::DirectSearch()
 
     ptr_seqanalyzer_->setFrameMsgs(frame_msgs_);
 
-    if (!ptr_seqanalyzer_->SeqPrintLayer(5))
+    if (!ptr_seqanalyzer_->SeqPrint())
     {
       ROS_WARN("Model not printable!");
       return false;

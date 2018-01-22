@@ -97,6 +97,9 @@ class FFAnalyzer : public SeqAnalyzer
   double min_z_;
   double max_z_;
 
+  double min_base_dist_;
+  double max_base_dist_;
+
   Timer FF_analyzer_;
 };
 

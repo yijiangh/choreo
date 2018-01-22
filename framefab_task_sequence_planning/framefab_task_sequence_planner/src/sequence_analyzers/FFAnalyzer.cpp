@@ -59,8 +59,8 @@ bool FFAnalyzer::SeqPrint()
     }
 
     /* max_z_ and min_z_ in current layer */
-    min_z_ = 1e20;
-    max_z_ = -min_z_;
+    min_base_dist_ = min_z_ = 1e20;
+    max_base_dist_ = max_z_ = -1e20;
 
     for (int i = 0; i < Nl; i++)
     {
@@ -69,6 +69,11 @@ bool FFAnalyzer::SeqPrint()
       point v = e->ppair_->pvert_->Position();
       min_z_ = min(min_z_, (double)min(u.z(), v.z()));
       max_z_ = max(max_z_, (double)max(u.z(), v.z()));
+
+//      point c_pt = e->CenterPos();
+//      double dist = sqrt(pow(c_pt.x(), 2) + pow(c_pt.y(), 2) + pow(c_pt.z(), 2));
+//      min_base_dist_ = min(min_base_dist_, dist);
+//      max_base_dist_ = max(max_base_dist_, dist);
     }
 
     if (!GenerateSeq(l, h, t))
@@ -153,8 +158,8 @@ bool FFAnalyzer::SeqPrintLayer(int layer_id)
     target_size += Nl;
 
     /* max_z_ and min_z_ in current layer */
-    min_z_ = 1e20;
-    max_z_ = -min_z_;
+    min_base_dist_ = min_z_ = 1e20;
+    max_base_dist_ = max_z_ = -1e20;
 
     for (int i = 0; i < Nl; i++)
     {
@@ -163,6 +168,11 @@ bool FFAnalyzer::SeqPrintLayer(int layer_id)
       point v = e->ppair_->pvert_->Position();
       min_z_ = min(min_z_, (double) min(u.z(), v.z()));
       max_z_ = max(max_z_, (double) max(u.z(), v.z()));
+
+//      point c_pt = e->CenterPos();
+//      double dist = sqrt(pow(c_pt.x(), 2) + pow(c_pt.y(), 2) + pow(c_pt.z(), 2));
+//      min_base_dist_ = min(min_base_dist_, dist);
+//      max_base_dist_ = max(max_base_dist_, dist);
     }
 
     if (!GenerateSeq(lb, h, t))
@@ -299,16 +309,21 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej, const int h, const int
     int vj = ptr_frame_->GetEndv(orig_j);
     bool exist_uj = ptr_dualgraph_->isExistingVert(uj);
     bool exist_vj = ptr_dualgraph_->isExistingVert(vj);
-    double z;
+    double z = 0.0;
 
-    if(max_z_ != min_z_)
-    {
-      z = (ej->CenterPos().z() - min_z_) / (max_z_ - min_z_);
-    }
-    else
-    {
-      z = 0.0;
-    }
+//    if(max_z_ != min_z_)
+//    {
+//      z = (ej->CenterPos().z() - min_z_) / (max_z_ - min_z_);
+//    }
+//    else
+//    {
+//      z = 0.0;
+//    }
+
+    // use dist to robot base as heuristic
+//    point c_pt = ej->CenterPos();
+//    double dist = sqrt(pow(c_pt.x(), 2) + pow(c_pt.y(), 2) + pow(c_pt.z(), 2));
+//    z = 1 - (dist - min_base_dist_) / (max_base_dist_ - min_base_dist_);
 
     // prune floating edge
     if (exist_uj && exist_vj)
@@ -321,20 +336,22 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej, const int h, const int
       if (exist_uj || exist_vj)
       {
         /* edge j share one end with printed structure */
-        double ang;
-        point pos_uj = ptr_frame_->GetPosition(uj);
-        point pos_vj = ptr_frame_->GetPosition(vj);
+//        double ang;
+//        point pos_uj = ptr_frame_->GetPosition(uj);
+//        point pos_vj = ptr_frame_->GetPosition(vj);
+//
+//        if (exist_uj)
+//        {
+//          ang = Geometry::angle(point(0, 0, 1), pos_vj - pos_uj);
+//        }
+//        else
+//        {
+//          ang = Geometry::angle(point(0, 0, 1), pos_uj - pos_vj);
+//        }
+//
+//        P = z * exp(ang);
 
-        if (exist_uj)
-        {
-          ang = Geometry::angle(point(0, 0, 1), pos_vj - pos_uj);
-        }
-        else
-        {
-          ang = Geometry::angle(point(0, 0, 1), pos_uj - pos_vj);
-        }
-
-        P = z * exp(ang);
+        P = z;
       }
       else
       {
