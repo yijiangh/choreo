@@ -70,8 +70,15 @@ bool FFAnalyzer::SeqPrint()
       min_z_ = min(min_z_, (double)min(u.z(), v.z()));
       max_z_ = max(max_z_, (double)max(u.z(), v.z()));
 
-      point c_pt = e->CenterPos();
-      double dist = sqrt(pow(c_pt.x(), 2) + pow(c_pt.y(), 2) + pow(c_pt.z(), 2));
+      const auto& st_pt_msg = frame_msgs_[e->ID()].start_pt;
+      const auto& end_pt_msg = frame_msgs_[e->ID()].end_pt;
+
+      // distance to robot base (world_frame 0,0,0)
+      double dist = sqrt(pow((st_pt_msg.x + end_pt_msg.x)/2, 2)
+                             + pow((st_pt_msg.y + end_pt_msg.y)/2, 2)
+                             + pow((st_pt_msg.z + end_pt_msg.z)/2, 2));
+
+
       min_base_dist_ = min(min_base_dist_, dist);
       max_base_dist_ = max(max_base_dist_, dist);
     }
@@ -169,8 +176,14 @@ bool FFAnalyzer::SeqPrintLayer(int layer_id)
       min_z_ = min(min_z_, (double) min(u.z(), v.z()));
       max_z_ = max(max_z_, (double) max(u.z(), v.z()));
 
-      point c_pt = e->CenterPos();
-      double dist = sqrt(pow(c_pt.x(), 2) + pow(c_pt.y(), 2) + pow(c_pt.z(), 2));
+      const auto& st_pt_msg = frame_msgs_[e->ID()].start_pt;
+      const auto& end_pt_msg = frame_msgs_[e->ID()].end_pt;
+
+      // distance to robot base (world_frame 0,0,0)
+      double dist = sqrt(pow((st_pt_msg.x + end_pt_msg.x)/2, 2)
+                             + pow((st_pt_msg.y + end_pt_msg.y)/2, 2)
+                             + pow((st_pt_msg.z + end_pt_msg.z)/2, 2));
+
       min_base_dist_ = min(min_base_dist_, dist);
       max_base_dist_ = max(max_base_dist_, dist);
     }
@@ -311,51 +324,30 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej, const int h, const int
     bool exist_vj = ptr_dualgraph_->isExistingVert(vj);
     double z = 0.0;
 
-//    if(max_z_ != min_z_)
-//    {
-//      z = (ej->CenterPos().z() - min_z_) / (max_z_ - min_z_);
-//    }
-//    else
-//    {
-//      z = 0.0;
-//    }
-
     // use dist to robot base as heuristic
-    point c_pt = ej->CenterPos();
-    double dist = sqrt(pow(c_pt.x(), 2) + pow(c_pt.y(), 2) + pow(c_pt.z(), 2));
+    const auto& st_pt_msg = frame_msgs_[ej->ID()].start_pt;
+    const auto& end_pt_msg = frame_msgs_[ej->ID()].end_pt;
+
+    // distance to robot base (world_frame 0,0,0)
+    double dist = sqrt(pow((st_pt_msg.x + end_pt_msg.x)/2, 2)
+                           + pow((st_pt_msg.y + end_pt_msg.y)/2, 2)
+                           + pow((st_pt_msg.z + end_pt_msg.z)/2, 2));
 
     if(min_base_dist_ != max_base_dist_)
     {
-      z = 1 - (dist - min_base_dist_) / (max_base_dist_ - min_base_dist_);
+      P = 1 - (dist - min_base_dist_) / (max_base_dist_ - min_base_dist_);
     }
 
     // prune floating edge
     if (exist_uj && exist_vj)
     {
       /* edge j share two ends with printed structure */
-      P = z;
     }
     else
     {
       if (exist_uj || exist_vj)
       {
         /* edge j share one end with printed structure */
-//        double ang;
-//        point pos_uj = ptr_frame_->GetPosition(uj);
-//        point pos_vj = ptr_frame_->GetPosition(vj);
-//
-//        if (exist_uj)
-//        {
-//          ang = Geometry::angle(point(0, 0, 1), pos_vj - pos_uj);
-//        }
-//        else
-//        {
-//          ang = Geometry::angle(point(0, 0, 1), pos_uj - pos_vj);
-//        }
-//
-//        P = z * exp(ang);
-
-        P = z;
       }
       else
       {
