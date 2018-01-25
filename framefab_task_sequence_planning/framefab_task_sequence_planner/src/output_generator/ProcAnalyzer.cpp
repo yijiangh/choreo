@@ -88,16 +88,6 @@ bool ProcAnalyzer::ProcPrint()
       }
 
       temp.fan_state_ = true;
-
-      // pillar shouldn't have been printed yet
-      if (!IfPointInVector(temp.end_))
-      {
-        exist_point_.push_back(temp.end_);
-      }
-      if (!IfPointInVector(temp.start_))
-      {
-        exist_point_.push_back(temp.start_);
-      }
     }
     else
     {
@@ -133,7 +123,6 @@ bool ProcAnalyzer::ProcPrint()
           temp.start_ = end_node;
           temp.end_ = start_node;
         }
-        exist_point_.push_back(temp.end_);
       }
       else
       {
@@ -167,25 +156,19 @@ bool ProcAnalyzer::ProcPrint()
       }
     }
 
+    // pillar shouldn't have been printed yet
+    if (!IfPointInVector(temp.end_))
+    {
+      exist_point_.push_back(temp.end_);
+    }
+    if (!IfPointInVector(temp.start_))
+    {
+      exist_point_.push_back(temp.start_);
+    }
+
     prev_end_node = temp.end_;
     process_list_[i] = temp;
   } // end loop for all elements (planning_result)
-
-//  for (int i = 0; i < process_list_.size(); i++)
-//  {
-//    if (process_list_[i].fan_state_)
-//    {
-//      // prune orientation domain based on fabrication constraint
-//      // for "create type", we only allow orientations whose angle to the element
-//      // is smaller than max_edge_angle
-//      Filter(process_list_[i]);
-//    }
-//    else
-//    {
-//      // disable pruning on "connect type" domain prunning
-//      CheckProcess(process_list_[i]);
-//    }
-//  }
 
   return(WriteJson());
 }

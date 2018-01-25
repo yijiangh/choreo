@@ -175,4 +175,7 @@ class SeqAnalyzer
   std::string hotend_group_name_;
 
   planning_scene::PlanningScenePtr planning_scene_;
+
+  int num_p_assign_visited_;
+  int num_backtrack_;
 };

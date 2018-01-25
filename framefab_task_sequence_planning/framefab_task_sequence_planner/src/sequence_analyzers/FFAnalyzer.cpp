@@ -92,6 +92,9 @@ bool FFAnalyzer::SeqPrint()
     }
   }
 
+  fprintf(stderr, "\n\nFFAnalyzer seq search finished:\n Number of edges: %d\nNumber of partial assignment visited: %d, Number of backtrack: %d\n\n",
+          ptr_wholegraph_->SizeOfVertList(), num_p_assign_visited_, num_backtrack_);
+
   FF_analyzer_.Stop();
   return bSuccess;
 }
@@ -270,6 +273,8 @@ bool FFAnalyzer::GenerateSeq(int l, int h, int t)
     std::vector<std::vector<lld>> tmp_angle(3);
     UpdateStateMap(ej, tmp_angle);
 
+    num_p_assign_visited_++;
+
     if (terminal_output_)
     {
       fprintf(stderr, "Choose edge #%d in with cost %lf - candidates %d/%d \n\n",
@@ -286,6 +291,8 @@ bool FFAnalyzer::GenerateSeq(int l, int h, int t)
     RecoverStructure(ej, update_collision_);
 
     print_queue_.pop_back();
+
+    num_backtrack_++;
 
     if (terminal_output_)
     {

@@ -252,6 +252,9 @@ void SeqAnalyzer::Init()
   planning_scene_->getCurrentStateNonConst().update();
 
   planning_scene_->setPlanningSceneDiffMsg(srv.response.scene);
+
+  num_p_assign_visited_ = 0;
+  num_backtrack_ = 0;
 }
 
 void SeqAnalyzer::PrintPillars()
