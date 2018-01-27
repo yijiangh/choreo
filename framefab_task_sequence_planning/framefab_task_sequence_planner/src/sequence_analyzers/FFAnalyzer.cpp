@@ -21,7 +21,7 @@ bool FFAnalyzer::SeqPrint()
     layers_[e->Layer()].push_back(e);
   }
 
-  int print_until = layer_size;
+  int print_until = 1;
 
   for (int l = 0; l < print_until; l++)
   {
@@ -340,21 +340,45 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej, const int h, const int
                            + pow((st_pt_msg.y + end_pt_msg.y)/2, 2)
                            + pow((st_pt_msg.z + end_pt_msg.z)/2, 2));
 
-    if(min_base_dist_ != max_base_dist_)
+//    if(min_base_dist_ != max_base_dist_)
+//    {
+//      P = 1 - (dist - min_base_dist_) / (max_base_dist_ - min_base_dist_);
+//    }
+
+    if(max_z_ != min_z_)
     {
-      P = 1 - (dist - min_base_dist_) / (max_base_dist_ - min_base_dist_);
+      z = (ej->CenterPos().z() - min_z_) / (max_z_ - min_z_);
+    }
+    else
+    {
+      z = 0.0;
     }
 
     // prune floating edge
     if (exist_uj && exist_vj)
     {
       /* edge j share two ends with printed structure */
+      P = z;
     }
     else
     {
       if (exist_uj || exist_vj)
       {
         /* edge j share one end with printed structure */
+        double ang;
+        point pos_uj = ptr_frame_->GetPosition(uj);
+        point pos_vj = ptr_frame_->GetPosition(vj);
+
+        if (exist_uj)
+        {
+          ang = Geometry::angle(point(0, 0, 1), pos_vj - pos_uj);
+        }
+        else
+        {
+          ang = Geometry::angle(point(0, 0, 1), pos_uj - pos_vj);
+        }
+
+        P = z * exp(ang);
       }
       else
       {

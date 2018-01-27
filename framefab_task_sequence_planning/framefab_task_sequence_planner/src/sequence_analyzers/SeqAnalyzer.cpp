@@ -290,8 +290,8 @@ void SeqAnalyzer::PrintPillars()
 
     // update collision (geometric domain)
     // tmp is the pruned domain by direct arc consistency pruning
-    vector<vector<lld>> tmp_angle(3);
-    UpdateStateMap(e, tmp_angle);
+//    vector<vector<lld>> tmp_angle(3);
+//    UpdateStateMap(e, tmp_angle);
   }
 
 //  std::vector<WF_edge*> pillars;

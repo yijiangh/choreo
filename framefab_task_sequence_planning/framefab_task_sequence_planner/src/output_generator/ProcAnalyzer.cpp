@@ -99,15 +99,15 @@ bool ProcAnalyzer::ProcPrint()
       const bool end_node_exist = IfPointInVector(end_node);
 
       // sanity check: at least one of the nodes should exist
-//      assert(start_node_exist || end_node_exist);
+      assert(start_node_exist || end_node_exist);
 
-      // TODO: temp, to enable output for chosen layers' result
-      if(!start_node_exist && !end_node_exist)
-      {
-        temp.fan_state_ = true;
-        temp.start_ = start_node;
-        temp.end_ = end_node;
-      }
+//      // TODO: temp, to enable output for chosen layers' result
+//      if(!start_node_exist && !end_node_exist)
+//      {
+//        temp.fan_state_ = true;
+//        temp.start_ = start_node;
+//        temp.end_ = end_node;
+//      }
 
       // XOR - only one of them exist, "create type"
       if (start_node_exist != end_node_exist)
@@ -127,26 +127,37 @@ bool ProcAnalyzer::ProcPrint()
       else
       {
         // AND - both of them exist, "connect type"
-        // use previous end point as start node if possible
-        // i.e. prefer continuous printing
-        if (prev_end_node == end_node || prev_end_node == start_node)
+
+        // prioritize printing upwards
+        if(start_node.z() - end_node.z() > 10)
         {
-          if (prev_end_node == end_node)
-          {
-            point tmp_swap = start_node;
-            start_node = end_node;
-            end_node = tmp_swap;
-          }
-          //else start node already agrees with prev_end_node, then keep rolling!
+          point tmp_swap = start_node;
+          start_node = end_node;
+          end_node = tmp_swap;
         }
         else
         {
-          // we prefer the start node to be close
-          if (trimesh::dist(end_node, prev_end_node) < trimesh::dist(start_node, prev_end_node))
+          // use previous end point as start node if possible
+          // i.e. prefer continuous printing
+          if (prev_end_node == end_node || prev_end_node == start_node)
           {
-            point tmp_swap = start_node;
-            start_node = end_node;
-            end_node = tmp_swap;
+            if (prev_end_node == end_node)
+            {
+              point tmp_swap = start_node;
+              start_node = end_node;
+              end_node = tmp_swap;
+            }
+            //else start node already agrees with prev_end_node, then keep rolling!
+          }
+          else
+          {
+            // we prefer the start node to be close
+            if (trimesh::dist(end_node, prev_end_node) < trimesh::dist(start_node, prev_end_node))
+            {
+              point tmp_swap = start_node;
+              start_node = end_node;
+              end_node = tmp_swap;
+            }
           }
         }
 

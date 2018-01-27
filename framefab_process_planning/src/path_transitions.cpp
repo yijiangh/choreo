@@ -135,6 +135,25 @@ framefab_process_planning::toDescartesConstrainedPath(const std::vector<framefab
     tf::pointMsgToEigen(path_pose.end_pt, seg.end);
     convertOrientationVector(path_pose.feasible_orients, seg.orientations);
 
+    switch(path_pose.type)
+    {
+      case framefab_msgs::ElementCandidatePoses::SUPPORT:
+      {
+        seg.process_type = ConstrainedSegment::PROCESS_TYPE::SUPPORT;
+        break;
+      }
+      case framefab_msgs::ElementCandidatePoses::CREATE:
+      {
+        seg.process_type = ConstrainedSegment::PROCESS_TYPE::CREATE;
+        break;
+      }
+      case framefab_msgs::ElementCandidatePoses::CONNECT:
+      {
+        seg.process_type = ConstrainedSegment::PROCESS_TYPE::CONNECT;
+        break;
+      }
+    }
+
     seg.linear_vel = seg_params.linear_vel;
     seg.linear_disc = seg_params.linear_disc;
     seg.z_axis_disc = seg_params.angular_disc;
