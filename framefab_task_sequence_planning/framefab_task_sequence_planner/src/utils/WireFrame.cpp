@@ -823,18 +823,27 @@ void WireFrame::Unify()
   if(pillar_size_ > 0)
   {
     // pillar is always in the first layer if exists
+    if(0 == layer_size_)
+    {
+      layer_size_ = 1;
+    }
+
     for (int i = 0; i < M; i++)
     {
       if (!(*pedge_list_)[i]->isPillar())
       {
-        if(0 == layer_size_)
+        if(1 == layer_size_)
         {
           (*pedge_list_)[i]->SetLayer(1);
         }
         else
         {
           assert(0 != (*pedge_list_)[i]->Layer());
-        };
+        }
+      }
+      else
+      {
+        (*pedge_list_)[i]->SetLayer(0);
       }
     }
 

@@ -282,7 +282,7 @@ void SeqAnalyzer::PrintPillars()
 
   for (it = base_queue.begin(); it != base_queue.end(); it++)
   {
-    auto& e = it->second;
+    WF_edge* e = it->second;
     print_queue_.push_back(e);
 
     // update printed graph
