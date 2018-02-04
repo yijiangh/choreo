@@ -49,6 +49,8 @@ std::vector<double> getCurrentJointState(const std::string& topic);
 bool addCollisionObject(
     ros::ServiceClient& planning_scene, const moveit_msgs::CollisionObject& c_obj);
 
+bool clearAllCollisionObjects(ros::ServiceClient& planning_scene);
+
 static inline std::vector<double> extractJoints(const descartes_core::RobotModel& model,
                                                 const descartes_core::TrajectoryPt& pt)
 {
