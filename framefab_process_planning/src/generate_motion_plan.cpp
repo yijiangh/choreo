@@ -53,6 +53,8 @@
 
 const static std::string GET_PLANNING_SCENE_SERVICE = "get_planning_scene";
 
+const static int TRANSITION_PLANNING_LOOP_COUNT = 5;
+
 namespace{ //util function namespace
 
 void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
@@ -397,18 +399,46 @@ void transitionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
       ROS_ERROR_STREAM("[Tr Planning] Failed to publish planning scene diff srv!");
     }
 
-    trajectory_msgs::JointTrajectory ros_trans_traj =
-        framefab_process_planning::getMoveitTransitionPlan(move_group_name,
-                                                           last_joint_pose,
-                                                           current_first_joint_pose,
-                                                           start_state,
-                                                           moveit_model);
+    int repeat_planning_call = 0;
+    trajectory_msgs::JointTrajectory ros_trans_traj;
 
-    // TODO: recover from transition planning failure
-    if(0 == ros_trans_traj.points.size())
+    while(true)
     {
-      ROS_ERROR_STREAM("[Process Planning] Transition planning fails.");
-      assert(ros_trans_traj.points.size() == 0);
+      ros_trans_traj = framefab_process_planning::getMoveitTransitionPlan(move_group_name,
+                                                                          last_joint_pose,
+                                                                          current_first_joint_pose,
+                                                                          start_state,
+                                                                          moveit_model);
+
+      // TODO: recover from transition planning failure
+      if (0 == ros_trans_traj.points.size())
+      {
+        ROS_ERROR_STREAM("[Process Planning] Transition planning fails.");
+        repeat_planning_call++;
+        continue;
+      }
+
+      if(repeat_planning_call > 0)
+      {
+        ROS_WARN_STREAM("[Process Planning] transition planning retry - round "
+                            << repeat_planning_call << "/" << TRANSITION_PLANNING_LOOP_COUNT);
+      }
+
+      bool joint_target_meet = true;
+      for(int s=0; s < current_first_joint_pose.size(); s++)
+      {
+        if(current_first_joint_pose[s] - ros_trans_traj.points.back().positions[s] > 0.0001)
+        {
+          joint_target_meet = false;
+        }
+      }
+
+      if(joint_target_meet || repeat_planning_call > TRANSITION_PLANNING_LOOP_COUNT)
+      {
+        break;
+      }
+
+      repeat_planning_call++;
     }
 
     framefab_msgs::SubProcess sub_process;
