@@ -449,11 +449,51 @@ bool FiberPrintPlugIn::ConstructCollisionObjects(const std::vector<int>& print_q
 
 void FiberPrintPlugIn::GetDeformation()
 {
-  ptr_dualgraph_->Dualization();
+  bool success = false;
 
-  VX D;
-  ptr_stiffness_->Init();
-  ptr_stiffness_->CalculateD(D, NULL, false, 0, "FiberTest");
+  if(NULL != ptr_parm_)
+  {
+    delete ptr_parm_;
+  }
+
+  ptr_parm_ = new FiberPrintPARM();
+
+  // dummy framefab output path
+  ptr_path_ = "/home";
+
+  if(Init())
+  {
+    ptr_dualgraph_->Dualization();
+
+    VX D;
+    ptr_stiffness_->Init();
+    ptr_stiffness_->terminal_output_ = true;
+    ptr_stiffness_->stiff_solver_.detailed_timing_ = true;
+
+    success = ptr_stiffness_->CalculateD(D, NULL, true, 0, "FiberTest");
+
+    if (success)
+    {
+      ROS_INFO_STREAM("[ts planner] Maximal node deforamtion (mm): " << D.maxCoeff()
+                                                                     << ", tolerance (mm): " << ptr_parm_->seq_D_tol_);
+    }
+    else
+    {
+      ROS_ERROR("[ts planner] stiffness computation fails.");
+    }
+
+    ptr_stiffness_->PrintOutTimer();
+  }
+  else
+  {
+    success = false;
+    ROS_ERROR("[ts planner] Get Deformation: init fails.");
+  }
+
+  if(!success)
+  {
+    ROS_ERROR("[ts planner] whole model deformation fails.");
+  }
 }
 
 bool FiberPrintPlugIn::handleTaskSequencePlanning(
@@ -490,6 +530,9 @@ bool FiberPrintPlugIn::handleTaskSequencePlanning(
       addCollisionObject(table);
 
       res.element_array = frame_msgs_;
+
+      // get deformation
+//      GetDeformation();
 
       break;
     }

@@ -1,0 +1,6 @@
+<launch>
+
+  <!-- industrial_robot_simulator: accepts robot commands and reports status -->
+  <node pkg="framefab_task_sequence_external_planner" type="framefab_task_sequence_external_planner.py" name="framefab_task_sequence_external_planner" output="screen"/>
+  
+</launch>

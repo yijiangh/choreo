@@ -88,16 +88,6 @@ bool ProcAnalyzer::ProcPrint()
       }
 
       temp.fan_state_ = true;
-
-      // pillar shouldn't have been printed yet
-      if (!IfPointInVector(temp.end_))
-      {
-        exist_point_.push_back(temp.end_);
-      }
-      if (!IfPointInVector(temp.start_))
-      {
-        exist_point_.push_back(temp.start_);
-      }
     }
     else
     {
@@ -110,6 +100,14 @@ bool ProcAnalyzer::ProcPrint()
 
       // sanity check: at least one of the nodes should exist
       assert(start_node_exist || end_node_exist);
+
+//      // TODO: temp, to enable output for chosen layers' result
+//      if(!start_node_exist && !end_node_exist)
+//      {
+//        temp.fan_state_ = true;
+//        temp.start_ = start_node;
+//        temp.end_ = end_node;
+//      }
 
       // XOR - only one of them exist, "create type"
       if (start_node_exist != end_node_exist)
@@ -125,31 +123,41 @@ bool ProcAnalyzer::ProcPrint()
           temp.start_ = end_node;
           temp.end_ = start_node;
         }
-        exist_point_.push_back(temp.end_);
       }
       else
       {
         // AND - both of them exist, "connect type"
-        // use previous end point as start node if possible
-        // i.e. prefer continuous printing
-        if (prev_end_node == end_node || prev_end_node == start_node)
+
+        // prioritize printing upwards
+        if(start_node.z() - end_node.z() > 10)
         {
-          if (prev_end_node == end_node)
-          {
-            point tmp_swap = start_node;
-            start_node = end_node;
-            end_node = tmp_swap;
-          }
-          //else start node already agrees with prev_end_node, then keep rolling!
+          point tmp_swap = start_node;
+          start_node = end_node;
+          end_node = tmp_swap;
         }
         else
         {
-          // we prefer the start node to be close
-          if (trimesh::dist(end_node, prev_end_node) < trimesh::dist(start_node, prev_end_node))
+          // use previous end point as start node if possible
+          // i.e. prefer continuous printing
+          if (prev_end_node == end_node || prev_end_node == start_node)
           {
-            point tmp_swap = start_node;
-            start_node = end_node;
-            end_node = tmp_swap;
+            if (prev_end_node == end_node)
+            {
+              point tmp_swap = start_node;
+              start_node = end_node;
+              end_node = tmp_swap;
+            }
+            //else start node already agrees with prev_end_node, then keep rolling!
+          }
+          else
+          {
+            // we prefer the start node to be close
+            if (trimesh::dist(end_node, prev_end_node) < trimesh::dist(start_node, prev_end_node))
+            {
+              point tmp_swap = start_node;
+              start_node = end_node;
+              end_node = tmp_swap;
+            }
           }
         }
 
@@ -159,25 +167,19 @@ bool ProcAnalyzer::ProcPrint()
       }
     }
 
+    // pillar shouldn't have been printed yet
+    if (!IfPointInVector(temp.end_))
+    {
+      exist_point_.push_back(temp.end_);
+    }
+    if (!IfPointInVector(temp.start_))
+    {
+      exist_point_.push_back(temp.start_);
+    }
+
     prev_end_node = temp.end_;
     process_list_[i] = temp;
   } // end loop for all elements (planning_result)
-
-//  for (int i = 0; i < process_list_.size(); i++)
-//  {
-//    if (process_list_[i].fan_state_)
-//    {
-//      // prune orientation domain based on fabrication constraint
-//      // for "create type", we only allow orientations whose angle to the element
-//      // is smaller than max_edge_angle
-//      Filter(process_list_[i]);
-//    }
-//    else
-//    {
-//      // disable pruning on "connect type" domain prunning
-//      CheckProcess(process_list_[i]);
-//    }
-//  }
 
   return(WriteJson());
 }
