@@ -84,6 +84,12 @@ bool framefab_task_sequence_processing::TaskSequenceProcessor::createCandidatePo
 
   FILE* fp = fopen(fpath.c_str(), "r");
 
+  if(NULL == fp)
+  {
+    ROS_WARN_STREAM("[ts processor] seq result json file not found.");
+    return false;
+  }
+
   char readBuffer[65536];
   FileReadStream is(fp, readBuffer, sizeof(readBuffer));
 
@@ -128,6 +134,8 @@ bool framefab_task_sequence_processing::TaskSequenceProcessor::createCandidatePo
 
     std::string type_str = element_path["type"].GetString();
 
+    int wireframe_id = element_path["wireframe_id"].GetInt();
+
     if(verbose_)
     {
       ROS_INFO_STREAM("element-" << i);
@@ -155,8 +163,8 @@ bool framefab_task_sequence_processing::TaskSequenceProcessor::createCandidatePo
     }
 
     // create UnitProcess & Add UnitProcess into ProcessPath
-    path_array_.push_back(createScaledUnitProcess(i, st_pt, end_pt, feasible_orients,
-                                                      type_str, element_diameter_, shrink_length_));
+    path_array_.push_back(createScaledUnitProcess(i, wireframe_id, st_pt, end_pt, feasible_orients,
+                                                  type_str, element_diameter_, shrink_length_));
   }
 
   ROS_INFO_STREAM("[task sequence processor] task sequence json parsing succeeded.");
@@ -205,14 +213,15 @@ bool framefab_task_sequence_processing::TaskSequenceProcessor::createEnvCollisio
 }
 
 framefab_task_sequence_processing_utils::UnitProcess framefab_task_sequence_processing::TaskSequenceProcessor::createScaledUnitProcess(
-    int index, Eigen::Vector3d st_pt, Eigen::Vector3d end_pt,
+    int index, int wireframe_id,
+    Eigen::Vector3d st_pt, Eigen::Vector3d end_pt,
     std::vector<Eigen::Vector3d> feasible_orients,
     std::string type_str,
     double element_diameter,
     double shrink_length)
 {
   framefab_task_sequence_processing_utils::UnitProcess upp(
-      index,
+      index, wireframe_id,
       transformPoint(st_pt, unit_scale_, transf_vec_),
       transformPoint(end_pt, unit_scale_, transf_vec_),
       feasible_orients, type_str, element_diameter, shrink_length);

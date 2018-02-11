@@ -7,6 +7,13 @@ int32 CONNECT=0
 
 int32 type
 
+int32 layer_id
+
+# edge id in wireframe data structure
+int32 wireframe_id
+
+# for wireframe, start pt = e->ppair->pvert
+# for wireframe, end pt = e->pvert
 geometry_msgs/Point start_pt
 geometry_msgs/Point end_pt
 
@@ -21,7 +28,8 @@ geometry_msgs/Point shrinked_end_pt
 ### As the geoemtry being processed should not
 ### be limited to "cylinder" shape that's related
 ### to current development targeted at linear element
-### Thus, the shrinked geometry is temporarily placed in ### this msg as a reminder.
+### Thus, the shrinked geometry is temporarily placed
+### in this msg as a reminder.
  
 # both sides shrinked collision objects
 moveit_msgs/CollisionObject both_side_shrinked_collision_object

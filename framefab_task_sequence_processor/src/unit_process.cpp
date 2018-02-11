@@ -90,6 +90,7 @@ framefab_msgs::ElementCandidatePoses framefab_task_sequence_processing_utils::Un
 
   // element index
   msg.element_id = id_;
+  msg.wireframe_id = wireframe_id_;
 
   // process element's type
   if("support" == type_)
@@ -129,10 +130,10 @@ framefab_msgs::ElementCandidatePoses framefab_task_sequence_processing_utils::Un
                                                             element_diameter_, "shrink_end");
 
 
-  // for safety, we inflate the full collision geometry
-  Eigen::Vector3d extended_st_pt = st_pt_;
-  Eigen::Vector3d extended_end_pt = end_pt_;
-  createShrinkedEndPoint(extended_st_pt, extended_st_pt, - shrink_length_);
+//  // for safety, we inflate the full collision geometry
+//  Eigen::Vector3d extended_st_pt = st_pt_;
+//  Eigen::Vector3d extended_end_pt = end_pt_;
+//  createShrinkedEndPoint(extended_st_pt, extended_st_pt, - shrink_length_);
 
   msg.full_collision_object = createCollisionObject(id_, st_pt_, end_pt_,
                                                     element_diameter_, "full");

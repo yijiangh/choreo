@@ -8,9 +8,7 @@
 #include <framefab_msgs/ModelInputParameters.h>
 #include <framefab_msgs/TaskSequenceInputParameters.h>
 #include <framefab_msgs/TaskSequenceProcessingAction.h>
-
-// note: this action client's name MUST be the same to server's name
-const static std::string TASK_SEQUENCE_PROCESSING_ACTION_CLIENT_NAME = "task_sequence_processing_action";
+#include <framefab_msgs/TaskSequencePlanningAction.h>
 
 namespace framefab_gui
 {
@@ -38,19 +36,30 @@ class TaskSequenceProcessingState : public GuiState
   void taskSequenceProcessingActiveCallback();
   void taskSequenceProcessingFeedbackCallback(const framefab_msgs::TaskSequenceProcessingFeedbackConstPtr& feedback);
 
+  void taskSequencePlanningDoneCallback(const actionlib::SimpleClientGoalState& state,
+                                        const framefab_msgs::TaskSequencePlanningResultConstPtr& result);
+  void taskSequencePlanningActiveCallback();
+  void taskSequencePlanningFeedbackCallback(const framefab_msgs::TaskSequencePlanningFeedbackConstPtr& feedback);
+
  private:
-  void makeRequest(framefab_msgs::ModelInputParameters model_params,
-                   framefab_msgs::TaskSequenceInputParameters task_sequence_params);
+  void taskSequenceProcessOrPlan();
+  bool makeTaskSequenceProcessingRequest(framefab_msgs::ModelInputParameters model_params,
+                                         framefab_msgs::TaskSequenceInputParameters task_sequence_params);
+  bool makeTaskSequencePlanningRequest(framefab_msgs::ModelInputParameters model_params,
+                                       framefab_msgs::TaskSequenceInputParameters task_sequence_params);
 
   Q_SIGNALS:
   void feedbackReceived(QString feedback);
 
  protected Q_SLOTS:
   void setFeedbackText(QString feedback);
+  void toNextState();
+  void taskSequencePlanningOn();
 
  private:
   ros::NodeHandle nh_;
   actionlib::SimpleActionClient<framefab_msgs::TaskSequenceProcessingAction> task_sequence_processing_action_client_;
+  actionlib::SimpleActionClient<framefab_msgs::TaskSequencePlanningAction> task_sequence_planning_action_client_;
   FrameFabWidget* gui_ptr_;
 };
 }

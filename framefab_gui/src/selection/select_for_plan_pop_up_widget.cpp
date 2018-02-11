@@ -12,6 +12,9 @@ framefab_gui::SelectForPlanPopUpWidget::SelectForPlanPopUpWidget(QWidget* parent
 
   connect(ui_->pushbutton_recompute, SIGNAL(clicked()), this, SIGNAL(buttonRecompute()));
   connect(ui_->pushbutton_keep_record, SIGNAL(clicked()), this, SIGNAL(buttonKeepRecord()));
+
+  connect(ui_->pushbutton_recompute, SIGNAL(clicked()), this, SLOT(closeWindow()));
+  connect(ui_->pushbutton_keep_record, SIGNAL(clicked()), this, SLOT(closeWindow()));
 }
 
 void framefab_gui::SelectForPlanPopUpWidget::setDisplayText(const std::string& text)
@@ -31,4 +34,14 @@ void framefab_gui::SelectForPlanPopUpWidget::enableButtons(bool record_found)
     ui_->pushbutton_recompute->setEnabled(true);
     ui_->pushbutton_keep_record->setEnabled(false);
   }
+}
+
+void framefab_gui::SelectForPlanPopUpWidget::closeWindow()
+{
+  this->close();
+}
+
+void framefab_gui::SelectForPlanPopUpWidget::closeEvent(QCloseEvent *ev)
+{
+  Q_EMIT exitSelectForPlanPopUpWidget();
 }

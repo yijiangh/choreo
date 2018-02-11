@@ -34,12 +34,12 @@ class TaskSequenceProcessor
                  framefab_msgs::TaskSequenceInputParameters task_sequence_params);
 
  protected:
-  framefab_task_sequence_processing_utils::UnitProcess createScaledUnitProcess(int index,
-                                                              Eigen::Vector3d st_pt, Eigen::Vector3d end_pt,
-                                                              std::vector<Eigen::Vector3d> feasible_orients,
-                                                              std::string type_str,
-                                                              double element_diameter,
-                                                              double shrink_length);
+  framefab_task_sequence_processing_utils::UnitProcess createScaledUnitProcess(int index, int wireframe_id,
+                                                                               Eigen::Vector3d st_pt, Eigen::Vector3d end_pt,
+                                                                               std::vector<Eigen::Vector3d> feasible_orients,
+                                                                               std::string type_str,
+                                                                               double element_diameter,
+                                                                               double shrink_length);
 
   void setTransfVec(const Eigen::Vector3d& ref_pt, const Eigen::Vector3d& base_center_pt, const double& scale)
   {

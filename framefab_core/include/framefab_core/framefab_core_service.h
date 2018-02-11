@@ -21,6 +21,7 @@
 
 // actions
 #include <framefab_msgs/TaskSequenceProcessingAction.h>
+#include <framefab_msgs/TaskSequencePlanningAction.h>
 #include <framefab_msgs/ProcessPlanningAction.h>
 #include <framefab_msgs/ProcessExecutionAction.h>
 #include <framefab_msgs/SimulateMotionPlanAction.h>
@@ -30,6 +31,8 @@
 // core service instances
 #include <framefab_core/visual_tools/framefab_visual_tool.h>
 #include "framefab_core/trajectory_library.h"
+
+#include <rviz_visual_tools/rviz_visual_tools.h>
 
 /**
  * Associates a name with a joint trajectory
@@ -79,6 +82,7 @@ class FrameFabCoreService
 
   // Action callbacks
   void taskSequenceProcessingActionCallback(const framefab_msgs::TaskSequenceProcessingGoalConstPtr &goal);
+  void taskSequencePlanningActionCallback(const framefab_msgs::TaskSequencePlanningGoalConstPtr &goal);
   void processPlanningActionCallback(const framefab_msgs::ProcessPlanningGoalConstPtr &goal);
   void simulateMotionPlansActionCallback(const framefab_msgs::SimulateMotionPlanGoalConstPtr& goal_in);
 
@@ -106,6 +110,7 @@ class FrameFabCoreService
 
   // Services subscribed to by this class
   ros::ServiceClient task_sequence_processing_srv_client_;
+  ros::ServiceClient task_sequence_planning_srv_client_;
   ros::ServiceClient process_planning_client_;
   ros::ServiceClient move_to_pose_client_;
   ros::ServiceClient output_processing_client_;
@@ -115,6 +120,10 @@ class FrameFabCoreService
   actionlib::SimpleActionServer<framefab_msgs::TaskSequenceProcessingAction> task_sequence_processing_server_;
   framefab_msgs::TaskSequenceProcessingFeedback task_sequence_processing_feedback_;
   framefab_msgs::TaskSequenceProcessingResult task_sequence_processing_result_;
+
+  actionlib::SimpleActionServer<framefab_msgs::TaskSequencePlanningAction> task_sequence_planning_server_;
+  framefab_msgs::TaskSequencePlanningFeedback task_sequence_planning_feedback_;
+  framefab_msgs::TaskSequencePlanningResult task_sequence_planning_result_;
 
   actionlib::SimpleActionServer<framefab_msgs::ProcessPlanningAction> process_planning_server_;
   framefab_msgs::ProcessPlanningFeedback process_planning_feedback_;
@@ -131,6 +140,7 @@ class FrameFabCoreService
 
   // Core Service Instances
   framefab_visual_tools::FrameFabVisualTool visual_tool_;
+  rviz_visual_tools::RvizVisualToolsPtr print_bed_visual_tool_;
 
   // working environment collision objects
   std::vector<moveit_msgs::CollisionObject> env_objs_;

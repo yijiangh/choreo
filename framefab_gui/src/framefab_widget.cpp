@@ -39,6 +39,7 @@ framefab_gui::FrameFabWidget::FrameFabWidget(QWidget* parent)
   // Wire in selection signals
   connect(selection_widget_, SIGNAL(enterSelectionWidget()), this, SLOT(onDisableButtons()));
   connect(selection_widget_, SIGNAL(exitSelectionWidget()), this, SLOT(onEnableButtons()));
+  connect(selection_widget_, SIGNAL(enableFrameFabWidgetButtons()), this, SLOT(onEnableButtons()));
   connect(selection_widget_, SIGNAL(setOutputSaveDirOn()), this, SLOT(showOutputSaveDirParams()));
 
   // Connect to ROS save params services

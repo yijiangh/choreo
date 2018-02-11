@@ -24,6 +24,7 @@ add_action_files(
     action
     FILES
 		TaskSequenceProcessing.action
+		TaskSequencePlanning.action
     ProcessPlanning.action
     SimulateMotionPlan.action
     ProcessExecution.action
@@ -42,6 +43,8 @@ add_message_files(
 		UnitProcessPlan.msg
 		SubProcess.msg
 		ElementCandidatePoses.msg
+		CollisionObjectList.msg
+		WireFrameCollisionObject.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -49,6 +52,7 @@ add_service_files(
 		FILES
 		FrameFabParameters.srv
 		TaskSequenceProcessing.srv
+		TaskSequencePlanning.srv
 		ElementNumberRequest.srv
 		VisualizeSelectedPath.srv
 		ProcessPlanning.srv

@@ -39,6 +39,7 @@ struct VisualUnitProcessPath
 
   UNIT_PATH_TYPE type;
   double diameter;
+  int layer_id;
 };
 
 class FrameFabVisualTool
@@ -52,6 +53,12 @@ class FrameFabVisualTool
 
   void init(std::string frame_name, std::string marker_topic);
 
+  void setVisualWireFrame(const PathArray& path_array)
+  {
+    path_array_ = path_array;
+    convertWireFrameVisual(path_array_, visual_path_array_);
+  }
+
   void setProcessPath(const PathArray& path_array)
   {
     path_array_ = path_array;
@@ -62,13 +69,18 @@ class FrameFabVisualTool
 
   void visualizeAllPaths();
   void visualizePathUntil(int index);
-
   void visualizeFeasibleOrientations(int index, bool solid);
+
+  void visualizeAllWireFrame();
+
+  //TODO
+  void visualizeWireFrameUntilLayer(int index);
 
   void cleanUpAllPaths();
 
  protected:
   void convertPathVisual(const PathArray& path_array, VisualPathArray& visual_path_array);
+  void convertWireFrameVisual(const PathArray& path_array, VisualPathArray& visual_path_array);
 
  private:
   ros::NodeHandle nh_;

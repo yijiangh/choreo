@@ -4,6 +4,7 @@
 
 //subscribed services
 #include <framefab_msgs/TaskSequenceProcessing.h>
+#include <framefab_msgs/TaskSequencePlanning.h>
 #include <framefab_msgs/ProcessPlanning.h>
 #include <framefab_msgs/MoveToTargetPose.h>
 #include <framefab_msgs/OutputProcessing.h>
@@ -28,6 +29,7 @@ const static std::string QUERY_COMPUTATION_RESULT="query_computation_result";
 
 // subscribed services
 const static std::string TASK_SEQUENCE_PROCESSING_SERVICE = "task_sequence_processing";
+const static std::string TASK_SEQUENCE_PLANNING_SERVICE = "task_sequence_planning";
 const static std::string PROCESS_PLANNING_SERVICE = "process_planning";
 const static std::string MOVE_TO_TARGET_POSE_SERVICE = "move_to_target_pose";
 const static std::string OUTPUT_PROCESSING_SERVICE = "output_processing";
@@ -40,23 +42,54 @@ const static std::string OUTPUT_SAVE_DIR_INPUT_PARAMS_FILE = "output_save_dir_in
 
 // Visualization Maker topics
 const static std::string PATH_VISUAL_TOPIC = "path_visualization";
+const static std::string PRINT_BED_VISUAL_TOPIC = "print_bed_visualization";
 
 // subscribed action server name - note: must be same to client's name
-const static std::string FRAMEFAB_EXE_ACTION_SERVER_NAME =              "framefab_execution_as";
-const static std::string TASK_SEQUENCE_PROCESSING_ACTION_SERVER_NAME =  "task_sequence_processing_action";
-const static std::string PROCESS_PLANNING_ACTION_SERVER_NAME =          "process_planning_action";
+const static std::string FRAMEFAB_EXE_ACTION_SERVER_NAME = "framefab_execution_as";
+const static std::string TASK_SEQUENCE_PROCESSING_ACTION_SERVER_NAME = "task_sequence_processing_action";
+const static std::string TASK_SEQUENCE_PLANNING_ACTION_SERVER_NAME = "task_sequence_planning_action";
+const static std::string PROCESS_PLANNING_ACTION_SERVER_NAME = "process_planning_action";
 
 // serving action
 const static std::string SIMULATE_MOTION_PLAN_ACTION_SERVER_NAME = "simulate_motion_plan_as";
 
 const static int PROCESS_EXE_BUFFER = 5;  // Additional time [s] buffer between when blending should end and timeout
 
+namespace
+{
+void visualizePrintBedBoundary(rviz_visual_tools::RvizVisualToolsPtr visual_tools)
+{
+  // TODO: this shoud read print bed boundary data from user input msg
+  namespace rvt = rviz_visual_tools;
+
+  visual_tools->deleteAllMarkers();
+
+  // in meter
+  Eigen::Vector3d pt1(0.515, -0.318, 0.0235);
+  Eigen::Vector3d pt2(0.862, -0.318, 0.0235);
+  Eigen::Vector3d pt3(0.862, 0.306, 0.0235);
+  Eigen::Vector3d pt4(0.515, 0.306, 0.0235);
+
+  auto color = rvt::colors::BLUE;
+  auto scale = rvt::scales::XXXSMALL;
+
+  visual_tools->publishLine(pt1, pt2, color, scale);
+  visual_tools->publishLine(pt2, pt3, color, scale);
+  visual_tools->publishLine(pt3, pt4, color, scale);
+  visual_tools->publishLine(pt4, pt1, color, scale);
+
+  visual_tools->trigger();
+}
+}// util namespace
+
 FrameFabCoreService::FrameFabCoreService()
     : save_data_(false),
       selected_task_id_(0),
       framefab_exe_client_(FRAMEFAB_EXE_ACTION_SERVER_NAME, true),
       task_sequence_processing_server_(nh_, TASK_SEQUENCE_PROCESSING_ACTION_SERVER_NAME,
-                            boost::bind(&FrameFabCoreService::taskSequenceProcessingActionCallback, this, _1), false),
+                                       boost::bind(&FrameFabCoreService::taskSequenceProcessingActionCallback, this, _1), false),
+      task_sequence_planning_server_(nh_, TASK_SEQUENCE_PLANNING_ACTION_SERVER_NAME,
+                                     boost::bind(&FrameFabCoreService::taskSequencePlanningActionCallback, this, _1), false),
       process_planning_server_(nh_, PROCESS_PLANNING_ACTION_SERVER_NAME,
                                boost::bind(&FrameFabCoreService::processPlanningActionCallback, this, _1), false),
       simulate_motion_plan_server_(nh_, SIMULATE_MOTION_PLAN_ACTION_SERVER_NAME,
@@ -117,11 +150,15 @@ bool FrameFabCoreService::init()
 
   // start local instances
   visual_tool_.init("world_frame", PATH_VISUAL_TOPIC);
+  print_bed_visual_tool_.reset(new rviz_visual_tools::RvizVisualTools("world_frame", PRINT_BED_VISUAL_TOPIC));
+  print_bed_visual_tool_->deleteAllMarkers();
+  print_bed_visual_tool_->enableBatchPublishing();
 
   // start server
 
   // service clients
   task_sequence_processing_srv_client_ = nh_.serviceClient<framefab_msgs::TaskSequenceProcessing>(TASK_SEQUENCE_PROCESSING_SERVICE);
+  task_sequence_planning_srv_client_ = nh_.serviceClient<framefab_msgs::TaskSequencePlanning>(TASK_SEQUENCE_PLANNING_SERVICE);
   process_planning_client_ = nh_.serviceClient<framefab_msgs::ProcessPlanning>(PROCESS_PLANNING_SERVICE);
   move_to_pose_client_  = nh_.serviceClient<framefab_msgs::MoveToTargetPose>(MOVE_TO_TARGET_POSE_SERVICE);
   output_processing_client_  = nh_.serviceClient<framefab_msgs::OutputProcessing>(OUTPUT_PROCESSING_SERVICE);
@@ -130,6 +167,7 @@ bool FrameFabCoreService::init()
 
   // action servers
   task_sequence_processing_server_.start();
+  task_sequence_planning_server_.start();
   process_planning_server_.start();
   simulate_motion_plan_server_.start();
 
@@ -150,19 +188,29 @@ bool FrameFabCoreService::loadModelInputParameters(const std::string & filename)
   using framefab_param_helpers::loadParam;
   using framefab_param_helpers::loadBoolParam;
 
-  if(framefab_param_helpers::fromFile(filename, model_input_params_))
+  bool success = false;
+
+  success = framefab_param_helpers::fromFile(filename, model_input_params_);
+
+  if(!success)
   {
-    return true;
+    // otherwise default to the parameter server
+    ros::NodeHandle nh("~/model_input");
+    success = loadParam(nh, "ref_pt_x", model_input_params_.ref_pt_x) &&
+        loadParam(nh, "ref_pt_y", model_input_params_.ref_pt_y) &&
+        loadParam(nh, "ref_pt_z", model_input_params_.ref_pt_z) &&
+        loadParam(nh, "unit_type", model_input_params_.unit_type) &&
+        loadParam(nh, "element_diameter", model_input_params_.element_diameter) &&
+        loadParam(nh, "shrink_length", model_input_params_.shrink_length);
   }
 
-  // otherwise default to the parameter server
-  ros::NodeHandle nh("~/model_input");
-  return loadParam(nh, "ref_pt_x", model_input_params_.ref_pt_x) &&
-      loadParam(nh, "ref_pt_y", model_input_params_.ref_pt_y) &&
-      loadParam(nh, "ref_pt_z", model_input_params_.ref_pt_z) &&
-      loadParam(nh, "unit_type", model_input_params_.unit_type) &&
-      loadParam(nh, "element_diameter", model_input_params_.element_diameter) &&
-      loadParam(nh, "shrink_length", model_input_params_.shrink_length);
+  if(success)
+  {
+    // visualize print bed boundary
+//    visualizePrintBedBoundary(print_bed_visual_tool_);
+  }
+
+  return success;
 }
 
 
@@ -294,6 +342,10 @@ bool FrameFabCoreService::framefabParametersServerCallback(
         this->saveRobotInputParameters(param_cache_prefix_ + ROBOT_INPUT_PARAMS_FILE);
         this->saveOutputSaveDirInputParameters(param_cache_prefix_ + OUTPUT_SAVE_DIR_INPUT_PARAMS_FILE);
       }
+
+      // visualize printbed boundary
+      visualizePrintBedBoundary(print_bed_visual_tool_);
+
       break;
   }
 
@@ -433,6 +485,9 @@ void FrameFabCoreService::taskSequenceProcessingActionCallback(const framefab_ms
         task_sequence_processing_feedback_.last_completed = "Finished task sequence processing. Visualizing...\n";
         task_sequence_processing_server_.publishFeedback(task_sequence_processing_feedback_);
 
+        // visualize print bed
+        visualizePrintBedBoundary(print_bed_visual_tool_);
+
         // import data into visual_tools
         visual_tool_.setProcessPath(srv.response.process);
         visual_tool_.visualizeAllPaths();
@@ -450,10 +505,64 @@ void FrameFabCoreService::taskSequenceProcessingActionCallback(const framefab_ms
     {
       // NOT SUPPORTING OTHER ACTION GOAL NOW
       ROS_ERROR_STREAM("Unknown action code '" << goal_in->action << "' request");
+      task_sequence_processing_result_.succeeded = false;
+      task_sequence_processing_server_.setAborted(task_sequence_processing_result_);
+
       break;
     }
   }
-  task_sequence_processing_result_.succeeded = false;
+}
+
+void FrameFabCoreService::taskSequencePlanningActionCallback(const framefab_msgs::TaskSequencePlanningGoalConstPtr &goal_in)
+{
+  task_sequence_planning_feedback_.last_completed = "[Core] Recieved request to process task sequence plan\n";
+  task_sequence_planning_server_.publishFeedback(task_sequence_planning_feedback_);
+
+  // visualize print bed
+  visualizePrintBedBoundary(print_bed_visual_tool_);
+
+  // call task_sequence_planning srv
+  framefab_msgs::TaskSequencePlanning srv;
+  srv.request.action = srv.request.READ_WIREFRAME;
+  srv.request.model_params = model_input_params_;
+  srv.request.task_sequence_params = task_sequence_input_params_;
+
+  if(!task_sequence_planning_srv_client_.call(srv))
+  {
+    ROS_WARN_STREAM("[Core] task sequence planning service read wireframe failed.");
+    task_sequence_planning_feedback_.last_completed = "[Core] task sequence planning service read wireframe failed!\n";
+    task_sequence_planning_server_.publishFeedback(task_sequence_planning_feedback_);
+    task_sequence_planning_result_.succeeded = false;
+    task_sequence_planning_server_.setAborted(task_sequence_planning_result_);
+  }
+  else
+  {
+    // import data into visual_tools
+    visual_tool_.setVisualWireFrame(srv.response.element_array);
+
+    visual_tool_.visualizeAllWireFrame();
+
+    srv.request.action = srv.request.TASK_SEQUENCE_SEARCHING;
+
+    if (!task_sequence_planning_srv_client_.call(srv))
+    {
+      ROS_WARN_STREAM("[Core] task sequence planning service seq search failed.");
+      task_sequence_planning_feedback_.last_completed =
+          "[Core] task sequence planning service read seq search failed!\n";
+      task_sequence_planning_server_.publishFeedback(task_sequence_planning_feedback_);
+      task_sequence_planning_result_.succeeded = false;
+      task_sequence_planning_server_.setAborted(task_sequence_planning_result_);
+    }
+    else
+    {
+      // take srv output, save them
+      task_sequence_planning_feedback_.last_completed = "Finished task sequence planning.\n";
+      task_sequence_planning_server_.publishFeedback(task_sequence_planning_feedback_);
+
+      task_sequence_planning_result_.succeeded = true;
+      task_sequence_planning_server_.setSucceeded(task_sequence_planning_result_);
+    }
+  }
 }
 
 void FrameFabCoreService::processPlanningActionCallback(const framefab_msgs::ProcessPlanningGoalConstPtr &goal_in)

@@ -17,7 +17,7 @@ namespace framefab_gui
 
 class SelectForPlanPopUpWidget : public QWidget
 {
- Q_OBJECT
+  Q_OBJECT
 
  public:
   SelectForPlanPopUpWidget(QWidget* parent = 0);
@@ -28,9 +28,16 @@ class SelectForPlanPopUpWidget : public QWidget
 
   void enableButtons(bool record_found);
 
- Q_SIGNALS:
+  Q_SIGNALS:
   void buttonRecompute();
   void buttonKeepRecord();
+  void exitSelectForPlanPopUpWidget();
+
+ protected Q_SLOTS:
+  void closeWindow();
+
+ protected:
+  virtual void closeEvent(QCloseEvent *ev);
 
  private:
   // Display layout

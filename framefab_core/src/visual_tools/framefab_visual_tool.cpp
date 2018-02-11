@@ -59,6 +59,25 @@ void framefab_visual_tools::FrameFabVisualTool::convertPathVisual(
   }
 }
 
+void framefab_visual_tools::FrameFabVisualTool::convertWireFrameVisual(
+    const PathArray& path_array, VisualPathArray& visual_path_array)
+{
+  visual_path_array.clear();
+
+  for(int i=0; i < path_array_.size(); i++)
+  {
+    VisualUnitProcessPath v_unit_path;
+
+    // fill in element info
+    tf::pointMsgToEigen(path_array[i].start_pt, v_unit_path.start_pt);
+    tf::pointMsgToEigen(path_array[i].end_pt, v_unit_path.end_pt);
+    v_unit_path.layer_id = path_array[i].layer_id;
+    v_unit_path.diameter = path_array[i].element_diameter;
+
+    visual_path_array.push_back(v_unit_path);
+  }
+}
+
 void framefab_visual_tools::FrameFabVisualTool::visualizeAllPaths()
 {
   visual_tools_->deleteAllMarkers();
@@ -169,6 +188,24 @@ void framefab_visual_tools::FrameFabVisualTool::visualizeFeasibleOrientations(in
       type_color_avr,
       0.0003,
       "orientation_cylinder");
+
+  visual_tools_->trigger();
+}
+
+void framefab_visual_tools::FrameFabVisualTool::visualizeAllWireFrame()
+{
+  visual_tools_->deleteAllMarkers();
+
+  for(std::size_t i = 0; i < visual_path_array_.size(); i++)
+  {
+    rviz_visual_tools::colors type_color =
+        static_cast<rviz_visual_tools::colors>((visual_path_array_[i].layer_id * 2) % 14 + 1);
+
+    visual_tools_->publishCylinder(visual_path_array_[i].start_pt,
+                                   visual_path_array_[i].end_pt,
+                                   type_color,
+                                   visual_path_array_[i].diameter);
+ }
 
   visual_tools_->trigger();
 }
