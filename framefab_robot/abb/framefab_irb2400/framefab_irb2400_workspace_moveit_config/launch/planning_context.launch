@@ -6,7 +6,7 @@
   <arg name="robot_description" default="robot_description"/>
 
   <!-- Load universal robot description format (URDF) -->
-  <param if="$(arg load_robot_description)" name="$(arg robot_description)" command="$(find xacro)/xacro --inorder '$(find framefab_irb2400_support)/urdf/irb2400_with_linear_track_workspace.xacro'"/>
+  <param if="$(arg load_robot_description)" name="$(arg robot_description)" command="$(find xacro)/xacro --inorder '$(find framefab_irb2400_support)/urdf/irb2400_with_linear_track_workspace.urdf'"/>
 
   <!-- The semantic description that corresponds to the URDF -->
   <param name="$(arg robot_description)_semantic" textfile="$(find framefab_irb2400_workspace_moveit_config)/config/framefab_irb2400_workspace.srdf" />

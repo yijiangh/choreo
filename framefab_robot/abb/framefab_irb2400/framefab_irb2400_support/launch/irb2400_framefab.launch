@@ -2,7 +2,7 @@
 <launch>
   <!-- arguments -->
   <arg name="sim_robot" default="true"/>
-	<arg name="robot_model_plugin" default="framefab_abb_irb2400_descartes/FramefabAbbIrb2400RobotModel"/>
+	<arg name="robot_model_plugin" default="framefab_irb2400_workspace_descartes/FramefabIrb2400WorkspaceRobotModel"/>
   <arg name="debug_rviz" default="false"/>
   <arg name="debug_core" default="false"/> <!--Brings up the framefab core service in debug mode-->
   <arg name="save_data" default="false" />

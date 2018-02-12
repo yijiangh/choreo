@@ -161,6 +161,14 @@ Visualization Manager:
         {}
       Queue Size: 100
       Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /framefab_core_service/print_bed_visualization
+      Name: MarkerArray
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: true
     - Attached Body Color: 150; 50; 150
       Class: moveit_rviz_plugin/RobotState
       Collision Enabled: false

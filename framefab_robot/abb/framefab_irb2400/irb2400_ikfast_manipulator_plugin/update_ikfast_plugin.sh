@@ -1,1 +1,0 @@
-rosrun moveit_kinematics create_ikfast_moveit_plugin.py framefab_irb2400 manipulator irb2400_ikfast_manipulator_plugin /home/yijiangh/catkin_ws/src/framefab_mpp/framefab_robot/abb/framefab_irb2400/irb2400_ikfast_manipulator_plugin/src/framefab_irb2400_manipulator_ikfast_solver.cpp
