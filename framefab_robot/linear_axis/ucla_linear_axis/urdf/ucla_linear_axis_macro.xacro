@@ -4,11 +4,9 @@
 
 	<xacro:macro name="ucla_linear_axis" params="prefix">
 
-<!--inherent from target robot model-->
-<!--	<link name="${prefix}link_4_mount_point"/>-->
+	<!--	Link list-->
 
-<!--	<link name="${prefix}material_feeder">-->
-	<link name="${prefix}linear_axis">
+	<link name="${prefix}base_link">
 	  <visual>
 		<geometry>
 		  <mesh filename="package://ucla_linear_axis/meshes/visual/ucla_linear_axis_visual_model.stl" scale=".001 .001 .001"/>
@@ -27,11 +25,37 @@
 	  </collision>
 	</link>
 
-<!--	<joint name="${prefix}link_4_mount_point_to_material_feeder" type="fixed">-->
-<!--		<parent link="${prefix}link_4_mount_point"/>-->
-<!--		<child link="${prefix}material_feeder"/>-->
-<!--		<origin xyz="0 0 0" rpy="0 0 0"/>-->
-<!--	</joint>-->
+	<link name="${prefix}zero"/>
+
+	<link name="${prefix}carriage"/>
+
+	<link name="${prefix}robot_mount"/>
+
+	<!--	End of link list-->
+
+	<!-- Joint list -->
+
+  <joint name="${prefix}joint_1" type="fixed">
+    <parent link="${prefix}base_link"/>
+    <child link="${prefix}zero"/>
+    <origin xyz="$0.0 0.0 0.0" rpy="0 0 0"/>
+  </joint>
+
+  <joint name="${prefix}actuation_joint" type="prismatic">
+    <parent link="${prefix}zero"/>
+    <child link="${prefix}carriage"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="1 0 0"/>
+    <limit lower="-5.750" upper="-0.010" effort="0" velocity="0.150"/>
+  </joint>
+
+	<joint name="${prefix}joint_3" type="fixed">
+    <parent link="${prefix}carriage"/>
+    <child link="${prefix}robot_mount"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+	<!-- End of joint list -->
 
 	</xacro:macro>
 </robot>

@@ -1,56 +1,46 @@
 <?xml version="1.0" ?>
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
-  <xacro:property name="hotend_tcp_x" value="0.150539"/>
-  <xacro:property name="hotend_tcp_y" value="0.001052"/>
-  <xacro:property name="hotend_tcp_z" value="0.119157"/>
+  <xacro:macro name="asw_eef" params="prefix">
 
-  <xacro:property name="half_pi" value="1.5707963267948966"/>
+  <xacro:property name="tcp_cal_filename" value="$(find asw_end_effector)/config/tcp_calibration.yaml"/>
+  <xacro:property name="tcp_cal" value="${load_yaml(tcp_cal_filename)}" />
 
+  <xacro:property name="eef_mount_offset_filename" value="$(find asw_end_effector)/config/eef_mount_offset.yaml"/>
+  <xacro:property name="eef_mount_offset" value="${load_yaml(eef_mount_offset_filename)}" />
+	
+	<!-- link list -->
+  <link name="${prefix}base_link"/>
+    <visual>
+    	<origin xyz="${eef_mount_offset['transform']['x']} ${eef_mount_offset['transform']['y']} ${eef_mount_offset['transform']['z']}" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://asw_end_effector/meshes/visual/asw_hotend_end_effector.stl" scale=".001 .001 .001"/>
+      </geometry>
+      <material name="grey">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+    	<origin xyz="${eef_mount_offset['transform']['x']} ${eef_mount_offset['transform']['y']} ${eef_mount_offset['transform']['z']}" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://asw_end_effector/meshes/collision/asw_hotend_end_effector_shrinked_tip-4mm.stl" scale=".001 .001 .001"/>
+      </geometry>
+      <material name="red">
+        <color rgba="1 0 0 1"/>
+      </material>
+    </collision>
+  </link>
 
-  <xacro:macro name="asw_eef_definition" params="prefix">
-    <!-- eef_frame is Base Link -->
-    <link name="${prefix}eef_frame"/>
+	<link name="${prefix}tcp_frame"/>
+	<!-- end of link list -->
 
-    <link name="${prefix}hotend_tool">
-      <visual>
-        <geometry>
-          <mesh filename="package://asw_end_effector/meshes/visual/asw_hotend_end_effector.stl" scale=".001 .001 .001"/>
-        </geometry>
-        <material name="grey">
-          <color rgba="0.5 0.5 0.5 1.0"/>
-        </material>
-      </visual>
-      <collision>
-        <geometry>
-          <mesh filename="package://asw_end_effector/meshes/collision/asw_hotend_end_effector_shrinked_tip-4mm.stl" scale=".001 .001 .001"/>
-        </geometry>
-        <material name="red">
-          <color rgba="1 0 0 1"/>
-        </material>
-      </collision>
-    </link>
-
-    <joint name="${prefix}eef_frame_to_hotend_tool" type="fixed">
-        <parent link="${prefix}eef_frame"/>
-        <child link="${prefix}hotend_tool"/>
-        <origin xyz="0.000088 0.000769 -0.002121" rpy="0 0 0"/>
-    </joint>
-
-    <link name="${prefix}tmp_tcp_frame"/> <!--The actual 'useful' work frame-->
-    <link name="${prefix}tcp_frame"/> <!--The actual 'useful' work frame-->
-
-    <joint name="${prefix}eef_to_hotend_tcp_frame" type="fixed">
-        <parent link="${prefix}eef_frame"/>
-        <child link="${prefix}tmp_tcp_frame"/>
-        <origin xyz="${hotend_tcp_x} ${hotend_tcp_y} ${hotend_tcp_z}" rpy="0 ${half_pi} 0"/>
-    </joint>
-
-    <joint name="${prefix}tmp_to_tcp_frame" type="fixed">
-        <parent link="${prefix}tmp_tcp_frame"/>
-        <child link="${prefix}tcp_frame"/>
-        <origin xyz="0 0 0.0"/>
-    </joint>
-
+	<!-- joint list -->
+  <joint name="${prefix}base_to_tcp" type="fixed">
+		<origin xyz="${tcp_cal['transform']['x']} ${tcp_cal['transform']['y']} ${tcp_cal['transform']['z']}"
+              rpy="${tcp_cal['transform']['roll']} ${tcp_cal['transform']['pitch']} ${tcp_cal['transform']['yaw']}"/>
+    <parent link="${prefix}base_link"/>
+    <child link="${prefix}tcp_frame"/>
+  </joint>
+	<!-- end of joint list -->
 
   </xacro:macro>
 </robot>

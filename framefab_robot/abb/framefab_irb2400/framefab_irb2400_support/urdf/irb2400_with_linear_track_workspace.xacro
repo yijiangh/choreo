@@ -1,40 +1,50 @@
 <?xml version="1.0" ?>
 <robot name="framefab_irb2400_workspace" xmlns:xacro="http://ros.org/wiki/xacro">
-  <!--robot-->
+
+	<xacro:include filename="$(find a5_support)/urdf/resources/materials.xacro"/>
   <xacro:include filename="$(find abb_irb2400_support)/urdf/irb2400_macro.xacro"/>
-
-	<!--end effector-->
 	<xacro:include filename="$(find asw_end_effector)/urdf/asw_eef_macro.xacro"/>
-  
-	<!--linear track setup-->
-	<xacro:include filename="$(find framefab_irb2400_support)/urdf/simple_linear_track_macro.xacro"/>
+	<xacro:include filename="$(find ucla_linear_axis)/urdf/ucla_linear_axis_macro.xacro"/>
+	<!--	<xacro:include filename="$(find framefab_irb2400_support)/urdf/simple_linear_track_demo_cell_macro.xacro"/>-->
 
-	<!--workcell setup-->
-	<xacro:include filename="$(find framefab_irb2400_support)/urdf/simple_linear_track_demo_cell_macro.xacro"/>
+  <xacro:abb_irb2400 prefix="robot_"/>
+  <xacro:asw_eef_definition prefix="eef_"/>
+  <xacro:ucla_linear_axis prefix="linear_axis_"/>
+	<!--  <xacro:simple_linear_track_demo_cell prefix=""/>-->
 
-  <link name="world_frame"/>
+	<!-- Link list -->
+	<link name="world_frame"/>
 
-  <!-- instantiating arm  --> 
-  <xacro:abb_irb2400 prefix=""/>
-  <!-- instantiating end effector  -->
-  <xacro:asw_eef_definition prefix=""/>
-	<!-- linear track  -->
-  <xacro:simple_linear_track prefix=""/>
-  <!-- workcell  -->
-  <xacro:simple_linear_track_demo_cell prefix=""/>
+  <link name="base_link"/>
 
-	<!-- Attach the end effector to the end of the robot arm (tool0) -->
-	<joint name="link_t_to_eef" type="fixed">
-		<parent link="tool0"/>
-		<child link="eef_frame"/>
-		<origin xyz="0 0 0" rpy="0 0 0"/>
-	</joint>
+	<!-- End of link list -->
 
-	<!--bind the rail to word_frame-->
-  <joint name="world_to_rail" type="fixed">
+	<!-- Joint list -->
+	<!--bind the rail to word_frame, can be disabled if using modile platform-->
+  <joint name="world_to_base_link" type="fixed">
     <parent link="world_frame" />
-    <child link="rail" />
+    <child link="base_link" />
     <origin xyz="0 0 0"/>
   </joint>
-  
+
+	<joint name="linear_axis_to_base_link" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <parent link="base_link"/>
+    <child link="linear_axis_base_link"/>
+  </joint>
+
+  <joint name="robot_to_linear_axis" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <parent link="linear_axis_robot_mount"/>
+    <child link="robot_base_link"/>
+  </joint>
+
+	<joint name="ee_to_robot" type="fixed">
+		<parent link="tool0"/>
+		<child link="eef_base_link"/>
+		<origin xyz="0 0 0" rpy="0 0 0"/>
+	</joint>
+ 
+	<!-- End of joint list -->
+
 </robot>
