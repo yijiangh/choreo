@@ -1,6 +1,7 @@
 <?xml version="1.0" ?>
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
 	<xacro:property name="half_pi" value="1.5707963267948966"/>
+	<xacro:include filename="$(find ucla_linear_axis)/urdf/resources/materials.xacro"/>
 
 	<xacro:macro name="ucla_linear_axis" params="prefix">
 
@@ -9,36 +10,44 @@
 	<link name="${prefix}base_link">
 	  <visual>
 		<geometry>
-		  <mesh filename="package://ucla_linear_axis/meshes/visual/ucla_linear_axis_visual_model.stl" scale=".001 .001 .001"/>
+		  <mesh filename="package://ucla_linear_axis/meshes/visual/ucla_linear_axis_visual_rail.stl" scale=".001 .001 .001"/>
 		</geometry>
-		<material name="grey">
-		  <color rgba="0.5 0.5 0.5 1.0"/>
-		</material>
+		<xacro:material_gudel_gray/>
 	  </visual>
 	  <collision>
 		<geometry>
-		  <mesh filename="package://ucla_linear_axis/meshes/collision/ucla_linear_axis_collision_model.stl" scale=".001 .001 .001"/>
+		  <mesh filename="package://ucla_linear_axis/meshes/collision/ucla_linear_axis_collision_rail.stl" scale=".001 .001 .001"/>
 		</geometry>
-		<material name="red">
-		  <color rgba="1 0 0 1"/>
-		</material>
+		<xacro:material_gudel_gray/>
 	  </collision>
 	</link>
 
 	<link name="${prefix}zero"/>
 
-	<link name="${prefix}carriage"/>
+  <link name="${prefix}carriage">
+    <visual>
+      <geometry>
+        <mesh filename="package://ucla_linear_axis/meshes/visual/ucla_linear_axis_visual_carriage.stl" scale=".001 .001 .001"/>
+      </geometry>
+			<xacro:material_gudel_green/>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://ucla_linear_axis/meshes/collision/ucla_linear_axis_collision_carriage.stl" scale=".001 .001 .001"/>
+      </geometry>
+			<xacro:material_gudel_green/>
+    </collision>
+  </link>
 
 	<link name="${prefix}robot_mount"/>
 
 	<!--	End of link list-->
 
 	<!-- Joint list -->
-
   <joint name="${prefix}joint_1" type="fixed">
     <parent link="${prefix}base_link"/>
     <child link="${prefix}zero"/>
-    <origin xyz="$0.0 0.0 0.0" rpy="0 0 0"/>
+    <origin xyz="-3.153 -0.212 0.470" rpy="0 0 0"/>
   </joint>
 
   <joint name="${prefix}actuation_joint" type="prismatic">
@@ -46,15 +55,14 @@
     <child link="${prefix}carriage"/>
     <origin xyz="0 0 0" rpy="0 0 0"/>
     <axis xyz="1 0 0"/>
-    <limit lower="-5.750" upper="-0.010" effort="0" velocity="0.150"/>
+    <limit lower="0" upper="5.4" effort="0" velocity="0.150"/>
   </joint>
 
 	<joint name="${prefix}joint_3" type="fixed">
     <parent link="${prefix}carriage"/>
     <child link="${prefix}robot_mount"/>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <origin xyz="0 0 0.470" rpy="0 0 0"/>
   </joint>
-
 	<!-- End of joint list -->
 
 	</xacro:macro>
