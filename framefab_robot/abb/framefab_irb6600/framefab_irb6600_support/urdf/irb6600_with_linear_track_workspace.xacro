@@ -1,12 +1,12 @@
 <?xml version="1.0" ?>
-<robot name="framefab_irb2400_workspace" xmlns:xacro="http://ros.org/wiki/xacro">
+<robot name="framefab_irb6600_workspace" xmlns:xacro="http://ros.org/wiki/xacro">
 
 	<xacro:property name="half_pi" value="1.5707963267948966"/>
 	<xacro:include filename="$(find framefab_irb6600_support)/urdf/resources/materials.xacro"/>
   <xacro:include filename="$(find abb_irb6600_support)/urdf/irb6640_macro.xacro"/>
 	<xacro:include filename="$(find asw_end_effector)/urdf/asw_eef_macro.xacro"/>
 	<xacro:include filename="$(find ucla_linear_axis)/urdf/ucla_linear_axis_macro.xacro"/>
-	<!--	<xacro:include filename="$(find framefab_irb2400_support)/urdf/simple_linear_track_demo_cell_macro.xacro"/>-->
+	<!--	<xacro:include filename="$(find framefab_irb6600_support)/urdf/simple_linear_track_demo_cell_macro.xacro"/>-->
 
   <xacro:abb_irb6640 prefix="robot_"/>
   <xacro:asw_eef prefix="eef_"/>

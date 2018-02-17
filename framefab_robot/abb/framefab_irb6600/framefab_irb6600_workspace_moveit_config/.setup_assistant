@@ -1,0 +1,10 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: framefab_irb6600_support
+    relative_path: urdf/irb6600_with_linear_track_workspace.urdf
+  SRDF:
+    relative_path: config/framefab_irb6600_workspace.srdf
+  CONFIG:
+    author_name: Yijiang Huang
+    author_email: yijiangh@mit.edu
+    generated_timestamp: 1518877684
