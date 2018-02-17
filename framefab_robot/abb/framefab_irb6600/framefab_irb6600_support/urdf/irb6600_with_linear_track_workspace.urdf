@@ -300,16 +300,10 @@
   <!-- End of joint list -->
   <!--  <xacro:simple_linear_track_demo_cell prefix=""/>-->
   <!-- Link list -->
-  <link name="world_frame"/>
   <link name="base_link"/>
   <!-- End of link list -->
   <!-- Joint list -->
   <!--bind the rail to word_frame, can be disabled if using modile platform-->
-  <joint name="world_to_base_link" type="fixed">
-    <parent link="world_frame"/>
-    <child link="base_link"/>
-    <origin xyz="0 0 0"/>
-  </joint>
   <joint name="linear_axis_to_base_link" type="fixed">
     <origin rpy="0 0 1.57079632679" xyz="0 0 0"/>
     <parent link="base_link"/>
