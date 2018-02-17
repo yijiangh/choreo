@@ -6,6 +6,8 @@
 <robot name="framefab_irb2400_simple_track" xmlns:xacro="http://ros.org/wiki/xacro">
   <!-- Conversion were obtained from http://www.e-paint.co.uk/Lab_values.asp
        unless otherwise stated. -->
+  <!--	<xacro:include filename="$(find framefab_irb6600_support)/urdf/simple_linear_track_macro.xacro"/>-->
+  <!--	<xacro:include filename="$(find asw_end_effector)/urdf/asw_eef_macro.xacro"/>-->
   <!--	<xacro:include filename="$(find framefab_irb6600_support)/urdf/simple_linear_track_demo_cell_macro.xacro"/>-->
   <!-- link list -->
   <link name="robot_base_link">
@@ -205,87 +207,33 @@
     <parent link="robot_base_link"/>
     <child link="robot_base"/>
   </joint>
-  <!-- link list -->
-  <link name="eef_base_link">
-    <visual>
-      <origin rpy="0 0 0" xyz="8.8e-05 0.000769 -0.002121"/>
-      <geometry>
-        <mesh filename="package://asw_end_effector/meshes/visual/asw_hotend_end_effector.stl" scale=".001 .001 .001"/>
-      </geometry>
-      <material name="grey">
-        <color rgba="0.5 0.5 0.5 1.0"/>
-      </material>
-    </visual>
-    <collision>
-      <origin rpy="0 0 0" xyz="8.8e-05 0.000769 -0.002121"/>
-      <geometry>
-        <mesh filename="package://asw_end_effector/meshes/collision/asw_hotend_end_effector_shrinked_tip-4mm.stl" scale=".001 .001 .001"/>
-      </geometry>
-      <material name="red">
-        <color rgba="1 0 0 1"/>
-      </material>
-    </collision>
-  </link>
-  <link name="eef_tcp_frame"/>
-  <!-- end of link list -->
-  <!-- joint list -->
-  <joint name="eef_base_to_tcp" type="fixed">
-    <origin rpy="0.0 1.57079632679 0.0" xyz="0.150539 0.001052 0.119157"/>
-    <parent link="eef_base_link"/>
-    <child link="eef_tcp_frame"/>
-  </joint>
-  <!-- end of joint list -->
-  <!--	Link list-->
-  <link name="linear_axis_base_link">
-    <visual>
-      <geometry>
-        <box size="4 0.1 0.1"/>
-      </geometry>
-      <material name="yellow">
-        <color rgba="1.0 1.0 0 1.0"/>
-      </material>
-    </visual>
-    <collision>
-      <origin xyz="0 0 0"/>
-      <geometry>
-        <box size="4 0.1 0.1"/>
-      </geometry>
-      <material name="yellow">
-        <color rgba="1.0 1.0 0 1.0"/>
-      </material>
-    </collision>
-  </link>
-  <link name="linear_axis_robot_mount"/>
-  <!--	End of link list-->
-  <!-- Joint list -->
-  <joint name="linear_axis_actuation_joint" type="prismatic">
-    <parent link="linear_axis_base_link"/>
-    <child link="linear_axis_robot_mount"/>
-    <origin xyz="0 0 0.05"/>
-    <axis xyz="1 0 0"/>
-    <limit effort="1" lower="-2" upper="2" velocity="1"/>
-  </joint>
-  <!-- End of joint list -->
+  <!--  <xacro:asw_eef prefix="eef_"/>-->
+  <!--  <xacro:simple_linear_track prefix="linear_axis_"/>-->
   <!--  <xacro:simple_linear_track_demo_cell prefix=""/>-->
   <!-- Link list -->
   <link name="base_link"/>
   <!-- End of link list -->
   <!-- Joint list -->
-  <!--bind the rail to word_frame, can be disabled if using modile platform-->
-  <joint name="linear_axis_to_base_link" type="fixed">
-    <origin rpy="0 0 1.57079632679" xyz="0 0 0"/>
+  <joint name="robot_to_base_link" type="fixed">
+    <origin rpy="0 0 0" xyz="0 0 0"/>
     <parent link="base_link"/>
-    <child link="linear_axis_base_link"/>
-  </joint>
-  <joint name="robot_to_linear_axis" type="fixed">
-    <origin rpy="0 0 -1.57079632679" xyz="0 0 0"/>
-    <parent link="linear_axis_robot_mount"/>
     <child link="robot_base_link"/>
   </joint>
-  <joint name="ee_to_robot" type="fixed">
-    <parent link="robot_tool0"/>
-    <child link="eef_base_link"/>
-    <origin rpy="0 0 0" xyz="0 0 0"/>
-  </joint>
+  <!--bind the rail to word_frame, can be disabled if using modile platform-->
+  <!--	<joint name="linear_axis_to_base_link" type="fixed">-->
+  <!--    <origin xyz="0 0 0" rpy="0 0 ${half_pi}"/>-->
+  <!--    <parent link="base_link"/>-->
+  <!--    <child link="linear_axis_base_link"/>-->
+  <!--  </joint>-->
+  <!--  <joint name="robot_to_linear_axis" type="fixed">-->
+  <!--    <origin xyz="0 0 0" rpy="0 0 -${half_pi}"/>-->
+  <!--    <parent link="linear_axis_robot_mount"/>-->
+  <!--    <child link="robot_base_link"/>-->
+  <!--  </joint>-->
+  <!--	<joint name="ee_to_robot" type="fixed">-->
+  <!--		<parent link="robot_tool0"/>-->
+  <!--		<child link="eef_base_link"/>-->
+  <!--		<origin xyz="0 0 0" rpy="0 0 0"/>-->
+  <!--	</joint>-->
   <!-- End of joint list -->
 </robot>
