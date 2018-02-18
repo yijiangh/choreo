@@ -9,45 +9,58 @@ IKFast, the Robot Kinematics Compiler, is a powerful inverse kinematics solver p
 
 MoveIt! IKFast
 ^^^^^^^^^^^^^^
-MoveIt! IKFast is a tool that generates a IKFast kinematics plugin for MoveIt using OpenRave generated cpp files. 
-This tutorial will step you through setting up your robot to utilize the power of IKFast. MoveIt! IKFast is tested on ROS Groovy with Catkin using OpenRave 0.8 with a 6dof and 7dof robot arm manipulator. 
+MoveIt! IKFast is a tool that generates a IKFast kinematics plugin for MoveIt using OpenRave generated cpp files.
+
+This tutorial will step you through setting up your robot to utilize the power of IKFast. MoveIt! IKFast is tested on ROS Kinetic with Catkin using OpenRave 0.9.0 with a 6dof and 7dof robot arm manipulator. 
 While it works in theory, currently the IKFast plugin generator tool does not work with >7 degree of freedom arms.
 
 Pre-requisites
 ^^^^^^^^^^^^^^
-You should have already created a MoveIt! configuration package for your robot, by using the Setup Assistant.
+You should have already created a urdf or xacro file for your robot.
 
 MoveIt! IKFast Installation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Install the MoveIt! IKFast package either from debs or from source.
+Note that from ROS-indigo, `moveit-ikfast <https://github.com/ros-planning/moveit_ikfast>`_ is archived and the package has been integrated as a part of the *moveit_kinematics* package under `moveit! motion planning framework <https://github.com/ros-planning/moveit>`_.
 
 **Binary Install** ::
 
- sudo apt-get install ros-indigo-moveit-ikfast
+ sudo apt-get install ros-kinetic-moveit
 
-**Source**
+**Check moveit_kinematics installation**::
 
-Inside your catkin workspace ::
-
- git clone https://github.com/ros-planning/moveit_ikfast.git
+ rospack find moveit_kinematics
 
 OpenRAVE Installation
 ^^^^^^^^^^^^^^^^^^^^^
-OpenRave is available for Ubuntu using these commands::
+Note that for Ubuntu 16.04 (Xenial), openrave does not have a release file on ppa.launchpad.net. Thus the traditional "sudo apt-get" in `ikfast indigo tutorial <http://docs.ros.org/indigo/api/moveit_ikfast/html/doc/ikfast_tutorial.html>`_ does not work in 16.04 Xenial.
 
- sudo add-apt-repository ppa:openrave/release
- sudo apt-get update
- sudo apt-get install openrave0.8-dp-ikfast
+Thus we need to build openrave from src, `Stéphane Caron's blog <https://scaron.info/teaching/installing-openrave-on-ubuntu-16.04.html>`_ and `Francisco Suárez-Ruiz's blog <https://fsuarez6.github.io/blog/workstation-setup-xenial/>`_ give good instructions on how to install openrave from src (make sure that you install the package after the `make -j4`!). Please notice that we need the **up-to-date version** of openrave, be sure to fetch the master branch when cloning the github repo::
+	
+	git clone --branch master https://github.com/rdiankov/openrave.git
 
-More detailed and updated instructions are available at `OpenRave.org <http://openrave.org/docs/latest_stable/install/#install>`_.
+After installation, you can test the openrave version by entering the following lines to the terminal::
 
-**Note:** You may need to use this hack reported by MoveIt! users:
+	openrave --version
 
-Edit /usr/lib/python2.7/dist-packages/openravepy/__init__.py to add the following line just after the copyright::
+It should return::
 
- __openravepy_version__ = "0.8"
+	0.9.0
+	
 
-**Note:** Use ''openrave0.8'' instead of ''openrave'' in the following tutorial if installed from packages
+After openrave installation, we need to downgrade sympy version to make IKfast to work properly (many thanks to `Francisco Suárez-Ruiz's blog post <https://fsuarez6.github.io/blog/workstation-setup-xenial/>`_). Please first check sympy version by::
+
+	pip show sympy
+
+The terminal will give you:
+
+	Metadata-Version: 1.1
+	Name: sympy
+	Version: 0.7.6.1
+	
+Openrave **requires openrave 0.7.1 to work correctly**, so we downgrade it::
+
+	pip install --upgrade --user sympy==0.7.1
+
 
 *Please report your results with this on the moveit-users mailing list.*
 
@@ -81,6 +94,28 @@ To test your newly generated Collada file in OpenRave::
 
  openrave <myrobot_name>.dae
 
+**Example** ::
+
+For a 6-axis ABB irb2400 robot, we can first generate urdf from xacro::
+
+	rosrun xacro xacro --inorder -o irb2400_test.urdf irb2400_test.xacro
+
+Then generate the dae file::
+
+	rosrun collada_urdf urdf_to_collada irb2400_test.urdf irb2400_test.dae 
+
+Check your dae in openrave's visualizer::
+
+	openrave irb2400_test.dae
+
+and check links info::
+
+	openrave-robot.py irb2400_test.dae --info links	
+
+**NOTE**: if the openrave visualizaer fails to pop up after you run `openrave irb2400_test.dae`, please check you have the following Qt related packages install (refer to `this github discussion <https://github.com/rdiankov/openrave/issues/500>`_)::
+
+	sudo apt-get install libqt4-dev libsoqt-dev-common libsoqt4-dev
+
 Create IKFast Solution CPP File
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Once you have a numerically rounded Collada file its time to generate the C++ .h header file that contains the analytical IK solution for your robot.
@@ -103,8 +138,6 @@ You also need the link index numbers for the *base_link* and *end_link* between 
 
  openrave-robot.py <myrobot_name>.dae --info links
 
-**NOTE**: use ''openrave0.8-robot.py'' if installed from packages
-
 A typical 6-DOF manipulator should have 6 arm links + a dummy base_link as required by ROS specifications.  If no extra links are present in the model, this gives: *baselink=0* and *eelink=6*.  Often, an additional tool_link will be provided to position the grasp/tool frame, giving *eelink=7*.
 
 The manipulator below also has another dummy mounting_link, giving *baselink=1* and *eelink=8*.
@@ -112,7 +145,7 @@ The manipulator below also has another dummy mounting_link, giving *baselink=1* 
 =============  ======  =======
 name           index   parents
 =============  ======  =======
-base_link      0
+base_link			 0
 mounting_link  1       base_link
 link1_rotate   2       mounting_link
 link2          3       link1_rotate
@@ -138,7 +171,34 @@ For a 7 dof arm, you will need to specify a free link::
 
 The speed and success of this process will depend on the complexity of your robot. A typical 6 DOF manipulator with 3 intersecting axis at the base or wrist will take only a few minutes to generate the IK.
 
-You should consult the OpenRAVE mailing list and ROS Answers for information about 5 and 7 DOF manipulators.
+**Example** ::
+
+For a 6-axis ABB IRB2400 robot, check the link info::
+
+	openrave-robot.py irb2400_test.dae --info links
+
+===============  ======  =======
+name             index   parents
+===============  ======  =======
+base_link        0                    
+robot_base_link  1       base_link      
+robot_base       2       robot_base_link
+robot_link_1     3       robot_base_link
+robot_link_2     4       robot_link_1   
+robot_link_3     5       robot_link_2   
+robot_link_4     6       robot_link_3   
+robot_link_5     7       robot_link_4   
+robot_link_6     8       robot_link_5   
+robot_tool0      9       robot_link_6
+===============  ======  =======
+
+In the robot's urdf folder::
+
+	python `openrave-config --python-dir`/openravepy/_openravepy_/ikfast.py --robot=irb2400_test.dae --iktype=transform6d --baselink=1 --eelink=9 --savefile=ikfast_irb2400.cpp
+
+Will generate a `ikfast_irb2400.cpp` file in the urdf folder.
+
+Please consult the OpenRAVE mailing list and ROS Answers for information about 5 and 7 DOF manipulators.
 
 Create Plugin
 ^^^^^^^^^^^^^
