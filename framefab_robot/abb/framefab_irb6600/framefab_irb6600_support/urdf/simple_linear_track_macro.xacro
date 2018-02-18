@@ -11,6 +11,7 @@
 	<!--	Link list-->
   <link name="${prefix}base_link">
     <visual>
+      <origin xyz="0 0 0"/>
       <geometry>
         <box size="4 ${rail_cross_section} ${rail_cross_section}"/>
       </geometry>
@@ -21,7 +22,7 @@
     <collision>
       <origin xyz="0 0 0"/>
       <geometry>
-        <box size="4 0.1 0.1"/>
+        <box size="4 ${rail_cross_section} ${rail_cross_section}"/>
       </geometry>
       <material name="yellow">
        <color rgba="1.0 1.0 0 1.0"/>
@@ -29,17 +30,17 @@
     </collision>   
   </link>
 
-	<link name="${prefix}robot_mount"/>
+<!--	<link name="${prefix}robot_mount"/>-->
 	<!--	End of link list-->
 
 	<!-- Joint list -->
-  <joint name="${prefix}actuation_joint" type="prismatic">
-    <parent link="${prefix}base_link" />
-    <child link="${prefix}robot_mount" />
-    <origin xyz="0 0 ${0.5*rail_cross_section}"/>
-    <axis xyz="1 0 0"/>
-    <limit lower="-2" upper="2" effort="1" velocity="1"/>
-  </joint>
+<!--  <joint name="${prefix}actuation_joint" type="prismatic">-->
+<!--    <parent link="${prefix}base_link" />-->
+<!--    <child link="${prefix}robot_mount" />-->
+<!--    <origin xyz="0 0 ${0.5*rail_cross_section}"/>-->
+<!--    <axis xyz="1 0 0"/>-->
+<!--    <limit lower="-2" upper="2" effort="1" velocity="0.1"/>-->
+<!--  </joint>-->
 	<!-- End of joint list -->
 
 </xacro:macro>

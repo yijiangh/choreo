@@ -1,4 +1,19 @@
-To rebuild urdf:
+To build the documentation
+------
+
+Install [rosdoc_lite](http://wiki.ros.org/rosdoc_lite) package by:
+
+`
+sudo apt-get install ros-lunar-rosdoc-lite 
+`
+
+and run `rosdoc_lite .` at current path (where this readme file is stored). The generated documentation can be found in `\doc\html` folder. Start with the `index.html`.
+
+
+To rebuild urdf
+------
+
+First run:
 
 `rosrun xacro xacro --inorder -o <your urdf>.urdf <your xacro>.xacro`
 

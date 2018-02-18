@@ -1,6 +1,14 @@
 Creating a custom IKFast Plugin
 ===============================
-In this section, we will walk through configuring an IKFast plugin for MoveIt!
+In this section, we will walk through configuring an IKFast plugin for MoveIt! This tutorial is a updated version of the archived `moveit-ikfast tutorial for ros-indigo <http://docs.ros.org/indigo/api/moveit_ikfast/html/doc/ikfast_tutorial.html>`_. 
+
+This tutorial have the following new features compared to the archived indigo one::
+
+	1. Updated openrave installation for ros-kinetic
+	2. Examples added in each sections. Examples are dedicated to industrial robot and related setups.
+	3. References and guidance added for setting up `free-index` for 7-dof robot, with focus on 6-axis industrial robot + 1 dof linear track scenario.
+
+`Yijiang Huang's post <https://github.com/ros-industrial-consortium/descartes/issues/210>`_ on `Descartes <https://github.com/ros-industrial-consortium/descartes/issues>`_ package's github issue initiated the (re-)creation of this tutorial.
 
 What is IKFast?
 ^^^^^^^^^^^^^^^
@@ -11,7 +19,7 @@ MoveIt! IKFast
 ^^^^^^^^^^^^^^
 MoveIt! IKFast is a tool that generates a IKFast kinematics plugin for MoveIt using OpenRave generated cpp files.
 
-This tutorial will step you through setting up your robot to utilize the power of IKFast. MoveIt! IKFast is tested on ROS Kinetic with Catkin using OpenRave 0.9.0 with a 6dof and 7dof robot arm manipulator. 
+This tutorial will step you through setting up your robot to utilize the power of IKFast. MoveIt! IKFast is tested on ROS Kinetic with Catkin using **OpenRave 0.9.0** with a 6dof and 7dof robot arm manipulator. 
 While it works in theory, currently the IKFast plugin generator tool does not work with >7 degree of freedom arms.
 
 Pre-requisites
@@ -198,13 +206,29 @@ In the robot's urdf folder::
 
 Will generate a `ikfast_irb2400.cpp` file in the urdf folder.
 
+**Free joints in IKfast**::
+
+`free joints`: the joints that are specified before the IK is run, these values are known at runtime, but not known at IK generation time.
+
+Rosen Diankov's comment on how to properly set this free joint (refer `this post on openrave forum <http://openrave-users-list.185357.n3.nabble.com/ikfast-solver-does-not-find-solutions-tc4027528.html#a4027535>`_)::
+
+	The general rule of thumb is that the closer it is to the end effector the better, but this is not
+	always the case. For example, there's only one set of 3 intersecting axes and that's the final 3 joints,
+	then choosing a free joint at the end will mean the resulting IK solver cannot exploit the 3
+	intersecting axis property to simplify the IK.
+
+	The only way I've found to truly get the best free joint is to solve for all of them and see which one
+	is better.
+
 **References** ::
 
-From theoretical perspective, this `thread on Robotics StackExchange <https://robotics.stackexchange.com/questions/7786/which-joints-to-discretize-for-ik>`_ gives a fairly in-depth discussion on how should we set up the `free joint` and its impact on the generated inverse kinematics.
+1. From theoretical perspective, this `thread on Robotics StackExchange <https://robotics.stackexchange.com/questions/7786/which-joints-to-discretize-for-ik>`_ gives a fairly in-depth discussion on how should we set up the `free joint` and its impact on the generated inverse kinematics.
 
-For 5-dof robot or robot on a 2D navigation mobile platform, this pose on `ROS Answers <https://answers.ros.org/question/65940/difficulty-using-ikfast-generator-need-6-joints-error-with-kuka-youbot/>`_ and `google group links <https://groups.google.com/forum/#!msg/moveit-users/P2V9eW5BjW8/eDr9nCeRg3AJ>`_ therein give in-depth discussions and solutions.
+2. For 5-dof robot or robot on a 2D navigation mobile platform, `this pose on ROS Answers <https://answers.ros.org/question/65940/difficulty-using-ikfast-generator-need-6-joints-error-with-kuka-youbot/>`_ and `google group links <https://groups.google.com/forum/#!msg/moveit-users/P2V9eW5BjW8/eDr9nCeRg3AJ>`_ therein give in-depth discussions and solutions.
 
-Please consult the OpenRAVE mailing list, ROS-I category on ROS Discourse (based on the `recent announcement Feb-2018 <https://rosindustrial.org/news/2018/2/14/ros-industrial-migration-to-discourse>`_ of migrating ros-i group group to ROS Discouse), or ROS Answers for more information about 5 and 7 DOF manipulators.
+Please consult the OpenRAVE mailing list, ROS-I category on ROS Discourse [1], or ROS Answers for more information about 5 and 7 DOF manipulators.
+
+[1] based on the `recent announcement (Feb-2018) <https://rosindustrial.org/news/2018/2/14/ros-industrial-migration-to-discourse>`_ of migrating `ROS-I google group <https://groups.google.com/forum/#!forum/swri-ros-pkg-dev>`_ to ROS Discouse.
 
 Create Plugin
 ^^^^^^^^^^^^^

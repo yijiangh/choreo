@@ -6,7 +6,6 @@
 <robot name="framefab_irb2400_simple_track" xmlns:xacro="http://ros.org/wiki/xacro">
   <!-- Conversion were obtained from http://www.e-paint.co.uk/Lab_values.asp
        unless otherwise stated. -->
-  <!--	<xacro:include filename="$(find framefab_irb6600_support)/urdf/simple_linear_track_macro.xacro"/>-->
   <!--	<xacro:include filename="$(find asw_end_effector)/urdf/asw_eef_macro.xacro"/>-->
   <!--	<xacro:include filename="$(find framefab_irb6600_support)/urdf/simple_linear_track_demo_cell_macro.xacro"/>-->
   <!-- link list -->
@@ -207,29 +206,66 @@
     <parent link="robot_base_link"/>
     <child link="robot_base"/>
   </joint>
-  <!--  <xacro:asw_eef prefix="eef_"/>-->
-  <!--  <xacro:simple_linear_track prefix="linear_axis_"/>-->
+  <!--	Link list-->
+  <link name="linear_axis_base_link">
+    <visual>
+      <origin xyz="0 0 0"/>
+      <geometry>
+        <box size="4 0.1 0.1"/>
+      </geometry>
+      <material name="yellow">
+        <color rgba="1.0 1.0 0 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0"/>
+      <geometry>
+        <box size="4 0.1 0.1"/>
+      </geometry>
+      <material name="yellow">
+        <color rgba="1.0 1.0 0 1.0"/>
+      </material>
+    </collision>
+  </link>
+  <!--	<link name="${prefix}robot_mount"/>-->
+  <!--	End of link list-->
+  <!-- Joint list -->
+  <!--  <joint name="${prefix}actuation_joint" type="prismatic">-->
+  <!--    <parent link="${prefix}base_link" />-->
+  <!--    <child link="${prefix}robot_mount" />-->
+  <!--    <origin xyz="0 0 ${0.5*rail_cross_section}"/>-->
+  <!--    <axis xyz="1 0 0"/>-->
+  <!--    <limit lower="-2" upper="2" effort="1" velocity="0.1"/>-->
+  <!--  </joint>-->
+  <!-- End of joint list -->
   <!--  <xacro:simple_linear_track_demo_cell prefix=""/>-->
   <!-- Link list -->
   <link name="base_link"/>
   <!-- End of link list -->
   <!-- Joint list -->
-  <joint name="robot_to_base_link" type="fixed">
-    <origin rpy="0 0 1.57079632679" xyz="0 0 0"/>
-    <parent link="base_link"/>
-    <child link="robot_base_link"/>
-  </joint>
-  <!--bind the rail to word_frame, can be disabled if using modile platform-->
-  <!--	<joint name="linear_axis_to_base_link" type="fixed">-->
+  <!--	<joint name="robot_to_base_link" type="fixed">-->
   <!--    <origin xyz="0 0 0" rpy="0 0 ${half_pi}"/>-->
   <!--    <parent link="base_link"/>-->
-  <!--    <child link="linear_axis_base_link"/>-->
+  <!--    <child link="robot_base_link"/>-->
   <!--  </joint>-->
+  <!--	bind the rail to word_frame, can be disabled if using modile platform-->
+  <joint name="linear_axis_to_base_link" type="fixed">
+    <origin rpy="0 0 1.57079632679" xyz="0 0 0"/>
+    <parent link="base_link"/>
+    <child link="linear_axis_base_link"/>
+  </joint>
   <!--  <joint name="robot_to_linear_axis" type="fixed">-->
   <!--    <origin xyz="0 0 0" rpy="0 0 -${half_pi}"/>-->
   <!--    <parent link="linear_axis_robot_mount"/>-->
   <!--    <child link="robot_base_link"/>-->
   <!--  </joint>-->
+  <joint name="actuation_joint" type="prismatic">
+    <parent link="linear_axis_base_link"/>
+    <child link="robot_base_link"/>
+    <origin xyz="0 0 0.05"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="1" lower="-2" upper="2" velocity="0.1"/>
+  </joint>
   <!--	<joint name="ee_to_robot" type="fixed">-->
   <!--		<parent link="robot_tool0"/>-->
   <!--		<child link="eef_base_link"/>-->
