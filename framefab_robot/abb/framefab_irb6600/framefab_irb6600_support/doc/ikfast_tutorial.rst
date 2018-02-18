@@ -10,6 +10,10 @@ This tutorial have the following new features compared to the archived indigo on
 
 `Yijiang Huang's post <https://github.com/ros-industrial-consortium/descartes/issues/210>`_ on `Descartes <https://github.com/ros-industrial-consortium/descartes/issues>`_ package's github issue initiated the (re-)creation of this tutorial.
 
+**Correction** :
+
+ROS-Kinetic Moveit does have an more updated ik tutorial: `link <http://docs.ros.org/kinetic/api/moveit_tutorials/html/doc/ikfast_tutorial.html>`_. However, the tutorial does not have enough example to exemplify the ikfast generation for 7 dof (especially 6 dof + linear track) setting. This tutorial means to complement this missing part. 
+
 What is IKFast?
 ^^^^^^^^^^^^^^^
 *From Wikipedia:*
@@ -225,6 +229,10 @@ Rosen Diankov's comment on how to properly set this free joint (refer `this post
 1. From theoretical perspective, this `thread on Robotics StackExchange <https://robotics.stackexchange.com/questions/7786/which-joints-to-discretize-for-ik>`_ gives a fairly in-depth discussion on how should we set up the `free joint` and its impact on the generated inverse kinematics.
 
 2. For 5-dof robot or robot on a 2D navigation mobile platform, `this pose on ROS Answers <https://answers.ros.org/question/65940/difficulty-using-ikfast-generator-need-6-joints-error-with-kuka-youbot/>`_ and `google group links <https://groups.google.com/forum/#!msg/moveit-users/P2V9eW5BjW8/eDr9nCeRg3AJ>`_ therein give in-depth discussions and solutions.
+
+3. `This thread on openrave forum <http://openrave-users-list.185357.n3.nabble.com/Sawyer-arm-raise-self-CannotSolveError-need-6-joints-CannotSolveError-need-6-joints-td4027917.html>`_ discusses 7-dof ikfast generation problem with Sawyer arm.
+
+4. `Discussion <https://github.com/ros-industrial-consortium/descartes/issues/124>`_ on ikfast and trac-ik in Descartes.
 
 Please consult the OpenRAVE mailing list, ROS-I category on ROS Discourse [1], or ROS Answers for more information about 5 and 7 DOF manipulators.
 
