@@ -198,7 +198,13 @@ In the robot's urdf folder::
 
 Will generate a `ikfast_irb2400.cpp` file in the urdf folder.
 
-Please consult the OpenRAVE mailing list and ROS Answers for information about 5 and 7 DOF manipulators.
+**References** ::
+
+From theoretical perspective, this `thread on Robotics StackExchange <https://robotics.stackexchange.com/questions/7786/which-joints-to-discretize-for-ik>`_ gives a fairly in-depth discussion on how should we set up the `free joint` and its impact on the generated inverse kinematics.
+
+For 5-dof robot or robot on a 2D navigation mobile platform, this pose on `ROS Answers <https://answers.ros.org/question/65940/difficulty-using-ikfast-generator-need-6-joints-error-with-kuka-youbot/>`_ and `google group links <https://groups.google.com/forum/#!msg/moveit-users/P2V9eW5BjW8/eDr9nCeRg3AJ>`_ therein give in-depth discussions and solutions.
+
+Please consult the OpenRAVE mailing list, ROS-I category on ROS Discourse (based on the `recent announcement Feb-2018 <https://rosindustrial.org/news/2018/2/14/ros-industrial-migration-to-discourse>`_ of migrating ros-i group group to ROS Discouse), or ROS Answers for more information about 5 and 7 DOF manipulators.
 
 Create Plugin
 ^^^^^^^^^^^^^
