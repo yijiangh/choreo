@@ -402,7 +402,7 @@ void transitionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
     int repeat_planning_call = 0;
     trajectory_msgs::JointTrajectory ros_trans_traj;
 
-    while(true)
+    while(repeat_planning_call < TRANSITION_PLANNING_LOOP_COUNT)
     {
       ros_trans_traj = framefab_process_planning::getMoveitTransitionPlan(move_group_name,
                                                                           last_joint_pose,
@@ -411,17 +411,17 @@ void transitionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
                                                                           moveit_model);
 
       // TODO: recover from transition planning failure
-      if (0 == ros_trans_traj.points.size())
-      {
-        ROS_ERROR_STREAM("[Process Planning] Transition planning fails.");
-        repeat_planning_call++;
-        continue;
-      }
-
       if(repeat_planning_call > 0)
       {
         ROS_WARN_STREAM("[Process Planning] transition planning retry - round "
                             << repeat_planning_call << "/" << TRANSITION_PLANNING_LOOP_COUNT);
+      }
+
+      if (0 == ros_trans_traj.points.size())
+      {
+        ROS_ERROR_STREAM("<<<<<<<<<<<<<<< \n[Process Planning] Transition planning fails.");
+        repeat_planning_call++;
+        continue;
       }
 
       bool joint_target_meet = true;
@@ -433,13 +433,15 @@ void transitionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
         }
       }
 
-      if(joint_target_meet || repeat_planning_call > TRANSITION_PLANNING_LOOP_COUNT)
+      if(joint_target_meet)
       {
         break;
       }
 
       repeat_planning_call++;
     }
+
+    // TODO: if transition planning fails, should return failure!
 
     framefab_msgs::SubProcess sub_process;
 

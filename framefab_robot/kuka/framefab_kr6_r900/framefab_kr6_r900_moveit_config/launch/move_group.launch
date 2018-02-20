@@ -1,7 +1,7 @@
 <launch>
 
-  <!-- Planning pipeline -->
-  <arg name="pipeline" default="chomp"/>
+  <!-- Planning pipeline, available options: ompl. chomp, stomp-->
+  <arg name="planner" default="ompl"/>
 
   <include file="$(find framefab_kr6_r900_moveit_config)/launch/planning_context.launch" />
 
@@ -25,7 +25,7 @@
 
   <!-- Planning Functionality -->
   <include ns="move_group" file="$(find framefab_kr6_r900_moveit_config)/launch/planning_pipeline.launch.xml">
-    <arg name="pipeline" value="$(arg pipeline)" />
+    <arg name="pipeline" value="$(arg planner)" />
   </include>
 
   <!-- Trajectory Execution Functionality -->
