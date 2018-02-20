@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<robot xmlns:xacro="http://ros.org/wiki/xacro">
+<robot xmlns:xacro="http://wiki.ros.org/xacro">
 	<xacro:property name="half_pi" value="1.5707963267948966"/>
 
 	<xacro:macro name="asw_material_feeder_definition" params="prefix">

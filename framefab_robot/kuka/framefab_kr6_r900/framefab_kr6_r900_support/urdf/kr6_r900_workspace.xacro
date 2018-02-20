@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<robot name="kr6_r900_workspace" xmlns:xacro="http://ros.org/wiki/xacro">
+<robot name="kr6_r900_workspace" xmlns:xacro="http://wiki.ros.org/xacro">
  	<xacro:include filename="$(find kuka_kr6_support)/urdf/kr6r900sixx_macro.xacro"/>
 	<xacro:include filename="$(find asw_end_effector)/urdf/asw_eef_macro.xacro"/>
 	<xacro:include filename="$(find asw_material_feeder)/urdf/asw_material_feeder_macro.xacro"/>
