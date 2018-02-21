@@ -366,6 +366,8 @@ void transitionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
 
   const auto tr_planning_start = ros::Time::now();
 
+  std::vector<int> planning_failure_ids;
+
   std::vector<double> last_joint_pose = start_state;
   std::vector<double> current_first_joint_pose;
 
@@ -402,6 +404,7 @@ void transitionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
     int repeat_planning_call = 0;
     trajectory_msgs::JointTrajectory ros_trans_traj;
 
+    bool joint_target_meet = true;
     while(repeat_planning_call < TRANSITION_PLANNING_LOOP_COUNT)
     {
       ros_trans_traj = framefab_process_planning::getMoveitTransitionPlan(move_group_name,
@@ -424,7 +427,6 @@ void transitionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
         continue;
       }
 
-      bool joint_target_meet = true;
       for(int s=0; s < current_first_joint_pose.size(); s++)
       {
         if(current_first_joint_pose[s] - ros_trans_traj.points.back().positions[s] > 0.0001)
@@ -441,7 +443,12 @@ void transitionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
       repeat_planning_call++;
     }
 
-    // TODO: if transition planning fails, should return failure!
+    if(!joint_target_meet)
+    {
+      planning_failure_ids.push_back(i);
+      ROS_ERROR_STREAM("[Tr planning] transition planning fails at index #" << i);
+      continue;
+    }
 
     framefab_msgs::SubProcess sub_process;
 
@@ -450,6 +457,11 @@ void transitionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
     sub_process.joint_array = ros_trans_traj;
 
     plans[i].sub_process_array.insert(plans[i].sub_process_array.begin(), sub_process);
+  }
+
+  for(auto id : planning_failure_ids)
+  {
+    ROS_ERROR_STREAM("[Tr planning] transition planning fails at process #" << id);
   }
 
   const auto tr_planning_end = ros::Time::now();
