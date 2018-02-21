@@ -21,28 +21,22 @@ bool FFAnalyzer::SeqPrint()
     layers_[e->Layer()].push_back(e);
   }
 
-  /* printing */
-  /* set pillars as starting edges */
-  PrintPillars();
+  int print_until = layer_size;
 
-  for (int l = 0; l < layer_size; l++)
+  for (int l = 0; l < print_until; l++)
   {
     fprintf(stderr, "Size of layer %d is %d\n", l, (int)layers_[l].size());
   }
 
-  //Timer layer_search;
-
   /* print starting from the first layer */
   bool bSuccess = true;
-  for (int l = 0; l < layer_size; l++)
+  for (int l = 0; l < print_until; l++)
   {
     /*
     * Nl: number of dual verts in current layer
     * h : head for printing queue of the layer
     * t : tail for printing queue of the layer
     */
-    //layer_search.Reset();
-    //layer_search.Start();
 
     int Nl = layers_[l].size();
     int h = print_queue_.size(); // print queue size so far
@@ -50,8 +44,9 @@ bool FFAnalyzer::SeqPrint()
 
     if (l == 0)
     {
-      // first layer, pillars are included in layer 0
-      t = Nl;
+      /* set pillars as starting edges */
+      PrintPillars();
+      continue;
     }
     else
     {
@@ -64,8 +59,8 @@ bool FFAnalyzer::SeqPrint()
     }
 
     /* max_z_ and min_z_ in current layer */
-    min_z_ = 1e20;
-    max_z_ = -min_z_;
+    min_base_dist_ = min_z_ = 1e20;
+    max_base_dist_ = max_z_ = -1e20;
 
     for (int i = 0; i < Nl; i++)
     {
@@ -74,6 +69,18 @@ bool FFAnalyzer::SeqPrint()
       point v = e->ppair_->pvert_->Position();
       min_z_ = min(min_z_, (double)min(u.z(), v.z()));
       max_z_ = max(max_z_, (double)max(u.z(), v.z()));
+
+      const auto& st_pt_msg = frame_msgs_[e->ID()].start_pt;
+      const auto& end_pt_msg = frame_msgs_[e->ID()].end_pt;
+
+      // distance to robot base (world_frame 0,0,0)
+      double dist = sqrt(pow((st_pt_msg.x + end_pt_msg.x)/2, 2)
+                             + pow((st_pt_msg.y + end_pt_msg.y)/2, 2)
+                             + pow((st_pt_msg.z + end_pt_msg.z)/2, 2));
+
+
+      min_base_dist_ = min(min_base_dist_, dist);
+      max_base_dist_ = max(max_base_dist_, dist);
     }
 
     if (!GenerateSeq(l, h, t))
@@ -83,26 +90,121 @@ bool FFAnalyzer::SeqPrint()
       bSuccess = false;
       break;
     }
-
-    //layer_search.Stop();
-    //
-    //string str = std::to_string(l) + ":";
-    //const char *msg = str.c_str();
-    //char* cstr = new char[str.length() + 1];
-    //strcpy(cstr, msg);
-
-    //layer_search.Print(cstr);
-    //printf("layer size: %d\n", Nl);
-    //printf("layer %d finished\n", l);
-    //printf("--------------\n");
-
-    //getchar();
   }
+
+  fprintf(stderr, "\n\nFFAnalyzer seq search finished:\n Number of edges: %d\nNumber of partial assignment visited: %d, Number of backtrack: %d\n\n",
+          ptr_wholegraph_->SizeOfVertList(), num_p_assign_visited_, num_backtrack_);
 
   FF_analyzer_.Stop();
   return bSuccess;
 }
 
+bool FFAnalyzer::SeqPrintLayer(int layer_id)
+{
+  assert(ptr_frame_->SizeOfLayer() > layer_id);
+
+  FF_analyzer_.Start();
+
+  Init();
+
+  /* split layers */
+  /* label stores layer index of each dual node */
+  int layer_size = ptr_frame_->SizeOfLayer();
+  layers_.clear();
+  layers_.resize(layer_size);
+  for (int i = 0; i < Nd_; i++)
+  {
+    WF_edge *e = ptr_frame_->GetEdge(ptr_wholegraph_->e_orig_id(i));
+    layers_[e->Layer()].push_back(e);
+  }
+
+  fprintf(stderr, "Size of target layer %d is %d\n", layer_id, (int)layers_[layer_id].size());
+
+  bool bSuccess = true;
+
+  for(int l=0; l < layer_id; l++)
+  {
+    std::cout << "layer #" << l << std::endl;
+
+    for(int s=0; s < layers_[l].size(); s++)
+    {
+      WF_edge* e = layers_[l][s];
+
+      print_queue_.push_back(e);
+
+      // update printed graph
+      UpdateStructure(e, update_collision_);
+
+      if(layer_id - 1 == l)
+      {
+        // only update state map for edges in target layer
+        int Nd = layers_[layer_id].size();
+
+        for (int k = 0; k < Nd; k++)
+        {
+          WF_edge *ek = layers_[layer_id][k];
+          int dual_k = ptr_wholegraph_->e_dual_id(ek->ID());
+
+          std::vector <lld> tmp(3);
+          ptr_collision_->DetectCollision(ek, e, tmp);
+
+          ptr_collision_->ModifyAngle(angle_state_[dual_k], tmp);
+        }
+      }
+    }
+  }
+
+  std::cout << "Update finished." << std::endl;
+
+  int target_size = 0;
+
+  for(int lb = layer_id; lb < layer_id+1; lb++)
+  {
+    // search in target layer
+    int Nl = layers_[lb].size();
+    int h = print_queue_.size(); // print queue size so far
+    int t = h + Nl;
+
+    target_size += Nl;
+
+    /* max_z_ and min_z_ in current layer */
+    min_base_dist_ = min_z_ = 1e20;
+    max_base_dist_ = max_z_ = -1e20;
+
+    for (int i = 0; i < Nl; i++)
+    {
+      WF_edge *e = layers_[lb][i];
+      point u = e->pvert_->Position();
+      point v = e->ppair_->pvert_->Position();
+      min_z_ = min(min_z_, (double) min(u.z(), v.z()));
+      max_z_ = max(max_z_, (double) max(u.z(), v.z()));
+
+      const auto& st_pt_msg = frame_msgs_[e->ID()].start_pt;
+      const auto& end_pt_msg = frame_msgs_[e->ID()].end_pt;
+
+      // distance to robot base (world_frame 0,0,0)
+      double dist = sqrt(pow((st_pt_msg.x + end_pt_msg.x)/2, 2)
+                             + pow((st_pt_msg.y + end_pt_msg.y)/2, 2)
+                             + pow((st_pt_msg.z + end_pt_msg.z)/2, 2));
+
+      min_base_dist_ = min(min_base_dist_, dist);
+      max_base_dist_ = max(max_base_dist_, dist);
+    }
+
+    if (!GenerateSeq(lb, h, t))
+    {
+      fprintf(stderr,
+              "All possible start edge at layer %d has been tried but no feasible sequence is obtained.\n", lb);
+      bSuccess = false;
+      break;
+    }
+  }
+
+  fprintf(stderr, "****Reminder: Start of target layers is %d\n", Nd_ - target_size);
+
+  FF_analyzer_.Stop();
+  return bSuccess;
+}
 
 bool FFAnalyzer::GenerateSeq(int l, int h, int t)
 {
@@ -143,6 +245,12 @@ bool FFAnalyzer::GenerateSeq(int l, int h, int t)
 
     /* cost weight */
     double cost = GenerateCost(ei, ej, h, t, l);
+
+    if (cost == -2)
+    {
+      return false;
+    }
+
     if (cost != -1)
     {
       // eligible candidate, cost = -1 if stiffness or kinematic check not pass
@@ -162,8 +270,10 @@ bool FFAnalyzer::GenerateSeq(int l, int h, int t)
 
     // update collision (geometric domain)
     // tmp is the pruned domain by direct arc consistency pruning
-    vector <vector<lld>> tmp_angle(3);
+    std::vector<std::vector<lld>> tmp_angle(3);
     UpdateStateMap(ej, tmp_angle);
+
+    num_p_assign_visited_++;
 
     if (terminal_output_)
     {
@@ -181,6 +291,8 @@ bool FFAnalyzer::GenerateSeq(int l, int h, int t)
     RecoverStructure(ej, update_collision_);
 
     print_queue_.pop_back();
+
+    num_backtrack_++;
 
     if (terminal_output_)
     {
@@ -217,7 +329,21 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej, const int h, const int
     int vj = ptr_frame_->GetEndv(orig_j);
     bool exist_uj = ptr_dualgraph_->isExistingVert(uj);
     bool exist_vj = ptr_dualgraph_->isExistingVert(vj);
-    double z;
+    double z = 0.0;
+
+    // use dist to robot base as heuristic
+    const auto& st_pt_msg = frame_msgs_[ej->ID()].start_pt;
+    const auto& end_pt_msg = frame_msgs_[ej->ID()].end_pt;
+
+    // distance to robot base (world_frame 0,0,0)
+    double dist = sqrt(pow((st_pt_msg.x + end_pt_msg.x)/2, 2)
+                           + pow((st_pt_msg.y + end_pt_msg.y)/2, 2)
+                           + pow((st_pt_msg.z + end_pt_msg.z)/2, 2));
+
+//    if(min_base_dist_ != max_base_dist_)
+//    {
+//      P = 1 - (dist - min_base_dist_) / (max_base_dist_ - min_base_dist_);
+//    }
 
     if(max_z_ != min_z_)
     {
@@ -270,15 +396,17 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej, const int h, const int
     {
       if (terminal_output_)
       {
-        fprintf(stderr, "...collision test failed at edge #%d.\n\n", ej->ID() / 2);
+        fprintf(stderr, "...collision test failed at edge #%d.\n", ej->ID() / 2);
       }
-      return -1;
+
+      fprintf(stderr, "fail edge vert u: (%f, %f, %f), vert v: (%f, %f, %f)\n\n",
+              ej->pvert_->Position().x(), ej->pvert_->Position().y(), ej->pvert_->Position().z(),
+              ej->ppair_->pvert_->Position().x(), ej->ppair_->pvert_->Position().y(), ej->ppair_->pvert_->Position().z());
+
+      return -2;
     }
     else
     {
-//      if(free_angle < ptr_collision_->Divide() * 0.15)
-//      ROS_INFO_STREAM("robot kinematics check: free angle num: " << free_angle << "/"
-//                                                                 << int(ptr_collision_->Divide()));
       /* robot kinematics test */
       if(update_collision_)
       {
@@ -287,14 +415,14 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej, const int h, const int
           /* examination failed */
           if (terminal_output_)
           {
-            fprintf(stderr, "...robot kinematics test failed at edge #%d.\n\n", ej->ID() / 2);
+            fprintf(stderr, "...robot kinematics test failed at edge #%d.\n", ej->ID() / 2);
+            fprintf(stderr, "fail edge vert u: (%f, %f, %f), vert v: (%f, %f, %f)\n\n",
+                    ej->pvert_->Position().x(), ej->pvert_->Position().y(), ej->pvert_->Position().z(),
+                    ej->ppair_->pvert_->Position().x(), ej->ppair_->pvert_->Position().y(), ej->ppair_->pvert_->Position().z());
           }
-          return -1;
+
+          return -2;
         }
-//        else
-//        {
-//          ROS_INFO_STREAM("Robot kinematics test passed.");
-//        }
       }
     }
 
@@ -382,9 +510,11 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej, const int h, const int
     {
       fprintf(stderr, "P: %lf, A: %lf, I: %lf\ncost: %f\n\n", P, A, I, cost);
     }
+
     return cost;
   } // end if exist_edge ej
 
+  // ej exists already, skip
   return -1;
 }
 

@@ -2,6 +2,13 @@
 #include <Mathematics/GteCylinder3.h>
 #include "framefab_task_sequence_planner/utils/QuadricCollision.h"
 
+namespace{
+void convertLLDMapToIntVectormap(const std::vector<lld>& lld_map, std::vector<int>& int_vec_map)
+{
+
+}
+} // anon util namespace
+
 QuadricCollision::QuadricCollision()
 {
 }
@@ -36,7 +43,7 @@ QuadricCollision::~QuadricCollision()
   }
 }
 
-void QuadricCollision::Init(vector<lld>& colli_map)
+void QuadricCollision::Init(std::vector<lld>& colli_map)
 {
   lld temp = 0;
   colli_map.clear();
@@ -99,7 +106,7 @@ void QuadricCollision::DetectCollision(WF_edge *target_e, DualGraph *ptr_subgrap
 }
 
 void QuadricCollision::DetectCollision(WF_edge *target_e, WF_edge *order_e,
-                                       vector<lld> &result_map)
+                                       std::vector<lld> &result_map)
 {
   Init(result_map);
   target_e_ = target_e;
@@ -202,7 +209,7 @@ std::vector<Eigen::Vector3d> QuadricCollision::ConvertCollisionMapToEigenDirecti
 {
   std::vector<Eigen::Vector3d> feasible_eef_directions;
 
-  for(int i = 0; i < 60; i++)
+  for(int i = 0; i < divide_; i++)
   {
     lld mask = ((lld) 1 << i);
 
@@ -249,6 +256,42 @@ std::vector<Eigen::Vector3d> QuadricCollision::ConvertCollisionMapToEigenDirecti
   }
 
   return feasible_eef_directions;
+}
+
+std::vector<int> QuadricCollision::ConvertCollisionMapToIntMap(const std::vector<lld>& colli_map)
+{
+  // in int map, 0 means exist collision, 1 means collision-free
+  std::vector<int> int_map(this->Divide(), 0);
+
+  for(int j = 0; j < 3; j++)
+  {
+    for(int i = 0; i < divide_; i++)
+    {
+      lld mask = ((lld) 1 << i);
+
+      // i-th bit = 0 means it's feasible
+      if((colli_map[j] & mask) == 0)
+      {
+        int_map[j * divide_ + i] = 1;
+      }
+    }
+  }
+
+  //North Point
+  lld north_mask = ((lld)1 << 60);
+  if((colli_map[2] & north_mask) == 0)
+  {
+    int_map[3*divide_] = 1;
+  }
+
+  //South Point
+  lld south_mask = ((lld)1 << 61);
+  if((colli_map[2] & south_mask) == 0)
+  {
+    int_map[3*divide_ + 1] = 1;
+  }
+
+  return int_map;
 }
 
 void QuadricCollision::DetectEdge(WF_edge *order_e, std::vector<lld> &result_map)

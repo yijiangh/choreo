@@ -13,6 +13,8 @@
   <arg name="use_ftp" default="false"/>
   <arg name="use_db" default="false"/>
 
+  <arg name="planner" default="ompl"/>
+
   <!-- load the robot_description parameter before launchwechaing ROS-I nodes -->
   <include file="$(find framefab_kr6_r900_moveit_config)/launch/planning_context.launch">
     <arg name="load_robot_description" value="true"/>
@@ -33,6 +35,7 @@
 	<!-- Run the main MoveIt executable without trajectory execution (we do not have controllers configured by default) -->
   <include file="$(find framefab_kr6_r900_moveit_config)/launch/move_group.launch">
 		<arg name="publish_monitored_planning_scene" value="true" />
+    <arg name="planner" value="$(arg planner)"/>
   </include>
 
   <!-- Run Rviz and load the default config to see the state of the move_group node -->

@@ -96,7 +96,7 @@ std::string translateElementProcessType(const int& element_process_type_id)
     }
     default:
     {
-      ROS_WARN("[output processor] Unknown element_process_type. Save default 'None' type");
+//      ROS_WARN("[output processor] Unknown element_process_type. Save default 'None' type");
       return std::string("None");
     }
   }

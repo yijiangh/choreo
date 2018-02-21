@@ -53,6 +53,8 @@
 
 const static std::string GET_PLANNING_SCENE_SERVICE = "get_planning_scene";
 
+const static int TRANSITION_PLANNING_LOOP_COUNT = 5;
+
 namespace{ //util function namespace
 
 void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
@@ -364,6 +366,8 @@ void transitionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
 
   const auto tr_planning_start = ros::Time::now();
 
+  std::vector<int> planning_failure_ids;
+
   std::vector<double> last_joint_pose = start_state;
   std::vector<double> current_first_joint_pose;
 
@@ -397,18 +401,53 @@ void transitionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
       ROS_ERROR_STREAM("[Tr Planning] Failed to publish planning scene diff srv!");
     }
 
-    trajectory_msgs::JointTrajectory ros_trans_traj =
-        framefab_process_planning::getMoveitTransitionPlan(move_group_name,
-                                                           last_joint_pose,
-                                                           current_first_joint_pose,
-                                                           start_state,
-                                                           moveit_model);
+    int repeat_planning_call = 0;
+    trajectory_msgs::JointTrajectory ros_trans_traj;
 
-    // TODO: recover from transition planning failure
-    if(ros_trans_traj.points.empty())
+    bool joint_target_meet = true;
+    while(repeat_planning_call < TRANSITION_PLANNING_LOOP_COUNT)
     {
-      ROS_ERROR_STREAM("[Process Planning] Transition planning fails.");
-      assert(ros_trans_traj.points.size() == 0);
+      ros_trans_traj = framefab_process_planning::getMoveitTransitionPlan(move_group_name,
+                                                                          last_joint_pose,
+                                                                          current_first_joint_pose,
+                                                                          start_state,
+                                                                          moveit_model);
+
+      // TODO: recover from transition planning failure
+      if(repeat_planning_call > 0)
+      {
+        ROS_WARN_STREAM("[Process Planning] transition planning retry - round "
+                            << repeat_planning_call << "/" << TRANSITION_PLANNING_LOOP_COUNT);
+      }
+
+      if (0 == ros_trans_traj.points.size())
+      {
+        ROS_ERROR_STREAM("<<<<<<<<<<<<<<< \n[Process Planning] Transition planning fails.");
+        repeat_planning_call++;
+        continue;
+      }
+
+      for(int s=0; s < current_first_joint_pose.size(); s++)
+      {
+        if(current_first_joint_pose[s] - ros_trans_traj.points.back().positions[s] > 0.0001)
+        {
+          joint_target_meet = false;
+        }
+      }
+
+      if(joint_target_meet)
+      {
+        break;
+      }
+
+      repeat_planning_call++;
+    }
+
+    if(!joint_target_meet)
+    {
+      planning_failure_ids.push_back(i);
+      ROS_ERROR_STREAM("[Tr planning] transition planning fails at index #" << i);
+      continue;
     }
 
     framefab_msgs::SubProcess sub_process;
@@ -418,6 +457,11 @@ void transitionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
     sub_process.joint_array = ros_trans_traj;
 
     plans[i].sub_process_array.insert(plans[i].sub_process_array.begin(), sub_process);
+  }
+
+  for(auto id : planning_failure_ids)
+  {
+    ROS_ERROR_STREAM("[Tr planning] transition planning fails at process #" << id);
   }
 
   const auto tr_planning_end = ros::Time::now();
@@ -465,6 +509,8 @@ void adjustTrajectoryTiming(std::vector<framefab_msgs::UnitProcessPlan>& plans,
 
       adjustTrajectoryHeaders(last_filled_jts, plans[i].sub_process_array[j], sim_speed);
     }
+
+    ROS_INFO_STREAM("[Process Planning] process #" << i << " time stamp adjusted.");
   }
 }
 
@@ -507,6 +553,7 @@ void appendTCPPosetoPlans(const descartes_core::RobotModelPtr model,
         sub_process.TCP_pose_array.push_back(geo_pose_msg);
       }
     }
+    ROS_INFO_STREAM("[Process Planning] process #" << process_id_count << "TCP added.");
     process_id_count++;
   }
 }

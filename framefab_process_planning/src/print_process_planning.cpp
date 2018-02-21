@@ -65,6 +65,9 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
   const std::vector<framefab_msgs::ElementCandidatePoses>
       chosen_task_seq(req.task_sequence.begin(), req.task_sequence.begin() + constrained_segs.size());
 
+  // clear existing objs from previous planning
+  clearAllCollisionObjects(planning_scene_diff_client_);
+
   // add fixed extra collision objects in the work environment, e.g. heating bed (adjustable)
   for(const auto& obj : req.env_collision_objs)
   {

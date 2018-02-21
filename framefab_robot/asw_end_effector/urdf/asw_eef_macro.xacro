@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<robot xmlns:xacro="http://ros.org/wiki/xacro">
+<robot xmlns:xacro="http://wiki.ros.org/xacro">
   <xacro:property name="hotend_tcp_x" value="0.150539"/>
   <xacro:property name="hotend_tcp_y" value="0.001052"/>
   <xacro:property name="hotend_tcp_z" value="0.119157"/>

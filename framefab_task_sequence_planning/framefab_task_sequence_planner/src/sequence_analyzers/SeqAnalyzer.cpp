@@ -197,7 +197,12 @@ SeqAnalyzer::~SeqAnalyzer()
 
 bool SeqAnalyzer::SeqPrint()
 {
-  return true;
+  return false;
+}
+
+bool SeqAnalyzer::SeqPrintLayer(int layer_id)
+{
+  return false;
 }
 
 void SeqAnalyzer::PrintOutTimer()
@@ -247,6 +252,9 @@ void SeqAnalyzer::Init()
   planning_scene_->getCurrentStateNonConst().update();
 
   planning_scene_->setPlanningSceneDiffMsg(srv.response.scene);
+
+  num_p_assign_visited_ = 0;
+  num_backtrack_ = 0;
 }
 
 void SeqAnalyzer::PrintPillars()
@@ -274,7 +282,7 @@ void SeqAnalyzer::PrintPillars()
 
   for (it = base_queue.begin(); it != base_queue.end(); it++)
   {
-    auto& e = it->second;
+    WF_edge* e = it->second;
     print_queue_.push_back(e);
 
     // update printed graph
@@ -285,6 +293,100 @@ void SeqAnalyzer::PrintPillars()
     vector<vector<lld>> tmp_angle(3);
     UpdateStateMap(e, tmp_angle);
   }
+
+//  std::vector<WF_edge*> pillars;
+//
+//  for (int dual_i = 0; dual_i < Nd_; dual_i++)
+//  {
+//    WF_edge *e = ptr_frame_->GetEdge(ptr_wholegraph_->e_orig_id(dual_i));
+//    if (e->isPillar())
+//    {
+//      pillars.push_back(e);
+//    }
+//  }
+//
+//  if(0 == pillars.size())
+//  {
+//    ROS_ERROR("[Ts planner] Model must has pillars!");
+//    assert(false);
+//  }
+//
+//  int n = pillars.size();
+//  Eigen::MatrixXf tsp_cost(n, n);
+//  std::vector<bool> exist_flag(n, false);
+//
+//  for(int i = 0; i < n; i++)
+//  {
+//    auto ei_pt =  pillars[i]->CenterPos();
+//
+//    for(int j = i; j < n; j++)
+//    {
+//      auto ej_pt = pillars[j]->CenterPos();
+//
+//      double dist = sqrt(pow(ei_pt.x() - ej_pt.x(), 2) + pow(ei_pt.y() - ej_pt.y(),2));
+//      tsp_cost(i, j) = dist;
+//      tsp_cost(j, i) = dist;
+//    }
+//  }
+//
+//  // greedy search
+//  // start with node with min x
+//  double min_x = 1e20;
+//  int min_id;
+//  for(int i=0; i<n; i++)
+//  {
+//    if(pillars[i]->CenterPos().x() < min_x)
+//    {
+//      min_x = pillars[i]->CenterPos().x();
+//      min_id = i;
+//    }
+//  }
+//
+//  std::vector<int> order_indices;
+//  exist_flag[min_id] = true;
+//  order_indices.push_back(min_id);
+//
+//  while(order_indices.size() < n)
+//  {
+//    int id = order_indices.back();
+//
+//    double min_dist = 1e20;
+//    int min_next_id;
+//
+//    for(int j = 0; j < n; j++)
+//    {
+//      if(!exist_flag[j])
+//      {
+//        if(tsp_cost(id, j) < min_dist)
+//        {
+//          min_dist = tsp_cost(id, j);
+//          min_next_id = j;
+//        }
+//      }
+//    }
+//
+//    exist_flag[min_next_id] = true;
+//    order_indices.push_back(min_next_id);
+//  }
+
+//  if (terminal_output_)
+//  {
+//    fprintf(stderr, "Size of pillars layer: %d, full graph domain pruning in progress.\n", (int)pillars.size());
+//  }
+//
+//  for (const auto&o_id : order_indices)
+//  {
+//    auto& e = pillars[order_indices[o_id]];
+//    print_queue_.push_back(e);
+//
+//    // update printed graph
+////    UpdateStructure(e, update_collision_);
+//
+//    // update collision (geometric domain)
+//    // tmp is the pruned domain by direct arc consistency pruning
+////    vector<vector<lld>> tmp_angle(3);
+////    UpdateStateMap(e, tmp_angle);
+//  }
 }
 
 void SeqAnalyzer::UpdateStructure(WF_edge *e, bool update_collision)
@@ -647,19 +749,34 @@ bool SeqAnalyzer::TestifyStiffness(WF_edge *e)
   return bSuccess;
 }
 
-bool SeqAnalyzer::TestRobotKinematics(WF_edge *e, const std::vector<lld>& colli_map)
+bool SeqAnalyzer::TestRobotKinematics(WF_edge* e, const std::vector<lld>& colli_map)
 {
   // insert a trail edge, needs to shrink neighnoring edges
   // to avoid collision check between end effector and elements
   bool b_success = false;
   UpdateCollisionObjects(e, true);
-  hotend_model_->setPlanningScene(planning_scene_);
 
-//  std::ostream stream(nullptr);
-//  std::stringbuf str;
-//  stream.rdbuf(&str);
-//  planning_scene_->printKnownObjects(stream);
-//  ROS_INFO_STREAM("planning scene " << str.str());
+  // st node index
+  int orig_j = e->ID();
+  // ppair vert
+  int uj = ptr_frame_->GetEndu(orig_j);
+  bool exist_uj = ptr_dualgraph_->isExistingVert(uj);
+
+  // end node index
+  // pvert
+  int vj = ptr_frame_->GetEndv(orig_j);
+  bool exist_vj = ptr_dualgraph_->isExistingVert(vj);
+
+  auto planning_scene_depart = planning_scene_->diff();
+  moveit_msgs::CollisionObject e_collision_obj;
+  e_collision_obj = frame_msgs_[e->ID()].both_side_shrinked_collision_object;
+  e_collision_obj.operation = moveit_msgs::CollisionObject::ADD;
+
+  // add this edge to the planning scene
+  if (!planning_scene_depart->processCollisionObjectMsg(e_collision_obj))
+  {
+    ROS_WARN_STREAM("[ts planning robot kinematics] Failed to add shrinked collision object: edge #" << e->ID());
+  }
 
   // generate feasible end effector directions for printing edge e
   std::vector<Eigen::Vector3d> direction_vec_list =
@@ -671,8 +788,18 @@ bool SeqAnalyzer::TestRobotKinematics(WF_edge *e, const std::vector<lld>& colli_
   Eigen::Vector3d st_pt;
   Eigen::Vector3d end_pt;
 
-  tf::pointMsgToEigen(frame_msgs_[e->ID()].start_pt, st_pt);
-  tf::pointMsgToEigen(frame_msgs_[e->ID()].end_pt, end_pt);
+  // for creation type, name the existing vert as start pt
+  // for connection type, it doesn't matter which one is the start
+  if(exist_uj)
+  {
+    tf::pointMsgToEigen(frame_msgs_[e->ID()].start_pt, st_pt);
+    tf::pointMsgToEigen(frame_msgs_[e->ID()].end_pt, end_pt);
+  }
+  else
+  {
+    tf::pointMsgToEigen(frame_msgs_[e->ID()].end_pt, st_pt);
+    tf::pointMsgToEigen(frame_msgs_[e->ID()].start_pt, end_pt);
+  }
 
   std::vector<Eigen::Vector3d> path_pts = discretizePositions(st_pt, end_pt, 0.005);
 
@@ -686,11 +813,20 @@ bool SeqAnalyzer::TestRobotKinematics(WF_edge *e, const std::vector<lld>& colli_
 
     bool empty_joint_pose_found = false;
 
-    for(const auto& pose : poses)
+    for(std::size_t c_id=0; c_id < poses.size(); c_id++)
     {
       std::vector<std::vector<double>> joint_poses;
 
-      hotend_model_->getAllIK(pose, joint_poses);
+      if(c_id < poses.size() - 1)
+      {
+        hotend_model_->setPlanningScene(planning_scene_);
+      }
+      else
+      {
+        hotend_model_->setPlanningScene(planning_scene_depart);
+      }
+
+      hotend_model_->getAllIK(poses[c_id], joint_poses);
 
       if(joint_poses.size() == 0)
       {

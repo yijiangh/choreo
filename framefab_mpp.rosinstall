@@ -7,3 +7,5 @@
 # descartes
 - git: {local-name: descartes, uri: 'https://github.com/yijiangh/descartes.git', version: yijiangh/graph}
 
+# cut-version to use chomp
+- git: {local-name: moveit_chomp, uri: 'https://github.com/yijiangh/moveit_chomp.git', version: kinetic-devel}

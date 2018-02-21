@@ -3,7 +3,7 @@
 <!-- Exports macro: "xacro:mit_workspace" with 1 arg: prefix -->
 <!-- Root link: ${prefix}workspace_base_link -->
 <!-- Origin is at the robot (kuka_kr6r900) mounting location -->
-<robot xmlns:xacro="http://ros.org/wiki/xacro">
+<robot xmlns:xacro="http://wiki.ros.org/xacro">
 
 <xacro:macro name="mit_workspace" params="prefix">
 
