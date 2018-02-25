@@ -262,8 +262,8 @@ void SeqAnalyzer::PrintPillars()
   int layer_size = ptr_frame_->SizeOfLayer();
 
   /* ranked by x */
-  multimap<double, WF_edge*>base_queue;
-  multimap<double, WF_edge*>::iterator it;
+  multimap<double, WF_edge*, std::greater<double>>base_queue;
+  multimap<double, WF_edge*, std::greater<double>>::iterator it;
   for (int dual_i = 0; dual_i < Nd_; dual_i++)
   {
     WF_edge *e = ptr_frame_->GetEdge(ptr_wholegraph_->e_orig_id(dual_i));
