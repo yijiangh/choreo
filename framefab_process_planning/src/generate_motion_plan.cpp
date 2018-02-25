@@ -407,6 +407,9 @@ void transitionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
     bool joint_target_meet = true;
     while(repeat_planning_call < TRANSITION_PLANNING_LOOP_COUNT)
     {
+      // reset joint target meet flag
+      joint_target_meet = true;
+
       ros_trans_traj = framefab_process_planning::getMoveitTransitionPlan(move_group_name,
                                                                           last_joint_pose,
                                                                           current_first_joint_pose,
@@ -432,6 +435,7 @@ void transitionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
         if(current_first_joint_pose[s] - ros_trans_traj.points.back().positions[s] > 0.0001)
         {
           joint_target_meet = false;
+          break;
         }
       }
 
