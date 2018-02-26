@@ -366,6 +366,10 @@ void transitionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
 
   const auto tr_planning_start = ros::Time::now();
 
+  // generate full eef collision object
+  bool add_eef_full = true;
+  auto full_eef_collision_obj = framefab_process_planning::addFullEndEffectorCollisionObject(add_eef_full);
+
   std::vector<int> planning_failure_ids;
 
   std::vector<double> last_joint_pose = start_state;
@@ -395,7 +399,14 @@ void transitionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
     }
 
     moveit_msgs::ApplyPlanningScene srv;
-    planning_scenes[i]->getPlanningSceneMsg(srv.request.scene);
+    auto scene_with_attached_eef = planning_scenes[i]->diff();
+    if(!scene_with_attached_eef->processAttachedCollisionObjectMsg(full_eef_collision_obj))
+    {
+      ROS_ERROR_STREAM("[Tr Planning] planning scene # " << i << "fails to add attached full eef collision geometry");
+    }
+
+    scene_with_attached_eef->getPlanningSceneMsg(srv.request.scene);
+
     if(!planning_scene_diff_client.call(srv))
     {
       ROS_ERROR_STREAM("[Tr Planning] Failed to publish planning scene diff srv!");
@@ -514,7 +525,7 @@ void adjustTrajectoryTiming(std::vector<framefab_msgs::UnitProcessPlan>& plans,
       adjustTrajectoryHeaders(last_filled_jts, plans[i].sub_process_array[j], sim_speed);
     }
 
-    ROS_INFO_STREAM("[Process Planning] process #" << i << " time stamp adjusted.");
+//    ROS_INFO_STREAM("[Process Planning] process #" << i << " time stamp adjusted.");
   }
 }
 
@@ -557,7 +568,7 @@ void appendTCPPosetoPlans(const descartes_core::RobotModelPtr model,
         sub_process.TCP_pose_array.push_back(geo_pose_msg);
       }
     }
-    ROS_INFO_STREAM("[Process Planning] process #" << process_id_count << "TCP added.");
+//    ROS_INFO_STREAM("[Process Planning] process #" << process_id_count << "TCP added.");
     process_id_count++;
   }
 }

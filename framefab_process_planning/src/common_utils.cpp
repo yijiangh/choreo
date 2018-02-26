@@ -21,6 +21,9 @@
 
 #include <moveit_msgs/GetMotionPlan.h>
 
+// mesh collision geometry import
+#include <geometric_shapes/shape_operations.h>
+
 // Constants
 const static double DEFAULT_TIME_UNDEFINED_VELOCITY =
     0.0; // When a Descartes trajectory point has no timing info associated
@@ -266,6 +269,54 @@ bool framefab_process_planning::addCollisionObject(
   }
 }
 
+// TODO: temp input param
+moveit_msgs::AttachedCollisionObject framefab_process_planning::addFullEndEffectorCollisionObject(bool is_add)
+{
+  // millimeter to meter
+  double scale = 0.001;
+  Eigen::Vector3d scale_vector(scale, scale, scale);
+  moveit_msgs::AttachedCollisionObject attached_full_eef;
+  attached_full_eef.link_name = "eef_frame";
+
+  /* A default pose */
+  geometry_msgs::Pose pose;
+  pose.position.x = 0.000088;
+  pose.position.y = 0.000769;
+  pose.position.z = -0.002121;
+  pose.orientation.w= 0.0;
+  pose.orientation.x= 0.0;
+  pose.orientation.y= 0.0;
+  pose.orientation.z= 0.0;
+
+  /* Define the full eef mesh */
+  shapes::Mesh* m = shapes::createMeshFromResource(
+      "package://asw_end_effector/meshes/collision/asw_hotend_end_effector_hull_bulky.stl", scale_vector);
+  shape_msgs::Mesh mesh;
+  shapes::ShapeMsg mesh_msg;
+  shapes::constructMsgFromShape(m, mesh_msg);
+  mesh = boost::get<shape_msgs::Mesh>(mesh_msg);
+
+  attached_full_eef.object.header.frame_id = "eef_frame";
+  attached_full_eef.object.id = "full_eef";
+
+  attached_full_eef.object.meshes.resize(1);
+  attached_full_eef.object.mesh_poses.resize(1);
+
+  attached_full_eef.object.meshes[0] = mesh;
+  attached_full_eef.object.mesh_poses[0] = pose;
+
+  if(is_add)
+  {
+    attached_full_eef.object.operation = moveit_msgs::CollisionObject::ADD;
+  }
+  else
+  {
+    attached_full_eef.object.operation = moveit_msgs::CollisionObject::REMOVE;
+  }
+
+  return attached_full_eef;
+}
+
 bool framefab_process_planning::clearAllCollisionObjects(ros::ServiceClient& planning_scene_diff_client)
 {
   // fetch scene
@@ -298,6 +349,8 @@ bool framefab_process_planning::clearAllCollisionObjects(ros::ServiceClient& pla
   {
     existing_obj.operation = moveit_msgs::CollisionObject::REMOVE;
     planning_scene_msg.world.collision_objects.push_back(existing_obj);
+
+//    ROS_INFO_STREAM("collision object # " << existing_obj.id << " removed.");
   }
 
   planning_scene_msg.is_diff = true;
@@ -444,7 +497,7 @@ trajectory_msgs::JointTrajectory framefab_process_planning::getMoveitTransitionP
   }
   else
   {
-    ROS_INFO_STREAM("[Moveit Transition Planning] planner: " << planner_name << DEFAULT_MOVEIT_PLANNER_ID);
+    ROS_INFO_STREAM("[Moveit Transition Planning] planner: " << planner_name << " - " << DEFAULT_MOVEIT_PLANNER_ID);
   }
 
   bool insert_reset = false;
