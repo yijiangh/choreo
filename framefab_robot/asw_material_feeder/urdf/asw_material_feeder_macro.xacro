@@ -4,7 +4,7 @@
 
 	<xacro:macro name="asw_material_feeder_definition" params="prefix">
 	<!-- material_feeder_mount_point is Base Link, inherit from host robot -->
-	<link name="${prefix}link_4_mount_point"/>
+	<link name="${prefix}link_3_mount_point"/>
 
 	<link name="${prefix}material_feeder">
 	  <visual>
@@ -25,8 +25,8 @@
 	  </collision>
 	</link>
 
-	<joint name="${prefix}link_4_mount_point_to_material_feeder" type="fixed">
-		<parent link="${prefix}link_4_mount_point"/>
+	<joint name="${prefix}link_3_mount_point_to_material_feeder" type="fixed">
+		<parent link="${prefix}link_3_mount_point"/>
 		<child link="${prefix}material_feeder"/>
 		<origin xyz="0 0 0" rpy="0 0 0"/>
 	</joint>

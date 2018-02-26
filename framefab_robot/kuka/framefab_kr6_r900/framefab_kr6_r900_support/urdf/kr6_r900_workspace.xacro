@@ -5,9 +5,9 @@
 	<xacro:include filename="$(find asw_material_feeder)/urdf/asw_material_feeder_macro.xacro"/>
 	<xacro:include filename="$(find framefab_kr6_r900_support)/urdf/mit_3-412_workspace_micro.xacro"/>
   
-	<xacro:property name="link4_mount_base_x" value="0.06762"/>
-	<xacro:property name="link4_mount_base_y" value="0.0"/>
-	<xacro:property name="link4_mount_base_z" value="0.0575"/>
+	<xacro:property name="link3_mount_base_x" value="0.06762"/>
+	<xacro:property name="link3_mount_base_y" value="0.0"/>
+	<xacro:property name="link3_mount_base_z" value="0.0925"/>
 
 	<link name="world_frame"/>
 
@@ -27,10 +27,10 @@
 		<origin xyz="0 0 0" rpy="0 0 0"/>
 	</joint>
 	<!-- Attach the material feeder to the link4 mount point of the robot arm -->
-    <joint name="link_4_to_link_4_mount_point" type="fixed">
-        <parent link="link_4"/>
-        <child link="link_4_mount_point"/>
-        <origin xyz="${link4_mount_base_x} ${link4_mount_base_y} ${link4_mount_base_z}" rpy="0 0 0"/>
+    <joint name="link_3_to_link_3_mount_point" type="fixed">
+        <parent link="link_3"/>
+        <child link="link_3_mount_point"/>
+        <origin xyz="${link3_mount_base_x} ${link3_mount_base_y} ${link3_mount_base_z}" rpy="0 0 0"/>
     </joint>
 
 	<!-- start of arm-workcell joint definitions -->
