@@ -26,6 +26,7 @@ bool FFAnalyzer::SeqPrint()
   for (int l = 0; l < print_until; l++)
   {
     fprintf(stderr, "Size of layer %d is %d\n", l, (int)layers_[l].size());
+    assert((int)layers_[l].size() != 0);
   }
 
   /* print starting from the first layer */
