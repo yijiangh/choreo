@@ -275,23 +275,30 @@ void SeqAnalyzer::PrintPillars()
     }
   }
 
-  if (terminal_output_)
+  if(terminal_output_)
   {
     fprintf(stderr, "Size of base queue: %d, full graph domain pruning in progress.\n", (int)base_queue.size());
   }
 
-  for (it = base_queue.begin(); it != base_queue.end(); it++)
+  for(it = base_queue.begin(); it != base_queue.end(); it++)
   {
     WF_edge* e = it->second;
     print_queue_.push_back(e);
 
+    ROS_INFO_STREAM("pillar # " << std::distance(base_queue.begin(), it) << " domain pruning.");
+
     // update printed graph
     UpdateStructure(e, update_collision_);
+
+    ROS_INFO_STREAM("collision updated.");
 
     // update collision (geometric domain)
     // tmp is the pruned domain by direct arc consistency pruning
     vector<vector<lld>> tmp_angle(3);
     UpdateStateMap(e, tmp_angle);
+
+    ROS_INFO_STREAM("Domain updated.");
+    ROS_INFO_STREAM("--------");
   }
 
 //  std::vector<WF_edge*> pillars;
@@ -481,18 +488,19 @@ void SeqAnalyzer::UpdateStateMap(WF_edge *order_e, vector<vector<lld>> &state_ma
       // prune order_e's domain with target_e's existence
       // arc consistency pruning
       vector<lld> tmp(3);
-      ptr_collision_->DetectCollision(target_e, order_e, tmp);
 
-      for (int k = 0; k < 3; k++)
+      if(ptr_collision_->DetectCollision(target_e, order_e, tmp))
       {
-        state_map[k].push_back(angle_state_[dual_j][k]);
-      }
+        for (int k = 0; k < 3; k++)
+        {
+          state_map[k].push_back(angle_state_[dual_j][k]);
+        }
 
-      ptr_collision_->ModifyAngle(angle_state_[dual_j], tmp);
+        ptr_collision_->ModifyAngle(angle_state_[dual_j], tmp);
+      }
     }
   }
 }
-
 
 void SeqAnalyzer::RecoverStateMap(WF_edge* order_e, vector<vector<lld>>& state_map)
 {
