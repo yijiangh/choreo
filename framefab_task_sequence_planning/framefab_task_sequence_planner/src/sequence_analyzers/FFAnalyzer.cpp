@@ -21,7 +21,7 @@ bool FFAnalyzer::SeqPrint()
     layers_[e->Layer()].push_back(e);
   }
 
-  int print_until = layer_size;
+  int print_until = 2;
 
   for (int l = 0; l < print_until; l++)
   {
@@ -43,16 +43,38 @@ bool FFAnalyzer::SeqPrint()
     int h = print_queue_.size(); // print queue size so far
     int t;
 
-    if (l == 0)
+//    if (l == 0)
+//    {
+//      /* set pillars as starting edges */
+//      PrintPillars();
+//      continue;
+//    }
+//    else
+//    {
+//      t = h + Nl;
+//    }
+    if(0 == l)
     {
-      /* set pillars as starting edges */
-      PrintPillars();
-      continue;
+      // sort pillars by x coordinate (start with the one that is furthest away from robot base)
+      multimap<double, WF_edge*, std::greater<double>>base_queue;
+      multimap<double, WF_edge*, std::greater<double>>::iterator it;
+
+      for (int dual_i = 0; dual_i < Nd_; dual_i++)
+      {
+        WF_edge *e = ptr_frame_->GetEdge(ptr_wholegraph_->e_orig_id(dual_i));
+        if (e->isPillar())
+        {
+          point center = e->CenterPos();
+          base_queue.insert(make_pair(center.x(), e));
+        }
+      }
+
+      WF_edge *e = base_queue.begin()->second;
+      print_queue_.push_back(e);
+      h++;
     }
-    else
-    {
-      t = h + Nl;
-    }
+
+    t = h + Nl;
 
     if (h == t)
     {
@@ -210,7 +232,6 @@ bool FFAnalyzer::SeqPrintLayer(int layer_id)
 bool FFAnalyzer::GenerateSeq(int l, int h, int t)
 {
   /* last edge */
-  assert(h != 0); // there must be pillars
   WF_edge *ei = print_queue_[h - 1];
 
   if (terminal_output_)
@@ -245,7 +266,7 @@ bool FFAnalyzer::GenerateSeq(int l, int h, int t)
     WF_edge *ej = layers_[l][j];
 
     /* cost weight */
-    double cost = GenerateCost(ei, ej, h, t, l);
+    double cost = GenerateCost(ej, h, t, l);
 
     if (cost == -2)
     {
@@ -307,7 +328,7 @@ bool FFAnalyzer::GenerateSeq(int l, int h, int t)
 }
 
 
-double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej, const int h, const int t, const int l)
+double FFAnalyzer::GenerateCost(WF_edge *ej, const int h, const int t, const int l)
 {
   int orig_j = ej->ID();
   int dual_j = ptr_wholegraph_->e_dual_id(orig_j);
@@ -332,20 +353,6 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej, const int h, const int
     bool exist_vj = ptr_dualgraph_->isExistingVert(vj);
     double z = 0.0;
 
-    // use dist to robot base as heuristic
-    const auto& st_pt_msg = frame_msgs_[ej->ID()].start_pt;
-    const auto& end_pt_msg = frame_msgs_[ej->ID()].end_pt;
-
-    // distance to robot base (world_frame 0,0,0)
-    double dist = sqrt(pow((st_pt_msg.x + end_pt_msg.x)/2, 2)
-                           + pow((st_pt_msg.y + end_pt_msg.y)/2, 2)
-                           + pow((st_pt_msg.z + end_pt_msg.z)/2, 2));
-
-//    if(min_base_dist_ != max_base_dist_)
-//    {
-//      P = 1 - (dist - min_base_dist_) / (max_base_dist_ - min_base_dist_);
-//    }
-
     if(max_z_ != min_z_)
     {
       z = (ej->CenterPos().z() - min_z_) / (max_z_ - min_z_);
@@ -356,38 +363,41 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej, const int h, const int
     }
 
     // prune floating edge
-    if (exist_uj && exist_vj)
+    if(!ej->isPillar())
     {
-      /* edge j share two ends with printed structure */
-      P = z;
-    }
-    else
-    {
-      if (exist_uj || exist_vj)
+      if (exist_uj && exist_vj)
       {
-        /* edge j share one end with printed structure */
-        double ang;
-        point pos_uj = ptr_frame_->GetPosition(uj);
-        point pos_vj = ptr_frame_->GetPosition(vj);
-
-        if (exist_uj)
-        {
-          ang = Geometry::angle(point(0, 0, 1), pos_vj - pos_uj);
-        }
-        else
-        {
-          ang = Geometry::angle(point(0, 0, 1), pos_uj - pos_vj);
-        }
-
-        P = z * exp(ang);
+        /* edge j share two ends with printed structure */
+        P = z;
       }
       else
       {
-        if (terminal_output_)
+        if (exist_uj || exist_vj)
         {
-          fprintf(stderr, "...floating edge, skip\n\n");
+          /* edge j share one end with printed structure */
+          double ang;
+          point pos_uj = ptr_frame_->GetPosition(uj);
+          point pos_vj = ptr_frame_->GetPosition(vj);
+
+          if (exist_uj)
+          {
+            ang = Geometry::angle(point(0, 0, 1), pos_vj - pos_uj);
+          }
+          else
+          {
+            ang = Geometry::angle(point(0, 0, 1), pos_uj - pos_vj);
+          }
+
+          P = z * exp(ang);
         }
-        return -1;
+        else
+        {
+          if (terminal_output_)
+          {
+            fprintf(stderr, "...floating edge, skip\n\n");
+          }
+          return -1;
+        }
       }
     }
 
@@ -428,7 +438,7 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej, const int h, const int
     }
 
     /* stiffness test */
-    if (!TestifyStiffness(ej))
+    if (!ej->isPillar() && !TestifyStiffness(ej))
     {
       /* examination failed */
       if (terminal_output_)
@@ -437,25 +447,6 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej, const int h, const int
       }
       return -1;
     }
-
-    /* adjacency weight */
-//    if (ei == NULL)
-//    {
-//      A = 0;
-//    }
-//    else
-//    {
-//      int ui = ei->pvert_->ID();
-//      int vi = ei->ppair_->pvert_->ID();
-//      if (ui == uj || ui == vj || vi == uj || vi == vj)
-//      {
-//        A = 0;
-//      }
-//      else
-//      {
-//        A = 1.0;
-//      }
-//    }
 
     // Forward Checking
     // limit forward checking only to current layer
@@ -505,7 +496,21 @@ double FFAnalyzer::GenerateCost(WF_edge *ei, WF_edge *ej, const int h, const int
       I = 0.0;
     }
 
-    double cost = Wp_*P + Wa_*A + Wi_*I;
+    /* adjacency weight (A) */
+    // use dist to robot base as heuristic
+    const auto& st_pt_msg = frame_msgs_[ej->ID()].start_pt;
+    const auto& end_pt_msg = frame_msgs_[ej->ID()].end_pt;
+
+    // distance to robot base (world_frame 0,0,0)
+    double dist = sqrt(pow((st_pt_msg.x + end_pt_msg.x)/2, 2)
+                           + pow((st_pt_msg.y + end_pt_msg.y)/2, 2)
+                           + pow((st_pt_msg.z + end_pt_msg.z)/2, 2));
+    if(min_base_dist_ != max_base_dist_)
+    {
+      A = 1 - (dist - min_base_dist_) / (max_base_dist_ - min_base_dist_);
+    }
+
+    double cost = Wp_ * P + Wa_ * A + Wi_ * I;
 
     if (terminal_output_)
     {

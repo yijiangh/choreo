@@ -585,7 +585,7 @@ bool FiberPrintPlugIn::handleTaskSequencePlanning(
       }
 
       // dummy parm
-      ptr_parm_ = new FiberPrintPARM(1,0, 1.0, 1.0);
+      ptr_parm_ = new FiberPrintPARM(0, 0, 0);
 
       // dummy framefab output path
       ptr_path_ = "/home";

@@ -7,7 +7,7 @@
   <arg name="debug_core" default="false"/> <!--Brings up the framefab core service in debug mode-->
   <arg name="save_data" default="false" />
   <arg name="save_location" default="$(env HOME)/.ros/" />
-  <arg name="planner" value="ompl" />
+  <arg name="planner" value="stomp" />
 
   <!-- Launches task sequence planners: requires descartes plugin for the robot model -->
   <include file="$(find framefab_task_sequence_planner)/launch/task_sequence_planning.launch">
