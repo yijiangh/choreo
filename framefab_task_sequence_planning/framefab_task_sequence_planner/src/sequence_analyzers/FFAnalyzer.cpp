@@ -43,27 +43,6 @@ bool FFAnalyzer::SeqPrint()
     int h = print_queue_.size(); // print queue size so far
     int t;
 
-    if(0 == l)
-    {
-      // sort pillars by x coordinate (start with the one that is furthest away from robot base)
-      multimap<double, WF_edge*, std::greater<double>>base_queue;
-      multimap<double, WF_edge*, std::greater<double>>::iterator it;
-
-      for (int dual_i = 0; dual_i < Nd_; dual_i++)
-      {
-        WF_edge *e = ptr_frame_->GetEdge(ptr_wholegraph_->e_orig_id(dual_i));
-        if (e->isPillar())
-        {
-          point center = e->CenterPos();
-          base_queue.insert(make_pair(center.x(), e));
-        }
-      }
-
-      WF_edge *e = base_queue.begin()->second;
-      print_queue_.push_back(e);
-      h++;
-    }
-
     t = h + Nl;
 
     if (h == t)
@@ -148,22 +127,50 @@ bool FFAnalyzer::SeqPrintLayer(int layer_id)
       // update printed graph
       UpdateStructure(e, update_collision_);
 
-      if(layer_id - 1 == l)
-      {
+//      vector<vector<lld>> tmp_angle(3);
+//      UpdateStateMap(e, tmp_angle);
+
+//      if(layer_id - 1 == l)
+//      {
         // only update state map for edges in target layer
-        int Nd = layers_[layer_id].size();
+//      int Nd = layers_[layer_id].size();
+//
+//      for (int k = 0; k < Nd; k++)
+//      {
+//        WF_edge *ek = layers_[layer_id][k];
+//        int dual_k = ptr_wholegraph_->e_dual_id(ek->ID());
+//
+//        std::vector <lld> tmp(3);
+//        ptr_collision_->DetectCollision(ek, e, tmp);
+//        ptr_collision_->ModifyAngle(angle_state_[dual_k], tmp);
+//        }
+//      }
 
-        for (int k = 0; k < Nd; k++)
+      vector<vector<lld>> state_map(3);
+      int dual_i = ptr_wholegraph_->e_dual_id(e->ID());
+      int Nd = ptr_wholegraph_->SizeOfVertList();
+
+      for (int dual_j = 0; dual_j < Nd; dual_j++)
+      {
+        WF_edge * target_e = ptr_frame_->GetEdge(ptr_wholegraph_->e_orig_id(dual_j));
+
+        if(layer_id == target_e->Layer())
         {
-          WF_edge *ek = layers_[layer_id][k];
-          int dual_k = ptr_wholegraph_->e_dual_id(ek->ID());
+          // prune order_e's domain with target_e's existence
+          // arc consistency pruning
+          vector<lld> tmp(3);
+          if(ptr_collision_->DetectCollision(target_e, e, tmp))
+          {
+            for (int k = 0; k < 3; k++)
+            {
+              state_map[k].push_back(angle_state_[dual_j][k]);
+            }
 
-          std::vector <lld> tmp(3);
-          ptr_collision_->DetectCollision(ek, e, tmp);
-
-          ptr_collision_->ModifyAngle(angle_state_[dual_k], tmp);
+            ptr_collision_->ModifyAngle(angle_state_[dual_j], tmp);
+          }
         }
       }
+
     }
   }
 
@@ -222,13 +229,24 @@ bool FFAnalyzer::SeqPrintLayer(int layer_id)
 bool FFAnalyzer::GenerateSeq(int l, int h, int t)
 {
   /* last edge */
-  WF_edge *ei = print_queue_[h - 1];
-
-  if (terminal_output_)
+  if(0 != h)
   {
-    fprintf(stderr, "-----------------------------------\n");
-    fprintf(stderr, "Searching edge #%d in layer %d, head %d, tail %d\n",
-            ei->ID() / 2, l, h, t);
+    WF_edge *ei = print_queue_[h - 1];
+
+    if (terminal_output_)
+    {
+      fprintf(stderr, "-----------------------------------\n");
+      fprintf(stderr, "Searching edge #%d in layer %d, head %d, tail %d\n",
+              ei->ID() / 2, l, h, t);
+    }
+  }
+  else
+  {
+    if (terminal_output_)
+    {
+      fprintf(stderr, "-----------------------------------\n");
+      fprintf(stderr, "Searching starts in layer %d, head %d, tail %d\n", l, h, t);
+    }
   }
 
   /* exit */
@@ -516,7 +534,6 @@ double FFAnalyzer::GenerateCost(WF_edge *ej, const int h, const int t, const int
   // ej exists already, skip
   return -1;
 }
-
 
 void FFAnalyzer::PrintOutTimer()
 {
