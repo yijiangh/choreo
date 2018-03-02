@@ -436,7 +436,8 @@ void transitionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
 
       if (0 == ros_trans_traj.points.size())
       {
-        ROS_ERROR_STREAM("<<<<<<<<<<<<<<< \n[Process Planning] Transition planning fails.");
+//        ROS_ERROR_STREAM("<<<<<<<<<<<<<<< \n[Process Planning] Transition planning fails.");
+        joint_target_meet = false;
         repeat_planning_call++;
         continue;
       }
@@ -452,6 +453,7 @@ void transitionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
 
       if(joint_target_meet)
       {
+        ROS_WARN_STREAM("[Process Planning] transition planning retry succeed!");
         break;
       }
 
