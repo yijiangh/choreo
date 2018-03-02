@@ -86,7 +86,7 @@ class FFAnalyzer : public SeqAnalyzer
 
  private:
   bool	 GenerateSeq(int l, int h, int t);
-  double GenerateCost(WF_edge* ei, WF_edge* ej, const int h, const int t, const int layer_id);
+  double GenerateCost(WF_edge* ej, const int h, const int t, const int layer_id);
 
  public:
   void PrintOutTimer();

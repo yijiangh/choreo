@@ -259,8 +259,6 @@ void SeqAnalyzer::Init()
 
 void SeqAnalyzer::PrintPillars()
 {
-  int layer_size = ptr_frame_->SizeOfLayer();
-
   /* ranked by x */
   multimap<double, WF_edge*, std::greater<double>>base_queue;
   multimap<double, WF_edge*, std::greater<double>>::iterator it;
@@ -300,100 +298,6 @@ void SeqAnalyzer::PrintPillars()
     ROS_INFO_STREAM("Domain updated.");
     ROS_INFO_STREAM("--------");
   }
-
-//  std::vector<WF_edge*> pillars;
-//
-//  for (int dual_i = 0; dual_i < Nd_; dual_i++)
-//  {
-//    WF_edge *e = ptr_frame_->GetEdge(ptr_wholegraph_->e_orig_id(dual_i));
-//    if (e->isPillar())
-//    {
-//      pillars.push_back(e);
-//    }
-//  }
-//
-//  if(0 == pillars.size())
-//  {
-//    ROS_ERROR("[Ts planner] Model must has pillars!");
-//    assert(false);
-//  }
-//
-//  int n = pillars.size();
-//  Eigen::MatrixXf tsp_cost(n, n);
-//  std::vector<bool> exist_flag(n, false);
-//
-//  for(int i = 0; i < n; i++)
-//  {
-//    auto ei_pt =  pillars[i]->CenterPos();
-//
-//    for(int j = i; j < n; j++)
-//    {
-//      auto ej_pt = pillars[j]->CenterPos();
-//
-//      double dist = sqrt(pow(ei_pt.x() - ej_pt.x(), 2) + pow(ei_pt.y() - ej_pt.y(),2));
-//      tsp_cost(i, j) = dist;
-//      tsp_cost(j, i) = dist;
-//    }
-//  }
-//
-//  // greedy search
-//  // start with node with min x
-//  double min_x = 1e20;
-//  int min_id;
-//  for(int i=0; i<n; i++)
-//  {
-//    if(pillars[i]->CenterPos().x() < min_x)
-//    {
-//      min_x = pillars[i]->CenterPos().x();
-//      min_id = i;
-//    }
-//  }
-//
-//  std::vector<int> order_indices;
-//  exist_flag[min_id] = true;
-//  order_indices.push_back(min_id);
-//
-//  while(order_indices.size() < n)
-//  {
-//    int id = order_indices.back();
-//
-//    double min_dist = 1e20;
-//    int min_next_id;
-//
-//    for(int j = 0; j < n; j++)
-//    {
-//      if(!exist_flag[j])
-//      {
-//        if(tsp_cost(id, j) < min_dist)
-//        {
-//          min_dist = tsp_cost(id, j);
-//          min_next_id = j;
-//        }
-//      }
-//    }
-//
-//    exist_flag[min_next_id] = true;
-//    order_indices.push_back(min_next_id);
-//  }
-
-//  if (terminal_output_)
-//  {
-//    fprintf(stderr, "Size of pillars layer: %d, full graph domain pruning in progress.\n", (int)pillars.size());
-//  }
-//
-//  for (const auto&o_id : order_indices)
-//  {
-//    auto& e = pillars[order_indices[o_id]];
-//    print_queue_.push_back(e);
-//
-//    // update printed graph
-////    UpdateStructure(e, update_collision_);
-//
-//    // update collision (geometric domain)
-//    // tmp is the pruned domain by direct arc consistency pruning
-////    vector<vector<lld>> tmp_angle(3);
-////    UpdateStateMap(e, tmp_angle);
-//  }
 }
 
 void SeqAnalyzer::UpdateStructure(WF_edge *e, bool update_collision)
