@@ -131,7 +131,12 @@ void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
     // push in full_collision_geometry_planning_scene
     auto last_scene_full = planning_scenes_full.back();
     auto child_full = last_scene_full->diff();
-    if (!child_full->processCollisionObjectMsg(wf_collision_objs[i-1].full_obj))
+
+    // TODO: temp fix
+    auto inflated_full_obj = wf_collision_objs[i-1].full_obj;
+    inflated_full_obj.primitives[0].dimensions[1] += 0.003;
+
+    if (!child_full->processCollisionObjectMsg(inflated_full_obj))
     {
       ROS_WARN("[Process Planning] Failed to process full collision object");
     }

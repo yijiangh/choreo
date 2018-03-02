@@ -21,7 +21,7 @@ bool FFAnalyzer::SeqPrint()
     layers_[e->Layer()].push_back(e);
   }
 
-  int print_until = 2;
+  int print_until = layer_size;
 
   for (int l = 0; l < print_until; l++)
   {
@@ -43,16 +43,6 @@ bool FFAnalyzer::SeqPrint()
     int h = print_queue_.size(); // print queue size so far
     int t;
 
-//    if (l == 0)
-//    {
-//      /* set pillars as starting edges */
-//      PrintPillars();
-//      continue;
-//    }
-//    else
-//    {
-//      t = h + Nl;
-//    }
     if(0 == l)
     {
       // sort pillars by x coordinate (start with the one that is furthest away from robot base)
@@ -497,17 +487,20 @@ double FFAnalyzer::GenerateCost(WF_edge *ej, const int h, const int t, const int
     }
 
     /* adjacency weight (A) */
-    // use dist to robot base as heuristic
-    const auto& st_pt_msg = frame_msgs_[ej->ID()].start_pt;
-    const auto& end_pt_msg = frame_msgs_[ej->ID()].end_pt;
-
-    // distance to robot base (world_frame 0,0,0)
-    double dist = sqrt(pow((st_pt_msg.x + end_pt_msg.x)/2, 2)
-                           + pow((st_pt_msg.y + end_pt_msg.y)/2, 2)
-                           + pow((st_pt_msg.z + end_pt_msg.z)/2, 2));
-    if(min_base_dist_ != max_base_dist_)
+    if(ej->isPillar())
     {
-      A = 1 - (dist - min_base_dist_) / (max_base_dist_ - min_base_dist_);
+      // use dist to robot base as heuristic
+      const auto &st_pt_msg = frame_msgs_[ej->ID()].start_pt;
+      const auto &end_pt_msg = frame_msgs_[ej->ID()].end_pt;
+
+      // distance to robot base (world_frame 0,0,0)
+      double dist = sqrt(pow((st_pt_msg.x + end_pt_msg.x) / 2, 2)
+                             + pow((st_pt_msg.y + end_pt_msg.y) / 2, 2)
+                             + pow((st_pt_msg.z + end_pt_msg.z) / 2, 2));
+      if (min_base_dist_ != max_base_dist_)
+      {
+        A = 1 - (dist - min_base_dist_) / (max_base_dist_ - min_base_dist_);
+      }
     }
 
     double cost = Wp_ * P + Wa_ * A + Wi_ * I;
