@@ -75,10 +75,16 @@ moveit_msgs::CollisionObject framefab_task_sequence_processing_utils::UnitProces
 }
 
 void framefab_task_sequence_processing_utils::UnitProcess::createShrinkedEndPoint(Eigen::Vector3d& st_pt, Eigen::Vector3d& end_pt,
-                    const double& shrink_length)
+                    double shrink_length)
 {
   Eigen::Vector3d translation_vec = end_pt - st_pt;
   translation_vec.normalize();
+
+  if(2 * shrink_length > (st_pt - end_pt).norm())
+  {
+    ROS_WARN_STREAM("[ts processing] shrink length longer than element length!");
+    shrink_length = 0.2 * (st_pt - end_pt).norm();
+  }
 
   st_pt = st_pt + shrink_length * translation_vec;
   end_pt = end_pt - shrink_length * translation_vec;

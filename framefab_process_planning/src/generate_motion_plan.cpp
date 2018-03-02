@@ -134,7 +134,7 @@ void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
 
     // TODO: temp fix
     auto inflated_full_obj = wf_collision_objs[i-1].full_obj;
-    inflated_full_obj.primitives[0].dimensions[1] += 0.003;
+    inflated_full_obj.primitives[0].dimensions[1] += 0.002;
 
     if (!child_full->processCollisionObjectMsg(inflated_full_obj))
     {

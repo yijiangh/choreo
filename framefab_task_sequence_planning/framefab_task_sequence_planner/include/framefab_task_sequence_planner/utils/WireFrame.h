@@ -149,6 +149,17 @@ class WF_edge
     return sqrt(dx*dx + dy*dy + dz*dz);
   }
 
+  double CenterDistanceTo(WF_edge* ej) const
+  {
+    point this_c = this->CenterPos();
+    point ej_c = ej->CenterPos();
+
+    double dx = this_c.x() - ej_c.x();
+    double dy = this_c.y() - ej_c.y();
+    double dz = this_c.z() - ej_c.z();
+    return sqrt(dx*dx + dy*dy + dz*dz);
+  }
+
  public:
   WF_vert *pvert_;
   WF_edge *pnext_;

@@ -17,7 +17,8 @@
 #include <eigen_conversions/eigen_msg.h>
 
 const static std::string GET_PLANNING_SCENE_SERVICE = "get_planning_scene";
-const static double ROBOT_KINEMATICS_CHECK_TIMEOUT = 5.0;
+const static double ROBOT_KINEMATICS_CHECK_TIMEOUT = 15.0;
+const double STATEMAP_UPDATE_DISTANCE = 100; // mm
 
 namespace{
 // copy from graph_builder.cpp
@@ -387,7 +388,9 @@ void SeqAnalyzer::UpdateStateMap(WF_edge *order_e, vector<vector<lld>> &state_ma
     // for each unprinted edge in wireframe, full graph arc consistency
     // it makes no sense to prune pillar's domain, since we only allow z-axis for pillar's printing
     // (and they are printed first)
-    if (dual_i != dual_j && !ptr_dualgraph_->isExistingEdge(target_e) && !target_e->isPillar())
+    if (dual_i != dual_j && !ptr_dualgraph_->isExistingEdge(target_e)
+        && !target_e->isPillar()
+        && target_e->CenterDistanceTo(order_e) < STATEMAP_UPDATE_DISTANCE)
     {
       // prune order_e's domain with target_e's existence
       // arc consistency pruning
