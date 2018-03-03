@@ -30,7 +30,7 @@ bool FFAnalyzer::SeqPrint()
   }
 
   /* print starting from the first layer */
-  bool bSuccess = true;
+  bool bSuccess;
   for (int l = 0; l < print_until; l++)
   {
     /*
@@ -38,7 +38,6 @@ bool FFAnalyzer::SeqPrint()
     * h : head for printing queue of the layer
     * t : tail for printing queue of the layer
     */
-
     int Nl = layers_[l].size();
     int h = print_queue_.size(); // print queue size so far
     int t;
@@ -75,11 +74,18 @@ bool FFAnalyzer::SeqPrint()
       max_base_dist_ = max(max_base_dist_, dist);
     }
 
-    if (!GenerateSeq(l, h, t))
+    search_rerun_ = 0;
+    bSuccess = false;
+
+    while(!bSuccess && search_rerun_ < 5)
     {
-      fprintf(stderr,
-              "All possible start edge at layer %d has been tried but no feasible sequence is obtained.\n", l);
-      bSuccess = false;
+      bSuccess = GenerateSeq(l, h, t);
+      search_rerun_++;
+    }
+
+    if(!bSuccess)
+    {
+      ROS_ERROR("All possible start edge at layer %d has been tried but no feasible sequence is obtained after %d iterations.", l, search_rerun_);
       break;
     }
   }
@@ -211,7 +217,7 @@ bool FFAnalyzer::SeqPrintLayer(int layer_id)
       max_base_dist_ = max(max_base_dist_, dist);
     }
 
-    if (!GenerateSeq(lb, h, t))
+    if(!GenerateSeq(lb, h, t))
     {
       fprintf(stderr,
               "All possible start edge at layer %d has been tried but no feasible sequence is obtained.\n", lb);

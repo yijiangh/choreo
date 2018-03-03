@@ -17,7 +17,7 @@
 #include <eigen_conversions/eigen_msg.h>
 
 const static std::string GET_PLANNING_SCENE_SERVICE = "get_planning_scene";
-const static double ROBOT_KINEMATICS_CHECK_TIMEOUT = 15.0;
+const static double ROBOT_KINEMATICS_CHECK_TIMEOUT = 10.0;
 const double STATEMAP_UPDATE_DISTANCE = 100; // mm
 
 namespace{
@@ -184,6 +184,7 @@ SeqAnalyzer::SeqAnalyzer(
   file_output_ = file_output;
 
   update_collision_ = true;
+  search_rerun_ = 0;
 
   hotend_model_ = hotend_model;
   moveit_model_ = moveit_model;
@@ -722,7 +723,7 @@ bool SeqAnalyzer::TestRobotKinematics(WF_edge* e, const std::vector<lld>& colli_
 
   const auto check_start_time = ros::Time::now();
 
-  while((ros::Time::now() - check_start_time).toSec() < ROBOT_KINEMATICS_CHECK_TIMEOUT)
+  while((ros::Time::now() - check_start_time).toSec() < ROBOT_KINEMATICS_CHECK_TIMEOUT * (search_rerun_ + 1))
   {
     std::vector<Eigen::Affine3d> poses = generateSampleEEFPoses(path_pts, direction_matrix_list);
 
