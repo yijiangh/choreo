@@ -1,6 +1,7 @@
 
-[<img src="http://digitalstructures.mit.edu/theme/digistruct/images/digital-structures-logo-gray.svg" width="200">](http://digitalstructures.mit.edu/) Framefab Motion Planning Platform
+[<img src="http://digitalstructures.mit.edu/theme/digistruct/images/digital-structures-logo-gray.svg" width="150">](http://digitalstructures.mit.edu/) Choreo
 ===
+**Choreo: robotic motion planning platform for discrete architectural assembly**
 
 - Author: 	Yijiang Huang
 - Advisor:	[Prof. Caitlin Mueller](http://www.caitlinmueller.com/)
