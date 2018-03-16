@@ -1,8 +1,8 @@
 stomp/manipulator:
   group_name: manipulator
   optimization:
-    num_timesteps: 50
-    num_iterations: 50
+    num_timesteps: 70
+    num_iterations: 70
     num_iterations_after_valid: 0    
     num_rollouts: 10
     max_rollouts: 100
@@ -44,7 +44,7 @@ stomp/manipulator:
 stomp/manipulator_rail:
   group_name: manipulator_rail
   optimization:
-    num_timesteps: 40
+    num_timesteps: 70
     num_iterations: 40
     num_iterations_after_valid: 0    
     num_rollouts: 10
@@ -90,8 +90,8 @@ stomp/manipulator_rail:
 stomp/manipulator_tool:
   group_name: manipulator_tool
   optimization:
-    num_timesteps: 40
-    num_iterations: 40
+    num_timesteps: 70
+    num_iterations: 70
     num_iterations_after_valid: 0    
     num_rollouts: 10
     max_rollouts: 10 
@@ -133,8 +133,8 @@ stomp/manipulator_tool:
 stomp/manipulator_tcp:
   group_name: manipulator_tcp
   optimization:
-    num_timesteps: 50
-    num_iterations: 50
+    num_timesteps: 250
+    num_iterations: 70
     num_iterations_after_valid: 0    
     num_rollouts: 10
     max_rollouts: 100
