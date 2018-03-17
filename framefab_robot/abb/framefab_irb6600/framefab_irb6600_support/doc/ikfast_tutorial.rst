@@ -102,27 +102,69 @@ To see the links in your newly generated Collada file::
 
 This is useful if you have a 7-dof arm and you need to fill in a --freeindex parameter, discussed later.
 
+You can create a sh file to make this "xacro -> urdf -> dae -> check links info" process easier, for example `this one <https://github.com/yijiangh/Choreo/blob/2aa664d2f485d999421f2cfdfc024e89bea33315/framefab_robot/abb/framefab_irb6600/framefab_irb6600_support/urdf/xacro2dae.sh>`_. Put the script in your xacro's folder and simply type in::
+	
+	% don't forget to give execution permission to your script: chmod +x xacro2dae.sh if first run
+	./xacro2dae.sh <your xacro file name (without suffix)>
+
+Then (if there's no error in your xacro file), it should generate the following files::
+	
+	<your xacro file name>.urdf
+	<your xacro file name>.dae
+
 To test your newly generated Collada file in OpenRave::
 
  openrave <myrobot_name>.dae
 
 **Example** ::
 
-For a 6-axis ABB irb2400 robot, we can first generate urdf from xacro::
+The xacro files (`irb6600_with_linear_track_workspace.xacro <https://github.com/yijiangh/Choreo/blob/2aa664d2f485d999421f2cfdfc024e89bea33315/framefab_robot/abb/framefab_irb6600/framefab_irb6600_support/urdf/irb6600_with_linear_track_workspace.xacro>`_) and scripts for this example can be found `here <https://github.com/yijiangh/Choreo/tree/2aa664d2f485d999421f2cfdfc024e89bea33315/framefab_robot/abb/framefab_irb6600/framefab_irb6600_support/urdf>`_.
 
-	rosrun xacro xacro --inorder -o irb2400_test.urdf irb2400_test.xacro
+For a 7-axis ABB irb6600 robot + linear track, we can first generate urdf from xacro::
+
+	rosrun xacro xacro --inorder -o irb6600_with_linear_track_workspace.urdf irb6600_with_linear_track_workspace.xacro
 
 Then generate the dae file::
 
-	rosrun collada_urdf urdf_to_collada irb2400_test.urdf irb2400_test.dae 
-
-Check your dae in openrave's visualizer::
-
-	openrave irb2400_test.dae
+	rosrun collada_urdf urdf_to_collada irb6600_with_linear_track_workspace.urdf irb6600_with_linear_track_workspace.dae 
 
 and check links info::
 
 	openrave-robot.py irb2400_test.dae --info links	
+
+It should give you the following in your terminal:
+
+=======================  ======  =======
+name           					 index   parents
+=======================  ======  =======
+base_link                0                            
+linear_axis_base_link    1     	 base_link              
+linear_axis_zero         2       linear_axis_base_link  
+linear_axis_carriage     3       linear_axis_zero       
+linear_axis_robot_mount  4       linear_axis_carriage   
+robot_base_link          5       linear_axis_robot_mount
+robot_base               6       robot_base_link        
+robot_link_1             7       robot_base_link        
+robot_link_2             8       robot_link_1           
+robot_link_3             9       robot_link_2           
+robot_link_4             10      robot_link_3           
+robot_link_5             11      robot_link_4           
+robot_link_6             12      robot_link_5           
+robot_tool0              13      robot_link_6           
+eef_base_link            14      robot_tool0            
+eef_tcp_frame            15      eef_base_link          
+robot_link_cylinder      16      robot_link_1           
+robot_link_piston        17      robot_link_cylinder    
+=======================  ======  =======
+
+Check your dae in openrave's visualizer::
+
+	openrave irb6600_with_linear_track_workspace.dae
+
+It should give you something looks like this:
+
+.. image:: images/irb6600_linear_track_openrave_visualize_dae.PNG
+	:scale: 50 %
 
 **NOTE**: if the openrave visualizaer fails to pop up after you run `openrave irb2400_test.dae`, please check you have the following Qt related packages install (refer to `this github discussion <https://github.com/rdiankov/openrave/issues/500>`_)::
 
