@@ -1,12 +1,12 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<package>
-  <name>framefab_irb2400_workspace_ikfast_manipulator_plugin</name>
+<package format="2">
+  <name>framefab_irb6600_workspace_ikfast_rail_robot_manipulator_plugin</name>
   <version>0.0.0</version>
-  <description>The framefab_irb2400_workspace_ikfast_manipulator_plugin package</description>
+  <description>The framefab_irb6600_workspace_ikfast_rail_robot_manipulator_plugin package</description>
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
   <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
-  <maintainer email="yijiangh@mit.edu">yijiangh</maintainer>
+  <maintainer email="yijiangh@todo.todo">yijiangh</maintainer>
   <!-- One license tag required, multiple allowed, one license per tag -->
   <!-- Commonly used license strings: -->
   <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
@@ -14,7 +14,7 @@
   <!-- Url tags are optional, but multiple are allowed, one per tag -->
   <!-- Optional attribute type can be: website, bugtracker, or repository -->
   <!-- Example: -->
-  <!-- <url type="website">http://wiki.ros.org/framefab_irb2400_workspace_ikfast_manipulator_plugin</url> -->
+  <!-- <url type="website">http://wiki.ros.org/framefab_irb6600_workspace_ikfast_rail_robot_manipulator_plugin</url> -->
   <!-- Author tags are optional, multiple are allowed, one per tag -->
   <!-- Authors do not have to be maintainers, but could be -->
   <!-- Example: -->
@@ -43,16 +43,16 @@
   <!-- The export tag contains other, unspecified, tags -->
   <export>
     <!-- Other tools can request additional information be placed here -->
-    <moveit_core plugin="${prefix}/framefab_irb2400_workspace_manipulator_moveit_ikfast_plugin_description.xml"/>
+    <moveit_core plugin="${prefix}/framefab_irb6600_workspace_rail_robot_manipulator_moveit_ikfast_plugin_description.xml"/>
   </export>
   <build_depend>moveit_core</build_depend>
   <build_depend>liblapack-dev</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>tf_conversions</build_depend>
   <build_depend>pluginlib</build_depend>
-  <run_depend>moveit_core</run_depend>
-  <run_depend>liblapack-dev</run_depend>
-  <run_depend>roscpp</run_depend>
-  <run_depend>tf_conversions</run_depend>
-  <run_depend>pluginlib</run_depend>
+  <exec_depend>moveit_core</exec_depend>
+  <exec_depend>liblapack-dev</exec_depend>
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>tf_conversions</exec_depend>
+  <exec_depend>pluginlib</exec_depend>
 </package>
