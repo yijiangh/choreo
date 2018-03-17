@@ -1,18 +1,16 @@
-Creating a custom IKFast Plugin
-===============================
-In this section, we will walk through configuring an IKFast plugin for MoveIt! This tutorial is a updated version of the archived `moveit-ikfast tutorial for ros-indigo <http://docs.ros.org/indigo/api/moveit_ikfast/html/doc/ikfast_tutorial.html>`_. 
+In this section, we will walk through configuring an IKFast plugin for MoveIt! This tutorial is a updated version of the archived `moveit-ikfast tutorial for ros-kinetic <http://docs.ros.org/kinetic/api/moveit_tutorials/html/doc/ikfast_tutorial.html>`_. The standard tutorial does not have enough example to exemplify the ikfast generation for 6+1 dof (especially 6 dof + linear track) setting. This tutorial means to complement this missing part with detailed instruction and examples. 
 
-This tutorial have the following new features compared to the archived indigo one::
+This tutorial have the following new features compared to the official kinetic one::
 
 	1. Updated openrave installation for ros-kinetic
 	2. Examples added in each sections. Examples are dedicated to industrial robot and related setups.
 	3. References and guidance added for setting up `free-index` for 7-dof robot, with focus on 6-axis industrial robot + 1 dof linear track scenario.
 
-`Yijiang Huang's post <https://github.com/ros-industrial-consortium/descartes/issues/210>`_ on `Descartes <https://github.com/ros-industrial-consortium/descartes/issues>`_ package's github issue initiated the (re-)creation of this tutorial.
+`Yijiang Huang's post <https://github.com/ros-industrial-consortium/descartes/issues/210>`_ on `Descartes <https://github.com/ros-industrial-consortium/descartes/issues>`_ package's github issue and `ROS Answer <https://answers.ros.org/question/285611/set-free_index-for-7-dof-robots-ikfast-moveit-plugin-generation/>`_ initiated the (re-)creation of this tutorial.
 
-**Correction** :
-
-ROS-Kinetic Moveit does have an more updated ik tutorial: `link <http://docs.ros.org/kinetic/api/moveit_tutorials/html/doc/ikfast_tutorial.html>`_. However, the tutorial does not have enough example to exemplify the ikfast generation for 7 dof (especially 6 dof + linear track) setting. This tutorial means to complement this missing part. 
+---------------------------------------
+Introduction to IKFast and prerequisite
+---------------------------------------
 
 What is IKFast?
 ^^^^^^^^^^^^^^^
@@ -28,10 +26,11 @@ While it works in theory, currently the IKFast plugin generator tool does not wo
 
 Pre-requisites
 ^^^^^^^^^^^^^^
-You should have already created a urdf or xacro file for your robot.
+You should have already created a urdf or xacro file for your robot. In addition, you need the following packages:
 
 MoveIt! IKFast Installation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""""""""""
+
 Note that from ROS-indigo, `moveit-ikfast <https://github.com/ros-planning/moveit_ikfast>`_ is archived and the package has been integrated as a part of the *moveit_kinematics* package under `moveit! motion planning framework <https://github.com/ros-planning/moveit>`_.
 
 **Binary Install** ::
@@ -42,9 +41,15 @@ Note that from ROS-indigo, `moveit-ikfast <https://github.com/ros-planning/movei
 
  rospack find moveit_kinematics
 
+.. _OpenraveInstallation:
+
+
 OpenRAVE Installation
-^^^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""""
+
 Note that for Ubuntu 16.04 (Xenial), openrave does not have a release file on ppa.launchpad.net. Thus the traditional "sudo apt-get" in `ikfast indigo tutorial <http://docs.ros.org/indigo/api/moveit_ikfast/html/doc/ikfast_tutorial.html>`_ does not work in 16.04 Xenial.
+
+Before proceeding on building openrave from source, if you are using ROS-indigo. I recommend you to try installing a pre-cooked ROS-openrave package from ``personalrobotics/ros-openrave`` Docker image, following instruction from gvdhoorn in `this post <https://answers.ros.org/question/263925/generating-an-ikfast-solution-for-4-dof-arm/?answer=265625#post-id-265625>`[1].
 
 Thus we need to build openrave from src, `Stéphane Caron's blog <https://scaron.info/teaching/installing-openrave-on-ubuntu-16.04.html>`_ and `Francisco Suárez-Ruiz's blog <https://fsuarez6.github.io/blog/workstation-setup-xenial/>`_ give good instructions on how to install openrave from src (make sure that you install the package after the `make -j4`!). Please notice that we need the **up-to-date version** of openrave, be sure to fetch the master branch when cloning the github repo::
 	
@@ -57,7 +62,6 @@ After installation, you can test the openrave version by entering the following 
 It should return::
 
 	0.9.0
-	
 
 After openrave installation, we need to downgrade sympy version to make IKfast to work properly (many thanks to `Francisco Suárez-Ruiz's blog post <https://fsuarez6.github.io/blog/workstation-setup-xenial/>`_). Please first check sympy version by::
 
@@ -74,8 +78,7 @@ Openrave **requires openrave 0.7.1 to work correctly**, so we downgrade it::
 	pip install --upgrade --user sympy==0.7.1
 
 
-*Please report your results with this on the moveit-users mailing list.*
-
+[1] https://answers.ros.org/question/263925/generating-an-ikfast-solution-for-4-dof-arm/
 
 Create Collada File For Use With OpenRave
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -134,6 +137,9 @@ and check links info::
 
 It should give you the following in your terminal:
 
+.. _irb2400_test_links_info:
+
+
 =======================  ======  =======
 name           					 index   parents
 =======================  ======  =======
@@ -170,29 +176,39 @@ It should give you something looks like this:
 
 	sudo apt-get install libqt4-dev libsoqt-dev-common libsoqt4-dev
 
+-------------------------------
 Create IKFast Solution CPP File
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------
+
 Once you have a numerically rounded Collada file its time to generate the C++ .h header file that contains the analytical IK solution for your robot.
 
 Select IK Type
---------------
+^^^^^^^^^^^^^^
 You need to choose which sort of IK you want. See `this page <http://openrave.org/docs/latest_stable/openravepy/ikfast/#ik-types>`_ for more info.  The most common IK type is *transform6d*.
 
 Choose Planning Group
----------------------
+^^^^^^^^^^^^^^^^^^^^^
 If your robot has more than one arm or "planning group" that you want to generate an IKFast solution for, choose one to generate first. The following instructions will assume you have chosen one <planning_group_name> that you will create a plugin for. Once you have verified that the plugin works, repeat the following instructions for any other planning groups you have. For example, you might have 2 planning groups::
 
  <planning_group_name> = "left_arm"
  <planning_group_name> = "right_arm"
 
+For a 6-dof industrial arm + linear track setup, we usually have two planning groups::
+
+ <planning_group_name> = "manipulator" % fix robot_base_link, just a 6-dof arm
+ <planning_group_name> = "robot_rail_manipulator" % robot sitting on a prismatic joint, e.g. linear track
+
 Identify Link Numbers
----------------------
+^^^^^^^^^^^^^^^^^^^^^
 
 You also need the link index numbers for the *base_link* and *end_link* between which the IK will be calculated. You can count the number of links by viewing a list of links in your model::
 
  openrave-robot.py <myrobot_name>.dae --info links
 
-A typical 6-DOF manipulator should have 6 arm links + a dummy base_link as required by ROS specifications.  If no extra links are present in the model, this gives: *baselink=0* and *eelink=6*.  Often, an additional tool_link will be provided to position the grasp/tool frame, giving *eelink=7*.
+six-dof setup
+"""""""""""""
+
+A typical 6-DOF manipulator should have 6 arm links + a dummy base_link as required by ROS specifications. If no extra links are present in the model, this gives: *baselink=0* and *eelink=6*.  Often, an additional tool_link will be provided to position the grasp/tool frame, giving *eelink=7*.
 
 The manipulator below also has another dummy mounting_link, giving *baselink=1* and *eelink=8*.
 
@@ -210,8 +226,82 @@ link6_wrist    7       link5
 tool_link      8       link6_wrist
 =============  ======  =======
 
-Generate IK Solver
-^^^^^^^^^^^^^^^^^^
+6+1 dof setup
+"""""""""""""
+
+For a 6+1 dof setup, we usually have some redundant mounting link for linking across different xacro files, for example, linking the 6dof robot to a linear track and an end effector, each defined in separate xacro files. So for a 6+1 dof machine manipulator shown in table irb2400_test_links_info_, we should set *baselink=2* and *eelink=13*. We can shift the tool0 to our end effector TCP frame in application related code to make this ik plugin more universal.
+
+.. _ikdatabse_method:
+
+Generate IK Solver (using ikfast's inversekinematics database)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Many thanks to @`gvdhoorn <https://answers.ros.org/users/5184/gvdhoorn/>`_ for pointing out this method in his posts on ROS answer [`1 <https://answers.ros.org/question/285611/set-free_index-for-7-dof-robots-ikfast-moveit-plugin-generation/>`_, `2 <https://answers.ros.org/question/263925/generating-an-ikfast-solution-for-4-dof-arm/>`_, `3 <https://answers.ros.org/question/196753/generating-ikfast-plugin-for-5-dof-robot/>`_]. `His post in [3] <https://answers.ros.org/question/263925/generating-an-ikfast-solution-for-4-dof-arm/?answer=265625#post-id-265625>`_ gives most of the details to generate the ik solver. The greatest thing for using this method is that it will let ikfast to decide which joint to be set as free joint and experiments has proved that it worked for the 6+1 dof case.
+
+I've tested using the inversekinematics database without using the ``personalrobotics/ros-openrave`` Docker image. OpenraveInstallation_ in this tutorial works too.
+
+First, create a xml wrapper for the collada file (<your_collada_file.dae>)::
+
+	<robot file="$NAME_OF_YOUR_COLLADA_FILE">
+		<Manipulator name="NAME_OF_THE_ROBOT_IN_URDF">
+		  <base>base_link</base>
+		  <effector>tool0</effector>
+		</Manipulator>
+	</robot>
+
+And save it as ``<NAME_OF_YOUR_COLLADA_FILE>.xml`` in the folder where you saved your collada file. Quote from gvdhoorn in `his post <https://answers.ros.org/question/263925/generating-an-ikfast-solution-for-4-dof-arm/?answer=265625#post-id-265625>`_ [2]: ::
+
+	OpenRAVE supports relative filenames for the file attribute of the robot element in our wrapper.xml, so it's easiest if you place wrapper.xml in the same directory that contains the .dae of your robot model.
+
+Then run::
+
+	cd /path/to/your/xml_and_collada/file
+	openrave.py --database inversekinematics --robot=<NAME_OF_YOUR_COLLADA_FILE>.xml --iktype=transform6d --iktests=100
+
+The iktests parameter value was just a default, you can make it larger or smaller.
+
+Then you can harvest your ``ikfast.h`` and ``ikfast.<random_ikfast_id>.cpp``
+
+**Example** ::
+
+First create a xml wrapper::
+
+	<robot file="irb6600_with_linear_track_workspace.dae">
+		<Manipulator name="framefab_irb6600_workspace">
+		  <base>linear_axis_base_link</base>
+		  <effector>robot_tool0</effector>
+		</Manipulator>
+	</robot>
+
+Save it as ``irb6600_with_linear_track_workspace.xml``.
+
+Then run::
+	
+	cd /path/to/your/xml_and_collada/file
+	openrave.py --database inversekinematics --robot=irb6600_with_linear_track_workspace.xml --iktype=transform6d --iktests=1000
+	% it will run ik test 1000 times, you can change it to whatever number you want
+
+After about 2 minutes, you will see the following in your terminal::
+
+	openravepy.databases.inversekinematics: generate, successfully generated c++ ik in 120.398534s, file=/home/yijiangh/.openrave/kinematics.6749b3e95c92afb4a30628f16aa823de/ikfast0x1000004a.Transform6D.0_1_3_4_5_6_f2.cpp
+	openravepy.databases.inversekinematics: generate, compiling ik file to /home/yijiangh/.openrave/kinematics.6749b3e95c92afb4a30628f16aa823de/ikfast0x1000004a.Transform6D.x86_64.0_1_3_4_5_6_f2.so
+	openravepy.databases.inversekinematics: save, inversekinematics generation is done, compiled shared object: /home/yijiangh/.openrave/kinematics.6749b3e95c92afb4a30628f16aa823de/ikfast0x1000004a.Transform6D.x86_64.0_1_3_4_5_6_f2.so
+	openravepy.databases.inversekinematics: RunFromParser, testing the success rate of robot irb6600_with_linear_track_workspace.xml 
+	% ....... ikfast test failure warning at some test case No. i
+	openravepy.databases.inversekinematics: testik, success rate: 0.986000, wrong solutions: 0.000000, no solutions: 0.014000, missing solution: 0.608000
+
+Yaah! you got your ``ikfast.h`` and ``ikfast<id>.Transform6D.<...>.cpp`` saved in your ``$home/<username>/.openrave/<id>/`` folder.
+
+[1] https://answers.ros.org/question/285611/set-free_index-for-7-dof-robots-ikfast-moveit-plugin-generation/
+[2] https://answers.ros.org/question/263925/generating-an-ikfast-solution-for-4-dof-arm/
+[3] https://answers.ros.org/question/196753/generating-ikfast-plugin-for-5-dof-robot/
+
+.. _ikpy_method:
+
+Generate IK Solver (using ikfast.py, archived)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Note:** 
+From my experience, this method does not work well for 6+1 dof case (openrave 0.9.0, `version <https://github.com/rdiankov/openrave/tree/7c5f5e27eec2b2ef10aa63fbc519a998c276f908>`_), check `this ROS answer post <https://answers.ros.org/question/285611/set-free_index-for-7-dof-robots-ikfast-moveit-plugin-generation/>`_. This section is kept for achiving purpose and I stopped using them in practice. Please refer to ikdatabse_method_ for working solution.
 
 To generate the IK solution between the manipulator's base and tool frames for a 6 dof arm, use the following command format::
 
@@ -266,22 +356,15 @@ Rosen Diankov's comment on how to properly set this free joint (refer `this post
 	The only way I've found to truly get the best free joint is to solve for all of them and see which one
 	is better.
 
-**References** ::
+For 6+1 dof case, I've tried to set every joint to be the free joint, but ikfast either gave me the following error::
 
-1. From theoretical perspective, this `thread on Robotics StackExchange <https://robotics.stackexchange.com/questions/7786/which-joints-to-discretize-for-ik>`_ gives a fairly in-depth discussion on how should we set up the `free joint` and its impact on the generated inverse kinematics.
+	__main__.CannotSolveError: CannotSolveError: need 6 joints
 
-2. For 5-dof robot or robot on a 2D navigation mobile platform, `this pose on ROS Answers <https://answers.ros.org/question/65940/difficulty-using-ikfast-generator-need-6-joints-error-with-kuka-youbot/>`_ and `google group links <https://groups.google.com/forum/#!msg/moveit-users/P2V9eW5BjW8/eDr9nCeRg3AJ>`_ therein give in-depth discussions and solutions.
+Or it entered into a long computation and returned some unsolvable message at the end.
 
-3. `This thread on openrave forum <http://openrave-users-list.185357.n3.nabble.com/Sawyer-arm-raise-self-CannotSolveError-need-6-joints-CannotSolveError-need-6-joints-td4027917.html>`_ discusses 7-dof ikfast generation problem with Sawyer arm.
-
-4. `Discussion <https://github.com/ros-industrial-consortium/descartes/issues/124>`_ on ikfast and trac-ik in Descartes.
-
-Please consult the OpenRAVE mailing list, ROS-I category on ROS Discourse [1], or ROS Answers for more information about 5 and 7 DOF manipulators.
-
-[1] based on the `recent announcement (Feb-2018) <https://rosindustrial.org/news/2018/2/14/ros-industrial-migration-to-discourse>`_ of migrating `ROS-I google group <https://groups.google.com/forum/#!forum/swri-ros-pkg-dev>`_ to ROS Discouse.
-
-Create Plugin
-^^^^^^^^^^^^^
+-----------------------
+Create Plugin and usage
+-----------------------
 
 Create the package that will contain the IK plugin. We recommend you name the package <myrobot_name>_ikfast_<planning_group_name>_plugin. From here on out we'll refer to your IKFast package as simply <moveit_ik_plugin_pkg>::
 
@@ -295,7 +378,7 @@ Build your workspace so the new package is detected (can be 'roscd')::
 
 Create the plugin source code::
 
- rosrun moveit_ikfast create_ikfast_moveit_plugin.py <myrobot_name> <planning_group_name> <moveit_ik_plugin_pkg> <ikfast_output_path>
+ rosrun moveit_kinematics create_ikfast_moveit_plugin.py <myrobot_name> <planning_group_name> <moveit_ik_plugin_pkg> <ikfast_output_path>
 
 Or without ROS::
 
@@ -303,10 +386,11 @@ Or without ROS::
 
 Parameters
 ^^^^^^^^^^
+
  * *myrobot_name* - name of robot as in your URDF
  * *planning_group_name* - name of the planning group you would like to use this solver for, as referenced in your SRDF and kinematics.yaml
  * *moveit_ik_plugin_pkg* - name of the new package you just created
- * *ikfast_output_path* - file path to the location of your generated IKFast output.cpp file
+ * *ikfast_output_path* - file path (including ``ikfast.cpp``) to the location of your generated IKFast ikfast.cpp file
 
 This will generate a new source file <myrobot_name>_<planning_group_name>_ikfast_moveit_plugin.cpp in the src/ directory, and modify various configuration files.
 
@@ -316,6 +400,37 @@ Build your workspace again to create the ik plugin::
  catkin_make
 
 This will build the new plugin library lib/lib<myrobot_name>_<planning_group_name>_moveit_ikfast_moveit_plugin.so that can be used with MoveIt!
+
+Example
+^^^^^^^
+
+First, create and build packge ::
+
+	% create it!
+	cd /path/to/your/desired/path/to/save/package
+	catkin_create_pkg framefab_irb6600_workspace_ikfast_rail_robot_manipulator_plugin
+	% build it!	
+	cd ~/catkin_ws
+	catkin_make
+
+Then create an include folder inside your ``ikfast_plugin`` package, paste your ``ikfast.h`` and ``ikfast.cpp`` (I simplify the name from ``ikfast0x1000004a.Transform6D.0_1_3_4_5_6_f2.cpp`` to cut off these long id) to this ``include`` folder.
+
+Then open terminal in this ``include`` folder, and run ::
+
+	rosrun moveit_kinematics create_ikfast_moveit_plugin.py framefab_irb6600_workspace rail_robot_manipulator framefab_irb6600_workspace_ikfast_rail_robot_manipulator_plugin ikfast.cpp
+	
+Then build the new plugin library::
+
+	cd ~/catkin_ws
+	catkin_make
+
+**Note:** ::
+If you're using ``catkin_tools`` package (`link <http://catkin-tools.readthedocs.io/en/latest/installing.html>`_), you might encounter the following error when you build the package::
+
+	catkin_pkg.package.InvalidPackage: Error(s) in /home/yijiangh/catkin_ws/src/framefab_mpp/framefab_robot/abb/framefab_irb6600/framefab_irb6600_workspace_ikfast_rail_robot_manipulator_plugin/package.xml:
+	- The manifest (with format version 2) must not contain the following tags: run_depend
+
+Simply change ``<package format="2">`` to ``<package>`` in the ``package.xml`` will fix this error.
 
 Usage
 ^^^^^
@@ -330,17 +445,63 @@ Edit these parts::
  -OR-
    kinematics_solver: kdl_kinematics_plugin/KDLKinematicsPlugin
 
+**Example::** ::
+
+In my case, the ``kinematics.yaml`` file looks like this ::
+
+	manipulator:
+		kinematics_solver: kdl_kinematics_plugin/KDLKinematicsPlugin
+		kinematics_solver_attempts: 3
+		kinematics_solver_search_resolution: 0.005
+		kinematics_solver_timeout: 0.005
+	rail_robot_manipulator:
+		kinematics_solver: framefab_irb6600_workspace_rail_robot_manipulator_kinematics/IKFastKinematicsPlugin
+		kinematics_solver_attempts: 3
+		kinematics_solver_search_resolution: 0.005
+		kinematics_solver_timeout: 0.005
+
 Test the Plugin
 ^^^^^^^^^^^^^^^
 
 Use the MoveIt Rviz Motion Planning Plugin and use the interactive markers to see if correct IK Solutions are found.
+
+**Example::** ::
+
+Run the demo by::
+
+	cd ~/catkin_ws
+	% don't forget to source your devel!
+	source devel/setup.bash
+	roslaunch framefab_irb6600_workspace_moveit_config demo.launch
+	
+Then you should be able to see and play with moveit! demo, powered by IkFast! (don't forget to change the ``planning_group`` to ``<ikfast_manipulator>``, ``rail_robot_manipulator`` in my case)
+
+.. image:: images/ikfast_moveit_demo.png
+	:scale: 80 %
 
 Updating the Plugin
 ^^^^^^^^^^^^^^^^^^^
 
 If any future changes occur with MoveIt! or IKFast, you might need to re-generate this plugin using our scripts. To allow you to easily do this, a bash script is automatically created in the root of your IKFast package, named *update_ikfast_plugin.sh*. This does the same thing you did manually earlier, but uses the IKFast solution header file that is copied into the ROS package.
 
-Links
-=====
+----------
+References
+----------
 
+1. From theoretical perspective, this `thread on Robotics StackExchange <https://robotics.stackexchange.com/questions/7786/which-joints-to-discretize-for-ik>`_ gives a fairly in-depth discussion on how should we set up the `free joint` and its impact on the generated inverse kinematics.
+
+2. For 5-dof robot or robot on a 2D navigation mobile platform, `this pose on ROS Answers <https://answers.ros.org/question/65940/difficulty-using-ikfast-generator-need-6-joints-error-with-kuka-youbot/>`_ and `google group links <https://groups.google.com/forum/#!msg/moveit-users/P2V9eW5BjW8/eDr9nCeRg3AJ>`_ therein give in-depth discussions and solutions.
+
+3. `This thread on openrave forum <http://openrave-users-list.185357.n3.nabble.com/Sawyer-arm-raise-self-CannotSolveError-need-6-joints-CannotSolveError-need-6-joints-td4027917.html>`_ discusses 7-dof ikfast generation problem with Sawyer arm.
+
+4. `Discussion <https://github.com/ros-industrial-consortium/descartes/issues/124>`_ on ikfast and trac-ik in Descartes.
+
+Please consult the OpenRAVE mailing list, ROS-I category on ROS Discourse [1], or ROS Answers for more information about 5 and 7 DOF manipulators.
+
+[1] based on the `recent announcement (Feb-2018) <https://rosindustrial.org/news/2018/2/14/ros-industrial-migration-to-discourse>`_ of migrating `ROS-I google group <https://groups.google.com/forum/#!forum/swri-ros-pkg-dev>`_ to ROS Discouse.
+
+
+-----
+Links
+-----
 
