@@ -290,7 +290,7 @@
     <child link="linear_axis_carriage"/>
     <origin rpy="0 0 0" xyz="0 0 0"/>
     <axis xyz="1 0 0"/>
-    <limit effort="0" lower="0" upper="5.4" velocity="0.150"/>
+    <limit effort="1" lower="0" upper="5.4" velocity="1"/>
   </joint>
   <joint name="linear_axis_joint_3" type="fixed">
     <parent link="linear_axis_carriage"/>

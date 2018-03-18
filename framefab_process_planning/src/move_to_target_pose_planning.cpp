@@ -42,12 +42,22 @@ bool ProcessPlanningManager::handleMoveToTargetPosePlanAndExecution(
 
     std::vector<double> target_pose(req.pose.end() - joint_names.size(), req.pose.end());
 
-    trajectory_msgs::JointTrajectory ros_traj =
-        getMoveitPlan(hotend_group_name_,
-                      current_joints,
-                      target_pose,
-                      moveit_model_);
-//    for (auto& pt : ros_traj.points) pt.time_from_start *= 4.0;
+    trajectory_msgs::JointTrajectory ros_traj = getMoveitPlan(hotend_group_name_,
+                                                              current_joints,
+                                                              target_pose,
+                                                              moveit_model_);
+
+    ros::Duration base_time = ros_traj.points[0].time_from_start;
+
+    double sim_time_scale = 3.0;
+    for (int i = 0; i < ros_traj.points.size(); i++)
+    {
+      ros_traj.points[i].time_from_start -= base_time;
+
+      //sim speed tuning
+      ros_traj.points[i].time_from_start *= sim_time_scale;
+    }
+
     fillTrajectoryHeaders(joint_names, ros_traj, world_frame_);
 
     // step 5: immediate execution (a quick solution for debugging)
@@ -64,8 +74,6 @@ bool ProcessPlanningManager::handleMoveToTargetPosePlanAndExecution(
 
     control_msgs::FollowJointTrajectoryGoal goal;
     goal.trajectory = ros_traj;
-
-    ROS_INFO_STREAM(ros_traj);
 
     client.sendGoalAndWait(goal);
     return true;

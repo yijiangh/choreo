@@ -3,8 +3,8 @@
 # Joint limits can be turned off with [has_velocity_limits, has_acceleration_limits]
 joint_limits:
   linear_axis_actuation_joint:
-    has_velocity_limits: true
-    max_velocity: 0.15
+    has_velocity_limits: false
+    max_velocity: 1
     has_acceleration_limits: false
     max_acceleration: 0
   robot_joint_1:
