@@ -28,10 +28,16 @@ double dist(const Eigen::Vector3d& from, const Eigen::Vector3d& to)
 }
 
 void createShrinkedEndPoint(Eigen::Vector3d& st_pt, Eigen::Vector3d& end_pt,
-                            const double& shrink_length)
+                            double shrink_length)
 {
   Eigen::Vector3d translation_vec = end_pt - st_pt;
   translation_vec.normalize();
+
+  if(2 * shrink_length > (st_pt - end_pt).norm())
+  {
+    ROS_WARN_STREAM("[tsp] shrink length longer than element length!");
+    shrink_length = 0.2 * (st_pt - end_pt).norm();
+  }
 
   st_pt = st_pt + shrink_length * translation_vec;
   end_pt = end_pt - shrink_length * translation_vec;
@@ -521,6 +527,8 @@ bool FiberPrintPlugIn::handleTaskSequencePlanning(
         delete ptr_frame_;
       }
 
+      ROS_INFO_STREAM("[Ts planning] wire frame read : " << file_path);
+
       // TODO: if contains keyword "pwf"
       ptr_frame_ = new WireFrame();
       ptr_frame_->LoadFromPWF(&fp[0]);
@@ -588,7 +596,7 @@ bool FiberPrintPlugIn::handleTaskSequencePlanning(
       }
 
       // dummy parm
-      ptr_parm_ = new FiberPrintPARM(1,0, 1.0, 1.0);
+      ptr_parm_ = new FiberPrintPARM(0, 0, 0);
 
       // dummy framefab output path
       ptr_path_ = "/home";

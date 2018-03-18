@@ -2,11 +2,21 @@
 #include <Mathematics/GteCylinder3.h>
 #include "framefab_task_sequence_planner/utils/QuadricCollision.h"
 
-namespace{
-void convertLLDMapToIntVectormap(const std::vector<lld>& lld_map, std::vector<int>& int_vec_map)
-{
+static const double MAX_COLLISION_CHECK_DIST = 200; // mm
 
+namespace{
+
+double WF_edge_euclid_dist(WF_edge* eu, WF_edge* ev)
+{
+  auto u = eu->CenterPos();
+  auto v = ev->CenterPos();
+
+  double dx = u.x() - v.x();
+  double dy = u.y() - v.y();
+  double dz = u.z() - v.z();
+  return sqrt(dx*dx + dy*dy + dz*dz);
 }
+
 } // anon util namespace
 
 QuadricCollision::QuadricCollision()
@@ -85,11 +95,13 @@ void QuadricCollision::Init(std::vector<lld>& colli_map)
   }
 }
 
-void QuadricCollision::DetectCollision(WF_edge *target_e, DualGraph *ptr_subgraph,
+bool QuadricCollision::DetectCollision(WF_edge *target_e, DualGraph *ptr_subgraph,
                                        vector<lld> &result_map)
 {
   Init(result_map);
   target_e_ = target_e;
+
+  bool change_flag = false;
 
   /* collision with edge */
   int Nd = ptr_subgraph->SizeOfVertList();
@@ -100,19 +112,21 @@ void QuadricCollision::DetectCollision(WF_edge *target_e, DualGraph *ptr_subgrap
 
     if (ptr_subgraph->isExistingEdge(e) && e != target_e_ && e != target_e_->ppair_)
     {
-      DetectEdge(e, result_map);
+      change_flag = DetectEdge(e, result_map);
     }
   }
+
+  return change_flag;
 }
 
-void QuadricCollision::DetectCollision(WF_edge *target_e, WF_edge *order_e,
+bool QuadricCollision::DetectCollision(WF_edge *target_e, WF_edge *order_e,
                                        std::vector<lld> &result_map)
 {
   Init(result_map);
   target_e_ = target_e;
 
   /* collision with edge */
-  DetectEdge(order_e, result_map);
+  return(DetectEdge(order_e, result_map));
 }
 
 void QuadricCollision::DetectCollision(WF_edge *target_e, std::vector<WF_edge*> exist_edge,
@@ -294,13 +308,15 @@ std::vector<int> QuadricCollision::ConvertCollisionMapToIntMap(const std::vector
   return int_map;
 }
 
-void QuadricCollision::DetectEdge(WF_edge *order_e, std::vector<lld> &result_map)
+bool QuadricCollision::DetectEdge(WF_edge *order_e, std::vector<lld> &result_map)
 {
-  if (Distance(order_e) > (extruder_.CyclinderLenth() + extruder_.Height()))
+  if(WF_edge_euclid_dist(target_e_, order_e) > MAX_COLLISION_CHECK_DIST)
   {
     // if this existing edge is too far away from target_e_, we assume that
     // there's no constraint arc between the target_e and order_e
-    return;
+
+    // return false if too far away
+    return false;
   }
 
   int halfM = ptr_frame_->SizeOfEdgeList() / 2;
@@ -370,6 +386,8 @@ void QuadricCollision::DetectEdge(WF_edge *order_e, std::vector<lld> &result_map
   {
     result_map[i] |= (*colli_map_[mi])[i];
   }
+
+  return true;
 }
 
 bool QuadricCollision::DetectEdges(std::vector<WF_edge*> exist_edge, double theta, double phi)

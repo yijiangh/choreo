@@ -49,7 +49,7 @@ class UnitProcess
       const double& element_diameter, std::string&& shrink_type_suffix = "") const;
 
   void createShrinkedEndPoint(Eigen::Vector3d& st_pt, Eigen::Vector3d& end_st,
-                              const double& shrink_length);
+                              double shrink_length);
 
   geometry_msgs::Pose computeCylinderPose(
       const Eigen::Vector3d& st_pt, const Eigen::Vector3d& end_pt) const;

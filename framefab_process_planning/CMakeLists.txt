@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
 	descartes_parser
   framefab_msgs
 	moveit_msgs
+	geometric_shapes
   moveit_ros_planning_interface
   roscpp
 	rviz_visual_tools
@@ -28,6 +29,7 @@ catkin_package(
 		descartes_parser
     framefab_msgs
 		moveit_msgs
+		geometric_shapes
     moveit_ros_planning_interface 
     roscpp
 		rviz_visual_tools

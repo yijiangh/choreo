@@ -1,4 +1,5 @@
 #include "framefab_task_sequence_planner/utils/WireFrame.h"
+#include <ros/console.h>
 
 WireFrame::WireFrame()
     :delta_tol_(1e-1), unify_size_(2.0), layer_size_(0), unit_scale_(1.0)
@@ -203,6 +204,12 @@ void WireFrame::LoadFromPWF(const char *path)
         WF_edge *e = InsertEdge((*pvert_list_)[u], (*pvert_list_)[v]);
         if (e != NULL)
         {
+          if(e->Layer() != -1)
+          {
+            ROS_WARN_STREAM("Overwrite previously set id! - prev layer id : " << e->Layer());
+            assert(e->Layer() == -1);
+          }
+
           e->SetLayer(layer);
           e->ppair_->SetLayer(layer);
         }

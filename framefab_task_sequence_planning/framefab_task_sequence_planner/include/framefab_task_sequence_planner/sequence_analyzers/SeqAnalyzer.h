@@ -178,4 +178,6 @@ class SeqAnalyzer
 
   int num_p_assign_visited_;
   int num_backtrack_;
+
+  int search_rerun_;
 };

@@ -199,7 +199,7 @@ void framefab_visual_tools::FrameFabVisualTool::visualizeAllWireFrame()
   for(std::size_t i = 0; i < visual_path_array_.size(); i++)
   {
     rviz_visual_tools::colors type_color =
-        static_cast<rviz_visual_tools::colors>((visual_path_array_[i].layer_id * 2) % 14 + 1);
+        static_cast<rviz_visual_tools::colors>((visual_path_array_[i].layer_id) % 14 + 1);
 
     visual_tools_->publishCylinder(visual_path_array_[i].start_pt,
                                    visual_path_array_[i].end_pt,

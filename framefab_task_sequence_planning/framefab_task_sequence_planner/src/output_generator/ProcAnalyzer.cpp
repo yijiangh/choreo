@@ -93,8 +93,8 @@ bool ProcAnalyzer::ProcPrint()
     {
       // non-pillar element
       // init
-      point start_node = e->pvert_->Position();
-      point end_node = e->ppair_->pvert_->Position();
+      point start_node = e->ppair_->pvert_->Position();
+      point end_node = e->pvert_->Position();
       const bool start_node_exist = IfPointInVector(start_node);
       const bool end_node_exist = IfPointInVector(end_node);
 
@@ -129,11 +129,11 @@ bool ProcAnalyzer::ProcPrint()
         // AND - both of them exist, "connect type"
 
         // prioritize printing upwards
-        if(start_node.z() - end_node.z() > 10)
+        if(start_node.z() > end_node.z())
         {
-          point tmp_swap = start_node;
-          start_node = end_node;
-          end_node = tmp_swap;
+          point tmp_swap = end_node;
+          end_node = start_node;
+          start_node = tmp_swap;
         }
         else
         {

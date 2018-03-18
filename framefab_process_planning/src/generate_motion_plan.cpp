@@ -131,7 +131,12 @@ void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
     // push in full_collision_geometry_planning_scene
     auto last_scene_full = planning_scenes_full.back();
     auto child_full = last_scene_full->diff();
-    if (!child_full->processCollisionObjectMsg(wf_collision_objs[i-1].full_obj))
+
+    // TODO: temp fix
+    auto inflated_full_obj = wf_collision_objs[i-1].full_obj;
+//    inflated_full_obj.primitives[0].dimensions[1] += 0.0;
+
+    if (!child_full->processCollisionObjectMsg(inflated_full_obj))
     {
       ROS_WARN("[Process Planning] Failed to process full collision object");
     }
@@ -368,6 +373,12 @@ void transitionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
 
   const auto tr_planning_start = ros::Time::now();
 
+  // generate full eef collision object
+  bool add_eef_full = true;
+  auto full_eef_collision_obj = framefab_process_planning::addFullEndEffectorCollisionObject(add_eef_full);
+
+  std::vector<int> planning_failure_ids;
+
   std::vector<double> last_joint_pose = start_state;
   std::vector<double> current_first_joint_pose;
 
@@ -395,7 +406,14 @@ void transitionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
     }
 
     moveit_msgs::ApplyPlanningScene srv;
-    planning_scenes[i]->getPlanningSceneMsg(srv.request.scene);
+    auto scene_with_attached_eef = planning_scenes[i]->diff();
+    if(!scene_with_attached_eef->processAttachedCollisionObjectMsg(full_eef_collision_obj))
+    {
+      ROS_ERROR_STREAM("[Tr Planning] planning scene # " << i << "fails to add attached full eef collision geometry");
+    }
+
+    scene_with_attached_eef->getPlanningSceneMsg(srv.request.scene);
+
     if(!planning_scene_diff_client.call(srv))
     {
       ROS_ERROR_STREAM("[Tr Planning] Failed to publish planning scene diff srv!");
@@ -404,8 +422,12 @@ void transitionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
     int repeat_planning_call = 0;
     trajectory_msgs::JointTrajectory ros_trans_traj;
 
-    while(true)
+    bool joint_target_meet = true;
+    while(repeat_planning_call < TRANSITION_PLANNING_LOOP_COUNT)
     {
+      // reset joint target meet flag
+      joint_target_meet = true;
+
       ros_trans_traj = framefab_process_planning::getMoveitTransitionPlan(move_group_name,
                                                                           last_joint_pose,
                                                                           current_first_joint_pose,
@@ -413,34 +435,43 @@ void transitionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
                                                                           moveit_model);
 
       // TODO: recover from transition planning failure
-      if (0 == ros_trans_traj.points.size())
-      {
-        ROS_ERROR_STREAM("[Process Planning] Transition planning fails.");
-        repeat_planning_call++;
-        continue;
-      }
-
       if(repeat_planning_call > 0)
       {
         ROS_WARN_STREAM("[Process Planning] transition planning retry - round "
                             << repeat_planning_call << "/" << TRANSITION_PLANNING_LOOP_COUNT);
       }
 
-      bool joint_target_meet = true;
+      if (0 == ros_trans_traj.points.size())
+      {
+//        ROS_ERROR_STREAM("<<<<<<<<<<<<<<< \n[Process Planning] Transition planning fails.");
+        joint_target_meet = false;
+        repeat_planning_call++;
+        continue;
+      }
+
       for(int s=0; s < current_first_joint_pose.size(); s++)
       {
         if(current_first_joint_pose[s] - ros_trans_traj.points.back().positions[s] > 0.0001)
         {
           joint_target_meet = false;
+          break;
         }
       }
 
-      if(joint_target_meet || repeat_planning_call > TRANSITION_PLANNING_LOOP_COUNT)
+      if(joint_target_meet)
       {
+        ROS_WARN_STREAM("[Process Planning] transition planning retry succeed!");
         break;
       }
 
       repeat_planning_call++;
+    }
+
+    if(!joint_target_meet)
+    {
+      planning_failure_ids.push_back(i);
+      ROS_ERROR_STREAM("[Tr planning] transition planning fails at index #" << i);
+      continue;
     }
 
     framefab_msgs::SubProcess sub_process;
@@ -450,6 +481,11 @@ void transitionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
     sub_process.joint_array = ros_trans_traj;
 
     plans[i].sub_process_array.insert(plans[i].sub_process_array.begin(), sub_process);
+  }
+
+  for(auto id : planning_failure_ids)
+  {
+    ROS_ERROR_STREAM("[Tr planning] transition planning fails at process #" << id);
   }
 
   const auto tr_planning_end = ros::Time::now();
@@ -499,7 +535,7 @@ void adjustTrajectoryTiming(std::vector<framefab_msgs::UnitProcessPlan>& plans,
       adjustTrajectoryHeaders(last_filled_jts, plans[i].sub_process_array[j], sim_speed);
     }
 
-    ROS_INFO_STREAM("[Process Planning] process #" << i << " time stamp adjusted.");
+//    ROS_INFO_STREAM("[Process Planning] process #" << i << " time stamp adjusted.");
   }
 }
 
@@ -542,7 +578,7 @@ void appendTCPPosetoPlans(const descartes_core::RobotModelPtr model,
         sub_process.TCP_pose_array.push_back(geo_pose_msg);
       }
     }
-    ROS_INFO_STREAM("[Process Planning] process #" << process_id_count << "TCP added.");
+//    ROS_INFO_STREAM("[Process Planning] process #" << process_id_count << "TCP added.");
     process_id_count++;
   }
 }

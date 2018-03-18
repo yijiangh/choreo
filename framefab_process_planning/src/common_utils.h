@@ -16,6 +16,7 @@
 // msgs
 #include <sensor_msgs/JointState.h>
 #include <moveit_msgs/CollisionObject.h>
+#include <moveit_msgs/AttachedCollisionObject.h>
 #include <geometry_msgs/PoseArray.h>
 #include <geometry_msgs/Point.h>
 
@@ -49,6 +50,8 @@ std::vector<double> getCurrentJointState(const std::string& topic);
 
 bool addCollisionObject(
     ros::ServiceClient& planning_scene, const moveit_msgs::CollisionObject& c_obj);
+
+moveit_msgs::AttachedCollisionObject addFullEndEffectorCollisionObject(bool is_add);
 
 bool clearAllCollisionObjects(ros::ServiceClient& planning_scene);
 

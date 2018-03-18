@@ -115,7 +115,7 @@ class WF_edge
  public:
   WF_edge()
       :pvert_(NULL), pnext_(NULL), ppair_(NULL),
-       id_(0), layer_(0), b_pillar_(false), b_ceiling_(false), b_subg_(false)
+       id_(0), layer_(-1), b_pillar_(false), b_ceiling_(false), b_subg_(false)
   {}
   ~WF_edge(){}
 
@@ -146,6 +146,17 @@ class WF_edge
     double dx = u.x() - v.x();
     double dy = u.y() - v.y();
     double dz = u.z() - v.z();
+    return sqrt(dx*dx + dy*dy + dz*dz);
+  }
+
+  double CenterDistanceTo(WF_edge* ej) const
+  {
+    point this_c = this->CenterPos();
+    point ej_c = ej->CenterPos();
+
+    double dx = this_c.x() - ej_c.x();
+    double dy = this_c.y() - ej_c.y();
+    double dz = this_c.z() - ej_c.z();
     return sqrt(dx*dx + dy*dy + dz*dz);
   }
 

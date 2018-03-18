@@ -78,8 +78,8 @@ class QuadricCollision
 
  public:
   void Init(vector <lld> &colli_map);
-  void DetectCollision(WF_edge* target_e, DualGraph* ptr_subgraph, std::vector<lld>& result_map);
-  void DetectCollision(WF_edge* target_e, WF_edge* order_e, std::vector<lld>& colli_map);
+  bool DetectCollision(WF_edge* target_e, DualGraph* ptr_subgraph, std::vector<lld>& result_map);
+  bool DetectCollision(WF_edge* target_e, WF_edge* order_e, std::vector<lld>& colli_map);
   void DetectCollision(WF_edge* target_e, std::vector<WF_edge*> exist_edge, std::vector<GeoV3>& output);
 
  public:
@@ -109,7 +109,7 @@ class QuadricCollision
 
  private:
   bool DetectBulk(WF_edge *order_e, double theta, double phi);
-  void DetectEdge(WF_edge *order_e, vector <lld> &colli_map);
+  bool DetectEdge(WF_edge *order_e, vector <lld> &colli_map);
   bool DetectEdges(std::vector<WF_edge*> exist_edge, double theta, double phi);
   bool DetectAngle(GeoV3 connect, GeoV3 end, GeoV3 target_end, GeoV3 normal);
 
