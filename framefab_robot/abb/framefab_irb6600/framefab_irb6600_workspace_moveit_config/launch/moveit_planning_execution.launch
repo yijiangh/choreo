@@ -7,7 +7,7 @@
            controller_joint_names: [joint_1, joint_2, ... joint_N]
        - Update with joint names for your robot (in order expected by rbt controller)
        - and uncomment the following line: -->
-  <rosparam command="load" file="$(find abb_irb6600_support)/config/joint_names_irb6600.yaml" />
+  <rosparam command="load" file="$(find framefab_irb6600_support)/config/joint_names_irb6640_workspace.yaml" />
 
   <!-- the "sim" argument controls whether we connect to a Simulated or Real robot -->
   <!--  - if sim=false, a robot_ip argument is required -->
@@ -17,8 +17,10 @@
   <arg name="use_ftp" default="false"/>
   <arg name="use_db" default="false"/>
 
+	<arg name="planner" default="ompl"/>
+
   <!-- load the robot_description parameter before launching ROS-I nodes -->
-  <include file="$(find abb_irb6640_moveit_config)/launch/planning_context.launch" >
+  <include file="$(find framefab_irb6600_workspace_moveit_config)/launch/planning_context.launch" >
     <arg name="load_robot_description" value="true" />
   </include>
 

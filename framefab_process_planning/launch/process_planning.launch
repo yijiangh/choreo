@@ -3,6 +3,7 @@
   <arg name="hotend_group" default="manipulator_tcp"/>
   <arg name="hotend_tcp" default="tcp_frame"/>
   <arg name="robot_model_plugin"/>
+	<arg name="planner" default="ompl"/>
 
   <node name="framefab_process_planning" pkg="framefab_process_planning" type="framefab_process_planning_node"
   output="screen" respawn="true">
@@ -10,5 +11,6 @@
     <param name="hotend_group" value="$(arg hotend_group)"/>
     <param name="hotend_tcp" value="$(arg hotend_tcp)"/>
     <param name="robot_model_plugin" value="$(arg robot_model_plugin)"/>
+		<param name="planner" value="$(arg planner)" />
   </node>
 </launch>
