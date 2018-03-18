@@ -2,7 +2,8 @@
 <launch>
   <!-- arguments -->
   <arg name="sim_robot" default="true"/>
-	<arg name="robot_model_plugin" default="framefab_irb6600_workspace_descartes/FramefabIrb6600WorkspaceRobotModel"/>
+<!--	<arg name="robot_model_plugin" default="framefab_irb6600_workspace_descartes/FramefabIrb6600WorkspaceRobotModel"/>-->
+	<arg name="robot_model_plugin" default="descartes_moveit/IkFastMoveitStateAdapter"/>
   <arg name="debug_rviz" default="false"/>
   <arg name="debug_core" default="false"/> <!--Brings up the framefab core service in debug mode-->
   <arg name="save_data" default="false" />

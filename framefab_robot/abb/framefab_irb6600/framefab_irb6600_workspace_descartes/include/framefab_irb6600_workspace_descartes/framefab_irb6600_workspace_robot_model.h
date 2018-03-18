@@ -18,7 +18,7 @@
 #define FRAMEFAB_IRB2400_WORKSPACE_ROBOT_MODEL_H
 
 #include <descartes_moveit/moveit_state_adapter.h>
-#include <framefab_irb2400_workspace_ikfast_manipulator_plugin/framefab_irb2400_workspace_manipulator_ikfast_moveit_plugin.hpp>
+//#include <framefab_irb2400_workspace_ikfast_manipulator_plugin/framefab_irb2400_workspace_manipulator_ikfast_moveit_plugin.hpp>
 
 namespace framefab_irb2400_workspace_descartes
 {

@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>framefab_irb2400_workspace_descartes</name>
+  <name>framefab_irb6600_workspace_descartes</name>
   <version>0.1.0</version>
   <description>
-    Defines a Descartes RobotModel plugin using the irb2400_ikfast_manipulator_plugin
+    Defines a Descartes RobotModel plugin using the irb6600_ikfast_manipulator_plugin
     for kinematics. 
   </description>
 
@@ -14,11 +14,11 @@
 
   <depend>descartes_core</depend>
   <depend>descartes_moveit</depend>
-  <depend>framefab_irb2400_workspace_ikfast_manipulator_plugin</depend>
+  <depend>framefab_irb6600_workspace_ikfast_rail_robot_manipulator_plugin</depend>
   <depend>pluginlib</depend>
 
   <export>
-    <descartes_core plugin="${prefix}/framefab_irb2400_workspace_descartes_plugins.xml"/>
+    <descartes_core plugin="${prefix}/framefab_irb6600_workspace_descartes_plugins.xml"/>
   </export>
 
 </package>

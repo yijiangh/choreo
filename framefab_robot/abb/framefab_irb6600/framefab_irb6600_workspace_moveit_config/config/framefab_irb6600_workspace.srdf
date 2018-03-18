@@ -15,6 +15,9 @@
     <group name="rail_robot_manipulator">
         <chain base_link="linear_axis_zero" tip_link="robot_tool0" />
     </group>
+    <group name="rail_tcp_manipulator">
+        <chain base_link="linear_axis_zero" tip_link="eef_tcp_frame" />
+    </group>
     <!--VIRTUAL JOINT: Purpose: this element defines a virtual joint between a robot link and an external frame of reference (considered fixed with respect to the robot)-->
     <virtual_joint name="virtual_joint" type="fixed" parent_frame="world_frame" child_link="base_link" />
     <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
