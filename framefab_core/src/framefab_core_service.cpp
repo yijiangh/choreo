@@ -109,6 +109,7 @@ bool FrameFabCoreService::init()
 
   // Load the 'prefix' that will be combined with parameters msg base names to save to disk
   ph.param<std::string>("param_cache_prefix", param_cache_prefix_, "");
+  ph.param<std::string>("world_frame", world_frame_, "/world_frame");
 
   if (!this->loadModelInputParameters(param_cache_prefix_ + MODEL_INPUT_PARAMS_FILE))
     ROS_WARN("Unable to load model input parameters.");
@@ -149,8 +150,8 @@ bool FrameFabCoreService::init()
       QUERY_COMPUTATION_RESULT, &FrameFabCoreService::queryComputationResultCallback, this);
 
   // start local instances
-  visual_tool_.init("world_frame", PATH_VISUAL_TOPIC);
-  print_bed_visual_tool_.reset(new rviz_visual_tools::RvizVisualTools("world_frame", PRINT_BED_VISUAL_TOPIC));
+  visual_tool_.init(world_frame_, PATH_VISUAL_TOPIC);
+  print_bed_visual_tool_.reset(new rviz_visual_tools::RvizVisualTools(world_frame_, PRINT_BED_VISUAL_TOPIC));
   print_bed_visual_tool_->deleteAllMarkers();
   print_bed_visual_tool_->enableBatchPublishing();
 
@@ -470,6 +471,7 @@ void FrameFabCoreService::taskSequenceProcessingActionCallback(const framefab_ms
       srv.request.action = srv.request.PROCESS_TASK_AND_MARKER;
       srv.request.model_params = model_input_params_;
       srv.request.task_sequence_params = task_sequence_input_params_;
+      srv.request.world_frame = world_frame_;
 
       if(!task_sequence_processing_srv_client_.call(srv))
       {

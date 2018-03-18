@@ -21,7 +21,8 @@ class UnitProcess
               std::vector<Eigen::Vector3d> feasible_orients,
               std::string type_str,
               double element_diameter,
-              double shrink_length)
+              double shrink_length,
+              std::string world_frame)
   {
     id_ = index;
     wireframe_id_ = wireframe_id;
@@ -31,6 +32,7 @@ class UnitProcess
     type_ = type_str;
     element_diameter_ = element_diameter;
     shrink_length_ = shrink_length;
+    world_frame_ = world_frame;
   }
   virtual ~UnitProcess(){}
 
@@ -63,6 +65,7 @@ class UnitProcess
   // collision objects
   double element_diameter_;
   double shrink_length_;
+  std::string world_frame_;
 };
 }
 

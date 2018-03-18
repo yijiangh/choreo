@@ -17,7 +17,7 @@ int main(int argc, char** argv)
   // Load local parameters
   ros::NodeHandle nh, pnh("~");
   std::string world_frame, hotend_group, hotend_tcp, robot_model_plugin;
-  pnh.param<std::string>("/world_frame", world_frame, "/world_frame");
+  pnh.param<std::string>("world_frame", world_frame, "/world_frame");
   pnh.param<std::string>("hotend_group", hotend_group, "manipulator_tcp");
   pnh.param<std::string>("hotend_tcp", hotend_tcp, "tcp_frame");
   pnh.param<std::string>("robot_model_plugin", robot_model_plugin, "");

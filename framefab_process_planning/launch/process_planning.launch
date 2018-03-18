@@ -1,5 +1,5 @@
 <launch>
-  <arg name="world_frame" default="world_frame"/>
+  <arg name="world_frame" default="/base_link"/>
   <arg name="hotend_group" default="manipulator_tcp"/>
   <arg name="hotend_tcp" default="tcp_frame"/>
   <arg name="robot_model_plugin"/>

@@ -119,6 +119,8 @@ class FiberPrintPlugIn
   moveit::core::RobotModelConstPtr moveit_model_;
   pluginlib::ClassLoader<descartes_core::RobotModel> plugin_loader_; // kept around so code doesn't get unloaded
   std::string hotend_group_name_;
+
+  std::string world_frame_;
 };
 
 #endif // FIBERPRINTPLUGIN_H

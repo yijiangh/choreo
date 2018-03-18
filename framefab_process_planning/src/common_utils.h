@@ -38,7 +38,8 @@ trajectory_msgs::JointTrajectory toROSTrajectory(const std::vector<std::vector<d
                                                  const descartes_core::RobotModel& model);
 
 void fillTrajectoryHeaders(const std::vector<std::string>& joints,
-                           trajectory_msgs::JointTrajectory& traj);
+                           trajectory_msgs::JointTrajectory& traj,
+                           const std::string world_frame);
 
 void appendTrajectoryHeaders(const trajectory_msgs::JointTrajectory& orig_traj,
                              trajectory_msgs::JointTrajectory& traj,

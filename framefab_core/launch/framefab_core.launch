@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <launch>
+	<arg name="world_frame" default="/base_link"/>
   <arg name="config_path"/>
   <arg name="debug" default="false" />
   <arg unless="$(arg debug)" name="launch_prefix" value="" />
@@ -9,6 +10,7 @@
 
 	<!--core coordinating service-->
   <node name="framefab_core_service" pkg="framefab_core" type="framefab_core_service" output="screen" required="true" launch-prefix="$(arg launch_prefix)">
+		<param name="world_frame" value="$(arg world_frame)"/>
     <rosparam command="load" file="$(arg config_path)/model_input.yaml"/>
     <rosparam command="load" file="$(arg config_path)/task_sequence_input.yaml"/>
     <rosparam command="load" file="$(arg config_path)/robot_input.yaml"/>

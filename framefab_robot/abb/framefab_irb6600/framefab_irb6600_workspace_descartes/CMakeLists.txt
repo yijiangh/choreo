@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 2.8.12)
-project(framefab_irb2400_workspace_descartes)
+project(framefab_irb6600_workspace_descartes)
 
 add_compile_options(-std=c++11)
 
 find_package(catkin REQUIRED COMPONENTS
   descartes_core
   descartes_moveit
-	framefab_irb2400_workspace_ikfast_manipulator_plugin
+	framefab_irb6600_workspace_ikfast_rail_robot_manipulator_plugin
   pluginlib
 )
 
@@ -22,7 +22,7 @@ catkin_package(
   CATKIN_DEPENDS
     descartes_core
     descartes_moveit
-    framefab_irb2400_workspace_ikfast_manipulator_plugin
+    framefab_irb6600_workspace_ikfast_rail_robot_manipulator_plugin
     pluginlib
 )
 
@@ -34,7 +34,7 @@ include_directories(include
 
 
 add_library(${PROJECT_NAME}
-	src/framefab_irb2400_workspace_robot_model.cpp
+	src/framefab_irb6600_workspace_robot_model.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}

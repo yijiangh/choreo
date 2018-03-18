@@ -14,7 +14,7 @@
   limitations under the License.
 */
 
-#include <framefab_irb2400_workspace_descartes/framefab_irb2400_workspace_robot_model.h>
+#include <framefab_irb6600_workspace_descartes/framefab_irb6600_workspace_robot_model.h>
 #include <eigen_conversions/eigen_kdl.h>
 #include <pluginlib/class_list_macros.h>
 
@@ -24,20 +24,26 @@ static const double JOINT_LIMIT_TOLERANCE = .0000001f;
 
 using namespace descartes_moveit;
 
-namespace framefab_irb2400_workspace_descartes
+namespace framefab_irb6600_workspace_descartes
 {
-FramefabIrb2400WorkspaceRobotModel::FramefabIrb2400WorkspaceRobotModel()
+FramefabIrb6600WorkspaceRobotModel::FramefabIrb6600WorkspaceRobotModel()
     : world_to_base_(Eigen::Affine3d::Identity()), tool_to_tip_(Eigen::Affine3d::Identity())
 {
 }
 
-bool FramefabIrb2400WorkspaceRobotModel::initialize(const std::string& robot_description,
-                                      const std::string& group_name, const std::string& world_frame,
-                                      const std::string& tcp_frame)
+bool FramefabIrb6600WorkspaceRobotModel::initialize(const std::string& robot_description,
+                                                    const std::string& group_name,
+                                                    const std::string& world_frame,
+                                                    const std::string& tcp_frame)
 {
-  MoveitStateAdapter::initialize(robot_description, group_name, world_frame, tcp_frame);
-  ikfast_kinematics_plugin::IKFastKinematicsPlugin::initialize(
-      robot_description, group_name, MOTOMAN_SIA20D_BASE_LINK, MOTOMAN_SIA20D_TOOL_LINK, 0.001);
+  if(!MoveitStateAdapter::initialize(robot_description, group_name, world_frame, tcp_frame))
+  {
+    ROS_ERROR("[ff_rib6600_descartes_model] descartes model init failed.");
+    return false;
+  }
+
+//  ikfast_kinematics_plugin::IKFastKinematicsPlugin::initialize(
+//      robot_description, group_name, MOTOMAN_SIA20D_BASE_LINK, MOTOMAN_SIA20D_TOOL_LINK, 0.001);
 
   // initialize world transformations
   if (tcp_frame != getTipFrame())
@@ -55,51 +61,109 @@ bool FramefabIrb2400WorkspaceRobotModel::initialize(const std::string& robot_des
   return true;
 }
 
-bool FramefabIrb2400WorkspaceRobotModel::getAllIK(const Eigen::Affine3d& pose,
+bool FramefabIrb6600WorkspaceRobotModel::getAllIK(const Eigen::Affine3d& pose,
                                     std::vector<std::vector<double> >& joint_poses) const
 {
-  std::vector<double> vfree(free_params_.size(), 0.0);
-  KDL::Frame frame;
+//  std::vector<double> vfree(free_params_.size(), 0.0);
+//  KDL::Frame frame;
   Eigen::Affine3d tool_pose = world_to_base_.frame_inv * pose * tool_to_tip_.frame;
-  tf::transformEigenToKDL(tool_pose, frame);
+//  tf::transformEigenToKDL(tool_pose, frame);
 
-  using namespace ikfast_kinematics_plugin;
-  ikfast::IkSolutionList<IkReal> solutions;
-
-  int numsol = solve(frame, vfree, solutions);
-
-  joint_poses.clear();
-
-  if (numsol)
-  {
-    for (int s = 0; s < numsol; ++s)
-    {
-      std::vector<double> sol;
-      getSolution(solutions, s, sol);
-
-      if (isValid(sol))
-        joint_poses.push_back(sol);
-
-      // So, IKFast returns the unique configurations of the robot (e.g. elbow up, wrist down)
-      // and the solutions have joint values between -pi and +pi. If the robot can rotate more
-      // than this, then we need to check to see if we have extra solutions that have the same
-      // configuration but a different joint position. In our case, joint 6 has this kind of
-      // extra motion, so here we check for valid solutions 360 degrees from each solution.
-//      sol[5] += 2 * M_PI;
+//  using namespace ikfast_kinematics_plugin;
+//  ikfast::IkSolutionList<IkReal> solutions;
+//
+//  int numsol = solve(frame, vfree, solutions);
+//
+//  joint_poses.clear();
+//
+//  if (numsol)
+//  {
+//    for (int s = 0; s < numsol; ++s)
+//    {
+//      std::vector<double> sol;
+//      getSolution(solutions, s, sol);
+//
 //      if (isValid(sol))
 //        joint_poses.push_back(sol);
 //
-//      sol[5] -= 2 * 2 * M_PI;
-//      if (isValid(sol))
-//        joint_poses.push_back(sol);
+//      // So, IKFast returns the unique configurations of the robot (e.g. elbow up, wrist down)
+//      // and the solutions have joint values between -pi and +pi. If the robot can rotate more
+//      // than this, then we need to check to see if we have extra solutions that have the same
+//      // configuration but a different joint position. In our case, joint 6 has this kind of
+//      // extra motion, so here we check for valid solutions 360 degrees from each solution.
+////      sol[5] += 2 * M_PI;
+////      if (isValid(sol))
+////        joint_poses.push_back(sol);
+////
+////      sol[5] -= 2 * 2 * M_PI;
+////      if (isValid(sol))
+////        joint_poses.push_back(sol);
+//
+//    }
+//  }
 
-    }
+  const auto& solver = joint_group_->getSolverInstance();
+
+  // convert to geometry_msgs ...
+  geometry_msgs::Pose geometry_pose;
+  tf::poseEigenToMsg(tool_pose, geometry_pose);
+  std::vector<geometry_msgs::Pose> poses = { geometry_pose };
+
+  std::vector<double> dummy_seed(getDOF(), 0.0);
+  std::vector<std::vector<double>> joint_results;
+  kinematics::KinematicsResult result;
+  kinematics::KinematicsQueryOptions options;  // defaults are reasonable as of Indigo
+  options.discretization_method = kinematics::DiscretizationMethods::ALL_DISCRETIZED;
+
+  if (!solver->getPositionIK(poses, dummy_seed, joint_results, result, options))
+  {
+    return false;
   }
 
-  return !joint_poses.empty();
+  const auto dof = getDOF();
+  const auto index6 = dof - 1;
+  const auto index4 = dof - 3;
+
+  auto search_extras = [this, &joint_poses, index6, index4](std::vector<double>& sol)
+  {
+    bool collision_checked = false;
+
+    const double joint6 = sol[index6];
+    const double joint4 = sol[index4];
+
+    for (int i = -1; i <= 1; ++i)
+    {
+      sol[index6] = joint6 + i * 2.0 * M_PI;
+      for (int j = -1; j <= 1; ++j)
+      {
+        sol[index4] = joint4 + j * 2.0 * M_PI;
+
+        // Compute relative distance between 4 & 6
+        const auto windup = std::abs(sol[index6] - sol[index4]);
+        const static auto windup_limit = 3.0 * M_PI;
+
+        if (isInLimits(sol) && windup < windup_limit)
+        {
+          if (!collision_checked)
+          {
+            if (isInCollision(sol)) return;
+            else collision_checked = true;
+          }
+          joint_poses.push_back(sol);
+        } // in limits
+      }
+    }
+  };
+
+//  for (auto& sol : joint_results)
+//  {
+//    search_extras(sol);
+//  }
+
+  return joint_poses.size() > 0;
 }
 
-}
+} // end namespace framefab_irb6600_workspace_descartes
 
-PLUGINLIB_EXPORT_CLASS(framefab_irb2400_workspace_descartes::FramefabIrb2400WorkspaceRobotModel,
+PLUGINLIB_EXPORT_CLASS(framefab_irb6600_workspace_descartes::FramefabIrb6600WorkspaceRobotModel,
     descartes_core::RobotModel)

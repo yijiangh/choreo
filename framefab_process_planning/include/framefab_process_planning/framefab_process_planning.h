@@ -43,6 +43,8 @@ class ProcessPlanningManager
   pluginlib::ClassLoader<descartes_core::RobotModel> plugin_loader_; // kept around so code doesn't get unloaded
   std::string hotend_group_name_;
 
+  std::string world_frame_;
+
   // planning scene service client
   ros::NodeHandle nh_;
   ros::ServiceClient planning_scene_diff_client_;

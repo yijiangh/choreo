@@ -28,10 +28,12 @@ framefab_task_sequence_processing::TaskSequenceProcessor::TaskSequenceProcessor(
 
 void framefab_task_sequence_processing::TaskSequenceProcessor::setParams(
     framefab_msgs::ModelInputParameters model_params,
-    framefab_msgs::TaskSequenceInputParameters task_sequence_params)
+    framefab_msgs::TaskSequenceInputParameters task_sequence_params,
+    std::string world_frame)
 {
   model_input_params_ = model_params;
   path_input_params_ = task_sequence_params;
+  world_frame_ = world_frame;
 
   // set unit scale
   switch (model_input_params_.unit_type)
@@ -196,7 +198,7 @@ bool framefab_task_sequence_processing::TaskSequenceProcessor::createEnvCollisio
   tf::poseEigenToMsg(rtn, pose);
 
   collision_env_obj.id = env_obj_id;
-  collision_env_obj.header.frame_id = "world_frame";
+  collision_env_obj.header.frame_id = world_frame_;
   collision_env_obj.operation = moveit_msgs::CollisionObject::ADD;
 
   shape_msgs::SolidPrimitive env_obj_solid;
@@ -212,7 +214,8 @@ bool framefab_task_sequence_processing::TaskSequenceProcessor::createEnvCollisio
   return true;
 }
 
-framefab_task_sequence_processing_utils::UnitProcess framefab_task_sequence_processing::TaskSequenceProcessor::createScaledUnitProcess(
+framefab_task_sequence_processing_utils::UnitProcess
+framefab_task_sequence_processing::TaskSequenceProcessor::createScaledUnitProcess(
     int index, int wireframe_id,
     Eigen::Vector3d st_pt, Eigen::Vector3d end_pt,
     std::vector<Eigen::Vector3d> feasible_orients,
@@ -224,7 +227,7 @@ framefab_task_sequence_processing_utils::UnitProcess framefab_task_sequence_proc
       index, wireframe_id,
       transformPoint(st_pt, unit_scale_, transf_vec_),
       transformPoint(end_pt, unit_scale_, transf_vec_),
-      feasible_orients, type_str, element_diameter, shrink_length);
+      feasible_orients, type_str, element_diameter, shrink_length, world_frame_);
 
   return upp;
 }

@@ -58,9 +58,8 @@ moveit_msgs::CollisionObject framefab_task_sequence_processing_utils::UnitProces
   moveit_msgs::CollisionObject collision_cylinder;
   std::string cylinder_id = "element_" + std::to_string(id) + "_" + shrink_type_suffix;
 
-  // TODO: make frame_id as input parameter
   collision_cylinder.id = cylinder_id;
-  collision_cylinder.header.frame_id = "world_frame";
+  collision_cylinder.header.frame_id = world_frame_;
   collision_cylinder.operation = moveit_msgs::CollisionObject::ADD;
 
   shape_msgs::SolidPrimitive cylinder_solid;

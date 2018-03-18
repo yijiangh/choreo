@@ -155,6 +155,8 @@ bool saveLadderGraph(const std::string& filename, const descartes_msgs::LadderGr
 
 void CLTRRTforProcessROSTraj(descartes_core::RobotModelPtr model,
                              std::vector<descartes_planner::ConstrainedSegment>& segs,
+                             const double clt_rrt_unit_process_timeout,
+                             const double clt_rrt_timeout,
                              const std::vector<planning_scene::PlanningScenePtr>& planning_scenes_approach,
                              const std::vector<planning_scene::PlanningScenePtr>& planning_scenes_depart,
                              const std::vector<framefab_msgs::ElementCandidatePoses>& task_seq,
@@ -196,7 +198,7 @@ void CLTRRTforProcessROSTraj(descartes_core::RobotModelPtr model,
   if(!use_saved_graph || segs.size() > graphs.size())
   {
     // reconstruct and search, output sol, graphs, graph_indices
-    clt_cost = CLT_RRT.solve(*model);
+    clt_cost = CLT_RRT.solve(*model, clt_rrt_unit_process_timeout, clt_rrt_timeout);
     CLT_RRT.extractSolution(*model, sol,
                             graphs,
                             graph_indices, use_saved_graph);
@@ -456,7 +458,8 @@ void transitionPlanning(std::vector<framefab_msgs::UnitProcessPlan>& plans,
 }
 
 void adjustTrajectoryTiming(std::vector<framefab_msgs::UnitProcessPlan>& plans,
-                            const std::vector<std::string> &joint_names)
+                            const std::vector<std::string> &joint_names,
+                            const std::string world_frame)
 {
   if (plans.size() == 0)
   {
@@ -470,7 +473,7 @@ void adjustTrajectoryTiming(std::vector<framefab_msgs::UnitProcessPlan>& plans,
     assert(false);
   }
 
-  framefab_process_planning::fillTrajectoryHeaders(joint_names, plans[0].sub_process_array[0].joint_array);
+  framefab_process_planning::fillTrajectoryHeaders(joint_names, plans[0].sub_process_array[0].joint_array, world_frame);
   auto last_filled_jts = plans[0].sub_process_array[0].joint_array;
 
   // inline function for append trajectory headers (adjust time frame)
@@ -551,8 +554,11 @@ bool framefab_process_planning::generateMotionPlan(
     std::vector<descartes_planner::ConstrainedSegment>& segs,
     const std::vector<framefab_msgs::ElementCandidatePoses>& task_seq,
     const std::vector<framefab_msgs::WireFrameCollisionObject>& wf_collision_objs,
+    const std::string world_frame,
     const bool use_saved_graph,
     const std::string& saved_graph_file_name,
+    const double clt_rrt_unit_process_timeout,
+    const double clt_rrt_timeout,
     moveit::core::RobotModelConstPtr moveit_model,
     ros::ServiceClient& planning_scene_diff_client,
     const std::string& move_group_name,
@@ -581,7 +587,8 @@ bool framefab_process_planning::generateMotionPlan(
                           planning_scenes_full);
 
   // Step 2: CLT RRT* to solve process trajectory
-  CLTRRTforProcessROSTraj(model, segs, planning_scenes_shrinked_approach, planning_scenes_shrinked_depart,
+  CLTRRTforProcessROSTraj(model, segs, clt_rrt_unit_process_timeout, clt_rrt_timeout,
+                          planning_scenes_shrinked_approach, planning_scenes_shrinked_depart,
                           task_seq, plans, saved_graph_file_name, use_saved_graph);
 
   // retract planning
@@ -593,7 +600,7 @@ bool framefab_process_planning::generateMotionPlan(
 
   // Step 7 : fill in trajectory's time headers and pack into sub_process_plans
   // for each unit_process (process id is added here too)
-  adjustTrajectoryTiming(plans, joint_names);
+  adjustTrajectoryTiming(plans, joint_names, world_frame);
 
   // Step 8: fill in TCP pose according to trajectories
   appendTCPPosetoPlans(model, planning_scenes_shrinked_approach, planning_scenes_full, plans);

@@ -40,7 +40,7 @@
 		<arg name="planner" value="$(arg planner)"/>
   </include>
 
-  <include file="$(find abb_irb6640_moveit_config)/launch/moveit_rviz.launch">
+  <include if="$(arg rviz)" file="$(find framefab_irb6600_workspace_moveit_config)/launch/moveit_rviz.launch">
     <arg name="config" value="true"/>
   </include>
 
