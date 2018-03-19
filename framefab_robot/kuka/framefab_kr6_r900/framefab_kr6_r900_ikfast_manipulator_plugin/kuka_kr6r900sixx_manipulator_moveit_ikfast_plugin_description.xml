@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='ASCII'?>
+<library path="lib/libframefab_kr6r900sixx_manipulator_moveit_ikfast_plugin">
+  <class name="framefab_kuka_kr6r900sixx_manipulator_kinematics/IKFastKinematicsPlugin" type="framefab_kr6_r900_ikfast_manipulator_plugin::IKFastKinematicsPlugin" base_class_type="kinematics::KinematicsBase">
+    <description>IKFast61 plugin for closed-form kinematics</description>
+  </class>
+</library>

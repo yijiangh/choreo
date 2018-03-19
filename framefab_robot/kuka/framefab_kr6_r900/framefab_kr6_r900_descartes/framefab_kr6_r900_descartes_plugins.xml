@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<library path="lib/libframefab_kr6_r900_descartes">
+  <class name="framefab_kr6_r900_descartes/FrameFabKr6R900RobotModel" type="framefab_kr6_r900_descartes::FrameFabKr6R900RobotModel" base_class_type="descartes_core::RobotModel">
+    <description>This is a robot model adapter for of the kuka kr6r900sixx for descartes robot model. </description>
+  </class>
+</library>
