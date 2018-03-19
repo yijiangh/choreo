@@ -34,6 +34,7 @@
 		<arg name="world_frame" value="$(arg world_frame)"/>
 		<arg name="hotend_group" value="$(arg hotend_group)"/>
 		<arg name="hotend_tcp" value="$(arg hotend_tcp)"/>
+		<arg name="planner" value="$(arg planner)" />
   </include>
 
   <!-- Brings up action interface for trajectory execution in Rviz-->
