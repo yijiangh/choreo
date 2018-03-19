@@ -742,9 +742,7 @@ bool SeqAnalyzer::TestRobotKinematics(WF_edge* e, const std::vector<lld>& colli_
         hotend_model_->setPlanningScene(planning_scene_depart);
       }
 
-      hotend_model_->getAllIK(poses[c_id], joint_poses);
-
-      if(joint_poses.size() == 0)
+      if(!hotend_model_->getAllIK(poses[c_id], joint_poses))
       {
         empty_joint_pose_found = true;
         break;

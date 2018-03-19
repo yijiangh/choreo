@@ -4,7 +4,7 @@
 joint_limits:
   linear_axis_actuation_joint:
     has_velocity_limits: false
-    max_velocity: 1
+    max_velocity: 4
     has_acceleration_limits: false
     max_acceleration: 0
   robot_joint_1:

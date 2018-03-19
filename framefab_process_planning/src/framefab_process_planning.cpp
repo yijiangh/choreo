@@ -27,7 +27,7 @@ framefab_process_planning::ProcessPlanningManager::ProcessPlanningManager(
 
   if (!hotend_model_->initialize("robot_description", hotend_group, world_frame, hotend_tcp))
   {
-    throw std::runtime_error("[FF_process_planning]: Unable to initialize printing robot model");
+    throw std::runtime_error("[FF_process_planning]: Unable to initialize descartes robot model");
   }
 
   // Load the moveit model

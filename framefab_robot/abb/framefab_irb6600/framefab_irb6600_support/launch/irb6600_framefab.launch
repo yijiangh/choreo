@@ -7,9 +7,13 @@
 
 	<arg name="robot_model_plugin" value="descartes_moveit/IkFastMoveitStateAdapter"/>
 	<arg name="world_frame" value="/base_link"/>
-	<arg name="hotend_group" value="rail_tcp_manipulator"/>
+	<arg name="hotend_group" value="rail_robot_manipulator"/>
 	<arg name="hotend_tcp" value="eef_tcp_frame"/>
 	<arg name="planner" value="ompl" />
+
+<!--	for descartes ikfast plugin-->
+	<param name="ikfast_base_frame" type="string" value="$(arg world_frame)"/>
+	<param name="ikfast_tool_frame" type="string" value="$(arg hotend_tcp)"/>
 
   <arg name="debug_rviz" default="false"/>
   <arg name="debug_core" default="false"/> <!--Brings up the framefab core service in debug mode-->

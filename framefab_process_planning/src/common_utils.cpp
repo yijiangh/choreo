@@ -277,13 +277,13 @@ moveit_msgs::AttachedCollisionObject framefab_process_planning::addFullEndEffect
   double scale = 0.001;
   Eigen::Vector3d scale_vector(scale, scale, scale);
   moveit_msgs::AttachedCollisionObject attached_full_eef;
-  attached_full_eef.link_name = "eef_frame";
+  attached_full_eef.link_name = "eef_base_link";
 
   /* A default pose */
   geometry_msgs::Pose pose;
-  pose.position.x = 0.000088;
-  pose.position.y = 0.000769;
-  pose.position.z = -0.002121;
+  pose.position.x = 0.0;
+  pose.position.y = 0.0;
+  pose.position.z = 0.0;
   pose.orientation.w= 0.0;
   pose.orientation.x= 0.0;
   pose.orientation.y= 0.0;

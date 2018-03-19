@@ -87,7 +87,6 @@ moveit_msgs::CollisionObject convertWFEdgeToCollisionObject(
   moveit_msgs::CollisionObject collision_cylinder;
   std::string cylinder_id = COLLISION_OBJ_PREFIX + std::to_string(edge_id);
 
-  // TODO: make frame_id as input parameter
   collision_cylinder.id = cylinder_id;
   collision_cylinder.header.frame_id = world_frame;
   collision_cylinder.operation = moveit_msgs::CollisionObject::ADD;
