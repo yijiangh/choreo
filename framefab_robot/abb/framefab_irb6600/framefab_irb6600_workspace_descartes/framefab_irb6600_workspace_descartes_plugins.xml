@@ -1,7 +1,0 @@
-<?xml version="1.0" ?>
-<library path="lib/libframefab_irb6600_workspace_descartes">
-  <class name="framefab_irb6600_workspace_descartes/FramefabIrb6600WorkspaceRobotModel"
-         type="framefab_irb6600_workspace_descartes::FramefabIrb6600WorkspaceRobotModel" base_class_type="descartes_core::RobotModel">
-    <description>This is a robot model adapter for of the abb irb6600+linear track for descartes robot model. </description>
-  </class>
-</library>

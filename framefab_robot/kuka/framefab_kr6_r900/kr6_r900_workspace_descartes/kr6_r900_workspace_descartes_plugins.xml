@@ -1,6 +1,0 @@
-<?xml version="1.0" ?>
-<library path="lib/libkr6_r900_workspace_descartes">
-  <class name="kr6_r900_workspace_descartes/Kr6R900WorkspaceRobotModel" type="kr6_r900_workspace_descartes::Kr6R900WorkspaceRobotModel" base_class_type="descartes_core::RobotModel">
-    <description>This is a robot model adapter for of the kuka kr6r900sixx for descartes robot model. </description>
-  </class>
-</library>
