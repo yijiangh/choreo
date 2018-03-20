@@ -283,7 +283,7 @@ bool addCollisionObject(const moveit_msgs::CollisionObject& c_obj)
 }// util namespace
 
 FiberPrintPlugIn::FiberPrintPlugIn(const std::string& world_frame,
-                                   const std::string& hotend_group, const std::string& hotend_tcp,
+                                   const std::string& hotend_group, const std::string& hotend_tcp, const std::string& hotend_base,
                                    const std::string& robot_model_plugin)
     : plugin_loader_("descartes_core", "descartes_core::RobotModel"),
       hotend_group_name_(hotend_group)
@@ -309,7 +309,7 @@ FiberPrintPlugIn::FiberPrintPlugIn(const std::string& world_frame,
     throw std::runtime_error(std::string("[seq planner] Could not load: ") + robot_model_plugin);
   }
 
-  if (!hotend_model_->initialize("robot_description", hotend_group, world_frame, hotend_tcp))
+  if (!hotend_model_->initialize("robot_description", hotend_group, hotend_base, hotend_tcp))
   {
     throw std::runtime_error("[seq planner] Unable to initialize printing robot model");
   }

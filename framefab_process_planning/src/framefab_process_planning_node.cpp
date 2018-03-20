@@ -16,10 +16,11 @@ int main(int argc, char** argv)
 
   // Load local parameters
   ros::NodeHandle nh, pnh("~");
-  std::string world_frame, hotend_group, hotend_tcp, robot_model_plugin;
+  std::string world_frame, hotend_group, hotend_tcp, hotend_base, robot_model_plugin;
   pnh.param<std::string>("world_frame", world_frame, "/world_frame");
   pnh.param<std::string>("hotend_group", hotend_group, "manipulator_tcp");
   pnh.param<std::string>("hotend_tcp", hotend_tcp, "tcp_frame");
+  pnh.param<std::string>("hotend_base", hotend_base, "robot_base_link");
   pnh.param<std::string>("robot_model_plugin", robot_model_plugin, "");
 
   // IK Plugin parameter must be specified
@@ -34,7 +35,7 @@ int main(int argc, char** argv)
   // Creates a planning manager that will create the appropriate planning classes and perform
   // all required initialization. It exposes member functions to handle each kind of processing
   // event.
-  ProcessPlanningManager manager(world_frame, hotend_group, hotend_tcp, robot_model_plugin);
+  ProcessPlanningManager manager(world_frame, hotend_group, hotend_tcp, hotend_base, robot_model_plugin);
 
   // Plumb in the appropriate ros services
   ros::ServiceServer print_server = nh.advertiseService(

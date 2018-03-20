@@ -2,17 +2,18 @@
 <launch>
   <!-- arguments -->
   <arg name="sim_robot" default="true"/>
-<!--	<arg name="robot_model_plugin" default="framefab_kr6_r900_descartes/FrameFabKr6R900RobotModel"/>-->
 
-	<arg name="robot_model_plugin" value="descartes_moveit/IkFastMoveitStateAdapter"/>
+	<arg name="robot_model_plugin" default="kr6_r900_workspace_descartes/Kr6R900WorkspaceRobotModel"/>
+<!--	<arg name="robot_model_plugin" value="descartes_moveit/IkFastMoveitStateAdapter"/>-->
 	<arg name="world_frame" value="/base_link"/>
 	<arg name="hotend_group" value="manipulator"/>
 	<arg name="hotend_tcp" value="eef_tcp_frame"/>
+	<arg name="hotend_base" value="robot_base_link"/>
 	<arg name="planner" value="ompl" />
 
   <!--	for descartes ikfast plugin-->
 <!--TODO: this base frame might be wrong, robot_base_frame-->
-	<param name="ikfast_base_frame" type="string" value="$(arg world_frame)"/>
+	<param name="ikfast_base_frame" type="string" value="$(arg hotend_base)"/>
 	<param name="ikfast_tool_frame" type="string" value="$(arg hotend_tcp)"/>
 
   <arg name="debug_rviz" default="false"/>
@@ -26,6 +27,7 @@
 		<arg name="world_frame" value="$(arg world_frame)"/>
 		<arg name="hotend_group" value="$(arg hotend_group)"/>
 		<arg name="hotend_tcp" value="$(arg hotend_tcp)"/>
+		<arg name="hotend_base" value="$(arg hotend_base)"/>
   </include>
 
   <!-- Launches process planners: requires descartes plugin for the robot model -->
@@ -34,6 +36,7 @@
 		<arg name="world_frame" value="$(arg world_frame)"/>
 		<arg name="hotend_group" value="$(arg hotend_group)"/>
 		<arg name="hotend_tcp" value="$(arg hotend_tcp)"/>
+		<arg name="hotend_base" value="$(arg hotend_base)"/>
 		<arg name="planner" value="$(arg planner)" />
   </include>
 

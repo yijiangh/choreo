@@ -11,7 +11,7 @@
 const static std::string APPLY_PLANNING_SCENE_SERVICE = "apply_planning_scene";
 
 framefab_process_planning::ProcessPlanningManager::ProcessPlanningManager(
-    const std::string& world_frame, const std::string& hotend_group, const std::string& hotend_tcp,
+    const std::string& world_frame, const std::string& hotend_group, const std::string& hotend_tcp, const std::string& hotend_base,
     const std::string& robot_model_plugin)
     : plugin_loader_("descartes_core", "descartes_core::RobotModel"),
       hotend_group_name_(hotend_group)
@@ -25,7 +25,7 @@ framefab_process_planning::ProcessPlanningManager::ProcessPlanningManager(
     throw std::runtime_error(std::string("[FF_process_planning] Could not load: ") + robot_model_plugin);
   }
 
-  if (!hotend_model_->initialize("robot_description", hotend_group, world_frame, hotend_tcp))
+  if (!hotend_model_->initialize("robot_description", hotend_group, hotend_base, hotend_tcp))
   {
     throw std::runtime_error("[FF_process_planning]: Unable to initialize descartes robot model");
   }

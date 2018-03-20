@@ -74,7 +74,7 @@ class FiberPrintPlugIn
 
  public:
   FiberPrintPlugIn(const std::string& world_frame,
-                   const std::string& hotend_group, const std::string& hotend_tcp,
+                   const std::string& hotend_group, const std::string& hotend_tcp, const std::string& hotend_base,
                    const std::string& robot_model_plugin);
 
   ~FiberPrintPlugIn();

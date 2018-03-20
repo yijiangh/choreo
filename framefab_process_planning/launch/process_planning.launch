@@ -2,6 +2,8 @@
   <arg name="world_frame" default="/base_link"/>
   <arg name="hotend_group" default="manipulator_tcp"/>
   <arg name="hotend_tcp" default="tcp_frame"/>
+	<arg name="hotend_base" default="robot_base_link"/>
+
   <arg name="robot_model_plugin"/>
   <arg name="planner" default="ompl"/>
 
@@ -10,6 +12,7 @@
     <param name="world_frame" value="$(arg world_frame)"/>
     <param name="hotend_group" value="$(arg hotend_group)"/>
     <param name="hotend_tcp" value="$(arg hotend_tcp)"/>
+		<param name="hotend_base" value="$(arg hotend_base)"/>
     <param name="robot_model_plugin" value="$(arg robot_model_plugin)"/>
     <param name="planner" value="$(arg planner)" />
   </node>
