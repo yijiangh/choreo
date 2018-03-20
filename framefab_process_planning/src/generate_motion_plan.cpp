@@ -529,7 +529,7 @@ void adjustTrajectoryTiming(std::vector<framefab_msgs::UnitProcessPlan>& plans,
       double sim_speed = 1.0;
       if(2 != plans[i].sub_process_array[j].process_type)
       {
-        sim_speed = 1.0;
+        sim_speed = 0.2;
       }
 
       adjustTrajectoryHeaders(last_filled_jts, plans[i].sub_process_array[j], sim_speed);

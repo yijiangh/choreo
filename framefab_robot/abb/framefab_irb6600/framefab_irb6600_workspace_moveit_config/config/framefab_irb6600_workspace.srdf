@@ -9,17 +9,9 @@
     <!--JOINTS: When a joint is specified, the child link of that joint (which will always exist) is automatically included-->
     <!--CHAINS: When a chain is specified, all the links along the chain (including endpoints) are included in the group. Additionally, all the joints that are parents to included links are also included. This means that joints along the chain and the parent joint of the base link are included in the group-->
     <!--SUBGROUPS: Groups can also be formed by referencing to already defined group names-->
-    <group name="manipulator">
-        <chain base_link="robot_base_link" tip_link="robot_tool0" />
-    </group>
     <group name="rail_robot_manipulator">
         <chain base_link="linear_axis_zero" tip_link="robot_tool0" />
     </group>
-    <group name="rail_tcp_manipulator">
-        <chain base_link="linear_axis_zero" tip_link="eef_tcp_frame" />
-    </group>
-    <!--VIRTUAL JOINT: Purpose: this element defines a virtual joint between a robot link and an external frame of reference (considered fixed with respect to the robot)-->
-    <virtual_joint name="virtual_joint" type="fixed" parent_frame="world_frame" child_link="base_link" />
     <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
     <disable_collisions link1="eef_base_link" link2="robot_link_2" reason="Never" />
     <disable_collisions link1="eef_base_link" link2="robot_link_3" reason="Never" />

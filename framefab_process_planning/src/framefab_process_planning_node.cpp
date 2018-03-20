@@ -23,11 +23,6 @@ int main(int argc, char** argv)
   pnh.param<std::string>("hotend_base", hotend_base, "");   // work object/reference frame name
   pnh.param<std::string>("robot_model_plugin", robot_model_plugin, "");
 
-  if(ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME, ros::console::levels::Debug))
-  {
-    ros::console::notifyLoggerLevelsChanged();
-  }
-
   // IK Plugin parameter must be specified
   if (robot_model_plugin.empty())
   {

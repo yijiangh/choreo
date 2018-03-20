@@ -49,7 +49,7 @@ bool ProcessPlanningManager::handleMoveToTargetPosePlanAndExecution(
 
     ros::Duration base_time = ros_traj.points[0].time_from_start;
 
-    double sim_time_scale = 3.0;
+    double sim_time_scale = 0.6;
     for (int i = 0; i < ros_traj.points.size(); i++)
     {
       ros_traj.points[i].time_from_start -= base_time;
