@@ -5,12 +5,13 @@
 <!--	<arg name="robot_model_plugin" default="framefab_kr6_r900_descartes/FrameFabKr6R900RobotModel"/>-->
 
 	<arg name="robot_model_plugin" value="descartes_moveit/IkFastMoveitStateAdapter"/>
-	<arg name="world_frame" value="/world_frame"/>
-	<arg name="hotend_group" value="rail_robot_manipulator"/>
+	<arg name="world_frame" value="/base_link"/>
+	<arg name="hotend_group" value="manipulator"/>
 	<arg name="hotend_tcp" value="eef_tcp_frame"/>
 	<arg name="planner" value="ompl" />
 
   <!--	for descartes ikfast plugin-->
+<!--TODO: this base frame might be wrong, robot_base_frame-->
 	<param name="ikfast_base_frame" type="string" value="$(arg world_frame)"/>
 	<param name="ikfast_tool_frame" type="string" value="$(arg hotend_tcp)"/>
 
@@ -64,7 +65,7 @@
   </group>
 
   <!-- Bring up the MoveIt interface to the real or simulated robot -->
-  <include file="$(find framefab_kr6_r900_moveit_config)/launch/moveit_planning_execution.launch">
+  <include file="$(find kr6_r900_workspace_moveit_config)/launch/moveit_planning_execution.launch">
     <arg name="rviz" value="false"/>
     <arg name="sim" value="$(arg sim_robot)"/>
     <arg name="robot_ip" value="$(arg robot_ip)" unless="$(arg sim_robot)"/>
