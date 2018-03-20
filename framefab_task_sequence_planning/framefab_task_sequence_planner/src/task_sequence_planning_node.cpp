@@ -21,10 +21,10 @@ int main(int argc, char** argv)
   ros::NodeHandle nh, pnh("~");
 
   std::string world_frame, hotend_group, hotend_tcp, hotend_base, robot_model_plugin;
-  pnh.param<std::string>("world_frame", world_frame, "/world_frame");
-  pnh.param<std::string>("hotend_group", hotend_group, "manipulator_tcp");
-  pnh.param<std::string>("hotend_tcp", hotend_tcp, "tcp_frame");
-  pnh.param<std::string>("hotend_base", hotend_base, "robot_base_frame");
+  pnh.param<std::string>("world_frame", world_frame, "");
+  pnh.param<std::string>("hotend_group", hotend_group, "");
+  pnh.param<std::string>("hotend_tcp", hotend_tcp, "");
+  pnh.param<std::string>("hotend_base", hotend_base, "");
   pnh.param<std::string>("robot_model_plugin", robot_model_plugin, "");
 
   // IK Plugin parameter must be specified
@@ -34,7 +34,7 @@ int main(int argc, char** argv)
     return -1;
   }
 
-  FiberPrintPlugIn fiber_print_plugin(world_frame, hotend_group, hotend_tcp, hotend_base, robot_model_plugin);
+  FiberPrintPlugIn fiber_print_plugin(world_frame, hotend_group, hotend_tcp, world_frame, robot_model_plugin);
 
   ros::ServiceServer task_sequence_planning_server =
       nh.advertiseService(DEFAULT_TASK_SEQUENCE_PLANNING_SERVICE,

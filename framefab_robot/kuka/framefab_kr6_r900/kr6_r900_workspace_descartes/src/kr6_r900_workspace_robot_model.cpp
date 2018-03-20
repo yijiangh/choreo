@@ -29,8 +29,26 @@ bool Kr6R900WorkspaceRobotModel::initialize(const std::string& robot_description
   kr6_r900_workspace_ikfast_manipulator_plugin::IKFastKinematicsPlugin::initialize(
       robot_description, group_name, ikfast_base_frame, ikfast_tool_frame, 0.001);
 
-	ROS_INFO_STREAM("decartes: input tcp_frame: " << tcp_frame << ", tip_frame: " << getTipFrame());
-	ROS_INFO_STREAM("decartes: input world_frame: " << world_frame << ", base_frame: " << getBaseFrame());
+  ROS_INFO_STREAM("decartes: input world_frame: " << world_frame << ", base_frame: " << getBaseFrame());
+
+  auto tip_frames = getTipFrames();
+  for(auto tcp_f : tip_frames)
+  {
+    ROS_INFO_STREAM("decartes: tip_frame: " << tcp_f);
+  }
+
+  ROS_INFO_STREAM("group name: " << getGroupName());
+  auto link_names = getLinkNames();
+  for(auto str : link_names)
+  {
+    ROS_INFO_STREAM("descartes: link name - " << str);
+  }
+
+  auto joint_names = getJointNames();
+  for(auto str : joint_names)
+  {
+    ROS_INFO_STREAM("descartes: joint name - " << str);
+  }
 
   // initialize world transformations
   if (tcp_frame != getTipFrame())

@@ -1,14 +1,16 @@
 <launch>
-  <arg name="world_frame" default="/base_link"/>
-  <arg name="hotend_group" default="manipulator_tcp"/>
-  <arg name="hotend_tcp" default="tcp_frame"/>
-	<arg name="hotend_base" default="robot_base_link"/>
-
+  <arg name="world_frame"/>
+  <arg name="hotend_group"/>
+  <arg name="hotend_tcp"/>
+	<arg name="hotend_base"/>
   <arg name="robot_model_plugin"/>
   <arg name="planner" default="ompl"/>
 
+  <env name="ROSCONSOLE_CONFIG_FILE"
+       value="$(find framefab_process_planning)/config/custom_rosconsole.conf"/>
+
   <node name="framefab_process_planning" pkg="framefab_process_planning" type="framefab_process_planning_node"
-  output="screen" respawn="true">
+  output="screen">
     <param name="world_frame" value="$(arg world_frame)"/>
     <param name="hotend_group" value="$(arg hotend_group)"/>
     <param name="hotend_tcp" value="$(arg hotend_tcp)"/>

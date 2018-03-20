@@ -3,7 +3,9 @@
   <!-- Planning pipeline, available options: ompl. chomp, stomp-->
   <arg name="planner" default="ompl"/>
 
-  <include file="$(find kr6_r900_workspace_moveit_config)/launch/planning_context.launch" />
+  <include file="$(find kr6_r900_workspace_moveit_config)/launch/planning_context.launch" >
+    <arg name="load_robot_description" value="true" />
+  </include>
 
   <!-- GDB Debug Option -->
   <arg name="debug" default="false" />

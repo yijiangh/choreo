@@ -12,7 +12,6 @@
 	<arg name="planner" value="ompl" />
 
   <!--	for descartes ikfast plugin-->
-<!--TODO: this base frame might be wrong, robot_base_frame-->
 	<param name="ikfast_base_frame" type="string" value="$(arg hotend_base)"/>
 	<param name="ikfast_tool_frame" type="string" value="$(arg hotend_tcp)"/>
 
