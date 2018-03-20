@@ -12,9 +12,6 @@
     <group name="manipulator">
         <chain base_link="robot_base_link" tip_link="robot_tool0" />
     </group>
-    <group name="tcp_manipulator">
-        <chain base_link="robot_base_link" tip_link="eef_tcp_frame" />
-    </group>
     <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
     <disable_collisions link1="eef_base_link" link2="material_feeder_material_feeder" reason="Never" />
     <disable_collisions link1="eef_base_link" link2="robot_link_3" reason="Never" />

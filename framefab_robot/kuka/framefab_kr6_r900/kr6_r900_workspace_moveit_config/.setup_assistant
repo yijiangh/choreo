@@ -7,4 +7,4 @@ moveit_setup_assistant_config:
   CONFIG:
     author_name: Yijiang Huang
     author_email: yijiangh@mit.edu
-    generated_timestamp: 1521555697
+    generated_timestamp: 1521570477

@@ -29,39 +29,28 @@ bool Kr6R900WorkspaceRobotModel::initialize(const std::string& robot_description
   kr6_r900_workspace_ikfast_manipulator_plugin::IKFastKinematicsPlugin::initialize(
       robot_description, group_name, ikfast_base_frame, ikfast_tool_frame, 0.001);
 
-  ROS_INFO_STREAM("decartes: input world_frame: " << world_frame << ", base_frame: " << getBaseFrame());
-
-  auto tip_frames = getTipFrames();
-  for(auto tcp_f : tip_frames)
+  if (!robot_state_->knowsFrameTransform(ikfast_base_frame))
   {
-    ROS_INFO_STREAM("decartes: tip_frame: " << tcp_f);
+    logError("IkFastMoveitStateAdapter: Cannot find transformation to frame '%s' in group '%s'.",
+            ikfast_base_frame.c_str(), group_name.c_str());
+    return false;
   }
 
-  ROS_INFO_STREAM("group name: " << getGroupName());
-  auto link_names = getLinkNames();
-  for(auto str : link_names)
+  if (!robot_state_->knowsFrameTransform(ikfast_tool_frame))
   {
-    ROS_INFO_STREAM("descartes: link name - " << str);
+    logError("IkFastMoveitStateAdapter: Cannot find transformation to frame '%s' in group '%s'.",
+            ikfast_tool_frame.c_str(), group_name.c_str());
+    return false;
   }
 
-  auto joint_names = getJointNames();
-  for(auto str : joint_names)
-  {
-    ROS_INFO_STREAM("descartes: joint name - " << str);
-  }
+  // calculate frames
+  tool_to_tip_ = descartes_core::Frame(robot_state_->getFrameTransform(tcp_frame).inverse() *
+      robot_state_->getFrameTransform(ikfast_tool_frame));
 
-  // initialize world transformations
-  if (tcp_frame != getTipFrame())
-  {
-    tool_to_tip_ = descartes_core::Frame(robot_state_->getFrameTransform(tcp_frame).inverse() *
-        robot_state_->getFrameTransform(getTipFrame()));
-  }
+  world_to_base_ = descartes_core::Frame(world_to_root_.frame * robot_state_->getFrameTransform(ikfast_base_frame));
 
-  if (world_frame != getBaseFrame())
-  {
-    world_to_base_ = descartes_core::Frame(world_to_root_.frame *
-        robot_state_->getFrameTransform(getBaseFrame()));
-  }
+  logInform("customized Descartes ikfast plugin: initialized with IKFast tool frame '%s' and base frame '%s'.",
+            ikfast_tool_frame.c_str(), ikfast_base_frame.c_str());
 
   return true;
 }

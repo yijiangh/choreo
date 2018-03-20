@@ -7,7 +7,7 @@
 namespace kr6_r900_workspace_descartes
 {
 class Kr6R900WorkspaceRobotModel : public descartes_moveit::MoveitStateAdapter,
-                             public kr6_r900_workspace_ikfast_manipulator_plugin::IKFastKinematicsPlugin
+                                   public kr6_r900_workspace_ikfast_manipulator_plugin::IKFastKinematicsPlugin
 {
  public:
   Kr6R900WorkspaceRobotModel();

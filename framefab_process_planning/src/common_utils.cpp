@@ -41,7 +41,7 @@ const static double DEFAULT_JOINT_VELOCITY = 0.3; // rad/s
 // MoveIt Configuration Constants
 const static int DEFAULT_MOVEIT_NUM_PLANNING_ATTEMPTS = 30;
 const static double DEFAULT_MOVEIT_PLANNING_TIME = 20.0;   // seconds
-const static double DEFAULT_MOVEIT_VELOCITY_SCALING = 0.1; // Slow down the robot
+const static double DEFAULT_MOVEIT_VELOCITY_SCALING = 0.5; // Slow down the robot
 const static std::string DEFAULT_MOVEIT_PLANNER_ID = "RRTstar";
 const static std::string DEFAULT_MOVEIT_FRAME_ID = "world_frame";
 const static std::string DEFAULT_MOVEIT_PLANNING_SERVICE_NAME = "plan_kinematic_path";
@@ -297,7 +297,7 @@ moveit_msgs::AttachedCollisionObject framefab_process_planning::addFullEndEffect
   shapes::constructMsgFromShape(m, mesh_msg);
   mesh = boost::get<shape_msgs::Mesh>(mesh_msg);
 
-  attached_full_eef.object.header.frame_id = "eef_frame";
+  attached_full_eef.object.header.frame_id = "eef_tcp_frame";
   attached_full_eef.object.id = "full_eef";
 
   attached_full_eef.object.meshes.resize(1);
