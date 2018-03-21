@@ -11,21 +11,23 @@
 const static std::string APPLY_PLANNING_SCENE_SERVICE = "apply_planning_scene";
 
 framefab_process_planning::ProcessPlanningManager::ProcessPlanningManager(
-    const std::string& world_frame, const std::string& hotend_group, const std::string& hotend_tcp,
+    const std::string& world_frame, const std::string& hotend_group, const std::string& hotend_tcp, const std::string& hotend_base,
     const std::string& robot_model_plugin)
     : plugin_loader_("descartes_core", "descartes_core::RobotModel"),
       hotend_group_name_(hotend_group)
 {
+  world_frame_ = world_frame;
+
   // Attempt to load and initialize the printing robot model (hotend)
   hotend_model_ = plugin_loader_.createInstance(robot_model_plugin);
   if (!hotend_model_)
   {
-    throw std::runtime_error(std::string("Could not load: ") + robot_model_plugin);
+    throw std::runtime_error(std::string("[FF_process_planning] Could not load: ") + robot_model_plugin);
   }
 
-  if (!hotend_model_->initialize("robot_description", hotend_group, world_frame, hotend_tcp))
+  if (!hotend_model_->initialize("robot_description", hotend_group, hotend_base, hotend_tcp))
   {
-    throw std::runtime_error("Unable to initialize printing robot model");
+    throw std::runtime_error("[FF_process_planning]: Unable to initialize descartes robot model");
   }
 
   // Load the moveit model
@@ -34,7 +36,7 @@ framefab_process_planning::ProcessPlanningManager::ProcessPlanningManager(
 
   if (moveit_model_.get() == NULL)
   {
-    throw std::runtime_error("Could not load moveit robot model");
+    throw std::runtime_error("[FF_process_planning] Could not load moveit robot model");
   }
 
   planning_scene_diff_client_ =

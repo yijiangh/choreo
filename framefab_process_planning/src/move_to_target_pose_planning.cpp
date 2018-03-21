@@ -40,13 +40,25 @@ bool ProcessPlanningManager::handleMoveToTargetPosePlanAndExecution(
       return true;
     }
 
-    trajectory_msgs::JointTrajectory ros_traj =
-        getMoveitPlan(hotend_group_name_,
-                      current_joints,
-                      req.pose,
-                      moveit_model_);
-//    for (auto& pt : ros_traj.points) pt.time_from_start *= 4.0;
-    fillTrajectoryHeaders(joint_names, ros_traj);
+    std::vector<double> target_pose(req.pose.end() - joint_names.size(), req.pose.end());
+
+    trajectory_msgs::JointTrajectory ros_traj = getMoveitPlan(hotend_group_name_,
+                                                              current_joints,
+                                                              target_pose,
+                                                              moveit_model_);
+
+    ros::Duration base_time = ros_traj.points[0].time_from_start;
+
+    double sim_time_scale = 0.6;
+    for (int i = 0; i < ros_traj.points.size(); i++)
+    {
+      ros_traj.points[i].time_from_start -= base_time;
+
+      //sim speed tuning
+      ros_traj.points[i].time_from_start *= sim_time_scale;
+    }
+
+    fillTrajectoryHeaders(joint_names, ros_traj, world_frame_);
 
     // step 5: immediate execution (a quick solution for debugging)
     ros::NodeHandle nh;
@@ -57,8 +69,9 @@ bool ProcessPlanningManager::handleMoveToTargetPosePlanAndExecution(
     }
     else
     {
-      ROS_INFO("[Reset Exe] Found action");
+      ROS_INFO("[Reset Exe] Found action server");
     }
+
     control_msgs::FollowJointTrajectoryGoal goal;
     goal.trajectory = ros_traj;
 

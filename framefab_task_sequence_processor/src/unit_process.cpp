@@ -58,9 +58,8 @@ moveit_msgs::CollisionObject framefab_task_sequence_processing_utils::UnitProces
   moveit_msgs::CollisionObject collision_cylinder;
   std::string cylinder_id = "element_" + std::to_string(id) + "_" + shrink_type_suffix;
 
-  // TODO: make frame_id as input parameter
   collision_cylinder.id = cylinder_id;
-  collision_cylinder.header.frame_id = "world_frame";
+  collision_cylinder.header.frame_id = world_frame_;
   collision_cylinder.operation = moveit_msgs::CollisionObject::ADD;
 
   shape_msgs::SolidPrimitive cylinder_solid;
@@ -75,10 +74,16 @@ moveit_msgs::CollisionObject framefab_task_sequence_processing_utils::UnitProces
 }
 
 void framefab_task_sequence_processing_utils::UnitProcess::createShrinkedEndPoint(Eigen::Vector3d& st_pt, Eigen::Vector3d& end_pt,
-                    const double& shrink_length)
+                    double shrink_length)
 {
   Eigen::Vector3d translation_vec = end_pt - st_pt;
   translation_vec.normalize();
+
+  if(2 * shrink_length > (st_pt - end_pt).norm())
+  {
+    ROS_WARN_STREAM("[ts processing] shrink length longer than element length!");
+    shrink_length = 0.2 * (st_pt - end_pt).norm();
+  }
 
   st_pt = st_pt + shrink_length * translation_vec;
   end_pt = end_pt - shrink_length * translation_vec;

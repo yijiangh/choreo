@@ -27,7 +27,7 @@ class ProcessPlanningManager
 {
  public:
   ProcessPlanningManager(const std::string& world_frame,
-                         const std::string& hotend_group, const std::string& hotend_tcp,
+                         const std::string& hotend_group, const std::string& hotend_tcp, const std::string& hotend_base,
                          const std::string& robot_model_plugin);
 
   bool handlePrintPlanning(framefab_msgs::ProcessPlanning::Request& req,
@@ -42,6 +42,8 @@ class ProcessPlanningManager
   moveit::core::RobotModelConstPtr moveit_model_;
   pluginlib::ClassLoader<descartes_core::RobotModel> plugin_loader_; // kept around so code doesn't get unloaded
   std::string hotend_group_name_;
+
+  std::string world_frame_;
 
   // planning scene service client
   ros::NodeHandle nh_;

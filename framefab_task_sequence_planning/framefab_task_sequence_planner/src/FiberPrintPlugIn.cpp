@@ -28,10 +28,16 @@ double dist(const Eigen::Vector3d& from, const Eigen::Vector3d& to)
 }
 
 void createShrinkedEndPoint(Eigen::Vector3d& st_pt, Eigen::Vector3d& end_pt,
-                            const double& shrink_length)
+                            double shrink_length)
 {
   Eigen::Vector3d translation_vec = end_pt - st_pt;
   translation_vec.normalize();
+
+  if(2 * shrink_length > (st_pt - end_pt).norm())
+  {
+    ROS_WARN_STREAM("[tsp] shrink length longer than element length!");
+    shrink_length = 0.2 * (st_pt - end_pt).norm();
+  }
 
   st_pt = st_pt + shrink_length * translation_vec;
   end_pt = end_pt - shrink_length * translation_vec;
@@ -75,14 +81,14 @@ geometry_msgs::Pose computeCylinderPose(const Eigen::Vector3d& st_pt, const Eige
 }
 
 moveit_msgs::CollisionObject convertWFEdgeToCollisionObject(
-    int edge_id, const Eigen::Vector3d st_pt, const Eigen::Vector3d end_pt, double element_diameter)
+    int edge_id, const Eigen::Vector3d st_pt, const Eigen::Vector3d end_pt, double element_diameter,
+    const std::string world_frame)
 {
   moveit_msgs::CollisionObject collision_cylinder;
   std::string cylinder_id = COLLISION_OBJ_PREFIX + std::to_string(edge_id);
 
-  // TODO: make frame_id as input parameter
   collision_cylinder.id = cylinder_id;
-  collision_cylinder.header.frame_id = "world_frame";
+  collision_cylinder.header.frame_id = world_frame;
   collision_cylinder.operation = moveit_msgs::CollisionObject::ADD;
 
   shape_msgs::SolidPrimitive cylinder_solid;
@@ -101,7 +107,8 @@ moveit_msgs::CollisionObject convertWFEdgeToCollisionObject(
 void convertWireFrameToMsg(
     const framefab_msgs::ModelInputParameters& model_params,
     WireFrame& wire_frame, std::vector<framefab_msgs::ElementCandidatePoses>& wf_msgs,
-    double& unit_scale)
+    double& unit_scale,
+    const std::string world_frame)
 {
   wf_msgs.clear();
 
@@ -179,16 +186,16 @@ void convertWireFrameToMsg(
       createShrinkedEndPoint(shrinked_st_pt, shrinked_end_pt, model_params.shrink_length * unit_scale);
 
       element_msg.both_side_shrinked_collision_object = convertWFEdgeToCollisionObject(
-          e->ID(), shrinked_st_pt, shrinked_end_pt, element_msg.element_diameter);
+          e->ID(), shrinked_st_pt, shrinked_end_pt, element_msg.element_diameter, world_frame);
 
       element_msg.st_shrinked_collision_object = convertWFEdgeToCollisionObject(
-          e->ID(), shrinked_st_pt, eigen_end_pt, element_msg.element_diameter);
+          e->ID(), shrinked_st_pt, eigen_end_pt, element_msg.element_diameter, world_frame );
 
       element_msg.end_shrinked_collision_object = convertWFEdgeToCollisionObject(
-          e->ID(), eigen_st_pt, shrinked_end_pt, element_msg.element_diameter);
+          e->ID(), eigen_st_pt, shrinked_end_pt, element_msg.element_diameter, world_frame);
 
       element_msg.full_collision_object = convertWFEdgeToCollisionObject(
-          e->ID(), eigen_st_pt, eigen_end_pt, element_msg.element_diameter);
+          e->ID(), eigen_st_pt, eigen_end_pt, element_msg.element_diameter, world_frame);
 
       // TODO: this is redundant, a quick patch to make it work with wireframe's double-edge
       // data structure
@@ -199,7 +206,7 @@ void convertWireFrameToMsg(
 }
 
 // TODO: temp functions
-moveit_msgs::CollisionObject createPrintTable(const Eigen::Vector3d& ref_pt, const double unit_scale)
+moveit_msgs::CollisionObject createPrintTable(const Eigen::Vector3d& ref_pt, const double unit_scale, const std::string world_frame)
 {
   // for now, only a simple flat box, representing the build plate, is added.
   // TODO: might need to use load mesh approach for user-customized scene collision setup
@@ -224,7 +231,7 @@ moveit_msgs::CollisionObject createPrintTable(const Eigen::Vector3d& ref_pt, con
   tf::poseEigenToMsg(rtn, pose);
 
   collision_env_obj.id = env_obj_id;
-  collision_env_obj.header.frame_id = "world_frame";
+  collision_env_obj.header.frame_id = world_frame;
   collision_env_obj.operation = moveit_msgs::CollisionObject::ADD;
 
   shape_msgs::SolidPrimitive env_obj_solid;
@@ -276,7 +283,7 @@ bool addCollisionObject(const moveit_msgs::CollisionObject& c_obj)
 }// util namespace
 
 FiberPrintPlugIn::FiberPrintPlugIn(const std::string& world_frame,
-                                   const std::string& hotend_group, const std::string& hotend_tcp,
+                                   const std::string& hotend_group, const std::string& hotend_tcp, const std::string& hotend_base,
                                    const std::string& robot_model_plugin)
     : plugin_loader_("descartes_core", "descartes_core::RobotModel"),
       hotend_group_name_(hotend_group)
@@ -299,12 +306,12 @@ FiberPrintPlugIn::FiberPrintPlugIn(const std::string& world_frame,
   hotend_model_ = plugin_loader_.createInstance(robot_model_plugin);
   if (!hotend_model_)
   {
-    throw std::runtime_error(std::string("Could not load: ") + robot_model_plugin);
+    throw std::runtime_error(std::string("[seq planner] Could not load: ") + robot_model_plugin);
   }
 
-  if (!hotend_model_->initialize("robot_description", hotend_group, world_frame, hotend_tcp))
+  if (!hotend_model_->initialize("robot_description", hotend_group, hotend_base, hotend_tcp))
   {
-    throw std::runtime_error("Unable to initialize printing robot model");
+    throw std::runtime_error("[seq planner] Unable to initialize printing robot model");
   }
 
   // Load the moveit model
@@ -313,11 +320,14 @@ FiberPrintPlugIn::FiberPrintPlugIn(const std::string& world_frame,
 
   if (moveit_model_.get() == NULL)
   {
-    throw std::runtime_error("Could not load moveit robot model");
+    throw std::runtime_error("[seq planner] Could not load moveit robot model");
   }
 
   // Enable Collision Checks
   hotend_model_->setCheckCollisions(true);
+
+  // set world frame
+  world_frame_ = world_frame;
 }
 
 FiberPrintPlugIn::~FiberPrintPlugIn()
@@ -516,6 +526,8 @@ bool FiberPrintPlugIn::handleTaskSequencePlanning(
         delete ptr_frame_;
       }
 
+      ROS_INFO_STREAM("[Ts planning] wire frame read : " << file_path);
+
       // TODO: if contains keyword "pwf"
       ptr_frame_ = new WireFrame();
       ptr_frame_->LoadFromPWF(&fp[0]);
@@ -524,9 +536,9 @@ bool FiberPrintPlugIn::handleTaskSequencePlanning(
       Eigen::Vector3d ref_pt(req.model_params.ref_pt_x, req.model_params.ref_pt_y, req.model_params.ref_pt_z);
 
       // TODO: temp functions
-      convertWireFrameToMsg(req.model_params, *ptr_frame_, frame_msgs_, unit_scale);
+      convertWireFrameToMsg(req.model_params, *ptr_frame_, frame_msgs_, unit_scale, world_frame_);
 
-      moveit_msgs::CollisionObject table = createPrintTable(ref_pt, unit_scale);
+      moveit_msgs::CollisionObject table = createPrintTable(ref_pt, unit_scale, world_frame_);
       addCollisionObject(table);
 
       res.element_array = frame_msgs_;
@@ -583,7 +595,7 @@ bool FiberPrintPlugIn::handleTaskSequencePlanning(
       }
 
       // dummy parm
-      ptr_parm_ = new FiberPrintPARM(1,0, 1.0, 1.0);
+      ptr_parm_ = new FiberPrintPARM(0, 0, 0);
 
       // dummy framefab output path
       ptr_path_ = "/home";

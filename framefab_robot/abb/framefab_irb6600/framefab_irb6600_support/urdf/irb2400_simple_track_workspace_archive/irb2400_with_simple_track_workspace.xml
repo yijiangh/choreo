@@ -1,0 +1,6 @@
+<robot file="irb2400_with_simple_track_workspace.dae">
+  <Manipulator name="framefab_irb2400_simple_track">
+    <base>base_link</base>
+    <effector>robot_tool0</effector>
+  </Manipulator>
+</robot>

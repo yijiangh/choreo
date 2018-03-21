@@ -35,20 +35,22 @@ ProcessPlanResult FrameFabCoreService::generateProcessPlan(const int selected_pa
   std::string saved_graph_file_name = task_sequence_input_params_.file_path;
   std::replace(saved_graph_file_name.begin(), saved_graph_file_name.end(), '/', '_');
 
-  // call process_processing srv
-  framefab_msgs::ProcessPlanning srv;
-//  srv.request.params = process_planning_params_;
-  srv.request.index = selected_path_index;
-  srv.request.task_sequence = task_sequence_;
-  srv.request.env_collision_objs = env_objs_;
-  srv.request.use_saved_graph = use_saved_graph_;
-  srv.request.file_name = saved_graph_file_name;
-
   // construct sequenced collision objects
   framefab_msgs::TaskSequencePlanning ts_srv;
   ts_srv.request.action = ts_srv.request.READ_WIREFRAME;
   ts_srv.request.model_params = model_input_params_;
   ts_srv.request.task_sequence_params = task_sequence_input_params_;
+
+  // call process_processing srv
+  framefab_msgs::ProcessPlanning srv;
+  srv.request.index = selected_path_index;
+  srv.request.task_sequence = task_sequence_;
+  srv.request.env_collision_objs = env_objs_;
+  srv.request.use_saved_graph = use_saved_graph_;
+  srv.request.file_name = saved_graph_file_name;
+  // TODO: replace this with user input
+  srv.request.clt_rrt_unit_process_timeout = model_input_params_.clt_rrt_unit_process_timeout;
+  srv.request.clt_rrt_timeout = model_input_params_.clt_rrt_timeout;
 
   if(!task_sequence_planning_srv_client_.call(ts_srv))
   {

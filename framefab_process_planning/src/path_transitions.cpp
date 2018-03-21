@@ -325,7 +325,7 @@ bool framefab_process_planning::retractPath(
   {
     const auto idx = path_idxs[j];
     const auto* data = graph.vertex(j, idx);
-    retract_jt_traj.push_back(std::vector<double>(data, data + 6));
+    retract_jt_traj.push_back(std::vector<double>(data, data + dof));
   }
 
   return true;

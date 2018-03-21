@@ -25,6 +25,8 @@ framefab_gui::ModelInputConfigWidget::ModelInputConfigWidget(framefab_msgs::Mode
   ui_->lineedit_ref_pt_z->setValidator(new QDoubleValidator(this));
   ui_->lineedit_element_diameter->setValidator(new QDoubleValidator(this));
   ui_->lineedit_shrink_length->setValidator(new QDoubleValidator(this));
+  ui_->lineedit_unit_process_timeout->setValidator(new QDoubleValidator(this));
+  ui_->lineedit_rrt_timeout->setValidator(new QDoubleValidator(this));
 
   last_filepath_ = "/home";
 }
@@ -40,6 +42,9 @@ void framefab_gui::ModelInputConfigWidget::update_display_fields()
   ui_->lineedit_element_diameter->setText(QString::number(params_.element_diameter));
   ui_->lineedit_shrink_length->setText(QString::number(params_.shrink_length));
 
+  ui_->lineedit_unit_process_timeout->setText(QString::number(params_.clt_rrt_unit_process_timeout));
+  ui_->lineedit_rrt_timeout->setText(QString::number(params_.clt_rrt_timeout));
+
   ui_->combobox_unit->setCurrentIndex(params_.unit_type);
 }
 
@@ -53,6 +58,9 @@ void framefab_gui::ModelInputConfigWidget::update_internal_fields()
 
   params_.element_diameter = ui_->lineedit_element_diameter->text().toDouble();
   params_.shrink_length = ui_->lineedit_shrink_length->text().toDouble();
+
+  params_.clt_rrt_unit_process_timeout = ui_->lineedit_unit_process_timeout->text().toDouble();
+  params_.clt_rrt_timeout = ui_->lineedit_rrt_timeout->text().toDouble();
 
   params_.unit_type = ui_->combobox_unit->currentIndex();
 }

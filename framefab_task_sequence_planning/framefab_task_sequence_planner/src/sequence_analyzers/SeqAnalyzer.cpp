@@ -17,7 +17,8 @@
 #include <eigen_conversions/eigen_msg.h>
 
 const static std::string GET_PLANNING_SCENE_SERVICE = "get_planning_scene";
-const static double ROBOT_KINEMATICS_CHECK_TIMEOUT = 5.0;
+const static double ROBOT_KINEMATICS_CHECK_TIMEOUT = 10.0;
+const double STATEMAP_UPDATE_DISTANCE = 100; // mm
 
 namespace{
 // copy from graph_builder.cpp
@@ -183,6 +184,7 @@ SeqAnalyzer::SeqAnalyzer(
   file_output_ = file_output;
 
   update_collision_ = true;
+  search_rerun_ = 0;
 
   hotend_model_ = hotend_model;
   moveit_model_ = moveit_model;
@@ -259,8 +261,6 @@ void SeqAnalyzer::Init()
 
 void SeqAnalyzer::PrintPillars()
 {
-  int layer_size = ptr_frame_->SizeOfLayer();
-
   /* ranked by x */
   multimap<double, WF_edge*, std::greater<double>>base_queue;
   multimap<double, WF_edge*, std::greater<double>>::iterator it;
@@ -275,118 +275,31 @@ void SeqAnalyzer::PrintPillars()
     }
   }
 
-  if (terminal_output_)
+  if(terminal_output_)
   {
     fprintf(stderr, "Size of base queue: %d, full graph domain pruning in progress.\n", (int)base_queue.size());
   }
 
-  for (it = base_queue.begin(); it != base_queue.end(); it++)
+  for(it = base_queue.begin(); it != base_queue.end(); it++)
   {
     WF_edge* e = it->second;
     print_queue_.push_back(e);
 
+    ROS_INFO_STREAM("pillar # " << std::distance(base_queue.begin(), it) << " domain pruning.");
+
     // update printed graph
     UpdateStructure(e, update_collision_);
+
+    ROS_INFO_STREAM("collision updated.");
 
     // update collision (geometric domain)
     // tmp is the pruned domain by direct arc consistency pruning
     vector<vector<lld>> tmp_angle(3);
     UpdateStateMap(e, tmp_angle);
+
+    ROS_INFO_STREAM("Domain updated.");
+    ROS_INFO_STREAM("--------");
   }
-
-//  std::vector<WF_edge*> pillars;
-//
-//  for (int dual_i = 0; dual_i < Nd_; dual_i++)
-//  {
-//    WF_edge *e = ptr_frame_->GetEdge(ptr_wholegraph_->e_orig_id(dual_i));
-//    if (e->isPillar())
-//    {
-//      pillars.push_back(e);
-//    }
-//  }
-//
-//  if(0 == pillars.size())
-//  {
-//    ROS_ERROR("[Ts planner] Model must has pillars!");
-//    assert(false);
-//  }
-//
-//  int n = pillars.size();
-//  Eigen::MatrixXf tsp_cost(n, n);
-//  std::vector<bool> exist_flag(n, false);
-//
-//  for(int i = 0; i < n; i++)
-//  {
-//    auto ei_pt =  pillars[i]->CenterPos();
-//
-//    for(int j = i; j < n; j++)
-//    {
-//      auto ej_pt = pillars[j]->CenterPos();
-//
-//      double dist = sqrt(pow(ei_pt.x() - ej_pt.x(), 2) + pow(ei_pt.y() - ej_pt.y(),2));
-//      tsp_cost(i, j) = dist;
-//      tsp_cost(j, i) = dist;
-//    }
-//  }
-//
-//  // greedy search
-//  // start with node with min x
-//  double min_x = 1e20;
-//  int min_id;
-//  for(int i=0; i<n; i++)
-//  {
-//    if(pillars[i]->CenterPos().x() < min_x)
-//    {
-//      min_x = pillars[i]->CenterPos().x();
-//      min_id = i;
-//    }
-//  }
-//
-//  std::vector<int> order_indices;
-//  exist_flag[min_id] = true;
-//  order_indices.push_back(min_id);
-//
-//  while(order_indices.size() < n)
-//  {
-//    int id = order_indices.back();
-//
-//    double min_dist = 1e20;
-//    int min_next_id;
-//
-//    for(int j = 0; j < n; j++)
-//    {
-//      if(!exist_flag[j])
-//      {
-//        if(tsp_cost(id, j) < min_dist)
-//        {
-//          min_dist = tsp_cost(id, j);
-//          min_next_id = j;
-//        }
-//      }
-//    }
-//
-//    exist_flag[min_next_id] = true;
-//    order_indices.push_back(min_next_id);
-//  }
-
-//  if (terminal_output_)
-//  {
-//    fprintf(stderr, "Size of pillars layer: %d, full graph domain pruning in progress.\n", (int)pillars.size());
-//  }
-//
-//  for (const auto&o_id : order_indices)
-//  {
-//    auto& e = pillars[order_indices[o_id]];
-//    print_queue_.push_back(e);
-//
-//    // update printed graph
-////    UpdateStructure(e, update_collision_);
-//
-//    // update collision (geometric domain)
-//    // tmp is the pruned domain by direct arc consistency pruning
-////    vector<vector<lld>> tmp_angle(3);
-////    UpdateStateMap(e, tmp_angle);
-//  }
 }
 
 void SeqAnalyzer::UpdateStructure(WF_edge *e, bool update_collision)
@@ -476,23 +389,26 @@ void SeqAnalyzer::UpdateStateMap(WF_edge *order_e, vector<vector<lld>> &state_ma
     // for each unprinted edge in wireframe, full graph arc consistency
     // it makes no sense to prune pillar's domain, since we only allow z-axis for pillar's printing
     // (and they are printed first)
-    if (dual_i != dual_j && !ptr_dualgraph_->isExistingEdge(target_e) && !target_e->isPillar())
+    if (dual_i != dual_j && !ptr_dualgraph_->isExistingEdge(target_e)
+        && !target_e->isPillar())
+//        && target_e->CenterDistanceTo(order_e) < STATEMAP_UPDATE_DISTANCE)
     {
       // prune order_e's domain with target_e's existence
       // arc consistency pruning
       vector<lld> tmp(3);
-      ptr_collision_->DetectCollision(target_e, order_e, tmp);
 
-      for (int k = 0; k < 3; k++)
+      if(ptr_collision_->DetectCollision(target_e, order_e, tmp))
       {
-        state_map[k].push_back(angle_state_[dual_j][k]);
-      }
+        for (int k = 0; k < 3; k++)
+        {
+          state_map[k].push_back(angle_state_[dual_j][k]);
+        }
 
-      ptr_collision_->ModifyAngle(angle_state_[dual_j], tmp);
+        ptr_collision_->ModifyAngle(angle_state_[dual_j], tmp);
+      }
     }
   }
 }
-
 
 void SeqAnalyzer::RecoverStateMap(WF_edge* order_e, vector<vector<lld>>& state_map)
 {
@@ -807,7 +723,7 @@ bool SeqAnalyzer::TestRobotKinematics(WF_edge* e, const std::vector<lld>& colli_
 
   const auto check_start_time = ros::Time::now();
 
-  while((ros::Time::now() - check_start_time).toSec() < ROBOT_KINEMATICS_CHECK_TIMEOUT)
+  while((ros::Time::now() - check_start_time).toSec() < ROBOT_KINEMATICS_CHECK_TIMEOUT * (search_rerun_ + 1))
   {
     std::vector<Eigen::Affine3d> poses = generateSampleEEFPoses(path_pts, direction_matrix_list);
 
@@ -826,9 +742,7 @@ bool SeqAnalyzer::TestRobotKinematics(WF_edge* e, const std::vector<lld>& colli_
         hotend_model_->setPlanningScene(planning_scene_depart);
       }
 
-      hotend_model_->getAllIK(poses[c_id], joint_poses);
-
-      if(joint_poses.size() == 0)
+      if(!hotend_model_->getAllIK(poses[c_id], joint_poses))
       {
         empty_joint_pose_found = true;
         break;

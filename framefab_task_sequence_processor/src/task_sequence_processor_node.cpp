@@ -11,7 +11,7 @@ bool processTaskSequenceCallback(framefab_msgs::TaskSequenceProcessingRequest& r
              framefab_msgs::TaskSequenceProcessingResponse& res)
 {
   framefab_task_sequence_processing::TaskSequenceProcessor ts_processor;
-  ts_processor.setParams(req.model_params, req.task_sequence_params);
+  ts_processor.setParams(req.model_params, req.task_sequence_params, req.world_frame);
 
   switch (req.action)
   {

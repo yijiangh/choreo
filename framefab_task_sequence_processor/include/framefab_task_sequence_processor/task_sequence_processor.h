@@ -31,7 +31,8 @@ class TaskSequenceProcessor
 
   // data setting
   void setParams(framefab_msgs::ModelInputParameters model_params,
-                 framefab_msgs::TaskSequenceInputParameters task_sequence_params);
+                 framefab_msgs::TaskSequenceInputParameters task_sequence_params,
+                 std::string world_frame_);
 
  protected:
   framefab_task_sequence_processing_utils::UnitProcess createScaledUnitProcess(int index, int wireframe_id,
@@ -50,6 +51,7 @@ class TaskSequenceProcessor
   // params
   framefab_msgs::ModelInputParameters model_input_params_;
   framefab_msgs::TaskSequenceInputParameters path_input_params_;
+  std::string world_frame_;
 
   std::vector<framefab_task_sequence_processing_utils::UnitProcess> path_array_;
   std::vector<moveit_msgs::CollisionObject> env_collision_objs_;

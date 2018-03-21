@@ -16,6 +16,10 @@ bool use_saved_graph
 
 string file_name
 
+float64 clt_rrt_unit_process_timeout
+
+float64 clt_rrt_timeout
+
 ---
 
 framefab_msgs/UnitProcessPlan[] plan

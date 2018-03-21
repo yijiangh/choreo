@@ -41,7 +41,7 @@ const static double DEFAULT_JOINT_VELOCITY = 0.3; // rad/s
 // MoveIt Configuration Constants
 const static int DEFAULT_MOVEIT_NUM_PLANNING_ATTEMPTS = 30;
 const static double DEFAULT_MOVEIT_PLANNING_TIME = 20.0;   // seconds
-const static double DEFAULT_MOVEIT_VELOCITY_SCALING = 0.1; // Slow down the robot
+const static double DEFAULT_MOVEIT_VELOCITY_SCALING = 0.5; // Slow down the robot
 const static std::string DEFAULT_MOVEIT_PLANNER_ID = "RRTstar";
 const static std::string DEFAULT_MOVEIT_FRAME_ID = "world_frame";
 const static std::string DEFAULT_MOVEIT_PLANNING_SERVICE_NAME = "plan_kinematic_path";
@@ -202,10 +202,11 @@ trajectory_msgs::JointTrajectory framefab_process_planning::toROSTrajectory(
 }
 
 void framefab_process_planning::fillTrajectoryHeaders(const std::vector<std::string>& joints,
-                                                      trajectory_msgs::JointTrajectory& traj)
+                                                      trajectory_msgs::JointTrajectory& traj,
+                                                      const std::string world_frame)
 {
   traj.joint_names = joints;
-  traj.header.frame_id = DEFAULT_FRAME_ID;
+  traj.header.frame_id = world_frame;
   traj.header.stamp = ros::Time::now();
 }
 
@@ -276,13 +277,13 @@ moveit_msgs::AttachedCollisionObject framefab_process_planning::addFullEndEffect
   double scale = 0.001;
   Eigen::Vector3d scale_vector(scale, scale, scale);
   moveit_msgs::AttachedCollisionObject attached_full_eef;
-  attached_full_eef.link_name = "eef_frame";
+  attached_full_eef.link_name = "eef_base_link";
 
   /* A default pose */
   geometry_msgs::Pose pose;
-  pose.position.x = 0.000088;
-  pose.position.y = 0.000769;
-  pose.position.z = -0.002121;
+  pose.position.x = 0.0;
+  pose.position.y = 0.0;
+  pose.position.z = 0.0;
   pose.orientation.w= 0.0;
   pose.orientation.x= 0.0;
   pose.orientation.y= 0.0;
@@ -296,7 +297,7 @@ moveit_msgs::AttachedCollisionObject framefab_process_planning::addFullEndEffect
   shapes::constructMsgFromShape(m, mesh_msg);
   mesh = boost::get<shape_msgs::Mesh>(mesh_msg);
 
-  attached_full_eef.object.header.frame_id = "eef_frame";
+  attached_full_eef.object.header.frame_id = "eef_tcp_frame";
   attached_full_eef.object.id = "full_eef";
 
   attached_full_eef.object.meshes.resize(1);
@@ -431,7 +432,7 @@ trajectory_msgs::JointTrajectory framefab_process_planning::getMoveitPlan(
   {
     ROS_ERROR("%s: Unable to call MoveIt path planning service: '%s' or planning failed",
               __FUNCTION__, DEFAULT_MOVEIT_PLANNING_SERVICE_NAME.c_str());
-    throw std::runtime_error("Unable to generate MoveIt path plan");
+//    throw std::runtime_error("Unable to generate MoveIt path plan");
   }
   return jt;
 }
@@ -566,7 +567,7 @@ trajectory_msgs::JointTrajectory framefab_process_planning::getMoveitTransitionP
     {
      ROS_ERROR("%s: Unable to call MoveIt path planning service: '%s' or planning failed, AFTER RESETTING POSE",
               __FUNCTION__, DEFAULT_MOVEIT_PLANNING_SERVICE_NAME.c_str());
-      throw std::runtime_error("Unable to generate reset MoveIt path plan");
+//      throw std::runtime_error("Unable to generate reset MoveIt path plan");
       jt.points.clear();
 
       return jt;
@@ -582,7 +583,7 @@ trajectory_msgs::JointTrajectory framefab_process_planning::getMoveitTransitionP
     {
      ROS_ERROR("%s: Unable to call MoveIt path planning service: '%s' or planning failed, AFTER RESETTING POSE",
               __FUNCTION__, DEFAULT_MOVEIT_PLANNING_SERVICE_NAME.c_str());
-      throw std::runtime_error("Unable to generate reset to goal MoveIt path plan");
+//      throw std::runtime_error("Unable to generate reset to goal MoveIt path plan");
       jt.points.clear();
 
       return jt;

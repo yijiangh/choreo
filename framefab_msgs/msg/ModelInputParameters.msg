@@ -19,3 +19,7 @@ int32 unit_type
 
 # model file name (path)
 string file_name
+
+float64 clt_rrt_unit_process_timeout
+
+float64 clt_rrt_timeout

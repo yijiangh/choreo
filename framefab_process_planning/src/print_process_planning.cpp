@@ -74,8 +74,9 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
     addCollisionObject(planning_scene_diff_client_, obj);
   }
 
-  if(generateMotionPlan(hotend_model_, constrained_segs, chosen_task_seq, req.wf_collision_objs,
+  if(generateMotionPlan(hotend_model_, constrained_segs, chosen_task_seq, req.wf_collision_objs, world_frame_,
                         req.use_saved_graph, req.file_name,
+                        req.clt_rrt_unit_process_timeout, req.clt_rrt_timeout,
                         moveit_model_, planning_scene_diff_client_,
                         hotend_group_name_, current_joints, res.plan))
   {

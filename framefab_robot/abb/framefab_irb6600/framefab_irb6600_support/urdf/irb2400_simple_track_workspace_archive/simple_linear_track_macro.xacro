@@ -1,0 +1,47 @@
+<?xml version="1.0" ?>
+
+<!--Generates a urdf from the macro in kr210_macro.xacro -->
+
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+
+<xacro:property name="rail_cross_section" value="0.1"/>
+
+<xacro:macro name="simple_linear_track" params="prefix">
+
+	<!--	Link list-->
+  <link name="${prefix}base_link">
+    <visual>
+      <origin xyz="0 0 0"/>
+      <geometry>
+        <box size="4 ${rail_cross_section} ${rail_cross_section}"/>
+      </geometry>
+      <material name="yellow">
+       <color rgba="1.0 1.0 0 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0"/>
+      <geometry>
+        <box size="4 ${rail_cross_section} ${rail_cross_section}"/>
+      </geometry>
+      <material name="yellow">
+       <color rgba="1.0 1.0 0 1.0"/>
+      </material>
+    </collision>   
+  </link>
+
+<!--	<link name="${prefix}robot_mount"/>-->
+	<!--	End of link list-->
+
+	<!-- Joint list -->
+<!--  <joint name="${prefix}actuation_joint" type="prismatic">-->
+<!--    <parent link="${prefix}base_link" />-->
+<!--    <child link="${prefix}robot_mount" />-->
+<!--    <origin xyz="0 0 ${0.5*rail_cross_section}"/>-->
+<!--    <axis xyz="1 0 0"/>-->
+<!--    <limit lower="-2" upper="2" effort="1" velocity="0.1"/>-->
+<!--  </joint>-->
+	<!-- End of joint list -->
+
+</xacro:macro>
+</robot>

@@ -167,6 +167,7 @@ class FrameFabCoreService
   bool save_data_;
   std::string save_location_;
   std::string param_cache_prefix_;
+  std::string world_frame_;
 };
 
 #endif
