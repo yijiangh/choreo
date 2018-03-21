@@ -49,8 +49,8 @@ ProcessPlanResult FrameFabCoreService::generateProcessPlan(const int selected_pa
   srv.request.use_saved_graph = use_saved_graph_;
   srv.request.file_name = saved_graph_file_name;
   // TODO: replace this with user input
-  srv.request.clt_rrt_unit_process_timeout = 0.0;
-  srv.request.clt_rrt_timeout = 0.0;
+  srv.request.clt_rrt_unit_process_timeout = model_input_params_.clt_rrt_unit_process_timeout;
+  srv.request.clt_rrt_timeout = model_input_params_.clt_rrt_timeout;
 
   if(!task_sequence_planning_srv_client_.call(ts_srv))
   {

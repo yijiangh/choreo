@@ -109,7 +109,7 @@ bool FrameFabCoreService::init()
 
   // Load the 'prefix' that will be combined with parameters msg base names to save to disk
   ph.param<std::string>("param_cache_prefix", param_cache_prefix_, "");
-  ph.param<std::string>("world_frame", world_frame_, "/world_frame");
+  ph.param<std::string>("world_frame", world_frame_, "");
 
   if (!this->loadModelInputParameters(param_cache_prefix_ + MODEL_INPUT_PARAMS_FILE))
     ROS_WARN("Unable to load model input parameters.");

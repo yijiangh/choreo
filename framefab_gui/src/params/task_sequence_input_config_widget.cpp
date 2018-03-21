@@ -30,11 +30,12 @@ void framefab_gui::TaskSequenceInputConfigWidget::update_display_fields()
 void framefab_gui::TaskSequenceInputConfigWidget::update_internal_fields()
 {
   params_.file_path = ui_->lineedit_filepath->text().toLocal8Bit().constData();
+  last_filepath_ = params_.file_path;
 }
 
 void framefab_gui::TaskSequenceInputConfigWidget::get_file_path_handler()
 {
-  QString filename = QFileDialog::getOpenFileName(
+  QString filename = QFileDialog::getSaveFileName(
       this,
       tr("Open File"),
       QString::fromStdString(last_filepath_));

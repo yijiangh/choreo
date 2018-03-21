@@ -52,6 +52,7 @@ void framefab_gui::OutputSaveDirInputConfigWidget::update_internal_fields()
 {
   params_.file_path = ui_->lineedit_filepath->text().toLocal8Bit().constData();
   checkFileExtension(params_.file_path);
+  last_filepath_ = params_.file_path;
 }
 
 void framefab_gui::OutputSaveDirInputConfigWidget::get_file_path_handler()
