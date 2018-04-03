@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   framefab_msgs
 	moveit_msgs
 	geometric_shapes
+	moveit_core
   moveit_ros_planning_interface
   roscpp
 	rviz_visual_tools
@@ -30,6 +31,7 @@ catkin_package(
     framefab_msgs
 		moveit_msgs
 		geometric_shapes
+		moveit_core
     moveit_ros_planning_interface 
     roscpp
 		rviz_visual_tools
@@ -69,6 +71,8 @@ add_dependencies(framefab_process_planning_node framefab_msgs_generate_messages_
 target_link_libraries(framefab_process_planning_node
   ${catkin_LIBRARIES}
 )
+
+add_subdirectory(picknplace_test)
 
 #############
 ## Install ##

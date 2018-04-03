@@ -1,38 +1,13 @@
-//
-// Created by yijiangh on 4/3/18.
-//
-
-#include <framefab_process_planning/framefab_process_planning.h>
-#include <ros/console.h>
+#include <ros/ros.h>
 
 // MoveIt!
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-#include <moveit/move_group_interface/move_group.h>
+#include <moveit/move_group_interface/move_group_interface.h>
 #include <geometric_shapes/solid_primitive_dims.h>
 
-// service
-#include <framefab_msgs/PickNPlacePlanning.h>
+static const std::string ROBOT_DESCRIPTION = "robot_description";
 
-// msg
-#include <trajectory_msgs/JointTrajectory.h>
-#include <shape_msgs/SolidPrimitive.h>
-#include <moveit_msgs/Grasp.h>
-
-#include "path_transitions.h"
-#include "common_utils.h"
-
-// for immediate execution
-#include <actionlib/client/simple_action_client.h>
-#include <control_msgs/FollowJointTrajectoryAction.h>
-
-const static std::string JOINT_TOPIC_NAME =
-    "joint_states"; // ROS topic to subscribe to for current robot state info
-
-static const std::string ROBOT_DESCRIPTION="robot_description";
-
-namespace {
-
-void pick(moveit::planning_interface::MoveGroup &group)
+void pick(moveit::planning_interface::MoveGroupInterface &group)
 {
   std::vector<moveit_msgs::Grasp> grasps;
 
@@ -45,20 +20,28 @@ void pick(moveit::planning_interface::MoveGroup &group)
   p.pose.orientation.y = 0;
   p.pose.orientation.z = 0;
   p.pose.orientation.w = 1;
+
+  // The position of the end-effector for the grasp.  This is the pose of
+  // the "parent_link" of the end-effector, not actually the pose of any
+  // link *in* the end-effector.  Typically this would be the pose of the
+  // most distal wrist link before the hand (end-effector) links began.
   moveit_msgs::Grasp g;
   g.grasp_pose = p;
 
+  // The approach direction to take before picking an object
   g.pre_grasp_approach.direction.vector.x = 1.0;
-  g.pre_grasp_approach.direction.header.frame_id = "r_wrist_roll_link";
+  g.pre_grasp_approach.direction.header.frame_id = "robot_tool0";
   g.pre_grasp_approach.min_distance = 0.2;
   g.pre_grasp_approach.desired_distance = 0.4;
 
-  g.post_grasp_retreat.direction.header.frame_id = "base_footprint";
+  // The retreat direction to take after a grasp has been completed (object is attached)
+  g.post_grasp_retreat.direction.header.frame_id = "base_link";
   g.post_grasp_retreat.direction.vector.z = 1.0;
   g.post_grasp_retreat.min_distance = 0.1;
   g.post_grasp_retreat.desired_distance = 0.25;
 
 //  openGripper(g.pre_grasp_posture);
+
 //  closedGripper(g.grasp_posture);
 
   grasps.push_back(g);
@@ -74,7 +57,7 @@ void place(moveit::planning_interface::MoveGroupInterface &group)
   p.header.frame_id = "base_link";
   p.pose.position.x = 0.7;
   p.pose.position.y = 0.0;
-  p.pose.position.z = 0.0;
+  p.pose.position.z = 0.5;
   p.pose.orientation.x = 0;
   p.pose.orientation.y = 0;
   p.pose.orientation.z = 0;
@@ -83,10 +66,8 @@ void place(moveit::planning_interface::MoveGroupInterface &group)
   g.place_pose = p;
 
   g.pre_place_approach.direction.vector.z = -1.0;
-
   g.post_place_retreat.direction.vector.x = -1.0;
-  g.post_place_retreat.direction.header.frame_id = "base_footprint";
-
+  g.post_place_retreat.direction.header.frame_id = "base_link";
   g.pre_place_approach.direction.header.frame_id = "r_wrist_roll_link";
   g.pre_place_approach.min_distance = 0.1;
   g.pre_place_approach.desired_distance = 0.2;
@@ -118,54 +99,11 @@ void place(moveit::planning_interface::MoveGroupInterface &group)
   group.place("part", loc);
 }
 
-} // end anon util namespace
-
-namespace framefab_process_planning
+int main(int argc, char **argv)
 {
-
-
-bool ProcessPlanningManager::handlePickNPlacePlanning(
-    framefab_msgs::PickNPlacePlanning::Request& req,
-    framefab_msgs::PickNPlacePlanning::Response& res)
-{
-//    trajectory_msgs::JointTrajectory ros_traj = getMoveitPlan(hotend_group_name_,
-//                                                              current_joints,
-//                                                              target_pose,
-//                                                              moveit_model_);
-
-//    ros::Duration base_time = ros_traj.points[0].time_from_start;
-//
-//    double sim_time_scale = 0.6;
-//    for (int i = 0; i < ros_traj.points.size(); i++)
-//    {
-//      ros_traj.points[i].time_from_start -= base_time;
-//
-//      //sim speed tuning
-//      ros_traj.points[i].time_from_start *= sim_time_scale;
-//    }
-//
-//    fillTrajectoryHeaders(joint_names, ros_traj, world_frame_);
-//
-//    // step 5: immediate execution (a quick solution for debugging)
-//    ros::NodeHandle nh;
-//    actionlib::SimpleActionClient <control_msgs::FollowJointTrajectoryAction> client(nh, "joint_trajectory_action");
-//    if (!client.waitForServer(ros::Duration(1.0)))
-//    {
-//      ROS_WARN("[Reset Exe] Exec timed out");
-//    }
-//    else
-//    {
-//      ROS_INFO("[Reset Exe] Found action server");
-//    }
-//
-//    control_msgs::FollowJointTrajectoryGoal goal;
-//    goal.trajectory = ros_traj;
-//
-//    client.sendGoalAndWait(goal);
-//    return true;
-//  }
-
-  ROS_INFO_STREAM("pick and place process planner connected.");
+  ros::init(argc, argv, "picknplace_test");
+  ros::AsyncSpinner spinner(1);
+  spinner.start();
 
   ros::NodeHandle nh;
   ros::Publisher pub_co = nh.advertise<moveit_msgs::CollisionObject>("collision_object", 10);
@@ -236,12 +174,12 @@ bool ProcessPlanningManager::handlePickNPlacePlanning(
   // wait a bit for ros things to initialize
   ros::WallDuration(1.0).sleep();
 
-//  pick(group);
+  pick(group);
 
   ros::WallDuration(1.0).sleep();
 
 //  place(group);
 
-  return true;
+  ros::waitForShutdown();
+  return 0;
 }
-}// end ff_process_planning ns

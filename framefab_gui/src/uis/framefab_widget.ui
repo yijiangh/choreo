@@ -183,7 +183,7 @@
        </layout>
       </widget>
      </widget>
-     <widget class="QWidget" name="tab_6">
+     <widget class="QWidget" name="tab_2">
       <attribute name="title">
        <string>Pick n' Place</string>
       </attribute>
