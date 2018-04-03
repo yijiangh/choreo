@@ -36,6 +36,7 @@ framefab_gui::FrameFabWidget::FrameFabWidget(QWidget* parent)
   connect(ui_->pushbutton_back, SIGNAL(clicked()), this, SLOT(onBackButton()));
   connect(ui_->pushbutton_reset, SIGNAL(clicked()), this, SLOT(onResetButton()));
   connect(ui_->pushbutton_params, SIGNAL(clicked()), this, SLOT(onParamsButton()));
+  connect(ui_->pushbutton_picknplace, SIGNAL(clicked()), this, SLOT(onPicknPlace()));
 
   // wire in picknplace button
 
