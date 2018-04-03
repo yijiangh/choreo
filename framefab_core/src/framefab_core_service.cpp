@@ -9,6 +9,8 @@
 #include <framefab_msgs/MoveToTargetPose.h>
 #include <framefab_msgs/OutputProcessing.h>
 
+#include <framefab_msgs/PickNPlacePlanning.h>
+
 // For visualizing in rviz
 #include <rviz_visual_tools/rviz_visual_tools.h>
 
@@ -33,6 +35,8 @@ const static std::string TASK_SEQUENCE_PLANNING_SERVICE = "task_sequence_plannin
 const static std::string PROCESS_PLANNING_SERVICE = "process_planning";
 const static std::string MOVE_TO_TARGET_POSE_SERVICE = "move_to_target_pose";
 const static std::string OUTPUT_PROCESSING_SERVICE = "output_processing";
+
+const static std::string PICKNPLACE_PLANNING_SERVICE = "picknplace_planning";
 
 // Default filepaths and namespaces for caching stored parameters
 const static std::string MODEL_INPUT_PARAMS_FILE = "model_input_parameters.msg";
@@ -163,6 +167,8 @@ bool FrameFabCoreService::init()
   process_planning_client_ = nh_.serviceClient<framefab_msgs::ProcessPlanning>(PROCESS_PLANNING_SERVICE);
   move_to_pose_client_  = nh_.serviceClient<framefab_msgs::MoveToTargetPose>(MOVE_TO_TARGET_POSE_SERVICE);
   output_processing_client_  = nh_.serviceClient<framefab_msgs::OutputProcessing>(OUTPUT_PROCESSING_SERVICE);
+
+  picknplace_planning_client_  = nh_.serviceClient<framefab_msgs::PickNPlacePlanning>(PICKNPLACE_PLANNING_SERVICE);
 
   // publishers
 
@@ -611,6 +617,46 @@ void FrameFabCoreService::processPlanningActionCallback(const framefab_msgs::Pro
         process_planning_result_.succeeded = false;
         process_planning_server_.setAborted(process_planning_result_);
       }
+      break;
+    }
+    case framefab_msgs::ProcessPlanningGoal::PICKNPLACE_TEST:
+    {
+      // TODO: this is quick and dirty!
+      process_planning_feedback_.last_completed = "Recieved request to generate pick n place motion plan\n";
+      process_planning_server_.publishFeedback(process_planning_feedback_);
+
+      selected_task_id_ = goal_in->index;
+      use_saved_graph_ = goal_in->use_saved_graph;
+
+      // reset Robot's pose to init pose
+      if(!moveToTargetJointPose(robot_input_params_.init_pose))
+      {
+        process_planning_feedback_.last_completed = "Reset to init robot's pose planning & execution failed\n";
+        process_planning_server_.publishFeedback(process_planning_feedback_);
+        process_planning_result_.succeeded = false;
+        process_planning_server_.setAborted(process_planning_result_);
+        return;
+      }
+
+      bool success = generatePicknPlaceMotionLibrary();
+
+      if(success)
+      {
+        process_planning_feedback_.last_completed = "Finished pick n place planning. Visualizing...\n";
+        process_planning_server_.publishFeedback(process_planning_feedback_);
+        process_planning_result_.succeeded = true;
+        process_planning_server_.setSucceeded(process_planning_result_);
+
+        return;
+      }
+      else
+      {
+        process_planning_feedback_.last_completed = "pick n place Process Planning action failed.\n";
+        process_planning_server_.publishFeedback(process_planning_feedback_);
+        process_planning_result_.succeeded = false;
+        process_planning_server_.setAborted(process_planning_result_);
+      }
+
       break;
     }
     default:

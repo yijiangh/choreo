@@ -77,6 +77,9 @@ class FrameFabWidget : public QWidget
 
   void onUseSavedResult(bool);
 
+  // Pick n' place functionality
+  void onPicknPlace();
+
  protected:
   // UI
   Ui::FrameFabWidget* ui_;
