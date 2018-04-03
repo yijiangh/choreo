@@ -8,6 +8,11 @@
 	<xacro:include filename="$(find ucla_linear_axis)/urdf/ucla_linear_axis_macro.xacro"/>
 	<!--	<xacro:include filename="$(find framefab_irb6600_support)/urdf/simple_linear_track_demo_cell_macro.xacro"/>-->
 
+	<xacro:property name="workcell_width" value="1.0"/>
+	<xacro:property name="workcell_length" value="3.0"/>
+	<xacro:property name="workcell_height" value="0.01"/>
+	<xacro:property name="workcell_thickness" value="0.01"/>
+
   <xacro:abb_irb6640 prefix="robot_"/>
   <xacro:asw_eef prefix="eef_"/>
   <xacro:ucla_linear_axis prefix="linear_axis_"/>
@@ -16,6 +21,26 @@
 	<!-- Link list -->
   <link name="base_link"/>
 	<!-- End of link list -->
+
+  <material name="workcell_material">
+   <color rgba="0.8 1.0 0.8 0.2"/>
+  </material>
+
+  <link name="print_bed">
+  <visual>
+    <origin xyz="2.1 0 ${0.4-0.5*workcell_height}"/>
+    <geometry>
+      <box size="${workcell_width} ${workcell_length} ${workcell_height}"/>
+    </geometry>
+    <material name="workcell_material"/>
+  </visual>
+	</link>
+
+  <joint name="world_to_print_bed" type="fixed">
+    <parent link="base_link" />
+    <child link="print_bed" />
+    <origin xyz="0 0 0"/>
+  </joint>
 
 	<!-- Joint list -->
 	<!--bind the rail to word_frame, can be disabled if using modile platform-->
