@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>429</width>
+    <width>394</width>
     <height>560</height>
    </rect>
   </property>
@@ -33,9 +33,9 @@
        </sizepolicy>
       </property>
       <attribute name="title">
-       <string>Tab 1</string>
+       <string>Spatial Extrusion</string>
       </attribute>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <property name="geometry">
         <rect>
          <x>10</x>
@@ -183,10 +183,23 @@
        </layout>
       </widget>
      </widget>
-     <widget class="QWidget" name="tab_6">
+     <widget class="QWidget" name="tab_2">
       <attribute name="title">
-       <string>Tab 2</string>
+       <string>Pick n' Place</string>
       </attribute>
+      <widget class="QPushButton" name="pushbutton_picknplace">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>10</y>
+         <width>211</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Pick n' Place!</string>
+       </property>
+      </widget>
      </widget>
     </widget>
    </item>

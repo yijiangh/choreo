@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   framefab_msgs
 	moveit_msgs
 	geometric_shapes
+	moveit_core
   moveit_ros_planning_interface
   roscpp
 	rviz_visual_tools
@@ -30,6 +31,7 @@ catkin_package(
     framefab_msgs
 		moveit_msgs
 		geometric_shapes
+		moveit_core
     moveit_ros_planning_interface 
     roscpp
 		rviz_visual_tools
@@ -50,12 +52,15 @@ include_directories(
 add_executable(framefab_process_planning_node 
   src/framefab_process_planning.cpp
 	src/framefab_process_planning_node.cpp
-	src/common_utils.cpp
-  src/print_process_planning.cpp
+	#
+	src/print_process_planning.cpp
 	src/move_to_target_pose_planning.cpp
+	src/picknplace_planning.cpp
+	#
   src/trajectory_utils.cpp
   src/generate_motion_plan.cpp
   src/path_transitions.cpp
+	src/common_utils.cpp
 )
 
 ## Add cmake target dependencies of the executable/library
@@ -66,6 +71,8 @@ add_dependencies(framefab_process_planning_node framefab_msgs_generate_messages_
 target_link_libraries(framefab_process_planning_node
   ${catkin_LIBRARIES}
 )
+
+add_subdirectory(picknplace_test)
 
 #############
 ## Install ##

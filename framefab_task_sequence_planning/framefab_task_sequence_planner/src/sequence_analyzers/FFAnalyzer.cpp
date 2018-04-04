@@ -452,15 +452,15 @@ double FFAnalyzer::GenerateCost(WF_edge *ej, const int h, const int t, const int
     }
 
     /* stiffness test */
-    if (!ej->isPillar() && !TestifyStiffness(ej))
-    {
-      /* examination failed */
-      if (terminal_output_)
-      {
-        fprintf(stderr, "...stiffness examination failed at edge #%d.\n\n", ej->ID() / 2);
-      }
-      return -1;
-    }
+//    if (!ej->isPillar() && !TestifyStiffness(ej))
+//    {
+//      /* examination failed */
+//      if (terminal_output_)
+//      {
+//        fprintf(stderr, "...stiffness examination failed at edge #%d.\n\n", ej->ID() / 2);
+//      }
+//      return -1;
+//    }
 
     // Forward Checking
     // limit forward checking only to current layer

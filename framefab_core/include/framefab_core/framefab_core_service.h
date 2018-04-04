@@ -99,6 +99,8 @@ class FrameFabCoreService
 
   void adjustSimSpeed(double sim_speed);
 
+  bool generatePicknPlaceMotionLibrary();
+
  private:
   // Services offered by this class
   ros::ServiceServer framefab_parameters_server_;
@@ -114,6 +116,8 @@ class FrameFabCoreService
   ros::ServiceClient process_planning_client_;
   ros::ServiceClient move_to_pose_client_;
   ros::ServiceClient output_processing_client_;
+
+  ros::ServiceClient picknplace_planning_client_;
 
   // Actions offered by this class
   ros::NodeHandle nh_;
