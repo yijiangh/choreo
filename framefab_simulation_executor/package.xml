@@ -3,8 +3,9 @@
   <name>framefab_simulation_execution</name>
   <version>0.1.0</version>
   <description>
-    This package manages the execution of joint trajectories
-    on the rviz simluation platform.
+    This package manages the execution of joint trajectories, send out action trajectories. Needs industrial_robot_simulator
+    to take this generated action and finish the "execution". Note this package is robot-agnostic and has been tested in 6- and
+    7-dof industrial robot (from different vendors) trajectory execution streaming.
   </description>
   
   <maintainer email="yijiangh@mit.edu">Yijiang Huang</maintainer>

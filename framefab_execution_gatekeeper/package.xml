@@ -5,7 +5,10 @@
   <description>
     This package is responsible for the execution of process plans generated
     from core service clients.
-    Currently it can simulate generated trajectory in Rviz. It has potential to be further connected to online control system.
+    Currently it can stream generated trajectory from Choreo to down stream trajectory simulation packages and
+    at the moment vendor- and dof- agnostic.
+
+    It has potential to be further connected to online control system, but might need more vendor-specific settings.
   </description>
 
   <maintainer email="yijiangh@mit.edu">Yijiang Huang</maintainer>
