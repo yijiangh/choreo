@@ -42,6 +42,10 @@ struct ProcessPlanResult
   std::vector<framefab_msgs::UnitProcessPlan> plans;
 };
 
+// this package is the central monitoring node that connects
+// Choreo's specialized packages together. It receives requests from UI
+// package and dispatch / receive computation request to responsible packages.
+
 class FrameFabCoreService
 {
  public:

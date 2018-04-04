@@ -12,6 +12,4 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <exec_depend>industrial_robot_client</exec_depend>
-
 </package>

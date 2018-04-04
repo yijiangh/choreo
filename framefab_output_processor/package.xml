@@ -3,7 +3,8 @@
   <name>framefab_output_processor</name>
   <version>0.1.0</version>
   <description>
-	This package converts computed plans to a customized json format.
+	This package converts computed plans to a customized json format that enables micro-path modifications
+    and IO commands synchronization on any preferred programming platform downstream.
   </description>
 
   <maintainer email="yijiangh@mit.edu">Yijiang Huang</maintainer>

@@ -493,7 +493,7 @@ void FrameFabCoreService::taskSequenceProcessingActionCallback(const framefab_ms
         task_sequence_processing_feedback_.last_completed = "Finished task sequence processing. Visualizing...\n";
         task_sequence_processing_server_.publishFeedback(task_sequence_processing_feedback_);
 
-        // visualize print bed
+        // TODO: visualize print bed (remove)
         visualizePrintBedBoundary(print_bed_visual_tool_);
 
         // import data into visual_tools
