@@ -4,7 +4,6 @@ project(framefab_simulation_execution)
 find_package(catkin REQUIRED COMPONENTS
   framefab_msgs
   roscpp
-  framefab_industrial_robot_simulator_service
   actionlib
 )
 
@@ -13,7 +12,6 @@ catkin_package(
     actionlib
     framefab_msgs
     roscpp 
-    framefab_industrial_robot_simulator_service
 )
 
 include_directories(

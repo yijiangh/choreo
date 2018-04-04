@@ -778,6 +778,7 @@ void FrameFabCoreService::simulateMotionPlansActionCallback(const framefab_msgs:
       goal.wait_for_execution = goal_in->wait_for_execution;
       goal.simulate = goal_in->simulate;
 
+      // communicating with framefab execution gatekeeper server
       actionlib::SimpleActionClient <framefab_msgs::ProcessExecutionAction> *exe_client = &framefab_exe_client_;
       exe_client->sendGoal(goal);
 

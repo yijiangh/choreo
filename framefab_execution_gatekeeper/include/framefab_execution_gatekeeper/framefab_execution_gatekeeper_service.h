@@ -12,6 +12,9 @@
 namespace framefab_execution_gatekeeper
 {
 
+// this class is the action server for the ProcessExecutionAction call from core service node
+// It acts like a gatekeeper, directing the trajectory to different execution instances
+// for now, it only supports directing trajectory to simulator (framefab_simulation_execution).
 class ExecutionGatekeeper
 {
  public:
@@ -20,6 +23,7 @@ class ExecutionGatekeeper
   void executionCallback(const framefab_msgs::ProcessExecutionGoalConstPtr &goal);
   bool simulateProcess(const framefab_msgs::ProcessExecutionGoalConstPtr &goal);
 
+  // TODO: execution port to be implemented in the future
 //  bool executeProcess(const framefab_msgs::ProcessExecutionGoalConstPtr &goal);
 
  private:

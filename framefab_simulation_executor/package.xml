@@ -16,6 +16,8 @@
   <depend>actionlib</depend>
   <depend>framefab_msgs</depend>
   <depend>roscpp</depend>
-  <depend>framefab_industrial_robot_simulator_service</depend>
+
+  <!--joint action server-->
+  <exec_depend>industrial_robot_simulator</exec_depend>
 
 </package>

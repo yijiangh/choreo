@@ -4,8 +4,8 @@
   <version>0.1.0</version>
   <description>
     This package is responsible for the execution of process plans generated
-    by packages like framefab_process_planning. Currently it can simulate generated
-    trajectory in Rviz. It has potential to be further connected to online control system.
+    from core service clients.
+    Currently it can simulate generated trajectory in Rviz. It has potential to be further connected to online control system.
   </description>
 
   <maintainer email="yijiangh@mit.edu">Yijiang Huang</maintainer>
@@ -16,4 +16,6 @@
   <depend>framefab_msgs</depend>
   <depend>trajectory_msgs</depend>
 
+  <!--the following client packages should be in presence -->
+  <exec_depend>framefab_simulation_execution</exec_depend>
 </package>

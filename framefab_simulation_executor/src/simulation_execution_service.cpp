@@ -3,14 +3,18 @@
 //
 
 #include <framefab_simulation_execution/simulation_execution_service.h>
-#include <framefab_industrial_robot_simulator_service/SimulateTrajectory.h>
 
-const static std::string ACTION_SERVER_NAME = "joint_trajectory_action";
 const static double ACTION_EXTRA_WAIT_RATIO = 2.0;   // 20% past end of trajectory
 const static double ACTION_SERVICE_WAIT_TIME = 30.0; // seconds
-const static char* const ACTION_CONNECTION_FAILED_MSG = "Could not connect to action server.";
+const static char* const ACTION_CONNECTION_FAILED_MSG = "[FF simulation execution] Could not connect to action server.";
 
+// subsribe to the simulation execution action call
 const static std::string THIS_SERVICE_NAME = "simulation_execution";
+
+// joint trajectory action to send out
+// industrial_robot_simulator in industrial_core packages subsribes to this action and is responsible
+// to "move" the robot in rviz for simulation
+const static std::string ACTION_SERVER_NAME = "joint_trajectory_action";
 
 framefab_simulation_execution::SimulationExecutionService::SimulationExecutionService(ros::NodeHandle& nh)
     : ac_(ACTION_SERVER_NAME, true)
@@ -33,13 +37,13 @@ bool framefab_simulation_execution::SimulationExecutionService::executionCallbac
   // Check preconditions
   if (!ac_.isServerConnected())
   {
-    ROS_ERROR_STREAM("[Sim Exe] Simulation Execution Action server is not connected.");
+    ROS_ERROR_STREAM("[FF Simulation Execution] Simulation Execution Action server is not connected.");
     return false;
   }
 
   if (req.trajectory.points.empty())
   {
-    ROS_WARN_STREAM("[Sim Exe] Trajectory Execution Service recieved an empty trajectory.");
+    ROS_WARN_STREAM("[FF Simulation Execution] Trajectory Execution Service recieved an empty trajectory.");
     return true;
   }
 
