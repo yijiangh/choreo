@@ -152,6 +152,7 @@ class FrameFabCoreService
 
   // working environment collision objects
   std::vector<moveit_msgs::CollisionObject> env_objs_;
+
   // formulated task sequence results
   std::vector<framefab_msgs::ElementCandidatePoses> task_sequence_;
 
