@@ -4,7 +4,6 @@
 # about the "grasp point", aka the relationship between the EE and the object
 # It only has info about the pose of a "floating" end effector.
 
-
 geometry_msgs/Pose pick_grasp_pose
 geometry_msgs/Pose pick_grasp_approach_pose
 geometry_msgs/Pose pick_grasp_retreat_pose
