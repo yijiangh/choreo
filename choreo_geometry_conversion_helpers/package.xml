@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>choreo_geometry_conversion_helpers</name>
+  <version>3.4.0</version>
+  <description>Helper functions for converting geometry data for Choreo,
+    e.g. eigen composition or msg conversion</description>
+
+  <maintainer email="yijiangh@mit.edu">Yijiang Huang</maintainer>
+
+  <license>BSD</license>
+
+  <author email="yijiangh@mit.edu">Yijiang Huang</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>tf_conversions</depend>
+  <depend>geometric_shapes</depend>
+
+  <depend>geometry_msgs</depend>
+  <depend>shape_msgs</depend>
+  <depend>framefab_msgs</depend>
+
+</package>
