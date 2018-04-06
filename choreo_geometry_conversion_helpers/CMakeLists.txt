@@ -6,6 +6,7 @@ add_compile_options(-std=c++11)
 
 # Load catkin and all dependencies required for this package
 find_package(catkin REQUIRED COMPONENTS
+	eigen_conversions
 	tf_conversions
 	geometric_shapes
 	#
@@ -21,6 +22,7 @@ catkin_package(
   LIBRARIES
     ${PROJECT_NAME}
   CATKIN_DEPENDS
+	  eigen_conversions
 	  tf_conversions
 	  geometric_shapes
 		#

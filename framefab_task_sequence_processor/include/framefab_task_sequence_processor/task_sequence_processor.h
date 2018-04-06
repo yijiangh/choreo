@@ -24,15 +24,19 @@ class TaskSequenceProcessor
   TaskSequenceProcessor();
   virtual ~TaskSequenceProcessor() {}
 
-  bool createCandidatePoses();
-  bool createEnvCollisionObjs();
-  const std::vector<framefab_task_sequence_processing_utils::UnitProcess>& getCandidatePoses() const { return path_array_; }
-  const std::vector<moveit_msgs::CollisionObject>&     getEnvCollisionObjs() const { return env_collision_objs_; }
-
   // data setting
   void setParams(framefab_msgs::ModelInputParameters model_params,
                  framefab_msgs::TaskSequenceInputParameters task_sequence_params,
                  std::string world_frame_);
+
+
+  // DEPRECATED
+  // parson json file into path arrays (unit process)
+  bool createCandidatePoses();
+  bool createEnvCollisionObjs();
+
+  const std::vector<framefab_task_sequence_processing_utils::UnitProcess>& getCandidatePoses() const { return path_array_; }
+  const std::vector<moveit_msgs::CollisionObject>& getEnvCollisionObjs() const { return env_collision_objs_; }
 
  protected:
   framefab_task_sequence_processing_utils::UnitProcess createScaledUnitProcess(int index, int wireframe_id,
@@ -46,6 +50,7 @@ class TaskSequenceProcessor
   {
     transf_vec_ = (ref_pt - base_center_pt) * scale;
   }
+  // END DEPRECATED
 
  private:
   // params

@@ -14,6 +14,7 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>tf_conversions</depend>
+  <depend>eigen_conversions</depend>
   <depend>geometric_shapes</depend>
 
   <depend>geometry_msgs</depend>
