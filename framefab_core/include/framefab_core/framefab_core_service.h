@@ -28,15 +28,13 @@
 #include <actionlib/server/simple_action_server.h>
 #include <actionlib/client/simple_action_client.h>
 
-// core service instances
-#include <framefab_core/visual_tools/framefab_visual_tool.h>
+// helper functions
 #include "framefab_core/trajectory_library.h"
 
-#include <rviz_visual_tools/rviz_visual_tools.h>
+// visualizer
+#include <choreo_visual_tools/choreo_visual_tools.h>
 
-/**
- * Associates a name with a joint trajectory
- */
+// TODO: we should avoid using this kind of "alias". It decrease code's readability.
 struct ProcessPlanResult
 {
   std::vector<framefab_msgs::UnitProcessPlan> plans;
@@ -98,9 +96,10 @@ class FrameFabCoreService
 
   ProcessPlanResult generateProcessPlan(const int index);
 
-  // immediate plan & execution
+  // immediate plan & execution for resetting the robot
   bool moveToTargetJointPose(std::vector<double> joint_pose);
 
+  // TODO: complete this
   void adjustSimSpeed(double sim_speed);
 
   bool generatePicknPlaceMotionLibrary();
@@ -144,16 +143,14 @@ class FrameFabCoreService
   // Actions subscribed to by this class
   actionlib::SimpleActionClient<framefab_msgs::ProcessExecutionAction> framefab_exe_client_;
 
-  // Current state publishers
+  // Visualizer for imported geometry, assembly sequence, and grasps
+  choreo_visual_tools::ChoreoVisualTools visual_tools_;
 
-  // Core Service Instances
-  framefab_visual_tools::FrameFabVisualTool visual_tool_;
-  rviz_visual_tools::RvizVisualToolsPtr print_bed_visual_tool_;
-
+  // TODO: should remove this
   // working environment collision objects
   std::vector<moveit_msgs::CollisionObject> env_objs_;
 
-  // formulated task sequence results
+  // formulated task sequence results, parsed from task sequence processor
   std::vector<framefab_msgs::ElementCandidatePoses> task_sequence_;
 
   // Trajectory library
@@ -162,15 +159,15 @@ class FrameFabCoreService
   framefab_core_service::TrajectoryLibrary trajectory_library_;
 
   // Parameters
-  framefab_msgs::ModelInputParameters 	model_input_params_;
-  framefab_msgs::TaskSequenceInputParameters 	task_sequence_input_params_;
-  framefab_msgs::RobotInputParameters   robot_input_params_;
+  framefab_msgs::ModelInputParameters model_input_params_;
+  framefab_msgs::TaskSequenceInputParameters task_sequence_input_params_;
+  framefab_msgs::RobotInputParameters robot_input_params_;
   framefab_msgs::OutputSaveDirInputParameters 	output_save_dir_input_params_;
 
-  framefab_msgs::ModelInputParameters 	default_model_input_params_;
-  framefab_msgs::TaskSequenceInputParameters 	default_task_sequence_input_params_;
-  framefab_msgs::RobotInputParameters   default_robot_input_params_;
-  framefab_msgs::OutputSaveDirInputParameters 	default_output_save_dir_input_params_;
+  framefab_msgs::ModelInputParameters default_model_input_params_;
+  framefab_msgs::TaskSequenceInputParameters default_task_sequence_input_params_;
+  framefab_msgs::RobotInputParameters default_robot_input_params_;
+  framefab_msgs::OutputSaveDirInputParameters default_output_save_dir_input_params_;
 
   // Parameter loading and saving
   bool save_data_;

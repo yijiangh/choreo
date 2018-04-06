@@ -24,9 +24,7 @@ framefab_gui::FrameFabWidget::FrameFabWidget(QWidget* parent)
   ui_ = new Ui::FrameFabWidget;
   ui_->setupUi(this);
 
-
-  //TODO: temp
-  ui_->tabWidget->setCurrentIndex(1);
+//  ui_->tabWidget->setCurrentIndex(1);
 
   params_ = new ParamsSubmenu();
 

@@ -14,7 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
 	framefab_param_helpers
 	framefab_msgs
 	descartes_msgs
-	rviz_visual_tools
+	choreo_visual_tools
 	)
 
 find_package(OpenMP REQUIRED)
@@ -38,7 +38,7 @@ catkin_package(
 	framefab_param_helpers
 	framefab_msgs
 	descartes_msgs
-	rviz_visual_tools
+	choreo_visual_tools
 )
 
 

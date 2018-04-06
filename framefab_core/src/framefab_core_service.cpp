@@ -11,9 +11,6 @@
 
 #include <framefab_msgs/PickNPlacePlanning.h>
 
-// For visualizing in rviz
-#include <rviz_visual_tools/rviz_visual_tools.h>
-
 // msgs
 #include <descartes_msgs/LadderGraphList.h>
 
@@ -21,6 +18,7 @@
 const static std::string SAVE_DATA_BOOL_PARAM = "save_data";
 const static std::string SAVE_LOCATION_PARAM = "save_location";
 
+// TODO: externalize tehse service name as ros params
 // provided services
 const static std::string FRAMEFAB_PARAMETERS_SERVICE = "framefab_parameters";
 const static std::string ELEMENT_NUMBER_REQUEST_SERVICE = "element_member_request";
@@ -44,10 +42,12 @@ const static std::string TASK_SEQUENCE_INPUT_PARAMS_FILE = "task_sequence_input_
 const static std::string ROBOT_INPUT_PARAMS_FILE = "robot_input_parameters.msg";
 const static std::string OUTPUT_SAVE_DIR_INPUT_PARAMS_FILE = "output_save_dir_input_parameters.msg";
 
+// TODO: find a way for rviz to read these hard-coded markers_array topic name automatically
 // Visualization Maker topics
 const static std::string PATH_VISUAL_TOPIC = "path_visualization";
 const static std::string PRINT_BED_VISUAL_TOPIC = "print_bed_visualization";
 
+// TODO: externalize these action names as ros params
 // subscribed action server name - note: must be same to client's name
 const static std::string FRAMEFAB_EXE_ACTION_SERVER_NAME = "framefab_execution_as";
 const static std::string TASK_SEQUENCE_PROCESSING_ACTION_SERVER_NAME = "task_sequence_processing_action";
@@ -131,10 +131,7 @@ bool FrameFabCoreService::init()
       QUERY_COMPUTATION_RESULT, &FrameFabCoreService::queryComputationResultCallback, this);
 
   // start local instances
-  visual_tool_.init(world_frame_, PATH_VISUAL_TOPIC);
-  print_bed_visual_tool_.reset(new rviz_visual_tools::RvizVisualTools(world_frame_, PRINT_BED_VISUAL_TOPIC));
-  print_bed_visual_tool_->deleteAllMarkers();
-  print_bed_visual_tool_->enableBatchPublishing();
+  visual_tools_.init(world_frame_, PATH_VISUAL_TOPIC);
 
   // start server
 
@@ -336,7 +333,7 @@ bool FrameFabCoreService::elementNumberRequestServerCallback(
   {
     case framefab_msgs::ElementNumberRequest::Request::REQUEST_ELEMENT_NUMBER:
     {
-      res.element_number = visual_tool_.getPathArraySize();
+      res.element_number = visual_tools_.getPathArraySize();
       break;
     }
     case framefab_msgs::ElementNumberRequest::Request::REQUEST_SELECTED_TASK_NUMBER:
@@ -359,13 +356,13 @@ bool FrameFabCoreService::visualizeSelectedPathServerCallback(
 {
   if(req.index != -1)
   {
-    visual_tool_.visualizePathUntil(req.index);
-    visual_tool_.visualizeFeasibleOrientations(req.index, true);
+    visual_tools_.visualizePathUntil(req.index);
+    visual_tools_.visualizeFeasibleOrientations(req.index, true);
     res.succeeded = true;
   }
   else
   {
-    visual_tool_.cleanUpAllPaths();
+    visual_tools_.cleanUpAllPaths();
     res.succeeded = true;
   }
 }
@@ -449,8 +446,8 @@ void FrameFabCoreService::taskSequenceProcessingActionCallback(const framefab_ms
 
       if(!task_sequence_processing_srv_client_.call(srv))
       {
-        ROS_WARN_STREAM("[Core] Unable to call task sequence processing service");
-        task_sequence_processing_feedback_.last_completed = "[Core] Failed to call Task Sequence Processing Service!\n";
+        ROS_WARN_STREAM("[Core] Unable to call task sequence processing service or find saved task sequence.");
+        task_sequence_processing_feedback_.last_completed = "[Core] Failed to parse saved task sequence!\n";
         task_sequence_processing_server_.publishFeedback(task_sequence_processing_feedback_);
         task_sequence_processing_result_.succeeded = false;
         task_sequence_processing_server_.setAborted(task_sequence_processing_result_);
@@ -461,9 +458,9 @@ void FrameFabCoreService::taskSequenceProcessingActionCallback(const framefab_ms
         task_sequence_processing_feedback_.last_completed = "Finished task sequence processing. Visualizing...\n";
         task_sequence_processing_server_.publishFeedback(task_sequence_processing_feedback_);
 
-        // import data into visual_tools
-        visual_tool_.setProcessPath(srv.response.process);
-        visual_tool_.visualizeAllPaths();
+        // import data into visual_tools (data initialization)
+        visual_tools_.setProcessPath(srv.response.process);
+        visual_tools_.visualizeAllPaths();
 
         // import data into process_planning_visualizer
         task_sequence_ = srv.response.process;
@@ -508,9 +505,9 @@ void FrameFabCoreService::taskSequencePlanningActionCallback(const framefab_msgs
   else
   {
     // import data into visual_tools
-    visual_tool_.setVisualWireFrame(srv.response.element_array);
+    visual_tools_.setVisualWireFrame(srv.response.element_array);
 
-    visual_tool_.visualizeAllWireFrame();
+    visual_tools_.visualizeAllWireFrame();
 
     srv.request.action = srv.request.TASK_SEQUENCE_SEARCHING;
 
@@ -557,9 +554,9 @@ void FrameFabCoreService::processPlanningActionCallback(const framefab_msgs::Pro
         return;
       }
 
-      visual_tool_.cleanUpAllPaths();
-      visual_tool_.visualizePathUntil(goal_in->index);
-      visual_tool_.visualizeFeasibleOrientations(goal_in->index, false);
+      visual_tools_.cleanUpAllPaths();
+      visual_tools_.visualizePathUntil(goal_in->index);
+      visual_tools_.visualizeFeasibleOrientations(goal_in->index, false);
 
       bool success = generateMotionLibrary(goal_in->index, trajectory_library_);
 
@@ -747,7 +744,7 @@ void FrameFabCoreService::simulateMotionPlansActionCallback(const framefab_msgs:
 //  ros::Duration process_time(goal.joint_traj_array.back().points.back().time_from_start);
       ros::Duration buffer_time(PROCESS_EXE_BUFFER);
 
-      visual_tool_.visualizePathUntil(goal_in->index);
+      visual_tools_.visualizePathUntil(goal_in->index);
 
       ROS_INFO_STREAM("[Core] Simulation time: " << process_time);
 

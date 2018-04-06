@@ -25,7 +25,7 @@
   <depend>descartes_msgs</depend>
   <depend>framefab_param_helpers</depend>
 
-  <depend>rviz_visual_tools</depend>
+  <depend>choreo_visual_tools</depend>
 
   <build_depend>moveit_ros_move_group</build_depend>
 
