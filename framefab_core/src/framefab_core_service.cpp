@@ -61,29 +61,6 @@ const static int PROCESS_EXE_BUFFER = 5;  // Additional time [s] buffer between 
 
 namespace
 {
-void visualizePrintBedBoundary(rviz_visual_tools::RvizVisualToolsPtr visual_tools)
-{
-  // TODO: this shoud read print bed boundary data from user input msg
-  namespace rvt = rviz_visual_tools;
-
-  visual_tools->deleteAllMarkers();
-
-  // in meter
-  Eigen::Vector3d pt1(0.515, -0.318, 0.0235);
-  Eigen::Vector3d pt2(0.862, -0.318, 0.0235);
-  Eigen::Vector3d pt3(0.862, 0.306, 0.0235);
-  Eigen::Vector3d pt4(0.515, 0.306, 0.0235);
-
-  auto color = rvt::colors::BLUE;
-  auto scale = rvt::scales::XXXSMALL;
-
-  visual_tools->publishLine(pt1, pt2, color, scale);
-  visual_tools->publishLine(pt2, pt3, color, scale);
-  visual_tools->publishLine(pt3, pt4, color, scale);
-  visual_tools->publishLine(pt4, pt1, color, scale);
-
-  visual_tools->trigger();
-}
 }// util namespace
 
 FrameFabCoreService::FrameFabCoreService()
@@ -209,12 +186,6 @@ bool FrameFabCoreService::loadModelInputParameters(const std::string & filename)
         loadParam(nh, "unit_type", model_input_params_.unit_type) &&
         loadParam(nh, "element_diameter", model_input_params_.element_diameter) &&
         loadParam(nh, "shrink_length", model_input_params_.shrink_length);
-  }
-
-  if(success)
-  {
-    // visualize print bed boundary
-//    visualizePrintBedBoundary(print_bed_visual_tool_);
   }
 
   return success;
@@ -349,9 +320,6 @@ bool FrameFabCoreService::framefabParametersServerCallback(
         this->saveRobotInputParameters(param_cache_prefix_ + ROBOT_INPUT_PARAMS_FILE);
         this->saveOutputSaveDirInputParameters(param_cache_prefix_ + OUTPUT_SAVE_DIR_INPUT_PARAMS_FILE);
       }
-
-      // visualize printbed boundary
-      visualizePrintBedBoundary(print_bed_visual_tool_);
 
       break;
   }
@@ -493,9 +461,6 @@ void FrameFabCoreService::taskSequenceProcessingActionCallback(const framefab_ms
         task_sequence_processing_feedback_.last_completed = "Finished task sequence processing. Visualizing...\n";
         task_sequence_processing_server_.publishFeedback(task_sequence_processing_feedback_);
 
-        // TODO: visualize print bed (remove)
-        visualizePrintBedBoundary(print_bed_visual_tool_);
-
         // import data into visual_tools
         visual_tool_.setProcessPath(srv.response.process);
         visual_tool_.visualizeAllPaths();
@@ -525,9 +490,6 @@ void FrameFabCoreService::taskSequencePlanningActionCallback(const framefab_msgs
 {
   task_sequence_planning_feedback_.last_completed = "[Core] Recieved request to process task sequence plan\n";
   task_sequence_planning_server_.publishFeedback(task_sequence_planning_feedback_);
-
-  // visualize print bed
-  visualizePrintBedBoundary(print_bed_visual_tool_);
 
   // call task_sequence_planning srv
   framefab_msgs::TaskSequencePlanning srv;
