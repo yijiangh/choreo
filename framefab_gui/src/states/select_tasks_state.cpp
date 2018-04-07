@@ -35,10 +35,10 @@ void framefab_gui::SelectTasksState::onNext(FrameFabWidget& gui)
 {
   gui.setButtonsEnabled(false);
 
-  // fetch ids for planning from selection_widget
+  // fetch ids (slider or input lineedit value from user) for planning from selection_widget
   int selected_id_for_planning = gui.selection_widget().getSelectedValueForPlanning();
 
-  // fetch use_record decision from selection_widget
+  // fetch use_record decision (push_button choice from user) from selection_widget
   bool use_ladder_graph_record = gui.selection_widget().getUseSavedResult();
 
   // proceed to Process Planning State
@@ -61,6 +61,9 @@ void framefab_gui::SelectTasksState::onReset(FrameFabWidget& gui)
 void framefab_gui::SelectTasksState::selectTask(FrameFabWidget& gui)
 {
   gui.selection_widget().setMode(framefab_gui::SelectionWidget::PATH_SELECTION);
+
+  // invoke the selection widget add waiting for a click on <close_widget>
+  // and <Next> to move on to next state
   gui.selection_widget().show();
   gui.selection_widget().loadParameters();
 }

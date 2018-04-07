@@ -7,6 +7,7 @@
 #include <ros/console.h>
 
 #include <QListWidgetItem>
+#include <QCheckBox>
 
 #include <ui_selection_widget.h>
 #include <framefab_gui/selection/selection_widget.h>
@@ -67,15 +68,22 @@ framefab_gui::SelectionWidget::SelectionWidget(QWidget* parent) : QWidget(parent
 
   // Wire in slider
   connect(ui_->slider_select_number, SIGNAL(valueChanged(int)), this, SLOT(sliderUpdateOrderValue(int)));
+  connect(ui_->slider_select_grasp, SIGNAL(valueChanged(int)), this, SLOT(sliderUpdateSelectedGraspValue(int)));
   connect(ui_->slider_sim_speed, SIGNAL(valueChanged(int)), this, SLOT(sliderUpdateSimSpeed(int)));
 
   // Wire in lineedit
   connect(ui_->lineedit_select_number, SIGNAL(returnPressed()), this, SLOT(lineeditUpdateOrderValue()));
+  connect(ui_->lineedit_select_grasp, SIGNAL(returnPressed()), this, SLOT(lineeditUpdateSelectedGraspValue()));
+
+  // Wire in checkbox
+  connect(ui_->checkbox_visualize_ee, SIGNAL(stateChanged(int)), this, SLOT(checkboxEEVisualUpdateValue()));
 
   // Start Service Client
+  // call core node for visualization request
   visualize_client_ =
       nh_.serviceClient<framefab_msgs::VisualizeSelectedPath>(VISUALIZE_SELECTED_PATH);
 
+  // call core node to fetch element number in (1) parsed assembly seq or (2) computed plans
   query_computation_record_client_ =
       nh_.serviceClient<framefab_msgs::QueryComputationRecord>(QUERY_COMPUTATION_RESULT);
 }
@@ -98,7 +106,7 @@ void framefab_gui::SelectionWidget::loadParameters()
     }
     default:
     {
-      ROS_ERROR_STREAM("Unknown parameter loading request in selection widget");
+      ROS_ERROR_STREAM("Unknown element_number parameter loading request in selection widget");
       break;
     }
   }
@@ -131,7 +139,7 @@ void framefab_gui::SelectionWidget::loadParameters()
 
   setInputEnabled(true);
 
-  // update visualization
+  // trigger update visualization
   orderValueChanged();
 }
 
@@ -139,12 +147,8 @@ void framefab_gui::SelectionWidget::setMaxValue(int m)
 {
   if(mode_ == PATH_SELECTION)
   {
+    // TODO: confusion whether to - or not here?
     max_value_ = m - 1;
-  }
-
-  if(mode_ == PLAN_SELECTION)
-  {
-    max_value_ = m;
   }
 
   ui_->slider_select_number->setMaximum(max_value_);
@@ -154,16 +158,27 @@ void framefab_gui::SelectionWidget::setMaxValue(int m)
 
 void framefab_gui::SelectionWidget::orderValueChanged()
 {
+  // synchronize assembly seq slider and lineedit
   ui_->slider_select_number->setValue(selected_value_);
   ui_->lineedit_select_number->setText(QString::number(selected_value_));
-  ui_->plan_list_widget->clearSelection();
 
-  // call visualization srv
+  // synchronize grasp selection slider and lineedit
+  ui_->slider_select_grasp->setValue(selected_grasp_id_);
+  ui_->lineedit_select_grasp->setText(QString::number(selected_grasp_id_));
+
+  // call visualization srv, TODO: update srv to incorporate EE and grasp
   framefab_msgs::VisualizeSelectedPath srv;
   srv.request.index = selected_value_;
 
-  if(mode_ == PLAN_SELECTION)
+  if(PATH_SELECTION == mode_)
   {
+
+  }
+
+  if(PLAN_SELECTION == mode_)
+  {
+    ui_->plan_list_widget->clearSelection();
+
     std::vector<int> not_found_index;
     std::vector<int>::iterator it;
 
@@ -325,19 +340,21 @@ void framefab_gui::SelectionWidget::setInputEnabled(bool enabled)
     ui_->pushbutton_simulate_single->setEnabled(false);
     ui_->pushbutton_simulate_until->setEnabled(false);
 
-    setInputIDEnabled(false);
-    setInputLocaAxisEnabled(false);
-    setInputIKSolutionEnabled(false);
+    setInputEndEffectorVisualEnabled(enabled);
+    setInputGraspEnabled(enabled);
+    setInputIKSolutionEnabled(enabled);
 
-    ui_->pushbutton_simulate_single_process->setEnabled(false);
     ui_->pushbutton_close_widget->setEnabled(false);
 
-    ui_->tab_widget->setEnabled(false);
+    // set tab_widget to <grasp visualizer> and disable <traj lib> tab
+    ui_->tab_widget->setEnabled(enabled);
+    ui_->tab_widget->setTabEnabled(0, enabled);
+    ui_->tab_widget->setTabEnabled(1, false);
+    ui_->tab_widget->setCurrentIndex(0);
   }
 
   if(mode_ == ZOOM_IN_SELECTION)
   {
-    // TODO: functionality temporarily closed
     enabled = false;
 
     ui_->pushbutton_select_backward->setEnabled(enabled);
@@ -350,11 +367,10 @@ void framefab_gui::SelectionWidget::setInputEnabled(bool enabled)
     ui_->pushbutton_simulate_single->setEnabled(false);
     ui_->pushbutton_simulate_until->setEnabled(false);
 
-    setInputIDEnabled(enabled);
-    setInputLocaAxisEnabled(enabled);
+    setInputEndEffectorVisualEnabled(enabled);
+    setInputGraspEnabled(enabled);
     setInputIKSolutionEnabled(enabled);
 
-    ui_->pushbutton_simulate_single_process->setEnabled(false);
     ui_->pushbutton_close_widget->setEnabled(false);
 
     ui_->tab_widget->setEnabled(enabled);
@@ -375,11 +391,9 @@ void framefab_gui::SelectionWidget::setInputEnabled(bool enabled)
     ui_->pushbutton_simulate_single->setEnabled(enabled);
     ui_->pushbutton_simulate_until->setEnabled(enabled);
 
-    setInputIDEnabled(false);
-    setInputLocaAxisEnabled(false);
+    setInputGraspEnabled(false);
     setInputIKSolutionEnabled(false);
 
-    ui_->pushbutton_simulate_single_process->setEnabled(false);
     ui_->pushbutton_close_widget->setEnabled(true);
 
     ui_->tab_widget->setEnabled(enabled);
@@ -389,16 +403,15 @@ void framefab_gui::SelectionWidget::setInputEnabled(bool enabled)
   }
 }
 
-void framefab_gui::SelectionWidget::setInputIDEnabled(bool enabled)
+void framefab_gui::SelectionWidget::setInputEndEffectorVisualEnabled(bool enabled)
 {
-  ui_->slider_select_orient->setEnabled(enabled);
-  ui_->lineedit_select_orient->setEnabled(enabled);
+  ui_->checkbox_visualize_ee->setEnabled(enabled);
 }
 
-void framefab_gui::SelectionWidget::setInputLocaAxisEnabled(bool enabled)
+void framefab_gui::SelectionWidget::setInputGraspEnabled(bool enabled)
 {
-  ui_->slider_select_local_axis->setEnabled(enabled);
-  ui_->lineedit_select_local_axis->setEnabled(enabled);
+  ui_->slider_select_grasp->setEnabled(enabled);
+  ui_->lineedit_select_grasp->setEnabled(enabled);
 }
 
 void framefab_gui::SelectionWidget::setInputIKSolutionEnabled(bool enabled)
@@ -564,17 +577,36 @@ void framefab_gui::SelectionWidget::sliderUpdateOrderValue(int value)
   orderValueChanged();
 }
 
-void framefab_gui::SelectionWidget::sliderUpdateSimSpeed(int value)
-{
-  // discretization of slider is set in qt ui file
-  sim_speed_ = (double) value / 100;
-  simSpeedChanged();
-}
-
 void framefab_gui::SelectionWidget::lineeditUpdateOrderValue()
 {
   selected_value_ = ui_->lineedit_select_number->text().toInt();
   orderValueChanged();
+}
+
+void framefab_gui::SelectionWidget::checkboxEEVisualUpdateValue()
+{
+  visualize_ee_ = ui_->checkbox_visualize_ee->isChecked();
+  orderValueChanged();
+}
+
+void framefab_gui::SelectionWidget::sliderUpdateSelectedGraspValue(int value)
+{
+  selected_grasp_id_ = value;
+  orderValueChanged();
+}
+
+void framefab_gui::SelectionWidget::lineeditUpdateSelectedGraspValue()
+{
+  selected_value_ = ui_->lineedit_select_grasp->text().toInt();
+  orderValueChanged();
+}
+
+void framefab_gui::SelectionWidget::sliderUpdateSimSpeed(int value)
+{
+  // TODO: finish this
+  // discretization of slider is set in qt ui file
+  sim_speed_ = (double) value / 100;
+  simSpeedChanged();
 }
 
 void framefab_gui::SelectionWidget::recomputeChosen()

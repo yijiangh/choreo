@@ -27,6 +27,7 @@ framefab_gui::FrameFabWidget::FrameFabWidget(QWidget* parent)
 //  ui_->tabWidget->setCurrentIndex(1);
 
   params_ = new ParamsSubmenu();
+  params_->setWindowFlags(Qt::WindowStaysOnTopHint);
 
   selection_widget_ = new SelectionWidget();
 
@@ -104,6 +105,7 @@ void framefab_gui::FrameFabWidget::onResetButton()
 void framefab_gui::FrameFabWidget::onParamsButton()
 {
   params_->show();
+
 }
 
 void framefab_gui::FrameFabWidget::onParamsSave()

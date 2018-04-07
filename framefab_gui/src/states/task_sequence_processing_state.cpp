@@ -26,9 +26,8 @@ framefab_gui::TaskSequenceProcessingState::~TaskSequenceProcessingState()
 
 void framefab_gui::TaskSequenceProcessingState::onStart(FrameFabWidget& gui)
 {
-  gui.setText("Task Sequence Processing State.\n"
-                  "Please input data in parameter widget.\n"
-                  "Click 'Next' to continue after finished.\n");
+  gui.setText("Task Sequence Processing State (recompute assembly sequence or read a saved one).\n"
+                  "Click 'Next' to continue.\n");
 //  gui.setButtonsEnabled(false);
 
   gui_ptr_ = &gui;

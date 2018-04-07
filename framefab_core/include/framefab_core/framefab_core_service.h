@@ -67,6 +67,8 @@ class FrameFabCoreService
   bool framefabParametersServerCallback(framefab_msgs::FrameFabParameters::Request& req,
                                         framefab_msgs::FrameFabParameters::Response& res);
 
+  // reponding to <path selection> (until which index we compute)
+  // and <plan selection> element number query in UI
   bool elementNumberRequestServerCallback(framefab_msgs::ElementNumberRequest::Request& req,
                                           framefab_msgs::ElementNumberRequest::Response& res);
 

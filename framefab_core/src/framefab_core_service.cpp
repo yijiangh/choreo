@@ -333,11 +333,13 @@ bool FrameFabCoreService::elementNumberRequestServerCallback(
   {
     case framefab_msgs::ElementNumberRequest::Request::REQUEST_ELEMENT_NUMBER:
     {
+      // visualization before planning (path selection phase in UI)
       res.element_number = visual_tools_.getPathArraySize();
       break;
     }
     case framefab_msgs::ElementNumberRequest::Request::REQUEST_SELECTED_TASK_NUMBER:
     {
+      // for visualization after planning (plan selection phase in UI, visualize traj library)
       res.element_number = selected_task_id_;
       break;
     }
@@ -463,15 +465,22 @@ void FrameFabCoreService::taskSequenceProcessingActionCallback(const framefab_ms
         task_sequence_processing_feedback_.last_completed = "Finished task sequence processing. Visualizing...\n";
         task_sequence_processing_server_.publishFeedback(task_sequence_processing_feedback_);
 
-        // TODO: this part should be re-create for new assembly seq data
-        // import data into visual_tools (data initialization)
-//        visual_tools_.setProcessPath(srv.response.process);
-//        visual_tools_.visualizeAllPaths();
+        if(srv.request.PICKNPLACE == srv.request.action)
+        {
 
-        // save the parsed data to class variables (later used in generateProcessPlan call)
-        // TODO: old ts data type is not compatible with the new as data, needs to update class var
-//        task_sequence_ = srv.response.process;
-//        env_objs_ = srv.response.env_collision_objs;
+        }
+
+        if(srv.request.SPATIAL_EXTRUSION == srv.request.action)
+        {
+          // TODO: this is kept here for archive, should be made compatible to new json data type and visualizer
+          // import data into visual_tools (data initialization)
+          visual_tools_.setProcessPath(srv.response.process);
+          visual_tools_.visualizeAllPaths();
+
+          // save the parsed data to class variables (later used in generateProcessPlan call)
+          task_sequence_ = srv.response.process;
+          env_objs_ = srv.response.env_collision_objs;
+        }
 
         task_sequence_processing_result_.succeeded = true;
         task_sequence_processing_server_.setSucceeded(task_sequence_processing_result_);

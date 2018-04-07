@@ -13,6 +13,13 @@
 namespace framefab_gui
 {
 
+// In this ui state, core node will try to check if there is a saved assembly sequence
+// in the input task sequence file path
+// Then, depending on the reading result, users are asked to choose between
+// (1) use saved task sequence (if found) (2) call task sequence planner to recompute a new one
+//
+// TODO: the task sequence call is only available for spatial printing task.
+// general task sequence searching is still work in progress.
 class TaskSequenceProcessingState : public GuiState
 {
   Q_OBJECT
