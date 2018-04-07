@@ -218,16 +218,16 @@ bool framefab_task_sequence_processing::TaskSequenceProcessor::parseAssemblySequ
     // data must include at least one grasp
     assert(se.HasMember("grasps"));
     assert(se["grasps"].IsArray() && se["grasps"].Size() > 0);
-//
-//    se_msg.grasps.clear();
-//
-//    for(SizeType j=0; j<se["grasps"].Size(); j++)
-//    {
-//      framefab_msgs::Grasp g_msg;
-//
-//      jsonToGraspFrameFabMsg(se["grasps"][j], g_msg);
-//      se_msg.grasps.push_back(g_msg);
-//    }
+
+    se_msg.grasps.clear();
+
+    for(SizeType j=0; j<se["grasps"].Size(); j++)
+    {
+      framefab_msgs::Grasp g_msg;
+
+      jsonToGraspFrameFabMsg(se["grasps"][j], g_msg);
+      se_msg.grasps.push_back(g_msg);
+    }
 
     as_pnp.sequenced_elements.push_back(se_msg);
   }

@@ -12,7 +12,13 @@
 
 namespace framefab_task_sequence_processing
 {
-  void jsonToGraspFrameFabMsg(const rapidjson::Value& json, framefab_msgs::Grasp& g);
+
+bool isValidJsonGHVector(const rapidjson::Value& j_vector);
+
+bool isValidJsonGHPlane(const rapidjson::Value& j_plane);
+
+void jsonToGraspFrameFabMsg(const rapidjson::Value& json, framefab_msgs::Grasp& g);
+
 }
 
 #endif //FRAMEFAB_MPP_JSON2MSG_HELPER_H

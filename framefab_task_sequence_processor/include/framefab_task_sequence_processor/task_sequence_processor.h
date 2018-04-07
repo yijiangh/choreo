@@ -31,6 +31,8 @@ class TaskSequenceProcessor
                  framefab_msgs::TaskSequenceInputParameters task_sequence_params,
                  std::string world_frame);
 
+  //
+  // Note: this function enforces the existence for all the stl files by asserting the file existence.
   bool parseAssemblySequencePickNPlace(const framefab_msgs::ModelInputParameters& model_params,
                                        const framefab_msgs::TaskSequenceInputParameters& task_sequence_params,
                                        const std::string& world_frame_,
