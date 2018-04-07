@@ -9,6 +9,8 @@
 #include <framefab_msgs/TaskSequenceInputParameters.h>
 #include <framefab_msgs/ElementCandidatePoses.h>
 
+#include <framefab_msgs/AssemblySequencePickNPlace.h>
+
 #include <moveit_msgs/CollisionObject.h>
 
 #include <framefab_task_sequence_processor/unit_process.h>
@@ -27,8 +29,12 @@ class TaskSequenceProcessor
   // data setting
   void setParams(framefab_msgs::ModelInputParameters model_params,
                  framefab_msgs::TaskSequenceInputParameters task_sequence_params,
-                 std::string world_frame_);
+                 std::string world_frame);
 
+  bool parseAssemblySequencePickNPlace(const framefab_msgs::ModelInputParameters& model_params,
+                                       const framefab_msgs::TaskSequenceInputParameters& task_sequence_params,
+                                       const std::string& world_frame_,
+                                       framefab_msgs::AssemblySequencePickNPlace& as_pnp);
 
   // DEPRECATED
   // parson json file into path arrays (unit process)

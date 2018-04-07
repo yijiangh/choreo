@@ -13,9 +13,15 @@
 #include <tf_conversions/tf_eigen.h>
 #include <eigen_conversions/eigen_msg.h>
 
-Eigen::Vector3d transformPoint(const Eigen::Vector3d& pt, const double& scale, const Eigen::Vector3d& ref_transf)
+#include <boost/filesystem.hpp>
+#include <choreo_geometry_conversion_helpers/choreo_geometry_conversion_helpers.h>
+
+namespace
+{
+Eigen::Vector3d transformPoint(const Eigen::Vector3d &pt, const double &scale, const Eigen::Vector3d &ref_transf)
 {
   return (pt * scale + ref_transf);
+}
 }
 
 framefab_task_sequence_processing::TaskSequenceProcessor::TaskSequenceProcessor()
@@ -75,6 +81,103 @@ void framefab_task_sequence_processing::TaskSequenceProcessor::setParams(
 
   // set ref point
   ref_pt_ = Eigen::Vector3d(model_input_params_.ref_pt_x, model_input_params_.ref_pt_y, model_input_params_.ref_pt_z);
+}
+
+bool framefab_task_sequence_processing::TaskSequenceProcessor::parseAssemblySequencePickNPlace(
+    const framefab_msgs::ModelInputParameters& model_params,
+    const framefab_msgs::TaskSequenceInputParameters& task_sequence_params,
+    const std::string& world_frame,
+    framefab_msgs::AssemblySequencePickNPlace& as_pnp)
+{
+  this->setParams(model_params, task_sequence_params, world_frame);
+
+  using namespace rapidjson;
+
+  // https://stackoverflow.com/questions/8520560/get-a-file-name-from-a-path
+  const std::string json_whole_path = task_sequence_params.file_path;
+  boost::filesystem::path json_path(json_whole_path);
+
+  FILE* fp = fopen(json_whole_path.c_str(), "r");
+
+  assert(fp);
+
+  char readBuffer[65536];
+  FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+
+  Document document;
+
+  if(document.ParseStream(is).HasParseError())
+  {
+    ROS_ERROR_STREAM("TaskSequenceProcessor has ERROR parsing the input json file!");
+    return false;
+  }
+
+  fclose(fp);
+
+  int m = document["element_number"].GetInt();
+
+  const Value& bcp = document["pick_base_center_point"];
+  Eigen::Vector3d base_center_pt(bcp[0].GetDouble(), bcp[1].GetDouble(), bcp[2].GetDouble());
+
+  if(verbose_)
+  {
+    ROS_INFO_STREAM("model element member: " << m);
+    ROS_INFO_STREAM("base_center_pt: \n" << base_center_pt);
+  }
+
+  const Value& process_path_array = document["sequenced_elements"];
+  assert(process_path_array.IsArray());
+
+  path_array_.clear();
+
+  for (SizeType i = 0; i < process_path_array.Size(); i++)
+  {
+    const Value& element_path = process_path_array[i];
+    Eigen::Vector3d st_pt(element_path["start_pt"][0].GetDouble(),
+                          element_path["start_pt"][1].GetDouble(),
+                          element_path["start_pt"][2].GetDouble());
+
+    Eigen::Vector3d end_pt(element_path["end_pt"][0].GetDouble(),
+                           element_path["end_pt"][1].GetDouble(),
+                           element_path["end_pt"][2].GetDouble());
+
+    std::string type_str = element_path["type"].GetString();
+
+    int wireframe_id = element_path["wireframe_id"].GetInt();
+
+    if(verbose_)
+    {
+      ROS_INFO_STREAM("element-" << i);
+      ROS_INFO_STREAM("start_pt:\n" << st_pt);
+      ROS_INFO_STREAM("end_pt:\n" << end_pt);
+      ROS_INFO_STREAM("element type - " << type_str);
+    }
+
+    // fetch the feasible orients
+    std::vector<Eigen::Vector3d> feasible_orients;
+    const Value& f_orients = element_path["feasible_orientation"];
+    assert(f_orients.IsArray());
+
+    for(SizeType j = 0; j < f_orients.Size(); j++)
+    {
+      Eigen::Vector3d f_vec(f_orients[j][0].GetDouble(),
+                            f_orients[j][1].GetDouble(),
+                            f_orients[j][2].GetDouble());
+      feasible_orients.push_back(f_vec);
+
+      if (verbose_)
+      {
+        ROS_INFO_STREAM("feasible orient[" << j << "] =\n" << f_vec);
+      }
+    }
+
+    // create UnitProcess & Add UnitProcess into ProcessPath
+    path_array_.push_back(createScaledUnitProcess(i, wireframe_id, st_pt, end_pt, feasible_orients,
+                                                  type_str, element_diameter_, shrink_length_));
+  }
+
+  ROS_INFO_STREAM("[task sequence processor] task sequence json parsing succeeded.");
+  return true;
 }
 
 bool framefab_task_sequence_processing::TaskSequenceProcessor::createCandidatePoses()

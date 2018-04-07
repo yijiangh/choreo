@@ -10,13 +10,16 @@ find_package(catkin REQUIRED COMPONENTS
 	tf_conversions
 	eigen_conversions
 	framefab_rapidjson
+	choreo_geometry_conversion_helpers
 )
 
 find_package(Eigen3 REQUIRED)
+find_package(Boost REQUIRED COMPONENTS filesystem)
 
 catkin_package(
   INCLUDE_DIRS 
 	include
+	#
   CATKIN_DEPENDS
 	geometry_msgs
 	moveit_msgs
@@ -24,6 +27,10 @@ catkin_package(
 	tf_conversions
 	eigen_conversions
 	framefab_rapidjson
+	choreo_geometry_conversion_helpers
+	#
+	DEPENDS
+	Boost
 )
 
 ###########
@@ -34,6 +41,7 @@ include_directories(
   include
   ${catkin_INCLUDE_DIRS}
 	${Eigen_INCLUDE_DIRS}
+	${Boost_INCLUDE_DIRS}
 )
 
 ##_____________
