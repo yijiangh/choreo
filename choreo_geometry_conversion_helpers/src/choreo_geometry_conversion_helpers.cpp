@@ -42,7 +42,7 @@ void planeAxesToQuaternionMsg(const Eigen::Vector3d& x_axis, const Eigen::Vector
   tf::quaternionEigenToMsg(e_q, q_msg);
 }
 
-void planeToEigenAffine3d(const Eigen::Vector3d origin,
+void planeToEigenAffine3d(const Eigen::Vector3d& origin,
                           const Eigen::Vector3d& x_axis, const Eigen::Vector3d& y_axis, const Eigen::Vector3d& z_axis,
                           Eigen::Affine3d& e)
 {
@@ -57,7 +57,7 @@ void planeToEigenAffine3d(const Eigen::Vector3d& origin, const Eigen::Matrix3d& 
   planeToEigenAffine3dImpl(origin, orientation, e);
 }
 
-void planeToPoseMsg(const Eigen::Vector3d origin,
+void planeToPoseMsg(const Eigen::Vector3d& origin,
                     const Eigen::Vector3d& x_axis, const Eigen::Vector3d& y_axis, const Eigen::Vector3d& z_axis,
                     geometry_msgs::Pose& p)
 {

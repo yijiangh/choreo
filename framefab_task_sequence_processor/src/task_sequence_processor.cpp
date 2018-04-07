@@ -232,7 +232,7 @@ bool framefab_task_sequence_processing::TaskSequenceProcessor::parseAssemblySequ
     as_pnp.sequenced_elements.push_back(se_msg);
   }
 
-  ROS_INFO_STREAM(as_pnp);
+//  ROS_INFO_STREAM(as_pnp);
 
   ROS_INFO_STREAM("[task sequence processor] assembly sequence [PICKNPLCAE] json parsing succeeded.");
   return true;

@@ -56,6 +56,11 @@ add_library(json2msg_helper
 	src/json2msg_helpers.cpp
 	)
 
+target_link_libraries(json2msg_helper
+	${catkin_LIBRARIES}
+	${Eigen_LIBRARIES}
+	)
+
 target_link_libraries(task_sequence_processor
 	${catkin_LIBRARIES}
 	${Eigen_LIBRARIES}
