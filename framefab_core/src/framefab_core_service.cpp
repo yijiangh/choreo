@@ -432,6 +432,7 @@ void FrameFabCoreService::taskSequenceProcessingActionCallback(const framefab_ms
 {
   switch (goal_in->action)
   {
+    // TODO: this action goal here should indicate what type of assembly process: picknplace, 3d extrusion, etc.
     case framefab_msgs::TaskSequenceProcessingGoal::FIND_AND_PROCESS:
     {
       task_sequence_processing_feedback_.last_completed = "[Core] Recieved request to process task sequence plan\n";
@@ -439,7 +440,11 @@ void FrameFabCoreService::taskSequenceProcessingActionCallback(const framefab_ms
 
       // call task_sequence_processing srv
       framefab_msgs::TaskSequenceProcessing srv;
-      srv.request.action = srv.request.PROCESS_TASK_AND_MARKER;
+
+      // TODO: this process type should be a part of model param
+//      srv.request.action = srv.request.SPATIAL_EXTRUSION;
+      srv.request.action = srv.request.PICKNPLACE;
+
       srv.request.model_params = model_input_params_;
       srv.request.task_sequence_params = task_sequence_input_params_;
       srv.request.world_frame = world_frame_;
@@ -458,13 +463,15 @@ void FrameFabCoreService::taskSequenceProcessingActionCallback(const framefab_ms
         task_sequence_processing_feedback_.last_completed = "Finished task sequence processing. Visualizing...\n";
         task_sequence_processing_server_.publishFeedback(task_sequence_processing_feedback_);
 
+        // TODO: this part should be re-create for new assembly seq data
         // import data into visual_tools (data initialization)
-        visual_tools_.setProcessPath(srv.response.process);
-        visual_tools_.visualizeAllPaths();
+//        visual_tools_.setProcessPath(srv.response.process);
+//        visual_tools_.visualizeAllPaths();
 
-        // import data into process_planning_visualizer
-        task_sequence_ = srv.response.process;
-        env_objs_ = srv.response.env_collision_objs;
+        // save the parsed data to class variables (later used in generateProcessPlan call)
+        // TODO: old ts data type is not compatible with the new as data, needs to update class var
+//        task_sequence_ = srv.response.process;
+//        env_objs_ = srv.response.env_collision_objs;
 
         task_sequence_processing_result_.succeeded = true;
         task_sequence_processing_server_.setSucceeded(task_sequence_processing_result_);
@@ -477,7 +484,6 @@ void FrameFabCoreService::taskSequenceProcessingActionCallback(const framefab_ms
       ROS_ERROR_STREAM("Unknown action code '" << goal_in->action << "' request");
       task_sequence_processing_result_.succeeded = false;
       task_sequence_processing_server_.setAborted(task_sequence_processing_result_);
-
       break;
     }
   }

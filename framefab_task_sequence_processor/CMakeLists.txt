@@ -51,9 +51,15 @@ add_library(task_sequence_processor
 	src/task_sequence_processor.cpp
 	src/unit_process.cpp
 	)
+
+add_library(json2msg_helper
+	src/json2msg_helpers.cpp
+	)
+
 target_link_libraries(task_sequence_processor
 	${catkin_LIBRARIES}
 	${Eigen_LIBRARIES}
+	json2msg_helper
 	)
 
 add_executable(task_sequence_processor_node
