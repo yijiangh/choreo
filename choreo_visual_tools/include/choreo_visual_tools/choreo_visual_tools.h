@@ -15,10 +15,12 @@
 #include <rviz_visual_tools/rviz_visual_tools.h>
 
 #include <framefab_msgs/ElementCandidatePoses.h>
+#include <framefab_msgs/AssemblySequencePickNPlace.h>
 
 namespace choreo_visual_tools
 {
 
+// TODO: not used in picknplace
 enum UNIT_PATH_TYPE
 {
   SUPPORT=2,
@@ -50,12 +52,16 @@ class ChoreoVisualTools
 
   void init(std::string frame_name, std::string marker_topic);
 
+  // set visual wire frames
+  // visualize layer decomposition and wire frames
+  // when no assembly seq (with grasps) is inputted
   void setVisualWireFrame(const PathArray& path_array)
   {
     path_array_ = path_array;
     convertWireFrameVisual(path_array_, visual_path_array_);
   }
 
+  // set visual assembly seq for spatial extrusion
   void setProcessPath(const PathArray& path_array)
   {
     path_array_ = path_array;
@@ -64,14 +70,40 @@ class ChoreoVisualTools
 
   int getPathArraySize() { return visual_path_array_.size(); }
 
+  // VISUALIZE SEQUENCED EXTRUSIONS
+  //
+  // visualize all extrusion sequence at once, mark different types
+  // of process: blue: support, yellow: create, red: connect
   void visualizeAllPaths();
-  void visualizePathUntil(int index);
-  void visualizeFeasibleOrientations(int index, bool solid);
 
+  // visualize extrusion sequence until the given index
+  // all elements are painted grey except element No. index
+  void visualizePathUntil(int index);
+
+  // visualize feasible orientations using green lines
+  void visualizeFeasibleOrientations(int index, bool solid);
+  //
+  // VISUALIZE SEQUENCED EXTRUSIONS END
+
+  //
   void visualizeAllWireFrame();
 
-  //TODO
+  //TODO: not implemented now
   void visualizeWireFrameUntilLayer(int index);
+
+  // PICKNPLACE
+  //
+  void setAssemblySequencePickNPlace(const framefab_msgs::AssemblySequencePickNPlace& as_pnp) { as_pnp_ = as_pnp; }
+
+  void visualizeSequencePickNPlaceUntil(int index);
+
+  void visualizeGraspPickNPlace(int index, int grasp_id, bool visualize_ee);
+
+  void visualizeAllSequencePickNPlace();
+
+  void visualizeSupportSurfaces();
+  //
+  // PICKNPLACE END
 
   void cleanUpAllPaths();
 
@@ -86,6 +118,9 @@ class ChoreoVisualTools
 
   PathArray path_array_;
   VisualPathArray visual_path_array_;
+
+  // TODO: should try to make two assembly type's function unites under one scheme
+  framefab_msgs::AssemblySequencePickNPlace as_pnp_;
 };
 }
 

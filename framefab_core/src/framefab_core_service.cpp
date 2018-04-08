@@ -477,6 +477,7 @@ void FrameFabCoreService::taskSequenceProcessingActionCallback(const framefab_ms
 
         if(srv.request.PICKNPLACE == srv.request.action)
         {
+          // TODO: insert new setData function for visual tools here
 
         }
 

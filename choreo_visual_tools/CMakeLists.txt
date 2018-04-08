@@ -18,12 +18,11 @@ find_package(catkin REQUIRED COMPONENTS
 #  std_msgs
 #  trajectory_msgs
   framefab_msgs
-  cmake_modules
 #  roslint
 )
 
 find_package(Eigen3 REQUIRED)
-find_package(Boost REQUIRED system)
+find_package(Boost REQUIRED COMPONENTS filesystem)
 
 # Catkin
 catkin_package(
@@ -43,13 +42,14 @@ catkin_package(
 )
 
 ## Build
-include_directories(SYSTEM
-  ${EIGEN3_INCLUDE_DIRS}
-)
+#include_directories(SYSTEM
+#  ${EIGEN3_INCLUDE_DIRS}
+#)
 
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+	${Boost_INCLUDE_DIRS}
 )
 
 # Visualization Tools Library
@@ -73,8 +73,3 @@ install(TARGETS ${PROJECT_NAME}
 
 # Install header files
 install(DIRECTORY include/${PROJECT_NAME}/   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
-
-# Install shared resources
-install(DIRECTORY launch    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
-install(DIRECTORY resources DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
-
