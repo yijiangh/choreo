@@ -116,6 +116,12 @@ bool framefab_task_sequence_processing::TaskSequenceProcessor::parseAssemblySequ
 
   fclose(fp);
 
+  assert(document.HasMember("assembly_type"));
+  std::string at = document["assembly_type"].GetString();
+
+  // wire in assembly type
+  as_pnp.assembly_type = at;
+
   assert(document.HasMember("element_number"));
   int e_num = document["element_number"].GetInt();
 

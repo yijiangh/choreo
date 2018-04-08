@@ -156,6 +156,9 @@ class FrameFabCoreService
   // formulated task sequence results, parsed from task sequence processor
   std::vector<framefab_msgs::ElementCandidatePoses> task_sequence_;
 
+  // TODO: parsed assembly seqence
+  framefab_msgs::AssemblySequencePickNPlace as_pnp_;
+
   // Trajectory library
   int selected_task_id_;
   bool use_saved_graph_;

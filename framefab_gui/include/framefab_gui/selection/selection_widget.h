@@ -30,6 +30,12 @@ class SelectionWidget : public QWidget
     PLAN_SELECTION
   };
 
+  enum ASSEMBLY_TYPE
+  {
+    SPATIAL_EXTRUSION,
+    PICKNPLACE
+  };
+
   enum SIMULATE_TYPE
   {
     SINGLE,
@@ -103,8 +109,10 @@ class SelectionWidget : public QWidget
   void getChosenPlans();
 
   // set path or plan selection mode
-  void setMode(MODE _mode) { mode_ = _mode; }
-  void setModelFileName(std::string m) { model_file_name_ = m; }
+  void setMode(const MODE& _mode) { mode_ = _mode; }
+  void setModelFileName(const std::string& m) { model_file_name_ = m; }
+
+  void setAssemblyType(const std::string& at);
   //
   // INTERNAL DATA SET / GET FUNCTIONS
 
@@ -226,6 +234,7 @@ class SelectionWidget : public QWidget
 
   SIMULATE_TYPE sim_type_;
   MODE mode_;
+  ASSEMBLY_TYPE assembly_type_;
 };
 }
 

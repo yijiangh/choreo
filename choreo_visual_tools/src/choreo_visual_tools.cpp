@@ -16,6 +16,8 @@ const static rviz_visual_tools::colors EXIST_ELEMENT_COLOR = rviz_visual_tools::
 
 const static std::string MESH_FILE_PREFIX = "file://";
 
+const static Eigen::Affine3d ZERO_POSE = Eigen::Affine3d::Identity();
+
 // TODO: mesh scale should read from input model param
 // default millimeter
 const static double PNP_MESH_SCALE = 0.001;
@@ -132,6 +134,8 @@ void choreo_visual_tools::ChoreoVisualTools::visualizeAllSequencePickNPlace()
 
   Eigen::Affine3d zero_pose = Eigen::Affine3d::Identity();
 
+  visualizeSupportSurfaces();
+
   for(std::size_t i = 0; i < as_pnp_.sequenced_elements.size(); i++)
   {
     const auto& current_as = as_pnp_.sequenced_elements[i];
@@ -208,7 +212,7 @@ void choreo_visual_tools::ChoreoVisualTools::visualizeSequencePickNPlaceUntil(in
       PNP_MESH_SCALE);
 
   // TODO: visualize supporting surfaces
-
+  visualizeSupportSurfaces();
 
   if(0 != i)
   {
@@ -335,20 +339,25 @@ void choreo_visual_tools::ChoreoVisualTools::visualizeAllWireFrame()
 
 void choreo_visual_tools::ChoreoVisualTools::visualizeSupportSurfaces()
 {
-  assert(boost::filesystem::exists(as_pnp_.file_path + as_pnp_.pick_support_surface_file_names));
-  assert(boost::filesystem::exists(as_pnp_.file_path + as_pnp_.place_support_surface_file_names));
+  for(const std::string& pick_surf : as_pnp_.pick_support_surface_file_names)
+  {
+    assert(boost::filesystem::exists(as_pnp_.file_path + pick_surf));
+    visual_tools_->publishMesh(
+        ZERO_POSE,
+        MESH_FILE_PREFIX + as_pnp_.file_path + pick_surf,
+        SUPPORT_SURFACE_COLOR,
+        PNP_MESH_SCALE);
+  }
 
-  visual_tools_->publishMesh(
-      zero_pose,
-      MESH_FILE_PREFIX + as_pnp_.file_path + as_pnp_.pick_support_surface_file_names,
-      SUPPORT_SURFACE_COLOR,
-      PNP_MESH_SCALE);
-
-//  visual_tools_->publishMesh(
-//      zero_pose,
-//      MESH_FILE_PREFIX + current_as.file_path + as_pnp_.place   _support_surface_file_names,
-//      SUPPORT_SURFACE_COLOR,
-//      PNP_MESH_SCALE);
+  for(const std::string& place_surf : as_pnp_.place_support_surface_file_names)
+  {
+    assert(boost::filesystem::exists(as_pnp_.file_path + place_surf));
+    visual_tools_->publishMesh(
+        ZERO_POSE,
+        MESH_FILE_PREFIX + as_pnp_.file_path + place_surf,
+        SUPPORT_SURFACE_COLOR,
+        PNP_MESH_SCALE);
+  }
 }
 
 void choreo_visual_tools::ChoreoVisualTools::cleanUpAllPaths()

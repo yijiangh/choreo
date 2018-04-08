@@ -1,3 +1,10 @@
+# only support
+# "spatial_extrusion"
+# "picknplace"
+# for now
+
+string assembly_type
+
 # element number
 int32 element_number
 

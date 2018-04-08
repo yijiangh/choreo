@@ -26,7 +26,7 @@ class SelectForPlanPopUpWidget : public QWidget
 
   void setDisplayText(const std::string& text);
 
-  void enableButtons(bool record_found);
+  void enableButtons(bool record_found, bool enable_recompute = true);
 
   Q_SIGNALS:
   void buttonRecompute();

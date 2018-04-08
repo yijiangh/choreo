@@ -21,6 +21,29 @@ const static std::string ELEMENT_NUMBER_REQUEST_SERVICE = "element_member_reques
 const static std::string VISUALIZE_SELECTED_PATH = "visualize_select_path";
 const static std::string QUERY_COMPUTATION_RESULT = "query_computation_result";
 
+namespace {
+
+// TODO: whenever a new assembly type is added, this part should be extended accordingly.
+void convertParsedAssemblyTypeString(const std::string& p_at, framefab_gui::SelectionWidget::ASSEMBLY_TYPE& at)
+{
+  if("spatial_extrusion" == p_at)
+  {
+    at = framefab_gui::SelectionWidget::ASSEMBLY_TYPE::SPATIAL_EXTRUSION;
+    return;
+  }
+
+  if("picknplace" == p_at)
+  {
+    at = framefab_gui::SelectionWidget::ASSEMBLY_TYPE::PICKNPLACE;
+    return;
+  }
+
+  // only supports these two for now
+  assert(p_at == "picknplace" || p_at == "spatial_extrusion");
+}
+
+} // anon util namespace
+
 framefab_gui::SelectionWidget::SelectionWidget(QWidget* parent) : QWidget(parent),
                                                                   mode_(PATH_SELECTION),
                                                                   sim_type_(SIMULATE_TYPE::SINGLE),
@@ -319,22 +342,41 @@ void framefab_gui::SelectionWidget::cleanUpVisual()
   }
 }
 
+void framefab_gui::SelectionWidget::setAssemblyType(const std::string& at)
+{
+  convertParsedAssemblyTypeString(at, assembly_type_);
+}
+
 void framefab_gui::SelectionWidget::showTaskSequenceRecomputePopUp(bool found_task_plan)
 {
-  if(found_task_plan)
+  if(SPATIAL_EXTRUSION == assembly_type_)
   {
-    std::string msg = "Saved task sequence plan record found.";
-    task_seq_recompute_pop_up_->setDisplayText(msg);
+    if (found_task_plan)
+    {
+      std::string msg = "Saved task sequence plan record found.";
+      task_seq_recompute_pop_up_->setDisplayText(msg);
+    }
+    else
+    {
+      ROS_WARN_STREAM("[UI] No saved task sequence plan found.");
+
+      std::string msg = "No saved task sequence plan record found.";
+      task_seq_recompute_pop_up_->setDisplayText(msg);
+    }
+
+    task_seq_recompute_pop_up_->enableButtons(found_task_plan);
   }
-  else
+
+  // TODO: currently we don't support task sequence planning for picknplace with arbitrary geometry
+  // This should be removed later
+  if(PICKNPLACE == assembly_type_)
   {
-    ROS_WARN_STREAM("[UI] No saved task sequence plan found.");
-
-    std::string msg = "No saved task sequence plan record found.";
+    std::string msg = "Sorry... Currently we don't support sequence planning for general picknplace.";
     task_seq_recompute_pop_up_->setDisplayText(msg);
+
+    task_seq_recompute_pop_up_->enableButtons(found_task_plan, false);
   }
 
-  task_seq_recompute_pop_up_->enableButtons(found_task_plan);
   task_seq_recompute_pop_up_->show();
 }
 

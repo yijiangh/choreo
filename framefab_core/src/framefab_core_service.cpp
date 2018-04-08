@@ -361,6 +361,8 @@ bool FrameFabCoreService::visualizeSelectedPathServerCallback(
     if(req.PICKNPLACE == req.assembly_type)
     {
       // TODO, get seq id and grasp id, trigger visualization, visualize_ee option
+      visual_tools_.visualizeSequencePickNPlaceUntil(req.index);
+//      visual_tools_.visualizeGraspPickNPlace(req.index, req.grasp_id, req.grasp_id);
     }
 
     if(req.SPATIAL_EXTRUSION == req.assembly_type)
@@ -478,7 +480,12 @@ void FrameFabCoreService::taskSequenceProcessingActionCallback(const framefab_ms
         if(srv.request.PICKNPLACE == srv.request.action)
         {
           // TODO: insert new setData function for visual tools here
+          visual_tools_.setAssemblySequencePickNPlace(srv.response.assembly_sequence_pnp);
+          visual_tools_.visualizeAllSequencePickNPlace();
 
+          as_pnp_ = srv.response.assembly_sequence_pnp;
+
+          task_sequence_processing_result_.assembly_type = as_pnp_.assembly_type;
         }
 
         if(srv.request.SPATIAL_EXTRUSION == srv.request.action)
@@ -491,9 +498,13 @@ void FrameFabCoreService::taskSequenceProcessingActionCallback(const framefab_ms
           // save the parsed data to class variables (later used in generateProcessPlan call)
           task_sequence_ = srv.response.process;
           env_objs_ = srv.response.env_collision_objs;
+
+          // TODO: this is hardcoded temporarily
+          task_sequence_processing_result_.assembly_type = "spatial_extrusion";
         }
 
         task_sequence_processing_result_.succeeded = true;
+
         task_sequence_processing_server_.setSucceeded(task_sequence_processing_result_);
       }
       break;

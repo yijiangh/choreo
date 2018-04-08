@@ -67,21 +67,20 @@ void framefab_gui::TaskSequenceProcessingState::taskSequenceProcessOrPlan()
 {
   gui_ptr_->setButtonsEnabled(false);
 
+  std::string assembly_type;
+
   // it will first try to call tasks sequence processor to see if we can read any existing sequence result
-  if(makeTaskSequenceProcessingRequest(gui_ptr_->params().modelInputParams(),
-                                       gui_ptr_->params().taskSequenceInputParams()))
-  {
-    gui_ptr_->selection_widget().showTaskSequenceRecomputePopUp(true);
-  }
-  else
-  {
-    gui_ptr_->selection_widget().showTaskSequenceRecomputePopUp(false);
-  }
+  bool found_task_seq = makeTaskSequenceProcessingRequest(gui_ptr_->params().modelInputParams(),
+                                       gui_ptr_->params().taskSequenceInputParams(), assembly_type);
+
+  gui_ptr_->selection_widget().setAssemblyType(assembly_type);
+  gui_ptr_->selection_widget().showTaskSequenceRecomputePopUp(found_task_seq);
 }
 
 bool framefab_gui::TaskSequenceProcessingState::makeTaskSequenceProcessingRequest(
-    framefab_msgs::ModelInputParameters model_params,
-    framefab_msgs::TaskSequenceInputParameters task_sequence_params)
+    const framefab_msgs::ModelInputParameters& model_params,
+    const framefab_msgs::TaskSequenceInputParameters& task_sequence_params,
+    std::string& assembly_type)
 {
   framefab_msgs::TaskSequenceProcessingGoal goal;
   goal.action = framefab_msgs::TaskSequenceProcessingGoal::FIND_AND_PROCESS;
@@ -106,7 +105,16 @@ bool framefab_gui::TaskSequenceProcessingState::makeTaskSequenceProcessingReques
       boost::bind(&framefab_gui::TaskSequenceProcessingState::taskSequenceProcessingFeedbackCallback, this, _1));
 
   task_sequence_processing_action_client_.waitForResult();
-  return task_sequence_processing_action_client_.getResult()->succeeded;
+
+  if(task_sequence_processing_action_client_.getResult()->succeeded)
+  {
+    assembly_type = task_sequence_processing_action_client_.getResult()->assembly_type;
+    return true;
+  }
+  else
+  {
+    return false;
+  }
 }
 
 void framefab_gui::TaskSequenceProcessingState::setFeedbackText(QString feedback)
@@ -140,8 +148,8 @@ void framefab_gui::TaskSequenceProcessingState::taskSequencePlanningOn()
 }
 
 bool framefab_gui::TaskSequenceProcessingState::makeTaskSequencePlanningRequest(
-    framefab_msgs::ModelInputParameters model_params,
-    framefab_msgs::TaskSequenceInputParameters task_sequence_params)
+    const framefab_msgs::ModelInputParameters& model_params,
+    const framefab_msgs::TaskSequenceInputParameters& task_sequence_params)
 {
   framefab_msgs::TaskSequencePlanningGoal goal;
   goal.model_params = model_params;
@@ -171,8 +179,11 @@ void framefab_gui::TaskSequenceProcessingState::taskSequencePlanningDoneCallback
     const actionlib::SimpleClientGoalState& state,
     const framefab_msgs::TaskSequencePlanningResultConstPtr& result)
 {
+  std::string assembly_type;
+
   if (result->succeeded && makeTaskSequenceProcessingRequest(gui_ptr_->params().modelInputParams(),
-                                                             gui_ptr_->params().taskSequenceInputParams()))
+                                                             gui_ptr_->params().taskSequenceInputParams(),
+                                                             assembly_type))
   {
     gui_ptr_->setButtonsEnabled(true);
   }
