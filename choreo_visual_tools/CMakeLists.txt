@@ -6,19 +6,14 @@ add_compile_options(-std=c++11)
 
 # Load catkin and all dependencies required for this package
 find_package(catkin REQUIRED COMPONENTS
-  rviz_visual_tools
+  moveit_visual_tools
   eigen_conversions
   geometry_msgs
-#  moveit_ros_robot_interaction
   moveit_core
   roscpp
   tf_conversions
   visualization_msgs
-#  graph_msgs
-#  std_msgs
-#  trajectory_msgs
   framefab_msgs
-#  roslint
 )
 
 find_package(Eigen3 REQUIRED)
@@ -29,14 +24,10 @@ catkin_package(
   LIBRARIES
     ${PROJECT_NAME}
   CATKIN_DEPENDS
-    rviz_visual_tools
-#    moveit_ros_robot_interaction
+    moveit_visual_tools
     moveit_core
     geometry_msgs
     visualization_msgs
-#    graph_msgs
-#    std_msgs
-#    trajectory_msgs
     framefab_msgs
   INCLUDE_DIRS include
 )

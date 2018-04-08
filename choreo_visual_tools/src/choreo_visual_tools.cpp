@@ -15,7 +15,13 @@ const static rviz_visual_tools::colors PLACE_CONTACT_SURF_COLOR = rviz_visual_to
 
 const static rviz_visual_tools::colors SUPPORT_SURFACE_COLOR = rviz_visual_tools::BROWN;
 
-const static rviz_visual_tools::colors EXIST_ELEMENT_COLOR = rviz_visual_tools::DARK_GREY ;
+const static rviz_visual_tools::colors EXIST_ELEMENT_COLOR = rviz_visual_tools::DARK_GREY;
+
+const static rviz_visual_tools::colors GRASP_POSE_COLOR = rviz_visual_tools::RED;
+const static rviz_visual_tools::colors PRE_GRASP_POSE_COLOR = rviz_visual_tools::ORANGE;
+const static rviz_visual_tools::colors POST_GRASP_POSE_COLOR = rviz_visual_tools::ORANGE;
+
+const static rviz_visual_tools::scales GRASP_POSE_ARROW_SIZE = rviz_visual_tools::XXXSMALL;
 
 const static std::string MESH_FILE_PREFIX = "file://";
 
@@ -25,10 +31,15 @@ const static Eigen::Affine3d ZERO_POSE = Eigen::Affine3d::Identity();
 // default millimeter
 const static double PNP_MESH_SCALE = 0.001;
 
-void choreo_visual_tools::ChoreoVisualTools::init(std::string frame_name, std::string marker_topic)
+// TODO: should make ee group name as input or ros param!
+const static std::string EE_GROUP_NAME = "manipulator_ee";
+
+void choreo_visual_tools::ChoreoVisualTools::init(std::string frame_name,
+                                                  std::string marker_topic,
+                                                  robot_model::RobotModelConstPtr robot_model)
 {
   visual_tools_.reset(
-      new rviz_visual_tools::RvizVisualTools(frame_name, marker_topic));
+      new moveit_visual_tools::MoveItVisualTools(frame_name, marker_topic, robot_model));
 
   // Clear messages
   visual_tools_->deleteAllMarkers();
@@ -210,6 +221,7 @@ void choreo_visual_tools::ChoreoVisualTools::visualizeSequencePickNPlaceUntil(in
       PLACE_COLOR,
       PNP_MESH_SCALE);
 
+  // TODO color switching not working!
   visualizeSupportSurfaces(current_as.pick_support_surface_file_names, current_as.place_support_surface_file_names);
 
   // visualize everything that are placed already
@@ -309,9 +321,40 @@ void choreo_visual_tools::ChoreoVisualTools::visualizeFeasibleOrientations(int i
   visual_tools_->trigger();
 }
 
-void visualizeGraspPickNPlace(int index, int grasp_id, bool visualize_ee)
+void choreo_visual_tools::ChoreoVisualTools::visualizeGraspPickNPlace(int index, int grasp_id, bool visualize_ee)
 {
+  assert(0 <= index && index < as_pnp_.sequenced_elements.size());
+  assert(0 <= grasp_id && grasp_id < as_pnp_.sequenced_elements[index].grasps.size());
 
+  const auto& g = as_pnp_.sequenced_elements[index].grasps[grasp_id];
+
+  visual_tools_->publishArrow(g.pick_grasp_pose, GRASP_POSE_COLOR, GRASP_POSE_ARROW_SIZE);
+  visual_tools_->publishArrow(g.pick_grasp_approach_pose, PRE_GRASP_POSE_COLOR, GRASP_POSE_ARROW_SIZE);
+  visual_tools_->publishArrow(g.pick_grasp_retreat_pose, POST_GRASP_POSE_COLOR, GRASP_POSE_ARROW_SIZE);
+
+  visual_tools_->publishArrow(g.pick_grasp_pose, GRASP_POSE_COLOR, GRASP_POSE_ARROW_SIZE);
+  visual_tools_->publishArrow(g.place_grasp_approach_pose, PRE_GRASP_POSE_COLOR, GRASP_POSE_ARROW_SIZE);
+  visual_tools_->publishArrow(g.place_grasp_retreat_pose, POST_GRASP_POSE_COLOR, GRASP_POSE_ARROW_SIZE);
+
+  if (visualize_ee)
+  {
+    // TODO: hardcoded end effector group now!
+
+    // TODO: both at picking and placing position
+    const robot_model::JointModelGroup
+        *pick_ee_jmg = visual_tools_->getRobotModel()->getJointModelGroup(EE_GROUP_NAME);
+    visual_tools_->loadEEMarker(pick_ee_jmg);
+
+    visual_tools_->publishEEMarkers(g.pick_grasp_pose, pick_ee_jmg, rviz_visual_tools::ORANGE, "test_eef");
+
+    const robot_model::JointModelGroup
+        *place_ee_jmg = visual_tools_->getRobotModel()->getJointModelGroup(EE_GROUP_NAME);
+    visual_tools_->loadEEMarker(place_ee_jmg);
+
+    visual_tools_->publishEEMarkers(g.place_grasp_pose, place_ee_jmg, rviz_visual_tools::ORANGE, "test_eef");
+  }
+
+  visual_tools_->trigger();
 }
 
 void choreo_visual_tools::ChoreoVisualTools::visualizeAllWireFrame()
@@ -350,6 +393,7 @@ void choreo_visual_tools::ChoreoVisualTools::visualizeSupportSurfaces(
 
     rviz_visual_tools::colors p_c;
 
+    // TODO color switching not working!
     if (std::find(pick_contact_surf_names.begin(),pick_contact_surf_names.end(),pick_surf)
         != pick_contact_surf_names.end())
     {

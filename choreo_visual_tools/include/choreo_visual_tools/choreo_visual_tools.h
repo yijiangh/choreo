@@ -12,14 +12,13 @@
 #include <Eigen/Geometry>
 
 // For visualizing things in rviz
-#include <rviz_visual_tools/rviz_visual_tools.h>
+#include <moveit_visual_tools/moveit_visual_tools.h>
 
 #include <framefab_msgs/ElementCandidatePoses.h>
 #include <framefab_msgs/AssemblySequencePickNPlace.h>
 
 namespace choreo_visual_tools
 {
-
 // TODO: not used in picknplace
 enum UNIT_PATH_TYPE
 {
@@ -50,7 +49,13 @@ class ChoreoVisualTools
   ChoreoVisualTools(){}
   virtual ~ChoreoVisualTools(){}
 
-  void init(std::string frame_name, std::string marker_topic);
+  // initiator: TODO: should merge into the constructor
+  // framename: common base for all visualization markers, usually "/world" or "/base_link"
+  // marker_topic - rostopic to publish markers to - your Rviz display should match
+  // robot_model: load robot model pointer so that we don't have do re-parse it here
+  void init(std::string frame_name,
+            std::string marker_topic,
+            robot_model::RobotModelConstPtr robot_model = robot_model::RobotModelConstPtr());
 
   // set visual wire frames
   // visualize layer decomposition and wire frames
@@ -116,13 +121,16 @@ class ChoreoVisualTools
  private:
   ros::NodeHandle nh_;
 
-  rviz_visual_tools::RvizVisualToolsPtr visual_tools_;
+  moveit_visual_tools::MoveItVisualToolsPtr visual_tools_;
 
   PathArray path_array_;
   VisualPathArray visual_path_array_;
 
   // TODO: should try to make two assembly type's function unites under one scheme
   framefab_msgs::AssemblySequencePickNPlace as_pnp_;
+
+  // Pointer to the robot model
+  moveit::core::RobotModelConstPtr robot_model_;
 };
 }
 
