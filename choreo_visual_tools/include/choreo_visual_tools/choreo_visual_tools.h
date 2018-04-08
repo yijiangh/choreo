@@ -102,6 +102,8 @@ class ChoreoVisualTools
   void visualizeAllSequencePickNPlace();
 
   void visualizeSupportSurfaces();
+  void visualizeSupportSurfaces(const std::vector<std::string>& pick_contact_surf_names,
+                                const std::vector<std::string>& place_contact_surf_names);
   //
   // PICKNPLACE END
 

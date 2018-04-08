@@ -334,7 +334,11 @@ bool FrameFabCoreService::elementNumberRequestServerCallback(
     case framefab_msgs::ElementNumberRequest::Request::REQUEST_ELEMENT_NUMBER:
     {
       // visualization before planning (path selection phase in UI)
-      res.element_number = visual_tools_.getPathArraySize();
+      // TODO: correct this as a unified request
+      // !!! TEMP DUMP FIX!
+      res.element_number =
+          visual_tools_.getPathArraySize() == 0 ? as_pnp_.element_number : visual_tools_.getPathArraySize();
+
       break;
     }
     case framefab_msgs::ElementNumberRequest::Request::REQUEST_SELECTED_TASK_NUMBER:

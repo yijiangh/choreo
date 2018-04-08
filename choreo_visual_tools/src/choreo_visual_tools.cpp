@@ -6,10 +6,12 @@
 #include <boost/filesystem.hpp>
 
 const static rviz_visual_tools::colors PICK_COLOR = rviz_visual_tools::BLUE;
-const static rviz_visual_tools::colors PICK_NGH_COLOR = rviz_visual_tools::TRANSLUCENT_DARK;
+const static rviz_visual_tools::colors PICK_NGH_COLOR = rviz_visual_tools::PURPLE;
+const static rviz_visual_tools::colors PICK_CONTACT_SURF_COLOR = rviz_visual_tools::MAGENTA;
 
 const static rviz_visual_tools::colors PLACE_COLOR = rviz_visual_tools::GREEN;
-const static rviz_visual_tools::colors PLACE_NGH_COLOR = rviz_visual_tools::TRANSLUCENT_DARK;
+const static rviz_visual_tools::colors PLACE_NGH_COLOR = rviz_visual_tools::PURPLE;
+const static rviz_visual_tools::colors PLACE_CONTACT_SURF_COLOR = rviz_visual_tools::MAGENTA;
 
 const static rviz_visual_tools::colors SUPPORT_SURFACE_COLOR = rviz_visual_tools::BROWN;
 
@@ -133,8 +135,6 @@ void choreo_visual_tools::ChoreoVisualTools::visualizeAllSequencePickNPlace()
 
   assert(as_pnp_.sequenced_elements.size() > 0);
 
-  Eigen::Affine3d zero_pose = Eigen::Affine3d::Identity();
-
   visualizeSupportSurfaces();
 
   for(std::size_t i = 0; i < as_pnp_.sequenced_elements.size(); i++)
@@ -145,13 +145,13 @@ void choreo_visual_tools::ChoreoVisualTools::visualizeAllSequencePickNPlace()
     assert(boost::filesystem::exists(current_as.file_path + current_as.place_element_geometry_file_name));
 
     visual_tools_->publishMesh(
-        zero_pose,
+        ZERO_POSE,
         MESH_FILE_PREFIX + current_as.file_path + current_as.pick_element_geometry_file_name,
         PICK_COLOR,
         PNP_MESH_SCALE);
 
     visual_tools_->publishMesh(
-        zero_pose,
+        ZERO_POSE,
         MESH_FILE_PREFIX + current_as.file_path + current_as.place_element_geometry_file_name,
         PLACE_COLOR,
         PNP_MESH_SCALE);
@@ -193,79 +193,73 @@ void choreo_visual_tools::ChoreoVisualTools::visualizeSequencePickNPlaceUntil(in
 
   assert(as_pnp_.sequenced_elements.size() > 0 && i < as_pnp_.sequenced_elements.size() && i >= 0);
 
-  Eigen::Affine3d zero_pose = Eigen::Affine3d::Identity();
-
   const auto& current_as = as_pnp_.sequenced_elements[i];
 
   assert(boost::filesystem::exists(current_as.file_path + current_as.pick_element_geometry_file_name));
   assert(boost::filesystem::exists(current_as.file_path + current_as.place_element_geometry_file_name));
 
   visual_tools_->publishMesh(
-      zero_pose,
+      ZERO_POSE,
       MESH_FILE_PREFIX + current_as.file_path + current_as.pick_element_geometry_file_name,
       PICK_COLOR,
       PNP_MESH_SCALE);
 
   visual_tools_->publishMesh(
-      zero_pose,
+      ZERO_POSE,
       MESH_FILE_PREFIX + current_as.file_path + current_as.place_element_geometry_file_name,
       PLACE_COLOR,
       PNP_MESH_SCALE);
 
-  // TODO: visualize supporting surfaces
-  visualizeSupportSurfaces();
+  visualizeSupportSurfaces(current_as.pick_support_surface_file_names, current_as.place_support_surface_file_names);
 
-  if(0 != i)
+  // visualize everything that are placed already
+  for(std::size_t j = 0; j < i; j++)
   {
-    // visualize everything that are placed already
-    for(std::size_t j = 0; j < i; j++)
+    const auto& as = as_pnp_.sequenced_elements[j];
+    rviz_visual_tools::colors p_c;
+
+    assert(boost::filesystem::exists(as.file_path + as.place_element_geometry_file_name));
+
+    if (std::find(current_as.place_contact_ngh_ids.begin(),current_as.place_contact_ngh_ids.end(),j)
+        != current_as.place_contact_ngh_ids.end())
     {
-      const auto& as = as_pnp_.sequenced_elements[j];
-      rviz_visual_tools::colors p_c;
-
-      assert(boost::filesystem::exists(as.file_path + as.place_element_geometry_file_name));
-
-      if (std::find(current_as.place_contact_ngh_ids.begin(),current_as.place_contact_ngh_ids.end(),j)
-          != current_as.place_contact_ngh_ids.end())
-      {
-        p_c = PLACE_NGH_COLOR;
-      }
-      else
-      {
-        p_c = EXIST_ELEMENT_COLOR;
-      }
-
-      visual_tools_->publishMesh(
-          zero_pose,
-          MESH_FILE_PREFIX + as.file_path + as.place_element_geometry_file_name,
-          p_c,
-          PNP_MESH_SCALE);
+      p_c = PLACE_NGH_COLOR;
+    }
+    else
+    {
+      p_c = EXIST_ELEMENT_COLOR;
     }
 
-    // everything still in the picking pile
-    for(std::size_t j = i; j < as_pnp_.sequenced_elements.size(); j++)
+    visual_tools_->publishMesh(
+        ZERO_POSE,
+        MESH_FILE_PREFIX + as.file_path + as.place_element_geometry_file_name,
+        p_c,
+        PNP_MESH_SCALE);
+  }
+
+  // everything still in the picking pile
+  for(std::size_t j = i+1; j < as_pnp_.sequenced_elements.size(); j++)
+  {
+    const auto& as = as_pnp_.sequenced_elements[j];
+    rviz_visual_tools::colors p_c;
+
+    assert(boost::filesystem::exists(as.file_path + as.pick_element_geometry_file_name));
+
+    if (std::find(current_as.pick_contact_ngh_ids.begin(),current_as.pick_contact_ngh_ids.end(),j)
+        != current_as.pick_contact_ngh_ids.end())
     {
-      const auto& as = as_pnp_.sequenced_elements[j];
-      rviz_visual_tools::colors p_c;
-
-      assert(boost::filesystem::exists(as.file_path + as.pick_element_geometry_file_name));
-
-      if (std::find(current_as.pick_contact_ngh_ids.begin(),current_as.pick_contact_ngh_ids.end(),j)
-          != current_as.pick_contact_ngh_ids.end())
-      {
-        p_c = PICK_NGH_COLOR;
-      }
-      else
-      {
-        p_c = EXIST_ELEMENT_COLOR;
-      }
-
-      visual_tools_->publishMesh(
-          zero_pose,
-          MESH_FILE_PREFIX + as.file_path + as.pick_element_geometry_file_name,
-          p_c,
-          PNP_MESH_SCALE);
+      p_c = PICK_NGH_COLOR;
     }
+    else
+    {
+      p_c = EXIST_ELEMENT_COLOR;
+    }
+
+    visual_tools_->publishMesh(
+        ZERO_POSE,
+        MESH_FILE_PREFIX + as.file_path + as.pick_element_geometry_file_name,
+        p_c,
+        PNP_MESH_SCALE);
   }
 
   visual_tools_->trigger();
@@ -340,16 +334,36 @@ void choreo_visual_tools::ChoreoVisualTools::visualizeAllWireFrame()
 
 void choreo_visual_tools::ChoreoVisualTools::visualizeSupportSurfaces()
 {
+  std::vector<std::string> empty_v;
+  empty_v.clear();
+
+  visualizeSupportSurfaces(empty_v, empty_v);
+}
+
+void choreo_visual_tools::ChoreoVisualTools::visualizeSupportSurfaces(
+    const std::vector<std::string>& pick_contact_surf_names,
+    const std::vector<std::string>& place_contact_surf_names)
+{
   for(const std::string& pick_surf : as_pnp_.pick_support_surface_file_names)
   {
-    ROS_INFO_STREAM(as_pnp_.file_path + pick_surf);
-
     assert(boost::filesystem::exists(as_pnp_.file_path + pick_surf));
+
+    rviz_visual_tools::colors p_c;
+
+    if (std::find(pick_contact_surf_names.begin(),pick_contact_surf_names.end(),pick_surf)
+        != pick_contact_surf_names.end())
+    {
+      p_c = PICK_CONTACT_SURF_COLOR;
+    }
+    else
+    {
+      p_c = SUPPORT_SURFACE_COLOR;
+    }
 
     visual_tools_->publishMesh(
         ZERO_POSE,
         MESH_FILE_PREFIX + as_pnp_.file_path + pick_surf,
-        SUPPORT_SURFACE_COLOR,
+        p_c,
         PNP_MESH_SCALE);
   }
 
@@ -357,10 +371,22 @@ void choreo_visual_tools::ChoreoVisualTools::visualizeSupportSurfaces()
   {
     assert(boost::filesystem::exists(as_pnp_.file_path + place_surf));
 
+    rviz_visual_tools::colors p_c;
+
+    if (std::find(place_contact_surf_names.begin(),place_contact_surf_names.end(), place_surf)
+        != place_contact_surf_names.end())
+    {
+      p_c = PLACE_CONTACT_SURF_COLOR;
+    }
+    else
+    {
+      p_c = SUPPORT_SURFACE_COLOR;
+    }
+
     visual_tools_->publishMesh(
         ZERO_POSE,
         MESH_FILE_PREFIX + as_pnp_.file_path + place_surf,
-        SUPPORT_SURFACE_COLOR,
+        p_c,
         PNP_MESH_SCALE);
   }
 

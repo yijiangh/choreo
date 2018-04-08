@@ -48,6 +48,7 @@ framefab_gui::SelectionWidget::SelectionWidget(QWidget* parent) : QWidget(parent
                                                                   mode_(PATH_SELECTION),
                                                                   sim_type_(SIMULATE_TYPE::SINGLE),
                                                                   selected_value_(-1),
+                                                                  selected_grasp_id_(-1),
                                                                   use_saved_result_(false)
 {
   // UI setup
@@ -180,7 +181,8 @@ void framefab_gui::SelectionWidget::setMaxValue(int m)
 
 void framefab_gui::SelectionWidget::setMaxGraspNum(int m)
 {
-  assert(m > 0);
+  // TODO: not fully supported yet
+//  assert(m > 0);
   max_grasp_num_ = m - 1;
 
   ui_->slider_select_grasp->setMaximum(max_grasp_num_);
@@ -194,8 +196,10 @@ void framefab_gui::SelectionWidget::orderValueChanged()
   ui_->slider_select_number->setValue(selected_value_);
   ui_->lineedit_select_number->setText(QString::number(selected_value_));
 
-  assert(grasp_nums_.size() > selected_value_);
-  setMaxGraspNum(grasp_nums_[selected_value_]);
+  // TODO grasp not supported yet
+//  assert(grasp_nums_.size() > selected_value_);
+//  setMaxGraspNum(grasp_nums_[selected_value_]);
+  setMaxGraspNum(0);
   if(selected_grasp_id_ > max_grasp_num_)
   {
     selected_grasp_id_ = 0;
@@ -406,7 +410,9 @@ void framefab_gui::SelectionWidget::setInputEnabled(bool enabled)
 
     setInputEndEffectorVisualEnabled(enabled);
     setInputGraspEnabled(enabled);
-    setInputIKSolutionEnabled(enabled);
+
+    // TODO: to be implemented
+    setInputIKSolutionEnabled(false);
 
     ui_->pushbutton_close_widget->setEnabled(false);
 
