@@ -139,6 +139,32 @@ bool framefab_task_sequence_processing::TaskSequenceProcessor::parseAssemblySequ
   tf::pointEigenToMsg(pick_base_center_pt, as_pnp.pick_base_center_point);
   tf::pointEigenToMsg(place_base_center_pt, as_pnp.place_base_center_point);
 
+  // wire in file path
+  as_pnp.file_path = boost_json_path.parent_path().string() + boost::filesystem::path::preferred_separator;
+
+  // wire in support surfaces file name
+  assert(document.HasMember("pick_support_surface_file_names"));
+  assert(document["pick_support_surface_file_names"].IsArray());
+  as_pnp.pick_support_surface_file_names.clear();
+  for(int i=0; i<document["pick_support_surface_file_names"].Size();i++)
+  {
+    as_pnp.pick_support_surface_file_names.push_back(document["pick_support_surface_file_names"][i].GetString());
+  }
+
+  assert(document.HasMember("place_support_surface_file_names"));
+  assert(document["place_support_surface_file_names"].IsArray());
+  as_pnp.place_support_surface_file_names.clear();
+  for(int i=0; i<document["place_support_surface_file_names"].Size();i++)
+  {
+    as_pnp.place_support_surface_file_names.push_back(document["place_support_surface_file_names"][i].GetString());
+  }
+
+  if(0 == document["place_support_surface_file_names"].Size()
+      || 0 == document["pick_support_surface_file_names"].Size())
+  {
+    ROS_WARN_STREAM("task sequence processing: no pick and place support surfaces are found!");
+  }
+
   assert(document.HasMember("sequenced_elements"));
   const Value& se_array = document["sequenced_elements"];
   assert(se_array.Size() > 0);

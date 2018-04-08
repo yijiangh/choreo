@@ -7,10 +7,11 @@
 
 const static rviz_visual_tools::colors PICK_COLOR = rviz_visual_tools::BLUE;
 const static rviz_visual_tools::colors PICK_NGH_COLOR = rviz_visual_tools::TRANSLUCENT_DARK;
+
 const static rviz_visual_tools::colors PLACE_COLOR = rviz_visual_tools::GREEN;
 const static rviz_visual_tools::colors PLACE_NGH_COLOR = rviz_visual_tools::TRANSLUCENT_DARK;
 
-const static rviz_visual_tools::colors SUPPORT_SURFACE_COLOR = rviz_visual_tools::GREY;
+const static rviz_visual_tools::colors SUPPORT_SURFACE_COLOR = rviz_visual_tools::BROWN;
 
 const static rviz_visual_tools::colors EXIST_ELEMENT_COLOR = rviz_visual_tools::DARK_GREY ;
 
@@ -341,7 +342,10 @@ void choreo_visual_tools::ChoreoVisualTools::visualizeSupportSurfaces()
 {
   for(const std::string& pick_surf : as_pnp_.pick_support_surface_file_names)
   {
+    ROS_INFO_STREAM(as_pnp_.file_path + pick_surf);
+
     assert(boost::filesystem::exists(as_pnp_.file_path + pick_surf));
+
     visual_tools_->publishMesh(
         ZERO_POSE,
         MESH_FILE_PREFIX + as_pnp_.file_path + pick_surf,
@@ -352,12 +356,15 @@ void choreo_visual_tools::ChoreoVisualTools::visualizeSupportSurfaces()
   for(const std::string& place_surf : as_pnp_.place_support_surface_file_names)
   {
     assert(boost::filesystem::exists(as_pnp_.file_path + place_surf));
+
     visual_tools_->publishMesh(
         ZERO_POSE,
         MESH_FILE_PREFIX + as_pnp_.file_path + place_surf,
         SUPPORT_SURFACE_COLOR,
         PNP_MESH_SCALE);
   }
+
+  visual_tools_->trigger();
 }
 
 void choreo_visual_tools::ChoreoVisualTools::cleanUpAllPaths()
