@@ -8,3 +8,6 @@ int32 action
 ---
 
 int32 element_number
+
+# note: grasp_nums.size should equal to element number!
+int32[] grasp_nums

@@ -122,6 +122,9 @@ void framefab_gui::SelectionWidget::loadParameters()
   {
     this->setMaxValue(srv.response.element_number);
 
+    // fetch back grasp number for each assembly
+    grasp_nums_ = srv.response.grasp_nums;
+
 //    ROS_INFO_STREAM("[Selection Widget] select path panel fetch model info successfully.");
   }
   else
@@ -145,15 +148,21 @@ void framefab_gui::SelectionWidget::loadParameters()
 
 void framefab_gui::SelectionWidget::setMaxValue(int m)
 {
-  if(mode_ == PATH_SELECTION)
-  {
-    // TODO: confusion whether to - or not here?
-    max_value_ = m - 1;
-  }
+  max_value_ = m - 1;
 
   ui_->slider_select_number->setMaximum(max_value_);
   ui_->lineedit_select_number->setValidator(new QIntValidator(0, max_value_, this));
   ui_->lineedit_max->setText(QString::number(max_value_));
+}
+
+void framefab_gui::SelectionWidget::setMaxGraspNum(int m)
+{
+  assert(m > 0);
+  max_grasp_num_ = m - 1;
+
+  ui_->slider_select_grasp->setMaximum(max_grasp_num_);
+  ui_->lineedit_select_grasp->setValidator(new QIntValidator(0, max_grasp_num_, this));
+  ui_->lineedit_max_grasp_num->setText(QString::number(max_grasp_num_));
 }
 
 void framefab_gui::SelectionWidget::orderValueChanged()
@@ -162,13 +171,26 @@ void framefab_gui::SelectionWidget::orderValueChanged()
   ui_->slider_select_number->setValue(selected_value_);
   ui_->lineedit_select_number->setText(QString::number(selected_value_));
 
+  assert(grasp_nums_.size() > selected_value_);
+  setMaxGraspNum(grasp_nums_[selected_value_]);
+  if(selected_grasp_id_ > max_grasp_num_)
+  {
+    selected_grasp_id_ = 0;
+  }
+
   // synchronize grasp selection slider and lineedit
   ui_->slider_select_grasp->setValue(selected_grasp_id_);
   ui_->lineedit_select_grasp->setText(QString::number(selected_grasp_id_));
 
-  // call visualization srv, TODO: update srv to incorporate EE and grasp
+  // call visualization srv
   framefab_msgs::VisualizeSelectedPath srv;
+
+  // TODO: the assembly task type should be a part of model param
+  // hardcoded to picknplace for now
+  srv.request.assembly_type = srv.request.PICKNPLACE;
   srv.request.index = selected_value_;
+  srv.request.visualize_ee = visualize_ee_;
+  srv.request.grasp_id = selected_grasp_id_;
 
   if(PATH_SELECTION == mode_)
   {
@@ -211,7 +233,7 @@ void framefab_gui::SelectionWidget::orderValueChanged()
   visualize_client_.waitForExistence();
   if (!visualize_client_.call(srv))
   {
-    ROS_ERROR_STREAM("Unable to visualize selected path!!");
+    ROS_ERROR_STREAM("UI: Unable to visualize selected path!!");
   }
 
   setInputEnabled(true);
@@ -586,19 +608,19 @@ void framefab_gui::SelectionWidget::lineeditUpdateOrderValue()
 void framefab_gui::SelectionWidget::checkboxEEVisualUpdateValue()
 {
   visualize_ee_ = ui_->checkbox_visualize_ee->isChecked();
-  orderValueChanged();
+//  orderValueChanged();
 }
 
 void framefab_gui::SelectionWidget::sliderUpdateSelectedGraspValue(int value)
 {
   selected_grasp_id_ = value;
-  orderValueChanged();
+//  orderValueChanged();
 }
 
 void framefab_gui::SelectionWidget::lineeditUpdateSelectedGraspValue()
 {
   selected_value_ = ui_->lineedit_select_grasp->text().toInt();
-  orderValueChanged();
+//  orderValueChanged();
 }
 
 void framefab_gui::SelectionWidget::sliderUpdateSimSpeed(int value)

@@ -94,7 +94,7 @@ class SelectionWidget : public QWidget
   // set max value, update slider & lineedit
   void setMaxValue(int m);
 
-  //TODO: setMaxGraspNum(int max_g);
+  void setMaxGraspNum(int max_g);
 
   void setStatusBar(std::string string, bool state);
 
@@ -199,6 +199,7 @@ class SelectionWidget : public QWidget
 
   // fetched grasp value for currect selection
   // Note: should be single value if in plan_selection mode
+  std::vector<int> grasp_nums_;
   int max_grasp_num_;
 
   // selected value for grasp id for chosen assembly

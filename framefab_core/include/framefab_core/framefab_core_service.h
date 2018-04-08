@@ -72,6 +72,7 @@ class FrameFabCoreService
   bool elementNumberRequestServerCallback(framefab_msgs::ElementNumberRequest::Request& req,
                                           framefab_msgs::ElementNumberRequest::Response& res);
 
+  // visualize selected assembly sequence and grasp (w or w/o end effector)
   bool visualizeSelectedPathServerCallback(framefab_msgs::VisualizeSelectedPath::Request& req,
                                            framefab_msgs::VisualizeSelectedPath::Response& res);
 

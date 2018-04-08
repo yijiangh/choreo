@@ -1,6 +1,16 @@
-# index of path requested to be visualize
+int32 SPATIAL_EXTRUSION=0
+int32 PICKNPLACE=1
 
+int32 assembly_type
+
+int32 CLEAN_UP=-1
+
+# index of path requested to be visualize
+# clean all visualization if set to -1
 int32 index
+
+bool visualize_ee
+int32 grasp_id
 
 ---
 

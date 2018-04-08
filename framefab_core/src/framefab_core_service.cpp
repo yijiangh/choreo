@@ -356,10 +356,20 @@ bool FrameFabCoreService::visualizeSelectedPathServerCallback(
     framefab_msgs::VisualizeSelectedPath::Request& req,
     framefab_msgs::VisualizeSelectedPath::Response& res)
 {
-  if(req.index != -1)
+  if(req.index != req.CLEAN_UP)
   {
-    visual_tools_.visualizePathUntil(req.index);
-    visual_tools_.visualizeFeasibleOrientations(req.index, true);
+    if(req.PICKNPLACE == req.assembly_type)
+    {
+      // TODO, get seq id and grasp id, trigger visualization, visualize_ee option
+    }
+
+    if(req.SPATIAL_EXTRUSION == req.assembly_type)
+    {
+      // TODO: this is only used for spatial extrusion
+      visual_tools_.visualizePathUntil(req.index);
+      visual_tools_.visualizeFeasibleOrientations(req.index, true);
+    }
+
     res.succeeded = true;
   }
   else
