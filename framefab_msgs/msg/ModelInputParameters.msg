@@ -17,7 +17,7 @@ int32 METER=4
 # model unit
 int32 unit_type
 
-# model file name (path)
+# model file name (whole path: file path + file name)
 string file_name
 
 float64 clt_rrt_unit_process_timeout

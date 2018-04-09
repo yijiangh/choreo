@@ -9,8 +9,7 @@
 #include <framefab_msgs/MoveToTargetPose.h>
 #include <framefab_msgs/OutputProcessing.h>
 
-// For visualizing in rviz
-#include <rviz_visual_tools/rviz_visual_tools.h>
+#include <framefab_msgs/PickNPlacePlanning.h>
 
 // msgs
 #include <descartes_msgs/LadderGraphList.h>
@@ -19,6 +18,7 @@
 const static std::string SAVE_DATA_BOOL_PARAM = "save_data";
 const static std::string SAVE_LOCATION_PARAM = "save_location";
 
+// TODO: externalize tehse service name as ros params
 // provided services
 const static std::string FRAMEFAB_PARAMETERS_SERVICE = "framefab_parameters";
 const static std::string ELEMENT_NUMBER_REQUEST_SERVICE = "element_member_request";
@@ -34,16 +34,20 @@ const static std::string PROCESS_PLANNING_SERVICE = "process_planning";
 const static std::string MOVE_TO_TARGET_POSE_SERVICE = "move_to_target_pose";
 const static std::string OUTPUT_PROCESSING_SERVICE = "output_processing";
 
+const static std::string PICKNPLACE_PLANNING_SERVICE = "picknplace_planning";
+
 // Default filepaths and namespaces for caching stored parameters
 const static std::string MODEL_INPUT_PARAMS_FILE = "model_input_parameters.msg";
 const static std::string TASK_SEQUENCE_INPUT_PARAMS_FILE = "task_sequence_input_parameters.msg";
 const static std::string ROBOT_INPUT_PARAMS_FILE = "robot_input_parameters.msg";
 const static std::string OUTPUT_SAVE_DIR_INPUT_PARAMS_FILE = "output_save_dir_input_parameters.msg";
 
+// TODO: find a way for rviz to read these hard-coded markers_array topic name automatically
 // Visualization Maker topics
 const static std::string PATH_VISUAL_TOPIC = "path_visualization";
 const static std::string PRINT_BED_VISUAL_TOPIC = "print_bed_visualization";
 
+// TODO: externalize these action names as ros params
 // subscribed action server name - note: must be same to client's name
 const static std::string FRAMEFAB_EXE_ACTION_SERVER_NAME = "framefab_execution_as";
 const static std::string TASK_SEQUENCE_PROCESSING_ACTION_SERVER_NAME = "task_sequence_processing_action";
@@ -57,29 +61,6 @@ const static int PROCESS_EXE_BUFFER = 5;  // Additional time [s] buffer between 
 
 namespace
 {
-void visualizePrintBedBoundary(rviz_visual_tools::RvizVisualToolsPtr visual_tools)
-{
-  // TODO: this shoud read print bed boundary data from user input msg
-  namespace rvt = rviz_visual_tools;
-
-  visual_tools->deleteAllMarkers();
-
-  // in meter
-  Eigen::Vector3d pt1(0.515, -0.318, 0.0235);
-  Eigen::Vector3d pt2(0.862, -0.318, 0.0235);
-  Eigen::Vector3d pt3(0.862, 0.306, 0.0235);
-  Eigen::Vector3d pt4(0.515, 0.306, 0.0235);
-
-  auto color = rvt::colors::BLUE;
-  auto scale = rvt::scales::XXXSMALL;
-
-  visual_tools->publishLine(pt1, pt2, color, scale);
-  visual_tools->publishLine(pt2, pt3, color, scale);
-  visual_tools->publishLine(pt3, pt4, color, scale);
-  visual_tools->publishLine(pt4, pt1, color, scale);
-
-  visual_tools->trigger();
-}
 }// util namespace
 
 FrameFabCoreService::FrameFabCoreService()
@@ -150,10 +131,7 @@ bool FrameFabCoreService::init()
       QUERY_COMPUTATION_RESULT, &FrameFabCoreService::queryComputationResultCallback, this);
 
   // start local instances
-  visual_tool_.init(world_frame_, PATH_VISUAL_TOPIC);
-  print_bed_visual_tool_.reset(new rviz_visual_tools::RvizVisualTools(world_frame_, PRINT_BED_VISUAL_TOPIC));
-  print_bed_visual_tool_->deleteAllMarkers();
-  print_bed_visual_tool_->enableBatchPublishing();
+  visual_tools_.init(world_frame_, PATH_VISUAL_TOPIC);
 
   // start server
 
@@ -163,6 +141,8 @@ bool FrameFabCoreService::init()
   process_planning_client_ = nh_.serviceClient<framefab_msgs::ProcessPlanning>(PROCESS_PLANNING_SERVICE);
   move_to_pose_client_  = nh_.serviceClient<framefab_msgs::MoveToTargetPose>(MOVE_TO_TARGET_POSE_SERVICE);
   output_processing_client_  = nh_.serviceClient<framefab_msgs::OutputProcessing>(OUTPUT_PROCESSING_SERVICE);
+
+  picknplace_planning_client_  = nh_.serviceClient<framefab_msgs::PickNPlacePlanning>(PICKNPLACE_PLANNING_SERVICE);
 
   // publishers
 
@@ -203,12 +183,6 @@ bool FrameFabCoreService::loadModelInputParameters(const std::string & filename)
         loadParam(nh, "unit_type", model_input_params_.unit_type) &&
         loadParam(nh, "element_diameter", model_input_params_.element_diameter) &&
         loadParam(nh, "shrink_length", model_input_params_.shrink_length);
-  }
-
-  if(success)
-  {
-    // visualize print bed boundary
-//    visualizePrintBedBoundary(print_bed_visual_tool_);
   }
 
   return success;
@@ -344,9 +318,6 @@ bool FrameFabCoreService::framefabParametersServerCallback(
         this->saveOutputSaveDirInputParameters(param_cache_prefix_ + OUTPUT_SAVE_DIR_INPUT_PARAMS_FILE);
       }
 
-      // visualize printbed boundary
-      visualizePrintBedBoundary(print_bed_visual_tool_);
-
       break;
   }
 
@@ -362,11 +333,24 @@ bool FrameFabCoreService::elementNumberRequestServerCallback(
   {
     case framefab_msgs::ElementNumberRequest::Request::REQUEST_ELEMENT_NUMBER:
     {
-      res.element_number = visual_tool_.getPathArraySize();
+      // visualization before planning (path selection phase in UI)
+      // TODO: correct this as a unified request
+      // !!! TEMP DUMP FIX!
+      res.element_number =
+          visual_tools_.getPathArraySize() == 0 ? as_pnp_.element_number : visual_tools_.getPathArraySize();
+
+      res.grasp_nums.clear();
+      for(const auto& se : as_pnp_.sequenced_elements)
+      {
+        assert(se.grasps.size() > 0);
+        res.grasp_nums.push_back(se.grasps.size());
+      }
+
       break;
     }
     case framefab_msgs::ElementNumberRequest::Request::REQUEST_SELECTED_TASK_NUMBER:
     {
+      // for visualization after planning (plan selection phase in UI, visualize traj library)
       res.element_number = selected_task_id_;
       break;
     }
@@ -374,24 +358,38 @@ bool FrameFabCoreService::elementNumberRequestServerCallback(
     {
       res.element_number = 0;
       ROS_ERROR_STREAM("Unknown parameter loading request in selection widget");
-      break;
+      return false;
     }
   }
+
+  return true;
 }
 
 bool FrameFabCoreService::visualizeSelectedPathServerCallback(
     framefab_msgs::VisualizeSelectedPath::Request& req,
     framefab_msgs::VisualizeSelectedPath::Response& res)
 {
-  if(req.index != -1)
+  if(req.index != req.CLEAN_UP)
   {
-    visual_tool_.visualizePathUntil(req.index);
-    visual_tool_.visualizeFeasibleOrientations(req.index, true);
+    if(req.PICKNPLACE == req.assembly_type)
+    {
+      // TODO, get seq id and grasp id, trigger visualization, visualize_ee option
+      visual_tools_.visualizeSequencePickNPlaceUntil(req.index);
+      visual_tools_.visualizeGraspPickNPlace(req.index, req.grasp_id, req.visualize_ee);
+    }
+
+    if(req.SPATIAL_EXTRUSION == req.assembly_type)
+    {
+      // TODO: this is only used for spatial extrusion
+      visual_tools_.visualizePathUntil(req.index);
+      visual_tools_.visualizeFeasibleOrientations(req.index, true);
+    }
+
     res.succeeded = true;
   }
   else
   {
-    visual_tool_.cleanUpAllPaths();
+    visual_tools_.cleanUpAllPaths();
     res.succeeded = true;
   }
 }
@@ -461,6 +459,7 @@ void FrameFabCoreService::taskSequenceProcessingActionCallback(const framefab_ms
 {
   switch (goal_in->action)
   {
+    // TODO: this action goal here should indicate what type of assembly process: picknplace, 3d extrusion, etc.
     case framefab_msgs::TaskSequenceProcessingGoal::FIND_AND_PROCESS:
     {
       task_sequence_processing_feedback_.last_completed = "[Core] Recieved request to process task sequence plan\n";
@@ -468,15 +467,19 @@ void FrameFabCoreService::taskSequenceProcessingActionCallback(const framefab_ms
 
       // call task_sequence_processing srv
       framefab_msgs::TaskSequenceProcessing srv;
-      srv.request.action = srv.request.PROCESS_TASK_AND_MARKER;
+
+      // TODO: this process type should be a part of model param
+//      srv.request.action = srv.request.SPATIAL_EXTRUSION;
+      srv.request.action = srv.request.PICKNPLACE;
+
       srv.request.model_params = model_input_params_;
       srv.request.task_sequence_params = task_sequence_input_params_;
       srv.request.world_frame = world_frame_;
 
       if(!task_sequence_processing_srv_client_.call(srv))
       {
-        ROS_WARN_STREAM("[Core] Unable to call task sequence processing service");
-        task_sequence_processing_feedback_.last_completed = "[Core] Failed to call Task Sequence Processing Service!\n";
+        ROS_WARN_STREAM("[Core] Unable to call task sequence processing service or find saved task sequence.");
+        task_sequence_processing_feedback_.last_completed = "[Core] Failed to parse saved task sequence!\n";
         task_sequence_processing_server_.publishFeedback(task_sequence_processing_feedback_);
         task_sequence_processing_result_.succeeded = false;
         task_sequence_processing_server_.setAborted(task_sequence_processing_result_);
@@ -487,18 +490,34 @@ void FrameFabCoreService::taskSequenceProcessingActionCallback(const framefab_ms
         task_sequence_processing_feedback_.last_completed = "Finished task sequence processing. Visualizing...\n";
         task_sequence_processing_server_.publishFeedback(task_sequence_processing_feedback_);
 
-        // visualize print bed
-        visualizePrintBedBoundary(print_bed_visual_tool_);
+        if(srv.request.PICKNPLACE == srv.request.action)
+        {
+          // TODO: insert new setData function for visual tools here
+          visual_tools_.setAssemblySequencePickNPlace(srv.response.assembly_sequence_pnp);
+          visual_tools_.visualizeAllSequencePickNPlace();
 
-        // import data into visual_tools
-        visual_tool_.setProcessPath(srv.response.process);
-        visual_tool_.visualizeAllPaths();
+          as_pnp_ = srv.response.assembly_sequence_pnp;
 
-        // import data into process_planning_visualizer
-        task_sequence_ = srv.response.process;
-        env_objs_ = srv.response.env_collision_objs;
+          task_sequence_processing_result_.assembly_type = as_pnp_.assembly_type;
+        }
+
+        if(srv.request.SPATIAL_EXTRUSION == srv.request.action)
+        {
+          // TODO: this is kept here for archive, should be made compatible to new json data type and visualizer
+          // import data into visual_tools (data initialization)
+          visual_tools_.setProcessPath(srv.response.process);
+          visual_tools_.visualizeAllPaths();
+
+          // save the parsed data to class variables (later used in generateProcessPlan call)
+          task_sequence_ = srv.response.process;
+          env_objs_ = srv.response.env_collision_objs;
+
+          // TODO: this is hardcoded temporarily
+          task_sequence_processing_result_.assembly_type = "spatial_extrusion";
+        }
 
         task_sequence_processing_result_.succeeded = true;
+
         task_sequence_processing_server_.setSucceeded(task_sequence_processing_result_);
       }
       break;
@@ -509,7 +528,6 @@ void FrameFabCoreService::taskSequenceProcessingActionCallback(const framefab_ms
       ROS_ERROR_STREAM("Unknown action code '" << goal_in->action << "' request");
       task_sequence_processing_result_.succeeded = false;
       task_sequence_processing_server_.setAborted(task_sequence_processing_result_);
-
       break;
     }
   }
@@ -519,9 +537,6 @@ void FrameFabCoreService::taskSequencePlanningActionCallback(const framefab_msgs
 {
   task_sequence_planning_feedback_.last_completed = "[Core] Recieved request to process task sequence plan\n";
   task_sequence_planning_server_.publishFeedback(task_sequence_planning_feedback_);
-
-  // visualize print bed
-  visualizePrintBedBoundary(print_bed_visual_tool_);
 
   // call task_sequence_planning srv
   framefab_msgs::TaskSequencePlanning srv;
@@ -540,9 +555,9 @@ void FrameFabCoreService::taskSequencePlanningActionCallback(const framefab_msgs
   else
   {
     // import data into visual_tools
-    visual_tool_.setVisualWireFrame(srv.response.element_array);
+    visual_tools_.setVisualWireFrame(srv.response.element_array);
 
-    visual_tool_.visualizeAllWireFrame();
+    visual_tools_.visualizeAllWireFrame();
 
     srv.request.action = srv.request.TASK_SEQUENCE_SEARCHING;
 
@@ -589,9 +604,9 @@ void FrameFabCoreService::processPlanningActionCallback(const framefab_msgs::Pro
         return;
       }
 
-      visual_tool_.cleanUpAllPaths();
-      visual_tool_.visualizePathUntil(goal_in->index);
-      visual_tool_.visualizeFeasibleOrientations(goal_in->index, false);
+      visual_tools_.cleanUpAllPaths();
+      visual_tools_.visualizePathUntil(goal_in->index);
+      visual_tools_.visualizeFeasibleOrientations(goal_in->index, false);
 
       bool success = generateMotionLibrary(goal_in->index, trajectory_library_);
 
@@ -611,6 +626,46 @@ void FrameFabCoreService::processPlanningActionCallback(const framefab_msgs::Pro
         process_planning_result_.succeeded = false;
         process_planning_server_.setAborted(process_planning_result_);
       }
+      break;
+    }
+    case framefab_msgs::ProcessPlanningGoal::PICKNPLACE_TEST:
+    {
+      // TODO: this is quick and dirty!
+      process_planning_feedback_.last_completed = "Recieved request to generate pick n place motion plan\n";
+      process_planning_server_.publishFeedback(process_planning_feedback_);
+
+      selected_task_id_ = goal_in->index;
+      use_saved_graph_ = goal_in->use_saved_graph;
+
+      // reset Robot's pose to init pose
+      if(!moveToTargetJointPose(robot_input_params_.init_pose))
+      {
+        process_planning_feedback_.last_completed = "Reset to init robot's pose planning & execution failed\n";
+        process_planning_server_.publishFeedback(process_planning_feedback_);
+        process_planning_result_.succeeded = false;
+        process_planning_server_.setAborted(process_planning_result_);
+        return;
+      }
+
+      bool success = generatePicknPlaceMotionLibrary();
+
+      if(success)
+      {
+        process_planning_feedback_.last_completed = "Finished pick n place planning. Visualizing...\n";
+        process_planning_server_.publishFeedback(process_planning_feedback_);
+        process_planning_result_.succeeded = true;
+        process_planning_server_.setSucceeded(process_planning_result_);
+
+        return;
+      }
+      else
+      {
+        process_planning_feedback_.last_completed = "pick n place Process Planning action failed.\n";
+        process_planning_server_.publishFeedback(process_planning_feedback_);
+        process_planning_result_.succeeded = false;
+        process_planning_server_.setAborted(process_planning_result_);
+      }
+
       break;
     }
     default:
@@ -732,13 +787,14 @@ void FrameFabCoreService::simulateMotionPlansActionCallback(const framefab_msgs:
       goal.wait_for_execution = goal_in->wait_for_execution;
       goal.simulate = goal_in->simulate;
 
+      // communicating with framefab execution gatekeeper server
       actionlib::SimpleActionClient <framefab_msgs::ProcessExecutionAction> *exe_client = &framefab_exe_client_;
       exe_client->sendGoal(goal);
 
 //  ros::Duration process_time(goal.joint_traj_array.back().points.back().time_from_start);
       ros::Duration buffer_time(PROCESS_EXE_BUFFER);
 
-      visual_tool_.visualizePathUntil(goal_in->index);
+      visual_tools_.visualizePathUntil(goal_in->index);
 
       ROS_INFO_STREAM("[Core] Simulation time: " << process_time);
 

@@ -22,6 +22,7 @@
   <depend>moveit_msgs</depend>
 
   <depend>geometric_shapes</depend>
+  <depend>moveit_core</depend>
   <depend>moveit_ros_planning_interface</depend>
   <depend>roscpp</depend>
 

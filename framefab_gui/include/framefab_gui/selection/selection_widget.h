@@ -26,8 +26,14 @@ class SelectionWidget : public QWidget
   enum MODE
   {
     PATH_SELECTION,
-    ZOOM_IN_SELECTION,
+    ZOOM_IN_SELECTION, // TODO: DEPRECATED, should be merged with PATH SELECTION
     PLAN_SELECTION
+  };
+
+  enum ASSEMBLY_TYPE
+  {
+    SPATIAL_EXTRUSION,
+    PICKNPLACE
   };
 
   enum SIMULATE_TYPE
@@ -41,41 +47,74 @@ class SelectionWidget : public QWidget
  public:
   SelectionWidget(QWidget* parent = 0);
 
-  // set path or plan selection mode
-  void setMode(MODE _mode) { mode_ = _mode; }
-  void setModelFileName(std::string m) { model_file_name_ = m; }
-
+  // CORE NODE COMMUNICATOR
+  //
   // service request on required parameters
+  // will trigger orderValueChanged to update visualization
   void loadParameters();
 
-  // set max value, update slider & lineedit
-  void setMaxValue(int m);
-
   // update display according to current print order
+  // this function call core service to update visualization of assembly sequence
+  // and is called whenever value changed in the selection widget ui panel
+  // (slider, button, checkbox, etc., as long as it relates to visualization info)
   void orderValueChanged();
-  void simSpeedChanged();
-
-  void setInputEnabled(bool enabled);
-  void setInputIDEnabled(bool);
-  void setInputLocaAxisEnabled(bool);
-  void setInputIKSolutionEnabled(bool);
-
-  int  getSelectedValueForPlanning() { return selected_value_; }
-  double getSimSpeed() { return sim_speed_; }
-  bool getUseSavedResult() { return use_saved_result_; }
-
-  std::vector<int> getSelectedIdsForSimulation() { return selected_ids_for_sim_; }
-  std::vector<int> getChosenIds() { return chosen_ids_for_sim_; }
-
-  void setStatusBar(std::string string, bool state);
-
-  SIMULATE_TYPE getSimulateType() { return sim_type_; }
-
-  void addFetchedPlans(const std::vector<std::string> &plan_names);
-  void getChosenPlans();
 
   // send srv to clean up visualization markers
   void cleanUpVisual();
+  // CORE NODE COMMUNICATOR END
+  //
+
+  // STATE CHANGE RESPONSER
+  //
+  // mode-dependent all sub-widget switch
+  void setInputEnabled(bool enabled);
+
+  // switch for end effector visualization toggle
+  void setInputEndEffectorVisualEnabled(bool);
+
+  // switch for grasp selection related widget
+  void setInputGraspEnabled(bool);
+
+  // switch for IK selection related widget
+  void setInputIKSolutionEnabled(bool);
+
+  // TODO: not fully implemented
+  void simSpeedChanged();
+  // STATE CHANGE RESPONSER END
+  //
+
+  // GET FUNCTIONS
+  //
+  int  getSelectedValueForPlanning() const { return selected_value_; }
+  double getSimSpeed() const { return sim_speed_; }
+  bool getUseSavedResult() const { return use_saved_result_; }
+
+  std::vector<int> getSelectedIdsForSimulation() { return selected_ids_for_sim_; }
+  std::vector<int> getChosenIds() { return chosen_ids_for_sim_; }
+  SIMULATE_TYPE getSimulateType() { return sim_type_; }
+  //
+  // GET FUNCTIONS END
+
+  // INTERNAL DATA SET / GET FUNCTIONS
+  //
+  // set max value, update slider & lineedit
+  void setMaxValue(int m);
+
+  void setMaxGraspNum(int max_g);
+
+  void setStatusBar(std::string string, bool state);
+
+  // computed plan fetch / set / sort
+  void addFetchedPlans(const std::vector<std::string> &plan_names);
+  void getChosenPlans();
+
+  // set path or plan selection mode
+  void setMode(const MODE& _mode) { mode_ = _mode; }
+  void setModelFileName(const std::string& m) { model_file_name_ = m; }
+
+  void setAssemblyType(const std::string& at);
+  //
+  // INTERNAL DATA SET / GET FUNCTIONS
 
   void showTaskSequenceRecomputePopUp(bool found_task_plan);
 
@@ -117,17 +156,33 @@ class SelectionWidget : public QWidget
   void buttonClearSelection();
 
   void buttonCloseWidget();
+
+  // slot function for qt pushbutton select for plan
+  // change tab_widget to ZOOM_IN_SELECTION mode (tab 0)
+  // call core node to query saved ladder graph
+  // ask user to choose (1) use saved ladder graph and skip CLT-RRT*
+  // or (2) recompute ladder graph
   void buttonSelectForPlan();
+
+  // slot function for assembly order id update
   void sliderUpdateOrderValue(int value);
   void lineeditUpdateOrderValue();
 
+  // slot function for grasp visual
+  void checkboxEEVisualUpdateValue();
+
+  // slot function for grasp visualization selection id update
+  void sliderUpdateSelectedGraspValue(int value);
+  void lineeditUpdateSelectedGraspValue();
+
+  // slot function for sim speed update
+  // TODO: not fully implemented
   void sliderUpdateSimSpeed(int value);
 
+  // recompute popup selection slot function
   void recomputeChosen();
   void useSavedResultChosen();
-
   void useSavedTaskSequenceResultChosen();
-
   void popUpWindowClosed();
 
  private:
@@ -140,20 +195,46 @@ class SelectionWidget : public QWidget
   SelectForPlanPopUpWidget* select_for_plan_pop_up_;
   SelectForPlanPopUpWidget* task_seq_recompute_pop_up_;
 
+  // fetched id for slider and lineedit (depending on path or plan selection)
   int max_value_;
+
+  // selected value for visualization
+  // used to synchronize selected seq id's slider and linedit
   int selected_value_;
+
+  // toggle for visualizing end effector
+  bool visualize_ee_;
+
+  // fetched grasp value for currect selection
+  // Note: should be single value if in plan_selection mode
+  std::vector<int> grasp_nums_;
+  int max_grasp_num_;
+
+  // selected value for grasp id for chosen assembly
+  // used to synchronize selected grasp id's slider and lineedit
+  int selected_grasp_id_;
+
+  // TODO: should have max_ik_num & slected_ik_id_
+  // To be implemented
+
   std::vector<int> selected_ids_for_sim_;
   std::vector<int> chosen_ids_for_sim_;
   std::vector<int> fetched_plan_ids_;
 
+  // recompute or use saved result toggle
+  // for (1) task sequence and (2) ladder graph
   bool use_saved_result_;
 
+  // simulation speed for trajectory visualization
+  // belongs to (0, 1.0]
+  // TODO: not supported yet
   double sim_speed_;
 
   std::string model_file_name_;
 
   SIMULATE_TYPE sim_type_;
   MODE mode_;
+  ASSEMBLY_TYPE assembly_type_;
 };
 }
 

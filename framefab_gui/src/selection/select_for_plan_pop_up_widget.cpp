@@ -22,18 +22,10 @@ void framefab_gui::SelectForPlanPopUpWidget::setDisplayText(const std::string& t
   ui_->textedit_msg->setPlainText(QString::fromStdString(text));
 }
 
-void framefab_gui::SelectForPlanPopUpWidget::enableButtons(bool record_found)
+void framefab_gui::SelectForPlanPopUpWidget::enableButtons(bool record_found, bool enable_recompute)
 {
-  if(record_found)
-  {
-    ui_->pushbutton_recompute->setEnabled(true);
-    ui_->pushbutton_keep_record->setEnabled(true);
-  }
-  else
-  {
-    ui_->pushbutton_recompute->setEnabled(true);
-    ui_->pushbutton_keep_record->setEnabled(false);
-  }
+  ui_->pushbutton_recompute->setEnabled(enable_recompute);
+  ui_->pushbutton_keep_record->setEnabled(record_found);
 }
 
 void framefab_gui::SelectForPlanPopUpWidget::closeWindow()

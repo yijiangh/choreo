@@ -13,6 +13,10 @@
 namespace framefab_simulation_execution
 {
 
+// this class takes "simulation_execution" action from framefab_execution_gatekeeper
+// and generate "joint_trajectory_action" for simulation
+// for visualization in Choreo, we use industrial_robot_simulator as action server.
+
 class SimulationExecutionService
 {
  public:

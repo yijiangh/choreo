@@ -9,6 +9,8 @@
 #include <framefab_msgs/TaskSequenceInputParameters.h>
 #include <framefab_msgs/ElementCandidatePoses.h>
 
+#include <framefab_msgs/AssemblySequencePickNPlace.h>
+
 #include <moveit_msgs/CollisionObject.h>
 
 #include <framefab_task_sequence_processor/unit_process.h>
@@ -24,15 +26,25 @@ class TaskSequenceProcessor
   TaskSequenceProcessor();
   virtual ~TaskSequenceProcessor() {}
 
-  bool createCandidatePoses();
-  bool createEnvCollisionObjs();
-  const std::vector<framefab_task_sequence_processing_utils::UnitProcess>& getCandidatePoses() const { return path_array_; }
-  const std::vector<moveit_msgs::CollisionObject>&     getEnvCollisionObjs() const { return env_collision_objs_; }
-
   // data setting
   void setParams(framefab_msgs::ModelInputParameters model_params,
                  framefab_msgs::TaskSequenceInputParameters task_sequence_params,
-                 std::string world_frame_);
+                 std::string world_frame);
+
+  // TODO: this can be used as a helper function, we don't need to wrap a class around it
+  // Note: this function enforces the existence for all the stl files by asserting the file existence.
+  bool parseAssemblySequencePickNPlace(const framefab_msgs::ModelInputParameters& model_params,
+                                       const framefab_msgs::TaskSequenceInputParameters& task_sequence_params,
+                                       const std::string& world_frame_,
+                                       framefab_msgs::AssemblySequencePickNPlace& as_pnp);
+
+  // DEPRECATED
+  // parson json file into path arrays (unit process)
+  bool createCandidatePoses();
+  bool createEnvCollisionObjs();
+
+  const std::vector<framefab_task_sequence_processing_utils::UnitProcess>& getCandidatePoses() const { return path_array_; }
+  const std::vector<moveit_msgs::CollisionObject>& getEnvCollisionObjs() const { return env_collision_objs_; }
 
  protected:
   framefab_task_sequence_processing_utils::UnitProcess createScaledUnitProcess(int index, int wireframe_id,
@@ -46,6 +58,7 @@ class TaskSequenceProcessor
   {
     transf_vec_ = (ref_pt - base_center_pt) * scale;
   }
+  // END DEPRECATED
 
  private:
   // params

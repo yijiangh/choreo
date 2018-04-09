@@ -7,6 +7,11 @@
 #include <ui_framefab_widget.h>
 #include <QtConcurrent/QtConcurrentRun>
 
+// TODO temp
+#include <actionlib/client/simple_action_client.h>
+#include <framefab_msgs/ProcessPlanningAction.h>
+const static std::string PROCESS_PLANNING_ACTION_CLIENT_NAME = "process_planning_action";
+
 const std::string FRAMEFAB_PARAMETERS_SERVICE = "framefab_parameters";
 const static std::string SIMULATE_MOTION_PLAN_ACTION_SERVER_NAME = "simulate_motion_plan_as";
 
@@ -19,7 +24,10 @@ framefab_gui::FrameFabWidget::FrameFabWidget(QWidget* parent)
   ui_ = new Ui::FrameFabWidget;
   ui_->setupUi(this);
 
+//  ui_->tabWidget->setCurrentIndex(1);
+
   params_ = new ParamsSubmenu();
+  params_->setWindowFlags(Qt::WindowStaysOnTopHint);
 
   selection_widget_ = new SelectionWidget();
 
@@ -31,6 +39,9 @@ framefab_gui::FrameFabWidget::FrameFabWidget(QWidget* parent)
   connect(ui_->pushbutton_back, SIGNAL(clicked()), this, SLOT(onBackButton()));
   connect(ui_->pushbutton_reset, SIGNAL(clicked()), this, SLOT(onResetButton()));
   connect(ui_->pushbutton_params, SIGNAL(clicked()), this, SLOT(onParamsButton()));
+  connect(ui_->pushbutton_picknplace, SIGNAL(clicked()), this, SLOT(onPicknPlace()));
+
+  // wire in picknplace button
 
   // Wire in params signals
   connect(params_, SIGNAL(saveRequested()), this, SLOT(onParamsSave()));
@@ -94,6 +105,7 @@ void framefab_gui::FrameFabWidget::onResetButton()
 void framefab_gui::FrameFabWidget::onParamsButton()
 {
   params_->show();
+
 }
 
 void framefab_gui::FrameFabWidget::onParamsSave()
@@ -130,6 +142,29 @@ void framefab_gui::FrameFabWidget::onEnableButtons()
 void framefab_gui::FrameFabWidget::onDisableButtons()
 {
   setButtonsEnabled(false);
+}
+
+void framefab_gui::FrameFabWidget::onPicknPlace()
+{
+  framefab_msgs::ProcessPlanningGoal goal;
+  goal.action = framefab_msgs::ProcessPlanningGoal::PICKNPLACE_TEST;
+
+  ROS_INFO("Waiting for pickn place process planning action server to start.");
+  actionlib::SimpleActionClient<framefab_msgs::ProcessPlanningAction>
+      process_planning_action_client(PROCESS_PLANNING_ACTION_CLIENT_NAME, true);
+  process_planning_action_client.waitForServer();
+
+  if(process_planning_action_client.isServerConnected())
+  {
+    ROS_INFO_STREAM("process planning action server connected!");
+  }
+  else
+  {
+    ROS_WARN_STREAM("action process planning server not connected");
+  }
+
+  process_planning_action_client.sendGoal(goal);
+  ROS_INFO_STREAM("Goal sent from pick n place process planning state");
 }
 
 void framefab_gui::FrameFabWidget::changeState(GuiState* new_state)

@@ -32,9 +32,9 @@ Development mainly on *kuka_kr6r900sixx robot* for now.
   sudo apt-get install ros-kinetic-moveit
   ```
 
-- Install [rviz visual tools](https://github.com/davetcoleman/rviz_visual_tools) for pose visualization.
+- Install [moveit visual tools](https://github.com/ros-planning/moveit_visual_tools) for pose visualization.
   ```
-  sudo apt-get install ros-kinetic-rviz-visual-tools
+  sudo apt-get install ros-kinetic-moveit-visual-tools 
   ```
 
 - Cd into the 'src' directory of your catkin workspace (```~/catkin_ws/src``` in my case) and run the following:

@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>choreo_visual_tools</name>
+  <version>3.4.0</version>
+  <description>Helper functions for displaying and debugging Choreo data (assembly sequence, grasps etc.) in Rviz via published markers</description>
+
+  <maintainer email="yijiangh@mit.edu">Yijiang Huang</maintainer>
+
+  <license>BSD</license>
+
+  <author email="yijiangh@mit.edu">Yijiang Huang</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>moveit_visual_tools</depend>
+  <depend>eigen_conversions</depend>
+  <depend>geometry_msgs</depend>
+  <depend>moveit_core</depend>
+  <depend>roscpp</depend>
+  <depend>tf_conversions</depend>
+
+  <depend>visualization_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>framefab_msgs</depend>
+</package>

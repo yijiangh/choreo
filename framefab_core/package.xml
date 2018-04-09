@@ -4,9 +4,9 @@
   <version>0.1.0</version>
   
   <description>
-    This package houses the primary framefab "server" that is responsible for
-    making the whole system go. It is actuated via service calls and farms out
-    jobs to the many planning and execution components of the framefab project. 
+    this package is the central monitoring node that connects
+    Choreo's specialized packages together. It receives requests from UI
+    package and dispatch / receive computation request to responsible packages.
   </description>
 
   <maintainer email="yijiangh@mit.edu">Yijiang Huang</maintainer>
@@ -23,9 +23,10 @@
   <depend>tf_conversions</depend>
   <depend>framefab_msgs</depend>
   <depend>descartes_msgs</depend>
+  <depend>visualization_msgs</depend>
   <depend>framefab_param_helpers</depend>
 
-  <depend>rviz_visual_tools</depend>
+  <depend>choreo_visual_tools</depend>
 
   <build_depend>moveit_ros_move_group</build_depend>
 

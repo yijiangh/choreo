@@ -58,6 +58,7 @@ bool framefab_execution_gatekeeper::ExecutionGatekeeper::simulateProcess(
     }
   }
 
+  // this action call is directed to framefab_simulation_execution
   if (!sim_client_.call(exe_srv))
   {
     ROS_ERROR("[Execution GateKeeper] Execution client unavailable or unable to execute trajectory.");

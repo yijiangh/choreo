@@ -28,19 +28,21 @@
 #include <actionlib/server/simple_action_server.h>
 #include <actionlib/client/simple_action_client.h>
 
-// core service instances
-#include <framefab_core/visual_tools/framefab_visual_tool.h>
+// helper functions
 #include "framefab_core/trajectory_library.h"
 
-#include <rviz_visual_tools/rviz_visual_tools.h>
+// visualizer
+#include <choreo_visual_tools/choreo_visual_tools.h>
 
-/**
- * Associates a name with a joint trajectory
- */
+// TODO: we should avoid using this kind of "alias". It decrease code's readability.
 struct ProcessPlanResult
 {
   std::vector<framefab_msgs::UnitProcessPlan> plans;
 };
+
+// this package is the central monitoring node that connects
+// Choreo's specialized packages together. It receives requests from UI
+// package and dispatch / receive computation request to responsible packages.
 
 class FrameFabCoreService
 {
@@ -65,9 +67,12 @@ class FrameFabCoreService
   bool framefabParametersServerCallback(framefab_msgs::FrameFabParameters::Request& req,
                                         framefab_msgs::FrameFabParameters::Response& res);
 
+  // reponding to <path selection> (until which index we compute)
+  // and <plan selection> element number query in UI
   bool elementNumberRequestServerCallback(framefab_msgs::ElementNumberRequest::Request& req,
                                           framefab_msgs::ElementNumberRequest::Response& res);
 
+  // visualize selected assembly sequence and grasp (w or w/o end effector)
   bool visualizeSelectedPathServerCallback(framefab_msgs::VisualizeSelectedPath::Request& req,
                                            framefab_msgs::VisualizeSelectedPath::Response& res);
 
@@ -94,10 +99,13 @@ class FrameFabCoreService
 
   ProcessPlanResult generateProcessPlan(const int index);
 
-  // immediate plan & execution
+  // immediate plan & execution for resetting the robot
   bool moveToTargetJointPose(std::vector<double> joint_pose);
 
+  // TODO: complete this
   void adjustSimSpeed(double sim_speed);
+
+  bool generatePicknPlaceMotionLibrary();
 
  private:
   // Services offered by this class
@@ -114,6 +122,8 @@ class FrameFabCoreService
   ros::ServiceClient process_planning_client_;
   ros::ServiceClient move_to_pose_client_;
   ros::ServiceClient output_processing_client_;
+
+  ros::ServiceClient picknplace_planning_client_;
 
   // Actions offered by this class
   ros::NodeHandle nh_;
@@ -136,16 +146,18 @@ class FrameFabCoreService
   // Actions subscribed to by this class
   actionlib::SimpleActionClient<framefab_msgs::ProcessExecutionAction> framefab_exe_client_;
 
-  // Current state publishers
+  // Visualizer for imported geometry, assembly sequence, and grasps
+  choreo_visual_tools::ChoreoVisualTools visual_tools_;
 
-  // Core Service Instances
-  framefab_visual_tools::FrameFabVisualTool visual_tool_;
-  rviz_visual_tools::RvizVisualToolsPtr print_bed_visual_tool_;
-
+  // TODO: should remove this
   // working environment collision objects
   std::vector<moveit_msgs::CollisionObject> env_objs_;
-  // formulated task sequence results
+
+  // formulated task sequence results, parsed from task sequence processor
   std::vector<framefab_msgs::ElementCandidatePoses> task_sequence_;
+
+  // TODO: parsed assembly seqence
+  framefab_msgs::AssemblySequencePickNPlace as_pnp_;
 
   // Trajectory library
   int selected_task_id_;
@@ -153,15 +165,15 @@ class FrameFabCoreService
   framefab_core_service::TrajectoryLibrary trajectory_library_;
 
   // Parameters
-  framefab_msgs::ModelInputParameters 	model_input_params_;
-  framefab_msgs::TaskSequenceInputParameters 	task_sequence_input_params_;
-  framefab_msgs::RobotInputParameters   robot_input_params_;
+  framefab_msgs::ModelInputParameters model_input_params_;
+  framefab_msgs::TaskSequenceInputParameters task_sequence_input_params_;
+  framefab_msgs::RobotInputParameters robot_input_params_;
   framefab_msgs::OutputSaveDirInputParameters 	output_save_dir_input_params_;
 
-  framefab_msgs::ModelInputParameters 	default_model_input_params_;
-  framefab_msgs::TaskSequenceInputParameters 	default_task_sequence_input_params_;
-  framefab_msgs::RobotInputParameters   default_robot_input_params_;
-  framefab_msgs::OutputSaveDirInputParameters 	default_output_save_dir_input_params_;
+  framefab_msgs::ModelInputParameters default_model_input_params_;
+  framefab_msgs::TaskSequenceInputParameters default_task_sequence_input_params_;
+  framefab_msgs::RobotInputParameters default_robot_input_params_;
+  framefab_msgs::OutputSaveDirInputParameters default_output_save_dir_input_params_;
 
   // Parameter loading and saving
   bool save_data_;

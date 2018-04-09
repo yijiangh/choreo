@@ -1,5 +1,8 @@
-int32 PROCESS_TASK_AND_MARKER=0
+# TODO: this action param should be included in model input params
+int32 SPATIAL_EXTRUSION=1
+int32 PICKNPLACE=2
 
+# process types
 int32 action
 
 framefab_msgs/ModelInputParameters model_params
@@ -12,7 +15,10 @@ string world_frame
 #result
 bool succeeded
 
-# joint pose for reset position
+framefab_msgs/AssemblySequencePickNPlace assembly_sequence_pnp
+
+# DEPRECATED
+# parsed squenced element for 3D printing
 framefab_msgs/ElementCandidatePoses[] process
 
 # working env objects

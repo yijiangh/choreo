@@ -76,7 +76,7 @@
     <rect>
      <x>310</x>
      <y>30</y>
-     <width>139</width>
+     <width>140</width>
      <height>31</height>
     </rect>
    </property>
@@ -86,7 +86,7 @@
       <property name="inputMask">
        <string/>
       </property>
-      <property name="clearButtonEnabled">
+      <property name="clearButtonEnabled" stdset="0">
        <bool>false</bool>
       </property>
      </widget>
@@ -118,7 +118,7 @@
     <rect>
      <x>220</x>
      <y>70</y>
-     <width>241</width>
+     <width>243</width>
      <height>128</height>
     </rect>
    </property>
@@ -175,31 +175,31 @@
     <bool>false</bool>
    </property>
    <property name="currentIndex">
-    <number>1</number>
+    <number>0</number>
    </property>
    <property name="documentMode">
     <bool>false</bool>
    </property>
    <widget class="QWidget" name="tab_zoom_in">
     <attribute name="title">
-     <string>Ladder Graph Zoom In</string>
+     <string>Grasp Visualizer</string>
     </attribute>
     <widget class="QWidget" name="horizontalLayoutWidget_3">
      <property name="geometry">
       <rect>
        <x>310</x>
-       <y>30</y>
-       <width>139</width>
+       <y>70</y>
+       <width>140</width>
        <height>31</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_3">
       <item>
-       <widget class="QLineEdit" name="lineedit_select_orient">
+       <widget class="QLineEdit" name="lineedit_select_grasp">
         <property name="inputMask">
          <string/>
         </property>
-        <property name="clearButtonEnabled">
+        <property name="clearButtonEnabled" stdset="0">
          <bool>false</bool>
         </property>
        </widget>
@@ -212,7 +212,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="lineedit_max_orient">
+       <widget class="QLineEdit" name="lineedit_max_grasp_num">
         <property name="enabled">
          <bool>false</bool>
         </property>
@@ -225,22 +225,6 @@
        </widget>
       </item>
      </layout>
-    </widget>
-    <widget class="QPushButton" name="pushbutton_simulate_single_process">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>170</y>
-       <width>231</width>
-       <height>27</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Simulate Chosen Single Process</string>
-     </property>
     </widget>
     <widget class="QLabel" name="label_7">
      <property name="geometry">
@@ -255,33 +239,23 @@
       <string>IK Solutions</string>
      </property>
     </widget>
-    <widget class="QSlider" name="slider_select_local_axis">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>80</y>
-       <width>281</width>
-       <height>29</height>
-      </rect>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
     <widget class="QLabel" name="label_4">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>10</y>
+       <y>50</y>
        <width>67</width>
        <height>17</height>
       </rect>
      </property>
      <property name="text">
-      <string>Orient ID</string>
+      <string>Grasp</string>
      </property>
     </widget>
     <widget class="QSlider" name="slider_select_ik_solution">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -299,17 +273,20 @@
       <rect>
        <x>310</x>
        <y>130</y>
-       <width>139</width>
+       <width>140</width>
        <height>31</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_5">
       <item>
        <widget class="QLineEdit" name="lineedit_select_ik_solution">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="inputMask">
          <string/>
         </property>
-        <property name="clearButtonEnabled">
+        <property name="clearButtonEnabled" stdset="0">
          <bool>false</bool>
         </property>
        </widget>
@@ -336,53 +313,11 @@
       </item>
      </layout>
     </widget>
-    <widget class="QWidget" name="horizontalLayoutWidget_4">
-     <property name="geometry">
-      <rect>
-       <x>310</x>
-       <y>80</y>
-       <width>139</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_4">
-      <item>
-       <widget class="QLineEdit" name="lineedit_select_local_axis">
-        <property name="inputMask">
-         <string/>
-        </property>
-        <property name="clearButtonEnabled">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="label_6">
-        <property name="text">
-         <string>/</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLineEdit" name="lineedit_max_local_axis">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="frame">
-         <bool>true</bool>
-        </property>
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-    <widget class="QSlider" name="slider_select_orient">
+    <widget class="QSlider" name="slider_select_grasp">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>30</y>
+       <y>70</y>
        <width>281</width>
        <height>29</height>
       </rect>
@@ -391,33 +326,17 @@
       <enum>Qt::Horizontal</enum>
      </property>
     </widget>
-    <widget class="QLabel" name="label_5">
+    <widget class="QCheckBox" name="checkbox_visualize_ee">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>60</y>
-       <width>67</width>
-       <height>17</height>
+       <y>20</y>
+       <width>181</width>
+       <height>22</height>
       </rect>
      </property>
      <property name="text">
-      <string>Local Axis</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="pushbutton_output_chosen_pose">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>200</y>
-       <width>231</width>
-       <height>27</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Output Chosen Pose</string>
+      <string>Visualize end effector</string>
      </property>
     </widget>
    </widget>
@@ -560,7 +479,7 @@
       <rect>
        <x>250</x>
        <y>200</y>
-       <width>139</width>
+       <width>140</width>
        <height>31</height>
       </rect>
      </property>
@@ -573,7 +492,7 @@
         <property name="readOnly">
          <bool>true</bool>
         </property>
-        <property name="clearButtonEnabled">
+        <property name="clearButtonEnabled" stdset="0">
          <bool>false</bool>
         </property>
        </widget>
