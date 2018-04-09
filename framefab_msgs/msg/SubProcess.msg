@@ -9,6 +9,10 @@ int32 CREATE=4
 int32 CONNECT=5
 int32 NONE=6
 
+# element type extension
+int32 PICK=7
+int32 PLACE=8
+
 # Enumeration retraction type
 int32 APPROACH=7
 int32 DEPART=8

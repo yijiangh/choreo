@@ -1,9 +1,9 @@
 //
 // Created by yijiangh on 7/5/17.
 //
-#include <string>
-
 #include "framefab_core/framefab_core_service.h"
+
+#include <choreo_planning_capability/choreo_assembly_type_names.h>
 
 // services
 #include <framefab_msgs/ProcessPlanning.h>
@@ -25,7 +25,7 @@ bool FrameFabCoreService::generateMotionLibrary(
   return plan.plans.size() > 0;
 }
 
-ProcessPlanResult FrameFabCoreService::generateProcessPlan(const int selected_path_index)
+ProcessPlanResult FrameFabCoreService::generateProcessPlan(const int& selected_path_index)
 {
   ProcessPlanResult result;
 
@@ -53,26 +53,35 @@ ProcessPlanResult FrameFabCoreService::generateProcessPlan(const int selected_pa
   srv.request.clt_rrt_unit_process_timeout = model_input_params_.clt_rrt_unit_process_timeout;
   srv.request.clt_rrt_timeout = model_input_params_.clt_rrt_timeout;
 
-  if(!task_sequence_planning_srv_client_.call(ts_srv))
+  if(choreo::ASSEMBLY_TYPE_PICKNPLACE == assembly_type_)
   {
-    ROS_ERROR_STREAM("[Core] task sequence planning service read wireframe failed.");
-    success = false;
-  }
-  else
-  {
-    ts_srv.request.action = ts_srv.request.REQUEST_COLLISION_OBJS;
-    ts_srv.request.element_array = std::vector<framefab_msgs::ElementCandidatePoses>(
-        task_sequence_.begin(), task_sequence_.begin() + selected_path_index + 1);
 
-    if (!task_sequence_planning_srv_client_.call(ts_srv))
+  }
+
+  if(choreo::ASSEMBLY_TYPE_SPATIAL_EXTRUSION == assembly_type_)
+  {
+    // first call sequence planner to request collision object (because it has model configuration ability...)
+    if(!task_sequence_planning_srv_client_.call(ts_srv))
     {
-      ROS_WARN_STREAM("[Core] task sequence planning service construct collision objects failed.");
+      ROS_ERROR_STREAM("[Core] task sequence planning service read wireframe failed.");
       success = false;
     }
     else
     {
-      srv.request.wf_collision_objs = ts_srv.response.wf_collision_objs;
-      success = true;
+      ts_srv.request.action = ts_srv.request.REQUEST_COLLISION_OBJS;
+      ts_srv.request.element_array = std::vector<framefab_msgs::ElementCandidatePoses>(
+          task_sequence_.begin(), task_sequence_.begin() + selected_path_index + 1);
+
+      if (!task_sequence_planning_srv_client_.call(ts_srv))
+      {
+        ROS_WARN_STREAM("[Core] task sequence planning service construct collision objects failed.");
+        success = false;
+      }
+      else
+      {
+        srv.request.wf_collision_objs = ts_srv.response.wf_collision_objs;
+        success = true;
+      }
     }
   }
 
@@ -96,12 +105,12 @@ ProcessPlanResult FrameFabCoreService::generateProcessPlan(const int selected_pa
   return result;
 }
 
-bool FrameFabCoreService::generatePicknPlaceMotionLibrary()
-{
-  framefab_msgs::PickNPlacePlanning srv;
-
-  return picknplace_planning_client_.call(srv);
-}
+//bool FrameFabCoreService::generatePicknPlaceMotionLibrary()
+//{
+//  framefab_msgs::PickNPlacePlanning srv;
+//
+//  return picknplace_planning_client_.call(srv);
+//}
 
 bool FrameFabCoreService::moveToTargetJointPose(std::vector<double> joint_pose)
 {

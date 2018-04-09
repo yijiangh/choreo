@@ -26,6 +26,7 @@
   <depend>visualization_msgs</depend>
   <depend>framefab_param_helpers</depend>
 
+  <depend>choreo_planning_capability</depend>
   <depend>choreo_visual_tools</depend>
 
   <build_depend>moveit_ros_move_group</build_depend>

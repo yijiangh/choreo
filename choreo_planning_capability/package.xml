@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>choreo_planning_capability</name>
+  <version>0.1.0</version>
+  <description>
+		This package provides a unified assembly_type (capability) naming across various choreo packages.
+  </description>
+
+  <maintainer email="yijiangh@mit.edu">Yijiang Huang</maintainer>
+  <license>Apache 2.0</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+</package>

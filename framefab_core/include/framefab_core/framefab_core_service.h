@@ -97,7 +97,10 @@ class FrameFabCoreService
       const int selected_path_index,
       framefab_core_service::TrajectoryLibrary& traj_lib);
 
-  ProcessPlanResult generateProcessPlan(const int index);
+  // call task sequence planner to request collision objects
+  // and then call process planner node to trigger process planning
+  // TODO:
+  ProcessPlanResult generateProcessPlan(const int& index);
 
   // immediate plan & execution for resetting the robot
   bool moveToTargetJointPose(std::vector<double> joint_pose);
@@ -180,6 +183,8 @@ class FrameFabCoreService
   std::string save_location_;
   std::string param_cache_prefix_;
   std::string world_frame_;
+
+  std::string assembly_type_;
 };
 
 #endif

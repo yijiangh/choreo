@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
 	descartes_msgs
 	visualization_msgs
 	choreo_visual_tools
+	choreo_planning_capability
 	)
 
 find_package(OpenMP REQUIRED)
@@ -41,6 +42,7 @@ catkin_package(
 	visualization_msgs
 	descartes_msgs
 	choreo_visual_tools
+	choreo_planning_capability
 )
 
 
