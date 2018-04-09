@@ -5,16 +5,6 @@
 #include <framefab_process_planning/framefab_process_planning.h>
 #include <ros/console.h>
 
-// MoveIt!
-#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-#include <moveit/move_group_interface/move_group.h>
-#include <geometric_shapes/solid_primitive_dims.h>
-
-// msg
-#include <trajectory_msgs/JointTrajectory.h>
-#include <shape_msgs/SolidPrimitive.h>
-#include <moveit_msgs/Grasp.h>
-
 #include "path_transitions.h"
 #include "common_utils.h"
 
@@ -36,18 +26,13 @@ bool ProcessPlanningManager::handlePickNPlacePlanning(
     framefab_msgs::ProcessPlanning::Request& req,
     framefab_msgs::ProcessPlanning::Response& res)
 {
-//  // Enable Collision Checks
-//  hotend_model_->setCheckCollisions(true);
-//
-//  if (req.task_sequence.empty())
-//  {
-//    ROS_WARN("[Process Planning] Planning request contained no process path. Nothing to be done.");
-//    return true;
-//  }
-//
+  // Enable Collision Checks
+  hotend_model_->setCheckCollisions(true);
+
+  assert(req.as_pnp.sequenced_elements.size() > 0);
+
 //  const static double LINEAR_VEL = 0.1; // (m/s)
-//  const static double RETRACT_DISTANCE = 0.010; // meters
-//
+
 //  const static double LINEAR_DISCRETIZATION = 0.005; // meters
 //  // the distance between angular steps about z for each orientationcreateCollisionObject
 //  const static double ANGULAR_DISCRETIZATION = PRINT_ANGLE_DISCRETIZATION; // radians
