@@ -64,6 +64,7 @@ bool ProcessPlanningManager::handlePickNPlacePlanning(
 //    addCollisionObject(planning_scene_diff_client_, obj);
 //  }
 
+  // TODO: remember to crop the assembly seq according to the requested id
 //  if(generateMotionPlan(hotend_model_, constrained_segs, chosen_task_seq, req.wf_collision_objs, world_frame_,
 //                        req.use_saved_graph, req.file_name,
 //                        req.clt_rrt_unit_process_timeout, req.clt_rrt_timeout,

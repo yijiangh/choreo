@@ -12,10 +12,12 @@ find_package(catkin REQUIRED COMPONENTS
 	#
   geometry_msgs
 	shape_msgs
+	moveit_msgs
   framefab_msgs
 )
 
 find_package(Eigen3 REQUIRED)
+find_package(Boost REQUIRED COMPONENTS filesystem)
 
 # Catkin
 catkin_package(
@@ -28,6 +30,7 @@ catkin_package(
 		#
 		geometry_msgs
 	  shape_msgs
+		moveit_msgs
 	  framefab_msgs
 	DEPENDS EIGEN3
 	INCLUDE_DIRS include
@@ -51,7 +54,7 @@ add_library(${PROJECT_NAME}
 
 #add_dependencies(${PROJECT_NAME} graph_msgs_generate_messages_cpp)
 
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 #############
 ## Install ##

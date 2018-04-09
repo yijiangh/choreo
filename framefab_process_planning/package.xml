@@ -31,6 +31,7 @@
 
   <depend>choreo_planning_capability</depend>
   <depend>framefab_param_helpers</depend>
+  <depend>choreo_geometry_conversion_helpers</depend>
   <depend>eigen_conversions</depend>
 
 </package>

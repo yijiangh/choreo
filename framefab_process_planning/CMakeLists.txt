@@ -19,8 +19,11 @@ find_package(catkin REQUIRED COMPONENTS
 	rviz_visual_tools
 	choreo_planning_capability
 	framefab_param_helpers
+	choreo_geometry_conversion_helpers
 	eigen_conversions
 	)
+
+find_package(Boost REQUIRED COMPONENTS filesystem)
 
 catkin_package(
 	INCLUDE_DIRS include
@@ -41,6 +44,7 @@ catkin_package(
 	rviz_visual_tools
 	choreo_planning_capability
 	framefab_param_helpers
+	choreo_geometry_conversion_helpers
 	eigen_conversions
 )
 
@@ -51,6 +55,7 @@ catkin_package(
 include_directories(
 	include
 	${catkin_INCLUDE_DIRS}
+	${Boost_INCLUDE_DIRS}
 )
 
 ## Declare a cpp executable
