@@ -3,6 +3,9 @@
 #include <tf_conversions/tf_eigen.h>
 #include <eigen_conversions/eigen_msg.h>
 
+// msg
+#include <visualization_msgs/MarkerArray.h>
+
 #include <boost/filesystem.hpp>
 
 const static rviz_visual_tools::colors PICK_COLOR = rviz_visual_tools::BLUE;
@@ -20,6 +23,8 @@ const static rviz_visual_tools::colors EXIST_ELEMENT_COLOR = rviz_visual_tools::
 const static rviz_visual_tools::colors GRASP_POSE_COLOR = rviz_visual_tools::RED;
 const static rviz_visual_tools::colors PRE_GRASP_POSE_COLOR = rviz_visual_tools::ORANGE;
 const static rviz_visual_tools::colors POST_GRASP_POSE_COLOR = rviz_visual_tools::ORANGE;
+
+const static rviz_visual_tools::colors END_EFFECTOR_COLOR = rviz_visual_tools::TRANSLUCENT_DARK;
 
 const static rviz_visual_tools::scales GRASP_POSE_ARROW_SIZE = rviz_visual_tools::XXXSMALL;
 
@@ -40,6 +45,9 @@ void choreo_visual_tools::ChoreoVisualTools::init(std::string frame_name,
 {
   visual_tools_.reset(
       new moveit_visual_tools::MoveItVisualTools(frame_name, marker_topic, robot_model));
+
+  visual_tools_->setLifetime(120.0);
+  visual_tools_->loadMarkerPub();
 
   // Clear messages
   visual_tools_->deleteAllMarkers();
@@ -339,19 +347,34 @@ void choreo_visual_tools::ChoreoVisualTools::visualizeGraspPickNPlace(int index,
   if (visualize_ee)
   {
     // TODO: hardcoded end effector group now!
-
-    // TODO: both at picking and placing position
     const robot_model::JointModelGroup
         *pick_ee_jmg = visual_tools_->getRobotModel()->getJointModelGroup(EE_GROUP_NAME);
     assert(visual_tools_->loadEEMarker(pick_ee_jmg));
 
-    assert(visual_tools_->publishEEMarkers(g.pick_grasp_pose, pick_ee_jmg, rviz_visual_tools::ORANGE, "test_eef"));
+//    visual_tools_->loadSharedRobotState();
+//    auto& sbot = visual_tools_->getSharedRobotState();
+//    sbot->setToDefaultValues();
+//    sbot->update();
+//
+//    const std::vector<std::string>& ee_link_names = pick_ee_jmg->getLinkModelNames();
+//    for(auto s : ee_link_names)
+//    {
+//      ROS_INFO_STREAM("ee group link name : " << s);
+//    }
+//
+//    visualization_msgs::MarkerArray vm;
+//    std_msgs::ColorRGBA marker_color = visual_tools_->getColor(rviz_visual_tools::GREY);
+//    sbot->getRobotMarkers(vm, ee_link_names, marker_color, pick_ee_jmg->getName(),
+//                                         ros::Duration());
+//    ROS_INFO_STREAM("Number of rviz markers in end effector: " << vm.markers.size());
+
+    assert(visual_tools_->publishEEMarkers(g.pick_grasp_pose, pick_ee_jmg, END_EFFECTOR_COLOR));
 
     const robot_model::JointModelGroup
         *place_ee_jmg = visual_tools_->getRobotModel()->getJointModelGroup(EE_GROUP_NAME);
     assert(visual_tools_->loadEEMarker(place_ee_jmg));
 
-    assert(visual_tools_->publishEEMarkers(g.place_grasp_pose, place_ee_jmg, rviz_visual_tools::ORANGE, "test_eef"));
+    assert(visual_tools_->publishEEMarkers(g.place_grasp_pose, place_ee_jmg, END_EFFECTOR_COLOR));
   }
 
   visual_tools_->trigger();

@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
 	framefab_param_helpers
 	framefab_msgs
 	descartes_msgs
+	visualization_msgs
 	choreo_visual_tools
 	)
 
@@ -37,6 +38,7 @@ catkin_package(
 	tf_conversions
 	framefab_param_helpers
 	framefab_msgs
+	visualization_msgs
 	descartes_msgs
 	choreo_visual_tools
 )

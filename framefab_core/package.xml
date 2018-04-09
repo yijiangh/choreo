@@ -23,6 +23,7 @@
   <depend>tf_conversions</depend>
   <depend>framefab_msgs</depend>
   <depend>descartes_msgs</depend>
+  <depend>visualization_msgs</depend>
   <depend>framefab_param_helpers</depend>
 
   <depend>choreo_visual_tools</depend>

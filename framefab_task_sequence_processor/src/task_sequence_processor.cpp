@@ -29,11 +29,6 @@ void scalePoseMsg(const double& scale, geometry_msgs::Pose& p)
   p.position.x *= scale;
   p.position.y *= scale;
   p.position.z *= scale;
-
-//  p.orientation.x *= scale;
-//  p.orientation.y *= scale;
-//  p.orientation.z *= scale;
-//  p.orientation.w *= scale;
 }
 
 void scalePoseFramefabMsg(const double& scale, framefab_msgs::Grasp& g)

@@ -184,7 +184,6 @@ void framefab_gui::SelectionWidget::setMaxValue(int m)
 
 void framefab_gui::SelectionWidget::setMaxGraspNum(int m)
 {
-  // TODO: not fully supported yet
   assert(m > 0);
   max_grasp_num_ = m - 1;
 
