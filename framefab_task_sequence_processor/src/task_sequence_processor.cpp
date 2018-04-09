@@ -23,6 +23,29 @@ Eigen::Vector3d transformPoint(const Eigen::Vector3d &pt, const double &scale, c
 {
   return (pt * scale + ref_transf);
 }
+
+void scalePoseMsg(const double& scale, geometry_msgs::Pose& p)
+{
+  p.position.x *= scale;
+  p.position.y *= scale;
+  p.position.z *= scale;
+
+//  p.orientation.x *= scale;
+//  p.orientation.y *= scale;
+//  p.orientation.z *= scale;
+//  p.orientation.w *= scale;
+}
+
+void scalePoseFramefabMsg(const double& scale, framefab_msgs::Grasp& g)
+{
+  scalePoseMsg(scale, g.pick_grasp_pose);
+  scalePoseMsg(scale, g.pick_grasp_approach_pose);
+  scalePoseMsg(scale, g.pick_grasp_retreat_pose);
+
+  scalePoseMsg(scale, g.place_grasp_pose);
+  scalePoseMsg(scale, g.place_grasp_approach_pose);
+  scalePoseMsg(scale, g.place_grasp_retreat_pose);
+}
 }
 
 framefab_task_sequence_processing::TaskSequenceProcessor::TaskSequenceProcessor()
@@ -133,7 +156,9 @@ bool framefab_task_sequence_processing::TaskSequenceProcessor::parseAssemblySequ
   const Value& pick_bcp = document["pick_base_center_point"];
   const Value& place_bcp = document["place_base_center_point"];
   Eigen::Vector3d pick_base_center_pt(pick_bcp["X"].GetDouble(), pick_bcp["Y"].GetDouble(), pick_bcp["Z"].GetDouble());
+  pick_base_center_pt *= unit_scale_;
   Eigen::Vector3d place_base_center_pt(place_bcp["X"].GetDouble(), place_bcp["Y"].GetDouble(), place_bcp["Z"].GetDouble());
+  place_base_center_pt *= unit_scale_;
 
   // wire in base center point msg TODO: this should be a frame!!
   tf::pointEigenToMsg(pick_base_center_pt, as_pnp.pick_base_center_point);
@@ -258,6 +283,8 @@ bool framefab_task_sequence_processing::TaskSequenceProcessor::parseAssemblySequ
       framefab_msgs::Grasp g_msg;
 
       jsonToGraspFrameFabMsg(se["grasps"][j], g_msg);
+      scalePoseFramefabMsg(unit_scale_, g_msg);
+
       se_msg.grasps.push_back(g_msg);
     }
 

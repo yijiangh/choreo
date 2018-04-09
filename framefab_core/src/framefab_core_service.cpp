@@ -339,6 +339,13 @@ bool FrameFabCoreService::elementNumberRequestServerCallback(
       res.element_number =
           visual_tools_.getPathArraySize() == 0 ? as_pnp_.element_number : visual_tools_.getPathArraySize();
 
+      res.grasp_nums.clear();
+      for(const auto& se : as_pnp_.sequenced_elements)
+      {
+        assert(se.grasps.size() > 0);
+        res.grasp_nums.push_back(se.grasps.size());
+      }
+
       break;
     }
     case framefab_msgs::ElementNumberRequest::Request::REQUEST_SELECTED_TASK_NUMBER:
@@ -351,9 +358,11 @@ bool FrameFabCoreService::elementNumberRequestServerCallback(
     {
       res.element_number = 0;
       ROS_ERROR_STREAM("Unknown parameter loading request in selection widget");
-      break;
+      return false;
     }
   }
+
+  return true;
 }
 
 bool FrameFabCoreService::visualizeSelectedPathServerCallback(
@@ -366,7 +375,7 @@ bool FrameFabCoreService::visualizeSelectedPathServerCallback(
     {
       // TODO, get seq id and grasp id, trigger visualization, visualize_ee option
       visual_tools_.visualizeSequencePickNPlaceUntil(req.index);
-//      visual_tools_.visualizeGraspPickNPlace(req.index, req.grasp_id, req.grasp_id);
+      visual_tools_.visualizeGraspPickNPlace(req.index, req.grasp_id, req.visualize_ee);
     }
 
     if(req.SPATIAL_EXTRUSION == req.assembly_type)

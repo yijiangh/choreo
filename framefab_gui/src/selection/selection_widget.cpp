@@ -39,7 +39,9 @@ void convertParsedAssemblyTypeString(const std::string& p_at, framefab_gui::Sele
   }
 
   // only supports these two for now
-  assert(p_at == "picknplace" || p_at == "spatial_extrusion");
+  // TODO: default value here for now
+  at = framefab_gui::SelectionWidget::ASSEMBLY_TYPE::PICKNPLACE;
+//  assert(p_at == "picknplace" || p_at == "spatial_extrusion");
 }
 
 } // anon util namespace
@@ -47,8 +49,9 @@ void convertParsedAssemblyTypeString(const std::string& p_at, framefab_gui::Sele
 framefab_gui::SelectionWidget::SelectionWidget(QWidget* parent) : QWidget(parent),
                                                                   mode_(PATH_SELECTION),
                                                                   sim_type_(SIMULATE_TYPE::SINGLE),
-                                                                  selected_value_(-1),
-                                                                  selected_grasp_id_(-1),
+                                                                  selected_value_(0),
+                                                                  selected_grasp_id_(0),
+                                                                  visualize_ee_(false),
                                                                   use_saved_result_(false)
 {
   // UI setup
@@ -182,7 +185,7 @@ void framefab_gui::SelectionWidget::setMaxValue(int m)
 void framefab_gui::SelectionWidget::setMaxGraspNum(int m)
 {
   // TODO: not fully supported yet
-//  assert(m > 0);
+  assert(m > 0);
   max_grasp_num_ = m - 1;
 
   ui_->slider_select_grasp->setMaximum(max_grasp_num_);
@@ -196,10 +199,14 @@ void framefab_gui::SelectionWidget::orderValueChanged()
   ui_->slider_select_number->setValue(selected_value_);
   ui_->lineedit_select_number->setText(QString::number(selected_value_));
 
-  // TODO grasp not supported yet
-//  assert(grasp_nums_.size() > selected_value_);
-//  setMaxGraspNum(grasp_nums_[selected_value_]);
-  setMaxGraspNum(0);
+  // synchronize grasp id slider and lineedit
+  assert(grasp_nums_.size() > selected_value_);
+  setMaxGraspNum(grasp_nums_[selected_value_]);
+
+  //sync checkbox
+  ui_->checkbox_visualize_ee->setChecked(visualize_ee_);
+
+
   if(selected_grasp_id_ > max_grasp_num_)
   {
     selected_grasp_id_ = 0;
@@ -219,10 +226,10 @@ void framefab_gui::SelectionWidget::orderValueChanged()
   srv.request.visualize_ee = visualize_ee_;
   srv.request.grasp_id = selected_grasp_id_;
 
-  if(PATH_SELECTION == mode_)
-  {
-
-  }
+//  if(PATH_SELECTION == mode_)
+//  {
+//
+//  }
 
   if(PLAN_SELECTION == mode_)
   {
@@ -656,19 +663,19 @@ void framefab_gui::SelectionWidget::lineeditUpdateOrderValue()
 void framefab_gui::SelectionWidget::checkboxEEVisualUpdateValue()
 {
   visualize_ee_ = ui_->checkbox_visualize_ee->isChecked();
-//  orderValueChanged();
+  orderValueChanged();
 }
 
 void framefab_gui::SelectionWidget::sliderUpdateSelectedGraspValue(int value)
 {
   selected_grasp_id_ = value;
-//  orderValueChanged();
+  orderValueChanged();
 }
 
 void framefab_gui::SelectionWidget::lineeditUpdateSelectedGraspValue()
 {
   selected_value_ = ui_->lineedit_select_grasp->text().toInt();
-//  orderValueChanged();
+  orderValueChanged();
 }
 
 void framefab_gui::SelectionWidget::sliderUpdateSimSpeed(int value)

@@ -328,13 +328,13 @@ void choreo_visual_tools::ChoreoVisualTools::visualizeGraspPickNPlace(int index,
 
   const auto& g = as_pnp_.sequenced_elements[index].grasps[grasp_id];
 
-  visual_tools_->publishArrow(g.pick_grasp_pose, GRASP_POSE_COLOR, GRASP_POSE_ARROW_SIZE);
-  visual_tools_->publishArrow(g.pick_grasp_approach_pose, PRE_GRASP_POSE_COLOR, GRASP_POSE_ARROW_SIZE);
-  visual_tools_->publishArrow(g.pick_grasp_retreat_pose, POST_GRASP_POSE_COLOR, GRASP_POSE_ARROW_SIZE);
+  visual_tools_->publishAxis(g.pick_grasp_pose, GRASP_POSE_ARROW_SIZE);
+  visual_tools_->publishAxis(g.pick_grasp_approach_pose, GRASP_POSE_ARROW_SIZE);
+  visual_tools_->publishAxis(g.pick_grasp_retreat_pose, GRASP_POSE_ARROW_SIZE);
 
-  visual_tools_->publishArrow(g.pick_grasp_pose, GRASP_POSE_COLOR, GRASP_POSE_ARROW_SIZE);
-  visual_tools_->publishArrow(g.place_grasp_approach_pose, PRE_GRASP_POSE_COLOR, GRASP_POSE_ARROW_SIZE);
-  visual_tools_->publishArrow(g.place_grasp_retreat_pose, POST_GRASP_POSE_COLOR, GRASP_POSE_ARROW_SIZE);
+  visual_tools_->publishAxis(g.place_grasp_pose, GRASP_POSE_ARROW_SIZE);
+  visual_tools_->publishAxis(g.place_grasp_approach_pose, GRASP_POSE_ARROW_SIZE);
+  visual_tools_->publishAxis(g.place_grasp_retreat_pose, GRASP_POSE_ARROW_SIZE);
 
   if (visualize_ee)
   {
@@ -343,15 +343,15 @@ void choreo_visual_tools::ChoreoVisualTools::visualizeGraspPickNPlace(int index,
     // TODO: both at picking and placing position
     const robot_model::JointModelGroup
         *pick_ee_jmg = visual_tools_->getRobotModel()->getJointModelGroup(EE_GROUP_NAME);
-    visual_tools_->loadEEMarker(pick_ee_jmg);
+    assert(visual_tools_->loadEEMarker(pick_ee_jmg));
 
-    visual_tools_->publishEEMarkers(g.pick_grasp_pose, pick_ee_jmg, rviz_visual_tools::ORANGE, "test_eef");
+    assert(visual_tools_->publishEEMarkers(g.pick_grasp_pose, pick_ee_jmg, rviz_visual_tools::ORANGE, "test_eef"));
 
     const robot_model::JointModelGroup
         *place_ee_jmg = visual_tools_->getRobotModel()->getJointModelGroup(EE_GROUP_NAME);
-    visual_tools_->loadEEMarker(place_ee_jmg);
+    assert(visual_tools_->loadEEMarker(place_ee_jmg));
 
-    visual_tools_->publishEEMarkers(g.place_grasp_pose, place_ee_jmg, rviz_visual_tools::ORANGE, "test_eef");
+    assert(visual_tools_->publishEEMarkers(g.place_grasp_pose, place_ee_jmg, rviz_visual_tools::ORANGE, "test_eef"));
   }
 
   visual_tools_->trigger();
