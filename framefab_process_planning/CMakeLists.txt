@@ -68,9 +68,11 @@ add_executable(framefab_process_planning_node
 	src/picknplace_planning.cpp
 	#
 	src/trajectory_utils.cpp
-	src/generate_motion_plan.cpp
 	src/path_transitions.cpp
 	src/common_utils.cpp
+	#
+	src/generate_motion_plan.cpp
+	src/construct_planning_scene.cpp
 	)
 
 ## Add cmake target dependencies of the executable/library

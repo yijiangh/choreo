@@ -92,15 +92,21 @@ void savedSTLToMeshShapeMsg(const std::string& file_path, const Eigen::Vector3d&
   mesh = boost::get<shape_msgs::Mesh>(mesh_msg);
 }
 
-shape_msgs::Mesh savedSTLToMeshShapeMsg(const std::string& file_path, const Eigen::Vector3d& scale_vector)
+moveit_msgs::CollisionObject savedSTLToCollisionObjectMsg(const std::string& file_path,
+                                                          const Eigen::Vector3d& scale_vector,
+                                                          const std::string& frame_id,
+                                                          const geometry_msgs::Pose& p,
+                                                          int object_operation)
 {
-  shape_msgs::Mesh m;
-  savedSTLToMeshShapeMsg(file_path, scale_vector, m);
+  moveit_msgs::CollisionObject co;
 
-  return m;
+  savedSTLToCollisionObjectMsg(file_path, scale_vector, frame_id, p, co, object_operation);
+
+  return co;
 }
 
-void savedSTLToCollisionObjectMsg(const std::string& file_path, const Eigen::Vector3d& scale_vector,
+void savedSTLToCollisionObjectMsg(const std::string& file_path,
+                                  const Eigen::Vector3d& scale_vector,
                                   const std::string& frame_id,
                                   const geometry_msgs::Pose& p,
                                   moveit_msgs::CollisionObject& co,
@@ -110,25 +116,80 @@ void savedSTLToCollisionObjectMsg(const std::string& file_path, const Eigen::Vec
 
   boost::filesystem::path boost_path(file_path);
 
-  savedSTLToCollisionObjectMsg(file_path, scale_vector, frame_id, boost_path.filename().string(), p, co, object_operation);
+  savedSTLToCollisionObjectMsg(file_path, scale_vector, frame_id,
+                               boost_path.filename().string(),
+                               p, co, object_operation);
 }
 
-void savedSTLToCollisionObjectMsg(const std::string& file_path, const Eigen::Vector3d& scale_vector,
-                                  const std::string& frame_id, const std::string& obj_id,
+void savedSTLToCollisionObjectMsg(const std::string& file_path,
+                                  const Eigen::Vector3d& scale_vector,
+                                  const std::string& frame_id,
+                                  const std::string& obj_id,
                                   const geometry_msgs::Pose& p,
                                   moveit_msgs::CollisionObject& co,
-                                  int object_operation)
+                                  int op)
 {
+  assert(boost::filesystem::exists(file_path));
+
   co.header.frame_id = frame_id;
   co.id = obj_id;
 
   co.meshes.resize(1);
   co.mesh_poses.resize(1);
 
-  co.meshes[0] = savedSTLToCollisionObjectMsg(file_path, scale_vector);
+  savedSTLToMeshShapeMsg(file_path, scale_vector, co.meshes[0]);
   co.mesh_poses[0] = p;
 
-  co.operation = object_operation;
+  assert(co.ADD == op || co.REMOVE == op || co.APPEND == op || co.MOVE == op);
+  co.operation = op;
+}
+
+moveit_msgs::AttachedCollisionObject savedSTLToAttachedCollisionObjectMsg(
+    const std::string& file_path,
+    const Eigen::Vector3d& scale_vector,
+    const std::string& frame_id,
+    const std::string& link_id,
+    const geometry_msgs::Pose& p,
+    int object_operation)
+{
+  moveit_msgs::AttachedCollisionObject ato;
+
+  savedSTLToAttachedCollisionObjectMsg(file_path, scale_vector, frame_id, link_id, p, ato, object_operation);
+
+  return ato;
+}
+
+void savedSTLToAttachedCollisionObjectMsg(const std::string& file_path,
+                                          const Eigen::Vector3d& scale_vector,
+                                          const std::string& frame_id,
+                                          const std::string& link_id,
+                                          const geometry_msgs::Pose& p,
+                                          moveit_msgs::AttachedCollisionObject& aco,
+                                          int object_operation)
+{
+  assert(boost::filesystem::exists(file_path));
+
+  boost::filesystem::path boost_path(file_path);
+
+  savedSTLToAttachedCollisionObjectMsg(file_path, scale_vector, frame_id, link_id,
+                                       boost_path.filename().string(),
+                                       p, aco, object_operation);
+}
+
+void savedSTLToAttachedCollisionObjectMsg(const std::string& file_path,
+                                          const Eigen::Vector3d& scale_vector,
+                                          const std::string& frame_id,
+                                          const std::string& link_id,
+                                          const std::string& obj_id,
+                                          const geometry_msgs::Pose& p,
+                                          moveit_msgs::AttachedCollisionObject& aco,
+                                          int object_operation)
+{
+  aco.link_name = link_id;
+
+  // use default touch link
+
+  savedSTLToCollisionObjectMsg(file_path, scale_vector, frame_id, obj_id, p, aco.object, object_operation);
 }
 
 }

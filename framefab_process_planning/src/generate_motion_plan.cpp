@@ -7,7 +7,7 @@
 #include "path_transitions.h"
 #include "common_utils.h"
 
-#include <choreo_geometry_conversion_helpers/choreo_geometry_conversion_helpers.h>
+#include "construct_planning_scene.h"
 
 // cap ladder tree RRTstar
 #include <choreo_descartes_planner/choreo_ladder_graph_builder.h>
@@ -43,22 +43,16 @@
 #include <descartes_msgs/LadderGraphList.h>
 
 #include <shape_msgs/Mesh.h>
-#include <moveit_msgs/PlanningSceneComponents.h>
 #include <moveit_msgs/PlanningScene.h>
 
 // srv
 #include <moveit_msgs/ApplyPlanningScene.h>
-#include <moveit_msgs/GetPlanningScene.h>
 #include <eigen_conversions/eigen_msg.h>
 
 #include <ros/console.h>
 #include <Eigen/Geometry>
 
 #include <boost/filesystem.hpp>
-
-const static std::string PICKNPLACE_EEF_NAME = "mit_arch_suction_gripper";
-
-const static std::string GET_PLANNING_SCENE_SERVICE = "get_planning_scene";
 
 const static int TRANSITION_PLANNING_LOOP_COUNT = 5;
 
@@ -72,245 +66,10 @@ bool saveLadderGraph(const std::string &filename, const descartes_msgs::LadderGr
   }
 }
 
-void setEmptyPoseMsg(geometry_msgs::Pose& pose)
-{
-  pose.position.x = 0.0;
-  pose.position.y = 0.0;
-  pose.position.z = 0.0;
-  pose.orientation.w= 0.0;
-  pose.orientation.x= 0.0;
-  pose.orientation.y= 0.0;
-  pose.orientation.z= 0.0;
-}
-
 } // anon util namespace
 
 namespace framefab_process_planning
 {
-
-void constructPlanningScene(const planning_scene::PlanningScenePtr base_scene,
-                            const std::vector<moveit_msgs::CollisionObject>& add_cos,
-                            const std::vector<moveit_msgs::CollisionObject>& remove_cos,
-                            const std::vector<moveit_msgs::AttachedCollisionObject>& attach_objs,
-                            const std::vector<moveit_msgs::AttachedCollisionObject>& detach_objs,
-                            planning_scene::PlanningScenePtr s)
-{
-  s = base_scene->diff();
-
-  for(auto add_co : add_cos)
-  {
-    add_co.operation = moveit_msgs::CollisionObject::ADD;
-    assert(s->processCollisionObjectMsg(add_co));
-  }
-
-  for(auto remove_co : remove_cos)
-  {
-    remove_co.operation = moveit_msgs::CollisionObject::REMOVE;
-    assert(s->processCollisionObjectMsg(remove_co));
-  }
-
-  for(auto ato : attach_objs)
-  {
-    ato.object.operation = moveit_msgs::CollisionObject::ADD;
-    assert(s->processAttachedCollisionObjectMsg(ato));
-  }
-
-  for(auto rto : detach_objs)
-  {
-    rto.object.operation = moveit_msgs::CollisionObject::REMOVE;
-    assert(s->processAttachedCollisionObjectMsg(rto));
-  }
-}
-
-planning_scene::PlanningScenePtr constructPlanningScene(const planning_scene::PlanningScenePtr base_scene,
-                                                        const std::vector<moveit_msgs::CollisionObject>& add_cos,
-                                                        const std::vector<moveit_msgs::CollisionObject>& remove_cos,
-                                                        const std::vector<moveit_msgs::AttachedCollisionObject>& attach_objs,
-                                                        const std::vector<moveit_msgs::AttachedCollisionObject>& detach_objs)
-{
-  planning_scene::PlanningScenePtr scene = base_scene->diff();
-  constructPlanningScene(base_scene, add_cos, remove_cos, attach_objs, detach_objs, scene);
-  return scene;
-}
-
-void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
-                             const framefab_msgs::AssemblySequencePickNPlace as_pnp,
-                             std::vector<planning_scene::PlanningScenePtr>& planning_scenes_transition2pick,
-                             std::vector<planning_scene::PlanningScenePtr>& planning_scenes_pick,
-                             std::vector<planning_scene::PlanningScenePtr>& planning_scenes_transition2place,
-                             std::vector<planning_scene::PlanningScenePtr>& planning_scenes_place)
-{
-  const auto build_scenes_start = ros::Time::now();
-
-  // get current planning scene as base scene
-  ros::NodeHandle nh;
-  auto planning_scene_client = nh.serviceClient<moveit_msgs::GetPlanningScene>(GET_PLANNING_SCENE_SERVICE);
-
-  if (!planning_scene_client.waitForExistence())
-  {
-    ROS_ERROR_STREAM("[Process Planning] cannot connect with get planning scene server...");
-  }
-
-  moveit_msgs::GetPlanningScene srv;
-  srv.request.components.components =
-      moveit_msgs::PlanningSceneComponents::ROBOT_STATE
-          | moveit_msgs::PlanningSceneComponents::WORLD_OBJECT_GEOMETRY;
-
-  if (!planning_scene_client.call(srv))
-  {
-    ROS_ERROR_STREAM("[Process Planning] Failed to fetch planning scene srv!");
-  }
-
-  planning_scene::PlanningScenePtr root_scene(new planning_scene::PlanningScene(moveit_model));
-  root_scene->getCurrentStateNonConst().setToDefaultValues();
-  root_scene->getCurrentStateNonConst().update();
-  root_scene->setPlanningSceneDiffMsg(srv.response.scene);
-
-  // parse all the collision objects, they are naturally named after id number
-  std::vector<moveit_msgs::CollisionObject> pick_cos;
-  std::vector<moveit_msgs::CollisionObject> place_cos;
-
-  std::map<std::string, moveit_msgs::CollisionObject> pick_support_surfaces;
-  std::map<std::string, moveit_msgs::CollisionObject> place_support_surfaces;
-
-  std::vector<collision_detection::AllowedCollisionMatrix> acms;
-
-  // TODO: replace this hard-coded eef name!!
-  const robot_model::JointModelGroup* eef = moveit_model->getEndEffector(PICKNPLACE_EEF_NAME);
-  assert(eef);
-
-  const std::string& ik_link = eef->getEndEffectorParentGroup().second;
-
-  // use empty pose for all objs, as the positions are built in the mesh itself (using global base frame)
-  geometry_msgs::Pose empty_pose;
-  setEmptyPoseMsg(empty_pose);
-
-  for(const auto& se : as_pnp)
-  {
-    // construct pick element collision mesh
-    pick_cos.push_back();
-
-
-    auto acm = root_scene->getAllowedCollisionMatrixNonConst();
-
-
-    acms.push_back(acm);
-  }
-
-//  std::vector<shape_msgs::Mesh>
-
-
-  for(const auto& se : as_pnp)
-  {
-    // transition 2 pick
-
-    // pick: approach - pick - depart
-
-    // transition 2 place
-
-    // place: approach - place (drop) - depart
-
-  }
-
-  const auto build_scenes_end = ros::Time::now();
-  ROS_INFO_STREAM(
-      "[Process Planning] constructing planning scenes took " << (build_scenes_end - build_scenes_start).toSec()
-                                                              << " seconds.");
-}
-
-void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
-                             const std::vector <framefab_msgs::WireFrameCollisionObject> &wf_collision_objs,
-                             std::vector<planning_scene::PlanningScenePtr> &planning_scenes_shrinked_approach,
-                             std::vector<planning_scene::PlanningScenePtr> &planning_scenes_shrinked_depart,
-                             std::vector<planning_scene::PlanningScenePtr> &planning_scenes_full)
-{
-  const auto build_scenes_start = ros::Time::now();
-
-  planning_scenes_shrinked_approach.reserve(wf_collision_objs.size());
-  planning_scenes_shrinked_depart.reserve(wf_collision_objs.size());
-  planning_scenes_full.reserve(wf_collision_objs.size());
-
-  ros::NodeHandle nh;
-  auto planning_scene_client = nh.serviceClient<moveit_msgs::GetPlanningScene>(GET_PLANNING_SCENE_SERVICE);
-
-  if (!planning_scene_client.waitForExistence())
-  {
-    ROS_ERROR_STREAM("[Process Planning] cannot connect with get planning scene server...");
-  }
-
-  moveit_msgs::GetPlanningScene srv;
-  srv.request.components.components =
-      moveit_msgs::PlanningSceneComponents::ROBOT_STATE
-          | moveit_msgs::PlanningSceneComponents::WORLD_OBJECT_GEOMETRY;
-
-  if (!planning_scene_client.call(srv))
-  {
-    ROS_ERROR_STREAM("[Process Planning] Failed to fetch planning scene srv!");
-  }
-
-  planning_scene::PlanningScenePtr root_scene(new planning_scene::PlanningScene(moveit_model));
-  root_scene->getCurrentStateNonConst().setToDefaultValues();
-  root_scene->getCurrentStateNonConst().update();
-  root_scene->setPlanningSceneDiffMsg(srv.response.scene);
-
-  // start with no element constructed in the scene
-  planning_scenes_shrinked_approach.push_back(root_scene);
-  planning_scenes_shrinked_depart.push_back(root_scene);
-  planning_scenes_full.push_back(root_scene);
-
-  for (std::size_t i = 1; i < wf_collision_objs.size(); ++i) // We use all but the last collision object
-  {
-    auto last_scene_shrinked = planning_scenes_shrinked_approach.back();
-    auto child_shrinked = last_scene_shrinked->diff();
-
-    auto c_list = wf_collision_objs[i].recovered_last_neighbor_objs;
-    c_list.push_back(wf_collision_objs[i].last_full_obj);
-
-    const auto &shrinked_neighbor_objs = wf_collision_objs[i].shrinked_neighbor_objs;
-    c_list.insert(c_list.begin(), shrinked_neighbor_objs.begin(), shrinked_neighbor_objs.end());
-
-    for (const auto &c_obj : c_list)
-    {
-      if (!child_shrinked->processCollisionObjectMsg(c_obj))
-      {
-        ROS_WARN("[Process Planning] Failed to process shrinked collision object");
-      }
-    }
-
-    auto child_shrinked_depart = child_shrinked->diff();
-    if (!child_shrinked_depart->processCollisionObjectMsg(wf_collision_objs[i].both_side_shrinked_obj))
-    {
-      ROS_WARN("[Process Planning] Failed to process shrinked collision object");
-    }
-
-    // push in partial_collision_geometry_planning_scene
-    planning_scenes_shrinked_approach.push_back(child_shrinked);
-    planning_scenes_shrinked_depart.push_back(child_shrinked_depart);
-
-    // get diff as child
-    // restore changed element back to full geometry
-    // push in full_collision_geometry_planning_scene
-    auto last_scene_full = planning_scenes_full.back();
-    auto child_full = last_scene_full->diff();
-
-    // TODO: temp fix
-    auto inflated_full_obj = wf_collision_objs[i - 1].full_obj;
-//    inflated_full_obj.primitives[0].dimensions[1] += 0.0;
-
-    if (!child_full->processCollisionObjectMsg(inflated_full_obj))
-    {
-      ROS_WARN("[Process Planning] Failed to process full collision object");
-    }
-
-    // push in full_scene[i]
-    planning_scenes_full.push_back(child_full);
-  }
-
-  const auto build_scenes_end = ros::Time::now();
-  ROS_INFO_STREAM(
-      "[Process Planning] constructing planning scenes took " << (build_scenes_end - build_scenes_start).toSec()
-                                                              << " seconds.");
-}
 
 void CLTRRTforProcessROSTraj(descartes_core::RobotModelPtr model,
                              std::vector <descartes_planner::ConstrainedSegment> &segs,

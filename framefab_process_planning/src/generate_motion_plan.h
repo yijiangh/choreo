@@ -15,39 +15,8 @@
 #include <framefab_msgs/AssemblySequencePickNPlace.h>
 #include <moveit_msgs/CollisionObject.h>
 
-#include "common_utils.h"
-
 namespace framefab_process_planning
 {
-void constructPlanningScene(const planning_scene::PlanningScenePtr base_scene,
-                            const std::vector<moveit_msgs::CollisionObject>& add_cos,
-                            const std::vector<moveit_msgs::CollisionObject>& remove_cos,
-                            const std::vector<moveit_msgs::AttachedCollisionObject>& attach_objs,
-                            const std::vector<moveit_msgs::AttachedCollisionObject>& detach_objs,
-                            planning_scene::PlanningScenePtr s);
-
-planning_scene::PlanningScenePtr constructPlanningScene(const planning_scene::PlanningScenePtr base_scene,
-                                                        const std::vector<moveit_msgs::CollisionObject>& add_cos,
-                                                        const std::vector<moveit_msgs::CollisionObject>& remove_cos,
-                                                        const std::vector<moveit_msgs::AttachedCollisionObject>& attach_objs,
-                                                        const std::vector<moveit_msgs::AttachedCollisionObject>& detach_objs);
-
-// TODO: should replace with a more general one, quickfix is an overload
-// overload for spatial extrusion planning scene construction
-void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
-                             const std::vector <framefab_msgs::WireFrameCollisionObject> &wf_collision_objs,
-                             std::vector<planning_scene::PlanningScenePtr>& planning_scenes_shrinked_approach,
-                             std::vector<planning_scene::PlanningScenePtr>& planning_scenes_shrinked_depart,
-                             std::vector<planning_scene::PlanningScenePtr>& planning_scenes_full);
-
-// overload for picknplace planning scene construction
-void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
-                             const framefab_msgs::AssemblySequencePickNPlace,
-                             std::vector<planning_scene::PlanningScenePtr>& planning_scenes_transition2pick,
-                             std::vector<planning_scene::PlanningScenePtr>& planning_scenes_pick,
-                             std::vector<planning_scene::PlanningScenePtr>& planning_scenes_transition2place,
-                             std::vector<planning_scene::PlanningScenePtr>& planning_scenes_place);
-
 // TODO: needs overload for picknplace
 void CLTRRTforProcessROSTraj(descartes_core::RobotModelPtr model,
                              std::vector <descartes_planner::ConstrainedSegment> &segs,

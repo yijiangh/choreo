@@ -38,17 +38,22 @@ void planeToPoseMsg(const Eigen::Vector3d& origin, const Eigen::Matrix3d& orient
                     geometry_msgs::Pose& p);
 
 // import geometry related utils
-shape_msgs::Mesh savedSTLToMeshShapeMsg(const std::string& file_path, const Eigen::Vector3d& scale_vector);
-
 void savedSTLToMeshShapeMsg(const std::string& file_path, const Eigen::Vector3d& scale_vector,
                             shape_msgs::Mesh& mesh);
 
 // file path is full path with filename
-void savedSTLToCollisionObjectMsg(const std::string& file_path, const Eigen::Vector3d& scale_vector,
+void savedSTLToCollisionObjectMsg(const std::string& file_path,
+                                  const Eigen::Vector3d& scale_vector,
                                   const std::string& frame_id,
                                   const geometry_msgs::Pose& p,
                                   moveit_msgs::CollisionObject& co,
                                   int object_operation = moveit_msgs::CollisionObject::ADD);
+
+moveit_msgs::CollisionObject savedSTLToCollisionObjectMsg(const std::string& file_path,
+                                                          const Eigen::Vector3d& scale_vector,
+                                                          const std::string& frame_id,
+                                                          const geometry_msgs::Pose& p,
+                                                          int object_operation = moveit_msgs::CollisionObject::ADD);
 
 void savedSTLToCollisionObjectMsg(const std::string& file_path, const Eigen::Vector3d& scale_vector,
                                   const std::string& frame_id, const std::string& obj_id,
@@ -56,14 +61,27 @@ void savedSTLToCollisionObjectMsg(const std::string& file_path, const Eigen::Vec
                                   moveit_msgs::CollisionObject& co,
                                   int object_operation = moveit_msgs::CollisionObject::ADD);
 
-void savedSTLToAttachedCollisionObjectMsg(const std::string& file_path, const Eigen::Vector3d& scale_vector,
+// obj id is the filename
+moveit_msgs::AttachedCollisionObject savedSTLToAttachedCollisionObjectMsg(const std::string& file_path,
+                                                                          const Eigen::Vector3d& scale_vector,
+                                                                          const std::string& frame_id,
+                                                                          const std::string& link_id,
+                                                                          const geometry_msgs::Pose& p,
+                                                                          int object_operation = moveit_msgs::CollisionObject::ADD);
+
+void savedSTLToAttachedCollisionObjectMsg(const std::string& file_path,
+                                          const Eigen::Vector3d& scale_vector,
                                           const std::string& frame_id,
+                                          const std::string& link_id,
                                           const geometry_msgs::Pose& p,
                                           moveit_msgs::AttachedCollisionObject& co,
                                           int object_operation = moveit_msgs::CollisionObject::ADD);
 
-void savedSTLToAttachedCollisionObjectMsg(const std::string& file_path, const Eigen::Vector3d& scale_vector,
-                                          const std::string& frame_id, const std::string& obj_id,
+void savedSTLToAttachedCollisionObjectMsg(const std::string& file_path,
+                                          const Eigen::Vector3d& scale_vector,
+                                          const std::string& frame_id,
+                                          const std::string& link_id,
+                                          const std::string& obj_id,
                                           const geometry_msgs::Pose& p,
                                           moveit_msgs::AttachedCollisionObject& co,
                                           int object_operation = moveit_msgs::CollisionObject::ADD);
