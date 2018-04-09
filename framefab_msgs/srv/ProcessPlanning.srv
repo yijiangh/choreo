@@ -1,3 +1,5 @@
+string assembly_type
+
 int32 ALL=-1
 
 # selected task id
@@ -13,6 +15,8 @@ float64 clt_rrt_unit_process_timeout
 
 float64 clt_rrt_timeout
 
+## only for spatial extrusion
+#########################
 # TODO: maybe remove these two collision object as we can configure from stl?
 # working env collision objs
 moveit_msgs/CollisionObject[] env_collision_objs
@@ -24,6 +28,8 @@ framefab_msgs/WireFrameCollisionObject[] wf_collision_objs
 # the actual path the tool will follow
 framefab_msgs/ElementCandidatePoses[] task_sequence
 
+## only for picknplace
+#########################
 # TODO: consider as a more general replacement to the ElementCandidatePoses msg above
 framefab_msgs/AssemblySequencePickNPlace as_pnp
 

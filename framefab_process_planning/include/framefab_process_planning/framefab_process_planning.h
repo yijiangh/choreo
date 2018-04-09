@@ -31,23 +31,36 @@ class ProcessPlanningManager
                          const std::string& hotend_group, const std::string& hotend_tcp, const std::string& hotend_base,
                          const std::string& robot_model_plugin);
 
+  // srv serving function for general process planning
+  // deliver request to specific planning server according to input assembly type
+  bool handleProcessPlanning(framefab_msgs::ProcessPlanning::Request& req,
+                           framefab_msgs::ProcessPlanning::Response& res);
+
+  // srv serving function for spatial extrusion
   bool handlePrintPlanning(framefab_msgs::ProcessPlanning::Request& req,
                            framefab_msgs::ProcessPlanning::Response& res);
 
+  // srv serving function for picknplace
+  bool handlePickNPlacePlanning(
+      framefab_msgs::ProcessPlanning::Request& req,
+      framefab_msgs::ProcessPlanning::Response& res);
+
+  // srv serving function for single-query move pose to pose
   bool handleMoveToTargetPosePlanAndExecution(
       framefab_msgs::MoveToTargetPose::Request& req,
       framefab_msgs::MoveToTargetPose::Response& res);
 
-  bool handlePickNPlacePlanning(
-      framefab_msgs::PickNPlacePlanning::Request& req,
-      framefab_msgs::PickNPlacePlanning::Response& res);
-
  private:
+  // TODO: rename this! should be sth like descartes_model_
+  // descartes robot model
   descartes_core::RobotModelPtr hotend_model_;
-  moveit::core::RobotModelConstPtr moveit_model_;
-  pluginlib::ClassLoader<descartes_core::RobotModel> plugin_loader_; // kept around so code doesn't get unloaded
-  std::string hotend_group_name_;
 
+  // moveit robot model
+  moveit::core::RobotModelConstPtr moveit_model_;
+
+  pluginlib::ClassLoader<descartes_core::RobotModel> plugin_loader_; // kept around so code doesn't get unloaded
+
+  std::string hotend_group_name_;
   std::string world_frame_;
 
   // planning scene service client

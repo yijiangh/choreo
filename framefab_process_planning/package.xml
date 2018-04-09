@@ -28,6 +28,7 @@
 
   <depend>rviz_visual_tools</depend>
 
+  <depend>choreo_planning_capability</depend>
   <depend>framefab_param_helpers</depend>
   <depend>eigen_conversions</depend>
 

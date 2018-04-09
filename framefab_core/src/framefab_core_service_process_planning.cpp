@@ -45,21 +45,23 @@ ProcessPlanResult FrameFabCoreService::generateProcessPlan(const int& selected_p
   // call process_processing srv
   framefab_msgs::ProcessPlanning srv;
   srv.request.index = selected_path_index;
-  srv.request.task_sequence = task_sequence_;
-  srv.request.env_collision_objs = env_objs_;
   srv.request.use_saved_graph = use_saved_graph_;
   srv.request.file_name = saved_graph_file_name;
-  // TODO: replace this with user input
   srv.request.clt_rrt_unit_process_timeout = model_input_params_.clt_rrt_unit_process_timeout;
   srv.request.clt_rrt_timeout = model_input_params_.clt_rrt_timeout;
 
   if(choreo::ASSEMBLY_TYPE_PICKNPLACE == assembly_type_)
   {
+    assert(as_pnp_.sequenced_elements.size() > 0);
 
+    srv.request.assembly_type = choreo::ASSEMBLY_TYPE_PICKNPLACE;
+    srv.request.as_pnp = as_pnp_;
   }
 
   if(choreo::ASSEMBLY_TYPE_SPATIAL_EXTRUSION == assembly_type_)
   {
+    srv.request.assembly_type = choreo::ASSEMBLY_TYPE_SPATIAL_EXTRUSION;
+
     // first call sequence planner to request collision object (because it has model configuration ability...)
     if(!task_sequence_planning_srv_client_.call(ts_srv))
     {
@@ -83,7 +85,12 @@ ProcessPlanResult FrameFabCoreService::generateProcessPlan(const int& selected_p
         success = true;
       }
     }
+
+    srv.request.task_sequence = task_sequence_;
+    srv.request.env_collision_objs = env_objs_;
   }
+
+  assert(success);
 
   if(success)
   {

@@ -64,8 +64,6 @@ add_service_files(
 	OutputProcessPlans.srv
 	OutputProcessing.srv
 	QueryComputationRecord.srv
-
-	PickNPlacePlanning.srv
 )
 
 ## Generate added messages and services with any dependencies listed here
