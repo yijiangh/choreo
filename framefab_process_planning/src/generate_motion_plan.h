@@ -7,7 +7,7 @@
 
 #include <descartes_core/robot_model.h>
 #include <descartes_core/trajectory_pt.h>
-#include <descartes_planner/graph_builder.h>
+#include <choreo_descartes_planner/choreo_ladder_graph_builder.h>
 
 #include <framefab_msgs/UnitProcessPlan.h>
 #include <framefab_msgs/ElementCandidatePoses.h>
@@ -58,20 +58,34 @@ void appendTCPPoseToPlans(const descartes_core::RobotModelPtr model,
                           const std::vector <planning_scene::PlanningScenePtr> &planning_scenes_full,
                           std::vector <framefab_msgs::UnitProcessPlan> &plans);
 
-bool generateMotionPlan(descartes_core::RobotModelPtr model,
-                        std::vector<descartes_planner::ConstrainedSegment>& segs,
-                        const std::vector<framefab_msgs::ElementCandidatePoses>& task_seq,
-                        const std::vector<framefab_msgs::WireFrameCollisionObject>& collision_obj_lists,
-                        const std::string world_frame,
+// overload for spatial extrusion planning request
+bool generateMotionPlan(const std::string world_frame,
                         const bool use_saved_graph,
-                        const std::string& saved_graph_file_name,
+                        const std::string &saved_graph_file_name,
                         const double clt_rrt_unit_process_timeout,
                         const double clt_rrt_timeout,
+                        const std::string &move_group_name,
+                        const std::vector<double> &start_state,
+                        const std::vector <framefab_msgs::ElementCandidatePoses> &task_seq,
+                        const std::vector <framefab_msgs::WireFrameCollisionObject> &wf_collision_objs,
+                        std::vector <descartes_planner::ConstrainedSegment> &segs,
+                        descartes_core::RobotModelPtr model,
                         moveit::core::RobotModelConstPtr moveit_model,
-                        ros::ServiceClient& planning_scene_diff_client,
-                        const std::string& hotend_group_name,
-                        const std::vector<double>& start_state,
-                        std::vector<framefab_msgs::UnitProcessPlan>& plan);
+                        ros::ServiceClient &planning_scene_diff_client,
+                        std::vector <framefab_msgs::UnitProcessPlan> &plans);
+
+// overload for picknplace planning request
+bool generateMotionPlan(const std::string world_frame,
+                        const bool use_saved_graph,
+                        const std::string &saved_graph_file_name,
+                        const double clt_rrt_unit_process_timeout,
+                        const double clt_rrt_timeout,
+                        const std::string &move_group_name,
+                        const std::vector<double> &start_state,
+                        descartes_core::RobotModelPtr model,
+                        moveit::core::RobotModelConstPtr moveit_model,
+                        ros::ServiceClient &planning_scene_diff_client,
+                        std::vector <framefab_msgs::UnitProcessPlan> &plans);
 
 }
 

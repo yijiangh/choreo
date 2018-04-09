@@ -16,8 +16,11 @@ bool processTaskSequenceCallback(framefab_msgs::TaskSequenceProcessingRequest& r
   {
     case framefab_msgs::TaskSequenceProcessing::Request::SPATIAL_EXTRUSION:
     {
+      ROS_WARN_STREAM("[ts processor] using spatial extrusion parsing mode now.");
+
       // TODO: ARCHIVED for now
       ts_processor.setParams(req.model_params, req.task_sequence_params, req.world_frame);
+
       if(!(ts_processor.createCandidatePoses() && ts_processor.createEnvCollisionObjs()))
       {
         ROS_ERROR("[Task Seq Process] Could not process input task sequence!");

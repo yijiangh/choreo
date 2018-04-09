@@ -9,23 +9,24 @@
 #include "trajectory_utils.h"
 #include "path_transitions.h"
 #include "common_utils.h"
-#include <descartes_trajectory/axial_symmetric_pt.h>
-#include <descartes_trajectory/joint_trajectory_pt.h>
+
+// cap ladder tree RRTstar
+#include <choreo_descartes_planner/choreo_ladder_graph_builder.h>
+#include <choreo_descartes_planner/capsulated_ladder_tree_RRTstar.h>
 
 #include <descartes_planner/ladder_graph_dag_search_lazy_collision.h>
 #include <descartes_planner/ladder_graph_dag_search.h>
 #include <descartes_planner/dense_planner.h>
-#include <descartes_planner/graph_builder.h>
 #include <moveit/planning_scene/planning_scene.h>
-
-// cap ladder tree RRTstar
-#include <descartes_planner/capsulated_ladder_tree_RRTstar.h>
-
-// pose conversion
-#include <eigen_conversions/eigen_msg.h>
 
 // for serializing ladder graph
 #include <descartes_parser/descartes_parser.h>
+
+// serialization
+#include <framefab_param_helpers/framefab_param_helpers.h>
+
+// pose conversion
+#include <eigen_conversions/eigen_msg.h>
 
 // for immediate execution
 #include <actionlib/client/simple_action_client.h>
@@ -47,9 +48,6 @@
 #include <moveit_msgs/ApplyPlanningScene.h>
 #include <moveit_msgs/GetPlanningScene.h>
 #include <eigen_conversions/eigen_msg.h>
-
-// serialization
-#include <framefab_param_helpers/framefab_param_helpers.h>
 
 const static std::string GET_PLANNING_SCENE_SERVICE = "get_planning_scene";
 
@@ -467,7 +465,9 @@ void transitionPlanning(std::vector <framefab_msgs::UnitProcessPlan> &plans,
 
       if (joint_target_meet)
       {
-        ROS_WARN_STREAM("[Process Planning] transition planning retry succeed!");
+        std::string retry_msg = repeat_planning_call>0 ? "retry":"";
+        ROS_WARN_STREAM("[Process Planning] transition planning "
+                            << retry_msg << " succeed!");
         break;
       }
 
@@ -591,20 +591,21 @@ void appendTCPPoseToPlans(const descartes_core::RobotModelPtr model,
   }
 }
 
+// TODO: spatial extrusion overload
 bool generateMotionPlan(
-    descartes_core::RobotModelPtr model,
-    std::vector <descartes_planner::ConstrainedSegment> &segs,
-    const std::vector <framefab_msgs::ElementCandidatePoses> &task_seq,
-    const std::vector <framefab_msgs::WireFrameCollisionObject> &wf_collision_objs,
     const std::string world_frame,
     const bool use_saved_graph,
     const std::string &saved_graph_file_name,
     const double clt_rrt_unit_process_timeout,
     const double clt_rrt_timeout,
-    moveit::core::RobotModelConstPtr moveit_model,
-    ros::ServiceClient &planning_scene_diff_client,
     const std::string &move_group_name,
     const std::vector<double> &start_state,
+    const std::vector <framefab_msgs::ElementCandidatePoses> &task_seq,
+    const std::vector <framefab_msgs::WireFrameCollisionObject> &wf_collision_objs,
+    std::vector <descartes_planner::ConstrainedSegment> &segs,
+    descartes_core::RobotModelPtr model,
+    moveit::core::RobotModelConstPtr moveit_model,
+    ros::ServiceClient &planning_scene_diff_client,
     std::vector <framefab_msgs::UnitProcessPlan> &plans)
 {
   // Step 0: Sanity checks
@@ -646,6 +647,64 @@ bool generateMotionPlan(
 
   // Step 8: fill in TCP pose according to trajectories
   appendTCPPoseToPlans(model, planning_scenes_shrinked_approach, planning_scenes_full, plans);
+
+  ROS_INFO("[Process Planning] trajectories solved and packing finished");
+  return true;
+}
+
+// TODO: picknplace overload
+bool generateMotionPlan(
+    const std::string world_frame,
+    const bool use_saved_graph,
+    const std::string &saved_graph_file_name,
+    const double clt_rrt_unit_process_timeout,
+    const double clt_rrt_timeout,
+    const std::string &move_group_name,
+    const std::vector<double> &start_state,
+    descartes_core::RobotModelPtr model,
+    moveit::core::RobotModelConstPtr moveit_model,
+    ros::ServiceClient &planning_scene_diff_client,
+    std::vector <framefab_msgs::UnitProcessPlan> &plans)
+{
+//  // Step 0: Sanity checks
+//  if (segs.size() == 0 || task_seq.size() != segs.size())
+//  {
+//    ROS_ERROR_STREAM("[Process Planning] input descartes Constrained Segment size" << segs.size());
+//    return false;
+//  }
+//  assert(task_seq.size() == wf_collision_objs.size());
+//
+//  plans.resize(segs.size());
+//  const std::vector <std::string> &joint_names =
+//      moveit_model->getJointModelGroup(move_group_name)->getActiveJointModelNames();
+//
+//  // Step 1: Let's create all of our planning scenes to collision check against
+//  std::vector <planning_scene::PlanningScenePtr> planning_scenes_shrinked_approach;
+//  std::vector <planning_scene::PlanningScenePtr> planning_scenes_shrinked_depart;
+//  std::vector <planning_scene::PlanningScenePtr> planning_scenes_full;
+//  constructPlanningScenes(moveit_model, wf_collision_objs,
+//                          planning_scenes_shrinked_approach,
+//                          planning_scenes_shrinked_depart,
+//                          planning_scenes_full);
+//
+//  // Step 2: CLT RRT* to solve process trajectory
+//  CLTRRTforProcessROSTraj(model, segs, clt_rrt_unit_process_timeout, clt_rrt_timeout,
+//                          planning_scenes_shrinked_approach, planning_scenes_shrinked_depart,
+//                          task_seq, plans, saved_graph_file_name, use_saved_graph);
+//
+//  // retract planning
+//  retractionPlanning(model, planning_scenes_shrinked_approach, planning_scenes_shrinked_depart, segs, plans);
+//
+//  // Step 5 : Plan for transition between each pair of sequential path
+//  transitionPlanning(plans, moveit_model, planning_scene_diff_client, move_group_name,
+//                     start_state, planning_scenes_full);
+//
+//  // Step 7 : fill in trajectory's time headers and pack into sub_process_plans
+//  // for each unit_process (process id is added here too)
+//  adjustTrajectoryTiming(plans, joint_names, world_frame);
+//
+//  // Step 8: fill in TCP pose according to trajectories
+//  appendTCPPoseToPlans(model, planning_scenes_shrinked_approach, planning_scenes_full, plans);
 
   ROS_INFO("[Process Planning] trajectories solved and packing finished");
   return true;

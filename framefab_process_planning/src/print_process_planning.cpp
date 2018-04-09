@@ -12,11 +12,6 @@
 #include <framefab_msgs/ProcessPlanning.h>
 
 // descartes
-#include "descartes_trajectory/axial_symmetric_pt.h"
-#include "descartes_trajectory/joint_trajectory_pt.h"
-#include "descartes_trajectory/cart_trajectory_pt.h"
-#include "descartes_planner/dense_planner.h"
-
 #include "path_transitions.h"
 #include "common_utils.h"
 #include "generate_motion_plan.h"
@@ -74,11 +69,18 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
     addCollisionObject(planning_scene_diff_client_, obj);
   }
 
-  if(generateMotionPlan(hotend_model_, constrained_segs, chosen_task_seq, req.wf_collision_objs, world_frame_,
-                        req.use_saved_graph, req.file_name,
-                        req.clt_rrt_unit_process_timeout, req.clt_rrt_timeout,
-                        moveit_model_, planning_scene_diff_client_,
-                        hotend_group_name_, current_joints, res.plan))
+  if(generateMotionPlan(
+      world_frame_,
+      req.use_saved_graph, req.file_name, req.clt_rrt_unit_process_timeout, req.clt_rrt_timeout,
+      hotend_group_name_,
+      current_joints,
+      chosen_task_seq,
+      req.wf_collision_objs,
+      constrained_segs,
+      hotend_model_,
+      moveit_model_,
+      planning_scene_diff_client_,
+      res.plan))
   {
     return true;
   }

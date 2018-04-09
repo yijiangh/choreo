@@ -16,15 +16,16 @@
 
 // for extra descartes graph building feature
 #include <descartes_planner/ladder_graph.h>
-#include <descartes_planner/graph_builder.h>
+#include <choreo_descartes_planner/choreo_ladder_graph_builder.h>
 
+// declare for descartes edge policy
 namespace descartes_planner
 {
 typedef boost::function<double(const double*, const double*)> CostFunction;
 }
-#include "descartes_planner/planning_graph_edge_policy.h"
 
-#include "descartes_planner/ladder_graph_dag_search.h"
+#include <descartes_planner/planning_graph_edge_policy.h>
+#include <descartes_planner/ladder_graph_dag_search.h>
 
 #include "trajectory_utils.h"
 

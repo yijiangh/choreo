@@ -320,8 +320,10 @@ bool framefab_task_sequence_processing::TaskSequenceProcessor::createCandidatePo
 
   fclose(fp);
 
+  assert(document.HasMember("element_number"));
   int m = document["element_number"].GetInt();
 
+  assert(document.HasMember("base_center_pt"));
   const Value& bcp = document["base_center_pt"];
   Eigen::Vector3d base_center_pt(bcp[0].GetDouble(), bcp[1].GetDouble(), bcp[2].GetDouble());
 
@@ -333,6 +335,7 @@ bool framefab_task_sequence_processing::TaskSequenceProcessor::createCandidatePo
 
   setTransfVec(ref_pt_, base_center_pt, unit_scale_);
 
+  assert(document.HasMember("sequenced_elements"));
   const Value& process_path_array = document["sequenced_elements"];
   assert(process_path_array.IsArray());
 
@@ -341,16 +344,21 @@ bool framefab_task_sequence_processing::TaskSequenceProcessor::createCandidatePo
   for (SizeType i = 0; i < process_path_array.Size(); i++)
   {
     const Value& element_path = process_path_array[i];
+
+    assert(element_path.HasMember("start_pt"));
     Eigen::Vector3d st_pt(element_path["start_pt"][0].GetDouble(),
                           element_path["start_pt"][1].GetDouble(),
                           element_path["start_pt"][2].GetDouble());
 
+    assert(element_path.HasMember("end_pt"));
     Eigen::Vector3d end_pt(element_path["end_pt"][0].GetDouble(),
                            element_path["end_pt"][1].GetDouble(),
                            element_path["end_pt"][2].GetDouble());
 
+    assert(element_path.HasMember("type"));
     std::string type_str = element_path["type"].GetString();
 
+    assert(element_path.HasMember("wireframe_id"));
     int wireframe_id = element_path["wireframe_id"].GetInt();
 
     if(verbose_)
@@ -363,6 +371,8 @@ bool framefab_task_sequence_processing::TaskSequenceProcessor::createCandidatePo
 
     // fetch the feasible orients
     std::vector<Eigen::Vector3d> feasible_orients;
+
+    assert(element_path.HasMember("feasible_orientation"));
     const Value& f_orients = element_path["feasible_orientation"];
     assert(f_orients.IsArray());
 
@@ -384,7 +394,7 @@ bool framefab_task_sequence_processing::TaskSequenceProcessor::createCandidatePo
                                                   type_str, element_diameter_, shrink_length_));
   }
 
-  ROS_INFO_STREAM("[task sequence processor] task sequence json parsing succeeded.");
+  ROS_INFO_STREAM("[task sequence processor] task sequence json [spatial extrusion] parsing succeeded.");
   return true;
 }
 

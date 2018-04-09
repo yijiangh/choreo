@@ -15,7 +15,7 @@
 #include "eigen_conversions/eigen_msg.h"
 
 #include <descartes_core/robot_model.h>
-#include <descartes_planner/graph_builder.h>
+#include <choreo_descartes_planner/choreo_ladder_graph_builder.h>
 #include <moveit/planning_scene/planning_scene.h>
 
 namespace framefab_process_planning

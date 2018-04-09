@@ -31,9 +31,8 @@ bool ProcessPlanningManager::handlePickNPlacePlanning(
 
   assert(req.as_pnp.sequenced_elements.size() > 0);
 
-//  const static double LINEAR_VEL = 0.1; // (m/s)
-
-//  const static double LINEAR_DISCRETIZATION = 0.005; // meters
+  const static double LINEAR_VEL = 0.1; // (m/s)
+  const static double LINEAR_DISCRETIZATION = 0.005; // meters
 //  // the distance between angular steps about z for each orientationcreateCollisionObject
 //  const static double ANGULAR_DISCRETIZATION = PRINT_ANGLE_DISCRETIZATION; // radians
 //
@@ -42,26 +41,29 @@ bool ProcessPlanningManager::handlePickNPlacePlanning(
 //  constrained_seg_params.linear_disc = LINEAR_DISCRETIZATION;
 //  constrained_seg_params.angular_disc = ANGULAR_DISCRETIZATION;
 //  constrained_seg_params.retract_dist = RETRACT_DISTANCE;
-//
-//  //  Eigen::Affine3d start_home_pose;
-//  //  hotend_model_->getFK(current_joints, start_home_pose);
-//  std::vector<double> current_joints = getCurrentJointState(JOINT_TOPIC_NAME);
+
+  // TODO: assuming current robot pose is the home pose, this should be read from ros parameter
+  //  Eigen::Affine3d start_home_pose;
+  //  hotend_model_->getFK(current_joints, start_home_pose);
+  std::vector<double> current_joints = getCurrentJointState(JOINT_TOPIC_NAME);
 //
 //  // construct segs for descartes & copy chosen task sequence
 //  std::vector<descartes_planner::ConstrainedSegment> constrained_segs =
 //      toDescartesConstrainedPath(req.task_sequence, req.index, constrained_seg_params);
 //  const std::vector<framefab_msgs::ElementCandidatePoses>
 //      chosen_task_seq(req.task_sequence.begin(), req.task_sequence.begin() + constrained_segs.size());
-//
-//  // clear existing objs from previous planning
-//  clearAllCollisionObjects(planning_scene_diff_client_);
-//
+
+  // TODO: this shouldn't remove collision objs in xacro?
+  // clear existing objs from previous planning
+  clearAllCollisionObjects(planning_scene_diff_client_);
+
+  // TODO: these "still" collision obj construction should be moved in the constructPlanningScene function
 //  // add fixed extra collision objects in the work environment, e.g. heating bed (adjustable)
 //  for(const auto& obj : req.env_collision_objs)
 //  {
 //    addCollisionObject(planning_scene_diff_client_, obj);
 //  }
-//
+
 //  if(generateMotionPlan(hotend_model_, constrained_segs, chosen_task_seq, req.wf_collision_objs, world_frame_,
 //                        req.use_saved_graph, req.file_name,
 //                        req.clt_rrt_unit_process_timeout, req.clt_rrt_timeout,

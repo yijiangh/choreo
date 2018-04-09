@@ -6,9 +6,10 @@ add_compile_options(-std=c++11)
 find_package(catkin REQUIRED COMPONENTS
 	descartes_core
 	descartes_moveit
-	descartes_planner
 	descartes_trajectory
 	descartes_parser
+	descartes_planner
+	choreo_descartes_planner
 	framefab_msgs
 	moveit_msgs
 	geometric_shapes
@@ -28,6 +29,7 @@ catkin_package(
 	descartes_core
 	descartes_moveit
 	descartes_planner
+	choreo_descartes_planner
 	descartes_trajectory
 	descartes_parser
 	framefab_msgs

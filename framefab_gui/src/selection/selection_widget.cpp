@@ -199,12 +199,14 @@ void framefab_gui::SelectionWidget::orderValueChanged()
   ui_->lineedit_select_number->setText(QString::number(selected_value_));
 
   // synchronize grasp id slider and lineedit
-  assert(grasp_nums_.size() > selected_value_);
-  setMaxGraspNum(grasp_nums_[selected_value_]);
+  if(PICKNPLACE == assembly_type_)
+  {
+    assert(grasp_nums_.size() > selected_value_);
+    setMaxGraspNum(grasp_nums_[selected_value_]);
+  }
 
   //sync checkbox
   ui_->checkbox_visualize_ee->setChecked(visualize_ee_);
-
 
   if(selected_grasp_id_ > max_grasp_num_)
   {
@@ -219,7 +221,8 @@ void framefab_gui::SelectionWidget::orderValueChanged()
   framefab_msgs::VisualizeSelectedPath srv;
 
   // TODO: the assembly task type should be a part of model param
-  // hardcoded to picknplace for now
+  // TODO: hardcoded to picknplace for now
+//  srv.request.assembly_type = srv.request.SPATIAL_EXTRUSION;
   srv.request.assembly_type = srv.request.PICKNPLACE;
   srv.request.index = selected_value_;
   srv.request.visualize_ee = visualize_ee_;
