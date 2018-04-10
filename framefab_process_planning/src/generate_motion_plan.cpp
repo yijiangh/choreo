@@ -609,6 +609,7 @@ bool generateMotionPlan(
   std::vector <planning_scene::PlanningScenePtr> planning_scenes_transition2place;
   std::vector <planning_scene::PlanningScenePtr> planning_scenes_place;
 
+  // TODO: acm not used now
   std::vector<collision_detection::AllowedCollisionMatrix> pick_acms;
   std::vector<collision_detection::AllowedCollisionMatrix> place_acms;
 
@@ -622,21 +623,25 @@ bool generateMotionPlan(
                           planning_scenes_place,
                           place_acms);
 
-  double pause_time = 2.0;
-  for(int i = 0; i < as_pnp.sequenced_elements.size(); i++)
-  {
-    testApplyPlanningScene(planning_scene_diff_client, planning_scenes_transition2pick[i]);
-    ros::WallDuration(pause_time).sleep();
-
-    testApplyPlanningScene(planning_scene_diff_client, planning_scenes_pick[i]);
-    ros::WallDuration(pause_time).sleep();
-
-    testApplyPlanningScene(planning_scene_diff_client, planning_scenes_transition2place[i]);
-    ros::WallDuration(pause_time).sleep();
-
-    testApplyPlanningScene(planning_scene_diff_client, planning_scenes_place[i]);
-    ros::WallDuration(pause_time).sleep();
-  }
+//  double pause_time = 2.0;
+//  for(int i = 0; i < as_pnp.sequenced_elements.size(); i++)
+//  {
+//    ROS_INFO_STREAM("#" << i << ": transition 2 pick");
+//    testApplyPlanningScene(planning_scene_diff_client, planning_scenes_transition2pick[i]);
+//    ros::WallDuration(pause_time).sleep();
+//
+//    ROS_INFO_STREAM("#" << i << ": pick");
+//    testApplyPlanningScene(planning_scene_diff_client, planning_scenes_pick[i]);
+//    ros::WallDuration(pause_time).sleep();
+//
+//    ROS_INFO_STREAM("#" << i << ": transition 2 place");
+//    testApplyPlanningScene(planning_scene_diff_client, planning_scenes_transition2place[i]);
+//    ros::WallDuration(pause_time).sleep();
+//
+//    ROS_INFO_STREAM("#" << i << ": place");
+//    testApplyPlanningScene(planning_scene_diff_client, planning_scenes_place[i]);
+//    ros::WallDuration(pause_time).sleep();
+//  }
 
 //  // Step 2: CLT RRT* to solve process trajectory
 //  CLTRRTforProcessROSTraj(model, segs, clt_rrt_unit_process_timeout, clt_rrt_timeout,

@@ -128,6 +128,8 @@ void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
   assert(eef);
   const std::string &ik_link = eef->getEndEffectorParentGroup().second;
 
+  ROS_INFO_STREAM("ik link: " << ik_link);
+
   // use empty pose for all objs, as the positions are built in the mesh itself (using global base frame)
   geometry_msgs::Pose empty_pose;
   setEmptyPoseMsg(empty_pose);
@@ -224,93 +226,110 @@ void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
     // add last place element
     if(i > 0)
     {
-      place_cos[i-1].operation = place_cos[i-1].REMOVE;
-      tr2pick_scene->processCollisionObjectMsg(place_cos[i-1]);
+//      // remove attach last element to end effector
+//      assert(last_attached_co.object.meshes.size() > 0 || last_attached_co.object.primitives.size() > 0);
+//      last_attached_co.object.operation = last_attached_co.object.REMOVE;
+//      assert(tr2pick_scene->processAttachedCollisionObjectMsg(last_attached_co));
 
-      // remove attach last element to end effector
-      assert(last_attached_co.object.meshes.size() > 0 || last_attached_co.object.primitives.size() > 0);
-      last_attached_co.object.operation = last_attached_co.object.REMOVE;
-      tr2pick_scene->processAttachedCollisionObjectMsg(last_attached_co);
+      place_cos[i-1].operation = place_cos[i-1].ADD;
+      assert(tr2pick_scene->processCollisionObjectMsg(place_cos[i-1]));
     }
 
     planning_scenes_transition2pick.push_back(tr2pick_scene);
+
+//    ROS_INFO_STREAM("#" << i << ": tr 2 pick");
 
     // pick: approach - pick - depart
     auto pick_scene = tr2pick_scene->diff();
 
     // remove pick element
     pick_cos[i].operation = pick_cos[i].REMOVE;
-    pick_scene->processCollisionObjectMsg(pick_cos[i]);
+    assert(pick_scene->processCollisionObjectMsg(pick_cos[i]));
 
+    // TODO: maybe try only use attached one here?
     // attach pick element to ee
     // TODO: needs to apply a "reverse" linear transformation using the grasp pose
-    last_attached_co.object = pick_cos[i];
-    assert(last_attached_co.object.mesh_poses.size() > 0);
-    assert(se.grasps.size() > 0);
-    last_attached_co.object.mesh_poses[0].position = reversePointMsg(se.grasps[0].pick_grasp_pose.position);
-
-    last_attached_co.object.operation = last_attached_co.object.ADD;
-    pick_scene->processAttachedCollisionObjectMsg(last_attached_co);
+//    last_attached_co.object = pick_cos[i];
+//    assert(last_attached_co.object.mesh_poses.size() > 0);
+//    assert(se.grasps.size() > 0);
+//    last_attached_co.object.header.frame_id = ik_link;
+//    last_attached_co.object.mesh_poses[0].position = reversePointMsg(se.grasps[0].pick_grasp_pose.position);
+//
+//    last_attached_co.link_name = ik_link;
+//    last_attached_co.object.operation = last_attached_co.object.ADD;
+//    assert(pick_scene->processAttachedCollisionObjectMsg(last_attached_co));
 
     planning_scenes_pick.push_back(pick_scene);
+
+//    ROS_INFO_STREAM("#" << i << ": pick");
 
     // transition 2 place
     auto tr2place_scene = pick_scene->diff();
 
     planning_scenes_transition2place.push_back(tr2place_scene);
 
+//    ROS_INFO_STREAM("#" << i << ": tr 2 place");
+
     // place: approach - place (drop) - depart
     auto place_scene = tr2place_scene->diff();
+
     // remove pick attached element
-    last_attached_co.object.operation = last_attached_co.object.REMOVE;
-    place_scene->processAttachedCollisionObjectMsg(last_attached_co);
+//    last_attached_co.object.operation = last_attached_co.object.REMOVE;
+//    assert(place_scene->processAttachedCollisionObjectMsg(last_attached_co));
+//    // cancel this "auto-release" from removing an attached obj
+//    assert(place_scene->processCollisionObjectMsg(last_attached_co.object));
+//
+//    // TODO: needs to apply a "reverse" linear transformation using the grasp pose
+//    last_attached_co.object = place_cos[i];
+//    assert(last_attached_co.object.mesh_poses.size() > 0);
+//    assert(se.grasps.size() > 0);
+//    last_attached_co.object.header.frame_id = ik_link;
+//    last_attached_co.object.mesh_poses[0].position = reversePointMsg(se.grasps[0].place_grasp_pose.position);
 
-    // TODO: needs to apply a "reverse" linear transformation using the grasp pose
-    last_attached_co.object = place_cos[i];
-    assert(last_attached_co.object.mesh_poses.size() > 0);
-    assert(se.grasps.size() > 0);
-    last_attached_co.object.mesh_poses[0].position = reversePointMsg(se.grasps[0].place_grasp_pose.position);
-
-    last_attached_co.object.operation = last_attached_co.object.ADD;
-    place_scene->processAttachedCollisionObjectMsg(last_attached_co);
+//    last_attached_co.link_name = ik_link;
+//    last_attached_co.object.operation = last_attached_co.object.ADD;
+//    assert(place_scene->processAttachedCollisionObjectMsg(last_attached_co));
 
     planning_scenes_place.push_back(place_scene);
 
+//    ROS_INFO_STREAM("#" << i << ": place");
+
+    // TODO: are we ignoring element on hold with its neighbor in the picking or placing process?
     // Allowed Collision Object
-    auto pick_acm = root_scene->getAllowedCollisionMatrixNonConst();
-    auto place_acm = root_scene->getAllowedCollisionMatrixNonConst();
-
-    // during picking, end effector is allowed to touch the pick block
-    // pick block is allowed to touch neighboring blocks and support surface
-    pick_acm.setEntry(ik_link, se.pick_element_geometry_file_name, true);
-
-    for(const auto& id : se.pick_contact_ngh_ids)
-    {
-      pick_acm.setEntry(se.pick_element_geometry_file_name, pick_cos[id].id, true);
-    }
-
-    for(const auto& id : se.pick_support_surface_file_names)
-    {
-      pick_acm.setEntry(se.pick_element_geometry_file_name, pick_support_surfaces[id].id, true);
-    }
-
-    pick_acms.push_back(pick_acm);
-
-    // during placing, end effector is allowed to touch the place block
-    // place block is allowed to touch neighboring blocks and support surface
-    place_acm.setEntry(ik_link, se.place_element_geometry_file_name, true);
-
-    for(const auto& id : se.place_contact_ngh_ids)
-    {
-      place_acm.setEntry(se.place_element_geometry_file_name, place_cos[id].id, true);
-    }
-
-    for(const auto& id : se.place_support_surface_file_names)
-    {
-      place_acm.setEntry(se.place_element_geometry_file_name, place_support_surfaces[id].id, true);
-    }
-
-    place_acms.push_back(place_acm);
+//    collision_detection::AllowedCollisionMatrix
+//        pick_acm, place_acm = root_scene->getAllowedCollisionMatrixNonConst();
+//
+//    // during picking, end effector is allowed to touch the pick block
+//    // pick block is allowed to touch neighboring blocks and support surface
+//    pick_acm.setEntry(ik_link, se.pick_element_geometry_file_name, true);
+//
+//    for(const auto& id : se.pick_contact_ngh_ids)
+//    {
+//      pick_acm.setEntry(se.pick_element_geometry_file_name, pick_cos[id].id, true);
+//    }
+//
+//    for(const auto& id : se.pick_support_surface_file_names)
+//    {
+//      pick_acm.setEntry(se.pick_element_geometry_file_name, pick_support_surfaces[id].id, true);
+//    }
+//
+//    pick_acms.push_back(pick_acm);
+//
+//    // during placing, end effector is allowed to touch the place block
+//    // place block is allowed to touch neighboring blocks and support surface
+//    place_acm.setEntry(ik_link, se.place_element_geometry_file_name, true);
+//
+//    for(const auto& id : se.place_contact_ngh_ids)
+//    {
+//      place_acm.setEntry(se.place_element_geometry_file_name, place_cos[id].id, true);
+//    }
+//
+//    for(const auto& id : se.place_support_surface_file_names)
+//    {
+//      place_acm.setEntry(se.place_element_geometry_file_name, place_support_surfaces[id].id, true);
+//    }
+//
+//    place_acms.push_back(place_acm);
   }
 
   const auto build_scenes_end = ros::Time::now();
