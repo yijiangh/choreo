@@ -53,22 +53,20 @@ CapsulatedLadderTreeRRTstar::CapsulatedLadderTreeRRTstar(
       cap_rung.orientations_.push_back(orient);
     }
 
-    if(ConstrainedSegment::PROCESS_TYPE::CONNECT == segs[i].process_type)
-    {
-      // ideal orientation orthogonal to the element
-      cap_rung.ideal_o_to_element_angle = M_PI / 2;
-    }
-    else
-    {
-      // ideal orientation is aligned to the element
-      cap_rung.ideal_o_to_element_angle = 0.0;
-    }
+//    if(ConstrainedSegment::PROCESS_TYPE::CONNECT == segs[i].process_type)
+//    {
+//      // ideal orientation orthogonal to the element
+//      cap_rung.ideal_o_to_element_angle = M_PI / 2;
+//    }
+//    else
+//    {
+//      // ideal orientation is aligned to the element
+//      cap_rung.ideal_o_to_element_angle = 0.0;
+//    }
 
     // planning scene
     cap_rung.planning_scene_ = planning_scenes[i];
     cap_rung.planning_scene_completed_ = planning_scenes_completed[i];
-
-    // conflict indices is empty initially
 
     // input z axis disc
     cap_rung.z_axis_disc_ = segs[i].z_axis_disc;

@@ -33,10 +33,6 @@ struct ConstrainedSegment
   double retract_dist;
 
   PROCESS_TYPE process_type; /** create type, one node is floating; connect type, both of the nodes have been printed */
-
-  int retract_start_pt_num;
-  int process_pt_num;
-  int retract_end_pt_num;
 };
 
 LadderGraph sampleSingleConfig(const descartes_core::RobotModel& model,

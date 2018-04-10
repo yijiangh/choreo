@@ -18,17 +18,9 @@ bool checkFeasibility(
   std::vector<double> st_jt;
   std::vector<double> end_jt;
 
-  // first check conflict indices
-  std::vector<size_t> full_ids(poses.size());
-  std::iota(full_ids.begin(), full_ids.end(), 0); // fill 0 ~ n-1
-  std::set<size_t> full_ids_set(full_ids.begin(), full_ids.end());
-
-  std::set<size_t> last_check_ids;
-  std::set_difference(full_ids_set.begin(), full_ids_set.end(),
-                      cap_rung.conflict_ids_.begin(), cap_rung.conflict_ids_.end(),
-                      std::inserter(last_check_ids, last_check_ids.end()));
-
   std::vector<std::vector<double>> joint_poses;
+
+  // check ik feasibility for each of the path points
   for(size_t c_id = 0; c_id < poses.size(); c_id++)
   {
     joint_poses.clear();
@@ -39,18 +31,22 @@ bool checkFeasibility(
     }
     else
     {
+      // TODO: this is temporal workaround
       // the last pose, prevent eef collide with element being printed
-      model.setPlanningScene(cap_rung.planning_scene_completed_);
+      model.setPlanningScene(
+          cap_rung.planning_scene_completed_ ? cap_rung.planning_scene_completed_ : cap_rung.planning_scene_);
     }
 
     model.getAllIK(poses[c_id], joint_poses);
 
     if(joint_poses.empty())
     {
+      // current capsule is invalid if there exists one path point without feasible kinematics solution.
       return false;
     }
     else
     {
+      // only store kinematics family for only start and end path point
       if(0 == c_id)
       {
         // turn packed joint solution in a contiguous array

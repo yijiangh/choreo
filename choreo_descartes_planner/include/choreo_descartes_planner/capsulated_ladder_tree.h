@@ -76,7 +76,8 @@ class CapVert
   inline void setParentVertPtr(CapVert* ptr_v)
   {
     this->ptr_prev_cap_vert_ = ptr_v;
-    this->to_parent_cost_ = this->distance(ptr_v) + ORIENTATION_PREFERENCE_WEIGHT * delta_o_to_ideal_angle_;
+    this->to_parent_cost_ = this->distance(ptr_v);
+//    + ORIENTATION_PREFERENCE_WEIGHT * delta_o_to_ideal_angle_;
   }
 
   // accumulated cost (the function g)
@@ -106,10 +107,14 @@ class CapVert
   std::vector<double> end_joint_data_;
 
   size_t rung_id_;
+
+  // rotation angle around z axis
   double z_axis_angle_;
+
+  // base orientation
   Eigen::Matrix3d orientation_;
 
-  double delta_o_to_ideal_angle_;
+//  double delta_o_to_ideal_angle_;
 
   double to_parent_cost_;
   CapVert* ptr_prev_cap_vert_;
@@ -128,21 +133,13 @@ struct CapRung
   // TODO: this is temporal patch to add element that is being printed
   planning_scene::PlanningScenePtr planning_scene_completed_;
 
-  std::set<size_t> conflict_ids_;
+//  std::set<size_t> conflict_ids_;
+  // ONLY USED in spatial extrusion
+  // discretization degree for rotation around central z axis
   double z_axis_disc_;
+
+  // used in line movement discretization
   double linear_vel_;
-
-  inline Eigen::Affine3d makePose(double rand_o, double rand_a) const
-  {
-    // sanity check - 0 <= rand_o, rand_a < 1
-    if(!(0<= rand_o && rand_o < 1 && 0 <= rand_a && rand_a < 1))
-    {
-      ROS_ERROR("[Cap Ladder Tree] sample num should be in [0,1)!!");
-    }
-    assert(0<= rand_o && rand_o < 1 && 0 <= rand_a && rand_a < 1);
-
-    // return pose
-  }
 };
 }
 
