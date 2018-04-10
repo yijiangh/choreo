@@ -2,17 +2,9 @@
 // Created by yijiangh on 7/7/17.
 //
 #include "path_transitions.h"
+#include "trajectory_utils.h"
 
-#include <algorithm>
-
-#include <Eigen/Geometry>
-
-// msgs
-#include <geometry_msgs/Vector3.h>
-
-#include <rviz_visual_tools/rviz_visual_tools.h>
-
-#include <eigen_conversions/eigen_msg.h>
+#include <choreo_descartes_planner/pose_sampling_helpers.h>
 
 // for extra descartes graph building feature
 #include <descartes_planner/ladder_graph.h>
@@ -27,7 +19,10 @@ typedef boost::function<double(const double*, const double*)> CostFunction;
 #include <descartes_planner/planning_graph_edge_policy.h>
 #include <descartes_planner/ladder_graph_dag_search.h>
 
-#include "trajectory_utils.h"
+#include <rviz_visual_tools/rviz_visual_tools.h>
+#include <geometry_msgs/Vector3.h>
+#include <eigen_conversions/eigen_msg.h>
+#include <Eigen/Geometry>
 
 const static double JTS_DISC_DELTA = 0.01; // radians
 const static double RETRACT_OFFSET_SAMPLE_TIMEOUT = 5.0;
@@ -35,10 +30,11 @@ const static double MIN_RETRACTION_DIST = 0.003; // m
 
 namespace // anon namespace to hide utility functions
 {
+// TODO: should be moved to geometry_conversion_helpers
 // convert orientations representing by Eigen3d::vector into Eigen::Matrix3d
 void convertOrientationVector(
     const std::vector<geometry_msgs::Vector3>& orients_msg,
-    descartes_planner::ConstrainedSegment::OrientationVector& m_orients)
+    std::vector<Eigen::Matrix3d>& m_orients)
 {
   m_orients.clear();
 
@@ -72,51 +68,7 @@ void convertOrientationVector(
   }
 }
 
-static int randomSampleInt(int lower, int upper)
-{
-  std::random_device rd;
-  std::mt19937 gen(rd());
-
-  if(upper > lower)
-  {
-    std::uniform_int_distribution<int> int_distr(lower, upper);
-    return int_distr(gen);
-  }
-  else
-  {
-    return lower;
-  }
-}
-
-std::vector<Eigen::Vector3d> discretizePositions(const Eigen::Vector3d& start, const Eigen::Vector3d& stop, const double ds)
-{
-  auto dist = (stop - start).norm();
-
-  size_t n_intermediate_points = 0;
-  if (dist > ds)
-  {
-    n_intermediate_points = static_cast<size_t>(std::lround(dist / ds));
-  }
-
-  const auto total_points = 2 + n_intermediate_points;
-
-  std::vector<Eigen::Vector3d> result;
-  result.reserve(total_points);
-
-  for (std::size_t i = 0; i < total_points; ++i)
-  {
-    const double r = i / static_cast<double>(total_points - 1);
-    Eigen::Vector3d point = start + (stop - start) * r;
-    result.push_back(point);
-  }
-  return result;
-}
-
 } // end utility function ns
-
-using DescartesConstrainedPathConversionFunc =
-boost::function<descartes_planner::ConstrainedSegment (const Eigen::Vector3d &, const Eigen::Vector3d &,
-                                                       const std::vector<Eigen::Vector3d> &)>;
 
 std::vector<descartes_planner::ConstrainedSegment>
 framefab_process_planning::toDescartesConstrainedPath(const std::vector<framefab_msgs::ElementCandidatePoses>& task_sequence,
@@ -171,7 +123,7 @@ framefab_process_planning::toDescartesConstrainedPath(const std::vector<framefab
 
 bool framefab_process_planning::retractPath(
     const std::vector<double>& start_joint, double retract_dist, double TCP_speed,
-    const descartes_planner::ConstrainedSegment::OrientationVector& eef_directions,
+    const std::vector<Eigen::Matrix3d>& eef_directions,
     descartes_core::RobotModelPtr& model,
     std::vector<std::vector<double>>& retract_jt_traj)
 {
@@ -216,7 +168,7 @@ bool framefab_process_planning::retractPath(
     }
     else
     {
-      int sample_id = randomSampleInt(0, eef_directions.size() - 1);
+      int sample_id = descartes_planner::randomSampleInt(0, eef_directions.size() - 1);
       offset_vec = eef_directions[sample_id];
     }
 
@@ -227,7 +179,7 @@ bool framefab_process_planning::retractPath(
     auto end_pt = retract_pose.matrix().col(3).head<3>();
     double ds = (st_pt - end_pt).norm() / 2;
 
-    std::vector<Eigen::Vector3d> path_pts = discretizePositions(st_pt, end_pt, ds);
+    std::vector<Eigen::Vector3d> path_pts = descartes_planner::discretizePositions(st_pt, end_pt, ds);
     graph.resize(path_pts.size());
 
     for(auto& pt : path_pts)

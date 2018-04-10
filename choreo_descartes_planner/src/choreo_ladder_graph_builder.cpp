@@ -1,6 +1,6 @@
 #include <choreo_descartes_planner/choreo_ladder_graph_builder.h>
 
-#include "pose_sampling_helpers.h"
+#include "../include/choreo_descartes_planner/pose_sampling_helpers.h"
 #include "pose_verification_helpers.h"
 
 // declare for descartes edge policy

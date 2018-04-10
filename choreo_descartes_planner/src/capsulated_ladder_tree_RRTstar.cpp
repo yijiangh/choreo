@@ -5,7 +5,7 @@
 #include "choreo_descartes_planner/capsulated_ladder_tree.h"
 #include "choreo_descartes_planner/capsulated_ladder_tree_RRTstar.h"
 
-#include "pose_sampling_helpers.h"
+#include "choreo_descartes_planner/pose_sampling_helpers.h"
 #include "pose_verification_helpers.h"
 
 // ladder graph & DAG (solution extraction)

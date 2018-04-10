@@ -59,7 +59,7 @@ include_directories(include
 add_library(${PROJECT_NAME}
   src/choreo_ladder_graph_builder.cpp
   src/capsulated_ladder_tree_RRTstar.cpp
-  src/pose_sampling_helpers.cpp
+	include/choreo_descartes_planner/pose_sampling_helpers.cpp
   src/pose_verification_helpers.cpp
   )
 
