@@ -18,7 +18,7 @@ namespace descartes_planner
 class CapVert
 {
  public:
-  explicit CapVert(const double dof) : dof_(dof)
+  explicit CapVert(const double dof) : dof_(dof), z_axis_angle_(-1)
   {
   }
 
@@ -103,16 +103,19 @@ class CapVert
   int dof_;
 
   // joint values stored in one contiguous array
+  // first joint pose in first partition
   std::vector<double> start_joint_data_;
+  // last joint pose in last partition
   std::vector<double> end_joint_data_;
 
   size_t rung_id_;
 
-  // rotation angle around z axis
+  // rotation angle around z axis, TODO: only used in spatial extrusion
+  // TODO: temporarily used to distinguish two processes
   double z_axis_angle_;
 
-  // base orientation
-  Eigen::Matrix3d orientation_;
+  // base orientation, the chosen orientation for each partition
+  std::vector<Eigen::Matrix3d> orientation_;
 
 //  double delta_o_to_ideal_angle_;
 
@@ -124,14 +127,17 @@ struct CapRung
 {
   std::vector<CapVert*> ptr_cap_verts_;
 
-  std::vector<Eigen::Vector3d> path_pts_;
-  std::vector<Eigen::Matrix3d> orientations_;
-  double ideal_o_to_element_angle; // radians
+  std::vector<std::vector<Eigen::Vector3d>> path_pts_;
+  std::vector<std::vector<Eigen::Matrix3d>> orientations_;
 
-  planning_scene::PlanningScenePtr planning_scene_;
+  // partition of path points inside (needs to be divided later)
+  std::vector<int> sub_segment_ids_;
+
+  // associated planning for each partition
+  std::vector<planning_scene::PlanningScenePtr> planning_scene_;
 
   // TODO: this is temporal patch to add element that is being printed
-  planning_scene::PlanningScenePtr planning_scene_completed_;
+  std::vector<planning_scene::PlanningScenePtr> planning_scene_completed_;
 
   // ONLY USED in spatial extrusion
   // discretization degree for rotation around central z axis
@@ -139,9 +145,6 @@ struct CapRung
 
   // used in line movement discretization
   double linear_vel_;
-
-  // partition of path points inside (needs to be divided later)
-  std::vector<int> sub_segment_ids_;
 };
 
 }

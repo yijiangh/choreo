@@ -19,6 +19,8 @@ std::vector<Eigen::Vector3d> discretizePositions(
 Eigen::Affine3d makePose(const Eigen::Vector3d& position, const Eigen::Matrix3d& orientation,
                          const double z_axis_angle);
 
+Eigen::Affine3d makePose(const Eigen::Vector3d& position, const Eigen::Matrix3d& orientation);
+
 int randomSampleInt(int lower, int upper);
 
 double randomSampleDouble(double lower, double upper);

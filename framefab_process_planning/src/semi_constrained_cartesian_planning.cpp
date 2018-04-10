@@ -52,6 +52,7 @@ bool saveLadderGraph(const std::string &filename, const descartes_msgs::LadderGr
 namespace framefab_process_planning
 {
 
+// TODO: overhead for spatial extrusion
 void CLTRRTforProcessROSTraj(descartes_core::RobotModelPtr model,
                              std::vector <descartes_planner::ConstrainedSegment> &segs,
                              const double clt_rrt_unit_process_timeout,
@@ -104,7 +105,7 @@ void CLTRRTforProcessROSTraj(descartes_core::RobotModelPtr model,
                             graph_indices,
                             use_saved_graph);
 
-    graph_list_msg = descartes_parser::convertToLadderGraphMsg(graphs);
+    graph_list_msg = descartes_parser::convertToLadderGraphListMsg(graphs);
     saveLadderGraph(saved_graph_file_name, graph_list_msg);
   }
   else
@@ -160,6 +161,133 @@ void CLTRRTforProcessROSTraj(descartes_core::RobotModelPtr model,
     plans[i].sub_process_array.push_back(sub_process);
 
     it = it + graph_indices[i];
+  }
+}
+
+// TODO: overhead for picknplace
+void CLTRRTforProcessROSTraj(descartes_core::RobotModelPtr model,
+                             std::vector<descartes_planner::ConstrainedSegmentPickNPlace>& segs,
+                             const double clt_rrt_unit_process_timeout,
+                             const double clt_rrt_timeout,
+                             const std::vector<planning_scene::PlanningScenePtr> &planning_scenes_pick,
+                             const std::vector<planning_scene::PlanningScenePtr> &planning_scenes_place,
+                             std::vector <framefab_msgs::UnitProcessPlan> &plans,
+                             const std::string &saved_graph_file_name,
+                             bool use_saved_graph)
+{
+  // sanity check, segs' size is used as req.index
+  const auto clt_start = ros::Time::now();
+
+  framefab_process_planning::DescartesTraj sol;
+
+  std::vector <descartes_planner::LadderGraph> graphs;
+  std::vector<std::vector<int>> graph_indices;
+  std::vector<int> flat_graph_ids; // un-partitioned graph indices
+
+  descartes_msgs::LadderGraphList graph_list_msg;
+  double clt_cost = 0;
+
+  if (use_saved_graph)
+  {
+    if(framefab_param_helpers::fromFile(saved_graph_file_name, graph_list_msg))
+    {
+      ROS_INFO_STREAM("[CLR RRT*] use saved ladder graph.");
+
+      //parse saved ladder graph & partition indices
+      graphs = descartes_parser::convertToLadderGraphList(graph_list_msg, graph_indices);
+    }
+    else
+    {
+      ROS_WARN_STREAM("[CLT RRT*] read saved ladder graph list fails. Reconstruct graph.");
+      // reading msg fails, reconstruct ladder graph
+      use_saved_graph = false;
+    }
+  }
+
+  // partition indices will be init inside CLT_RRT
+  descartes_planner::CapsulatedLadderTreeRRTstar CLT_RRT(segs, planning_scenes_pick, planning_scenes_place);
+
+  // if request size bigger than the saved one, recompute
+  if (!use_saved_graph || segs.size() > graphs.size())
+  {
+    // reconstruct and search, output sol, graphs, graph_indices
+    clt_cost = CLT_RRT.solve(*model, clt_rrt_unit_process_timeout, clt_rrt_timeout);
+    CLT_RRT.extractSolution(*model,
+                            sol,
+                            graphs,
+                            flat_graph_ids,
+                            use_saved_graph);
+
+    graph_indices = CLT_RRT.getGraphPartitionIds();
+
+    assert(graph_indices.size() == graphs.size());
+    graph_list_msg = descartes_parser::convertToLadderGraphListMsg(graphs, graph_indices);
+    saveLadderGraph(saved_graph_file_name, graph_list_msg);
+  }
+  else
+  {
+    // default start from begin
+    std::vector <descartes_planner::LadderGraph> chosen_graphs(graphs.begin(), graphs.begin() + segs.size());
+    CLT_RRT.extractSolution(*model,
+                            sol,
+                            chosen_graphs,
+                            flat_graph_ids,
+                            use_saved_graph);
+
+    graph_indices = CLT_RRT.getGraphPartitionIds();
+
+    // sanity check
+    assert(graph_indices.size() == flat_graph_ids.size());
+    for(int k=0; k<flat_graph_ids.size(); k++)
+    {
+      int sum = 0;
+      for(auto& chuck_num : graph_indices[k])
+      {
+        sum += chuck_num;
+      }
+      assert(sum == flat_graph_ids[k]);
+    }
+  }
+
+  const auto clt_end = ros::Time::now();
+  ROS_INFO_STREAM("[CLT RRT*] CLT RRT* Search took " << (clt_end - clt_start).toSec()
+                                                     << " seconds");
+
+  trajectory_msgs::JointTrajectory ros_traj = framefab_process_planning::toROSTrajectory(sol, *model);
+
+  auto it = ros_traj.points.begin();
+  for (size_t i = 0; i < segs.size(); i++)
+  {
+    framefab_msgs::SubProcess sub_process;
+
+    sub_process.unit_process_id = i;
+    sub_process.process_type = framefab_msgs::SubProcess::RETRACTION;
+    sub_process.main_data_type = framefab_msgs::SubProcess::CART;
+
+    // must contain two index partition: pick approach, pick depart, place approach, place depart
+    assert(graph_indices[i].size() == 4);
+
+    for(int k = 0; k < 4; k++)
+    {
+      if(k % 2 == 0)
+      {
+        sub_process.element_process_type = framefab_msgs::SubProcess::APPROACH;
+      }
+      else
+      {
+        sub_process.element_process_type = framefab_msgs::SubProcess::DEPART;
+      }
+
+      if(k <= 1)
+      {
+        sub_process.comment = "pick";
+      }
+
+      sub_process.joint_array.points = std::vector<trajectory_msgs::JointTrajectoryPoint>(it, it + graph_indices[i][k]);
+      plans[i].sub_process_array.push_back(sub_process);
+
+      it = it + graph_indices[i][k];
+    }
   }
 }
 

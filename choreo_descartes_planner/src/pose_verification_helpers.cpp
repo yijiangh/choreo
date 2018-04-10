@@ -14,12 +14,15 @@ bool checkFeasibility(
     descartes_planner::CapVert& cap_vert)
 {
   // sanity check
-  assert(poses.size() == cap_rung.path_pts_.size());
+  assert(cap_rung.path_pts_.size() > 0);
+  assert(poses.size() == cap_rung.path_pts_[0].size());
 
   std::vector<double> st_jt;
   std::vector<double> end_jt;
 
   std::vector<std::vector<double>> joint_poses;
+
+  assert(cap_rung.planning_scene_.size() > 0);
 
   // check ik feasibility for each of the path points
   for(size_t c_id = 0; c_id < poses.size(); c_id++)
@@ -28,14 +31,14 @@ bool checkFeasibility(
 
     if(c_id < poses.size() - 1)
     {
-      model.setPlanningScene(cap_rung.planning_scene_);
+      model.setPlanningScene(cap_rung.planning_scene_[0]);
     }
     else
     {
       // TODO: this is temporal workaround
       // the last pose, prevent eef collide with element being printed
       model.setPlanningScene(
-          cap_rung.planning_scene_completed_ ? cap_rung.planning_scene_completed_ : cap_rung.planning_scene_);
+          cap_rung.planning_scene_completed_.size()>0 ? cap_rung.planning_scene_completed_[0] : cap_rung.planning_scene_[0]);
     }
 
     model.getAllIK(poses[c_id], joint_poses);
@@ -78,15 +81,18 @@ bool domainDiscreteEnumerationCheck(
     descartes_planner::CapRung& cap_rung,
     descartes_planner::CapVert& cap_vert)
 {
+  assert(cap_rung.path_pts_.size() > 0);
+  assert(cap_rung.orientations_.size() > 0);
+
   // direct enumeration of domain
-  const std::vector<Eigen::Vector3d> pts = cap_rung.path_pts_;
+  const std::vector<Eigen::Vector3d> pts = cap_rung.path_pts_[0];
   std::vector<Eigen::Affine3d> poses;
   poses.reserve(cap_rung.path_pts_.size());
 
   const auto n_angle_disc = std::lround( 2 * M_PI / cap_rung.z_axis_disc_);
   const auto angle_step = 2 * M_PI / n_angle_disc;
 
-  for (const auto& orientation : cap_rung.orientations_)
+  for (const auto& orientation : cap_rung.orientations_[0])
   {
     for (long i = 0; i < n_angle_disc; ++i)
     {
@@ -100,7 +106,7 @@ bool domainDiscreteEnumerationCheck(
 
       if(checkFeasibility(model, poses, cap_rung, cap_vert))
       {
-        cap_vert.orientation_ = orientation;
+        cap_vert.orientation_.push_back(orientation);
         cap_vert.z_axis_angle_ = angle;
         return true;
       }

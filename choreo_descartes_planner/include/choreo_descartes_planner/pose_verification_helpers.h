@@ -13,6 +13,7 @@ namespace descartes_planner
 
 // if pose is feasible, return true and start and end joint solution
 // otherwise return empty joint solution
+// TODO: this one is only used in spatial extrusion
 bool checkFeasibility(
     descartes_core::RobotModel& model,
     const std::vector<Eigen::Affine3d>& poses, descartes_planner::CapRung& cap_rung,

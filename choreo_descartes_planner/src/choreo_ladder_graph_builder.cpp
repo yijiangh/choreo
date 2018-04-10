@@ -48,10 +48,12 @@ void concatenate(descartes_planner::LadderGraph& dest, const descartes_planner::
 
 } // end anon utility function ns
 
-descartes_planner::LadderGraph descartes_planner::sampleSingleConfig(const descartes_core::RobotModel& model,
-                                                                     const std::vector<Eigen::Vector3d>& ps,
-                                                                     const double dt, const Eigen::Matrix3d& orientation,
-                                                                     const double z_axis_angle)
+namespace descartes_planner
+{
+
+LadderGraph generateLadderGraphFromPoses(const descartes_core::RobotModel &model,
+                                         const std::vector <Eigen::Affine3d> &ps,
+                                         const double dt)
 {
   descartes_planner::LadderGraph graph(model.getDOF());
   graph.resize(ps.size());
@@ -59,12 +61,11 @@ descartes_planner::LadderGraph descartes_planner::sampleSingleConfig(const desca
   const descartes_core::TimingConstraint timing(dt);
 
   // Solve IK for each point
-  for (std::size_t i = 0; i < ps.size(); ++i) //const auto& point : ps)
+  for (std::size_t i = 0; i < ps.size(); ++i)
   {
-    const auto& point = ps[i];
-    const Eigen::Affine3d pose = makePose(point, orientation, z_axis_angle);
-    std::vector<std::vector<double>> joint_poses;
-    model.getAllIK(pose, joint_poses);
+    std::vector <std::vector<double>> joint_poses;
+    model.getAllIK(ps[i], joint_poses);
+
     graph.assignRung(i, descartes_core::TrajectoryID::make_nil(), timing, joint_poses);
   }
 
@@ -76,16 +77,16 @@ descartes_planner::LadderGraph descartes_planner::sampleSingleConfig(const desca
   {
     const auto start_idx = i;
     const auto end_idx = i + 1;
-    const auto& joints1 = graph.getRung(start_idx).data;
-    const auto& joints2 = graph.getRung(end_idx).data;
-    const auto& tm = graph.getRung(end_idx).timing;
+    const auto &joints1 = graph.getRung(start_idx).data;
+    const auto &joints2 = graph.getRung(end_idx).data;
+    const auto &tm = graph.getRung(end_idx).timing;
     const auto dof = model.getDOF();
 
     const auto start_size = joints1.size() / dof;
     const auto end_size = joints2.size() / dof;
 
-    descartes_planner::DefaultEdgesWithTime builder (start_size, end_size, dof, tm.upper,
-                                                     model.getJointVelocityLimits());
+    descartes_planner::DefaultEdgesWithTime builder(start_size, end_size, dof, tm.upper,
+                                                    model.getJointVelocityLimits());
     for (size_t k = 0; k < start_size; k++) // from rung
     {
       const auto start_index = k * dof;
@@ -99,29 +100,52 @@ descartes_planner::LadderGraph descartes_planner::sampleSingleConfig(const desca
       builder.next(k);
     }
 
-    std::vector<descartes_planner::LadderGraph::EdgeList> edges = builder.result();
+    std::vector <descartes_planner::LadderGraph::EdgeList> edges = builder.result();
     if (!builder.hasEdges())
     {
 //      ROS_WARN("No edges");
     }
+
     has_edges_t = has_edges_t && builder.hasEdges();
     graph.assignEdges(i, std::move(edges));
   } // end edge loop
 
-//  if (has_edges_t)
-//  {
-//    ROS_WARN("Lots of edges");
-//  }
-//  else
-//  {
-//    ROS_ERROR("No edges...");
-//  }
-
   return graph;
 }
 
-descartes_planner::LadderGraph descartes_planner::sampleConstrainedPaths(const descartes_core::RobotModel& model,
-                                                                         ConstrainedSegment& segment)
+LadderGraph sampleSingleConfig(const descartes_core::RobotModel &model,
+                               const std::vector <Eigen::Vector3d> &origins,
+                               const double dt,
+                               const Eigen::Matrix3d &orientation,
+                               const double z_axis_angle)
+{
+  std::vector <Eigen::Affine3d> poses;
+
+  for (const auto &o : origins)
+  {
+    poses.push_back(makePose(o, orientation, z_axis_angle));
+  }
+
+  return generateLadderGraphFromPoses(model, poses, dt);
+}
+
+LadderGraph sampleSingleConfig(const descartes_core::RobotModel &model,
+                               const std::vector <Eigen::Vector3d> &origins,
+                               const Eigen::Matrix3d &orientation,
+                               const double dt)
+{
+  std::vector <Eigen::Affine3d> poses;
+
+  for (const auto &o : origins)
+  {
+    poses.push_back(makePose(o, orientation, z_axis_angle));
+  }
+
+  return generateLadderGraphFromPoses(model, poses);
+}
+
+LadderGraph sampleConstrainedPaths(const descartes_core::RobotModel &model,
+                                   ConstrainedSegment &segment)
 {
   // Determine the linear points
   // TODO: should have a lower bound for discretization
@@ -131,12 +155,12 @@ descartes_planner::LadderGraph descartes_planner::sampleConstrainedPaths(const d
   // Compute the number of angle steps
   static const auto min_angle = -M_PI;
   static const auto max_angle = M_PI;
-  const auto n_angle_disc = std::lround( (max_angle - min_angle) / segment.z_axis_disc);
+  const auto n_angle_disc = std::lround((max_angle - min_angle) / segment.z_axis_disc);
   const auto angle_step = (max_angle - min_angle) / n_angle_disc;
 
   // Compute the expected time step for each linear point
   double traverse_length = (segment.end - segment.start).norm();
-  const auto dt =  traverse_length / segment.linear_vel;
+  const auto dt = traverse_length / segment.linear_vel;
 
   LadderGraph graph(model.getDOF());
 
@@ -144,9 +168,9 @@ descartes_planner::LadderGraph descartes_planner::sampleConstrainedPaths(const d
   graph.resize(points.size());
 
   // We will build up our graph one configuration at a time: a configuration is a single orientation and z angle disc
-  for (const auto& orientation : segment.orientations)
+  for (const auto &orientation : segment.orientations)
   {
-    std::vector<Eigen::Vector3d> process_pts = points;
+    std::vector <Eigen::Vector3d> process_pts = points;
 
     for (long i = 0; i < n_angle_disc; ++i)
     {
@@ -163,7 +187,7 @@ descartes_planner::LadderGraph descartes_planner::sampleConstrainedPaths(const d
 }
 
 // TODO:
-void descartes_planner::appendInTime(LadderGraph &current, const LadderGraph &next)
+void appendInTime(LadderGraph &current, const LadderGraph &next)
 {
   const auto ref_size = current.size();
   const auto new_total_size = ref_size + next.size();
@@ -180,8 +204,8 @@ void descartes_planner::appendInTime(LadderGraph &current, const LadderGraph &ne
   if (ref_size > 0 && next.size() > 0)
   {
     const auto dof = current.dof();
-    auto& a_rung = current.getRung(ref_size - 1);
-    auto& b_rung = current.getRung(ref_size);
+    auto &a_rung = current.getRung(ref_size - 1);
+    auto &b_rung = current.getRung(ref_size);
 
     const auto n_start = a_rung.data.size() / dof;
     const auto n_end = b_rung.data.size() / dof;
@@ -201,7 +225,7 @@ void descartes_planner::appendInTime(LadderGraph &current, const LadderGraph &ne
       builder.next(k);
     }
 
-    std::vector<descartes_planner::LadderGraph::EdgeList> edges = builder.result();
+    std::vector <descartes_planner::LadderGraph::EdgeList> edges = builder.result();
 
     if (!builder.hasEdges())
     {
@@ -210,4 +234,5 @@ void descartes_planner::appendInTime(LadderGraph &current, const LadderGraph &ne
 
     current.assignEdges(ref_size - 1, std::move(edges));
   }
+}
 }

@@ -49,25 +49,83 @@ CapsulatedLadderTreeRRTstar::CapsulatedLadderTreeRRTstar(
 
     // end effector path pts
     auto points = discretizePositions(segs[i].start, segs[i].end, segs[i].linear_disc);
-    cap_rung.path_pts_ = points;
+    cap_rung.path_pts_.resize(1);
+    cap_rung.path_pts_[0] = points;
 
     // feasible orientations
-    cap_rung.orientations_.reserve(segs[i].orientations.size());
+    cap_rung.orientations_.resize(1);
+    cap_rung.orientations_[0].reserve(segs[i].orientations.size());
+
     for (auto& orient : segs[i].orientations)
     {
-      cap_rung.orientations_.push_back(orient);
+      cap_rung.orientations_[0].push_back(orient);
     }
 
     // planning scene
-    cap_rung.planning_scene_ = planning_scenes[i];
+    cap_rung.planning_scene_.push_back(planning_scenes[i]);
+    cap_rung.sub_segment_ids_.push_back(points.size());
 
     if(planning_scenes_completed.size() > 0)
     {
-      cap_rung.planning_scene_completed_ = planning_scenes_completed[i];
+      cap_rung.planning_scene_completed_.push_back(planning_scenes_completed[i]);
     }
 
     // input z axis disc
     cap_rung.z_axis_disc_ = segs[i].z_axis_disc;
+
+    // linear speed
+    cap_rung.linear_vel_ = segs[i].linear_vel;
+
+    cap_rungs_.push_back(cap_rung);
+  }
+}
+
+CapsulatedLadderTreeRRTstar::CapsulatedLadderTreeRRTstar(
+    const std::vector<ConstrainedSegmentPickNPlace>& segs,
+    const std::vector<planning_scene::PlanningScenePtr>& planning_scenes_pick,
+    const std::vector<planning_scene::PlanningScenePtr>& planning_scenes_place)
+{
+  // sanity check
+  assert(segs.size() == planning_scenes_pick.size());
+  assert(segs.size() == planning_scenes_place.size());
+
+  // intialize cap rungs
+  cap_rungs_.reserve(segs.size());
+  for(size_t i=0; i < segs.size(); i++)
+  {
+    CapRung cap_rung;
+
+    // end effector path pts
+    auto pick_points = discretizePositions(segs[i].pick_start, segs[i].pick_end, segs[i].linear_disc);
+    auto place_points = discretizePositions(segs[i].place_start, segs[i].place_end, segs[i].linear_disc);
+
+    // approach to depart
+    cap_rung.path_pts_.push_back(pick_points);
+    std::reverse(std::begin(pick_points), std::end(pick_points));
+    cap_rung.path_pts_.push_back(pick_points);
+
+    cap_rung.path_pts_.push_back(place_points);
+    std::reverse(std::begin(place_points), std::end(place_points));
+    cap_rung.path_pts_.push_back(place_points);
+
+    // feasible orientations
+    cap_rung.orientations_.reserve(4);
+    cap_rung.orientations_.push_back(segs[i].pick_orientations);
+    cap_rung.orientations_.push_back(segs[i].pick_orientations);
+    cap_rung.orientations_.push_back(segs[i].place_orientations);
+    cap_rung.orientations_.push_back(segs[i].place_orientations);
+
+    // planning scene
+    cap_rung.planning_scene_.push_back(planning_scenes_pick[i]);
+    cap_rung.planning_scene_.push_back(planning_scenes_pick[i]);
+    cap_rung.planning_scene_.push_back(planning_scenes_place[i]);
+    cap_rung.planning_scene_.push_back(planning_scenes_place[i]);
+
+    // partition ids
+    cap_rung.sub_segment_ids_.push_back(pick_points.size());
+    cap_rung.sub_segment_ids_.push_back(pick_points.size());
+    cap_rung.sub_segment_ids_.push_back(place_points.size());
+    cap_rung.sub_segment_ids_.push_back(place_points.size());
 
     // linear speed
     cap_rung.linear_vel_ = segs[i].linear_vel;
@@ -245,12 +303,23 @@ void CapsulatedLadderTreeRRTstar::extractSolution(descartes_core::RobotModel& mo
       double traverse_length = (cap_rung.path_pts_.front() - cap_rung.path_pts_.back()).norm();
       const auto dt = traverse_length / cap_rung.linear_vel_;
 
-      model.setPlanningScene(cap_rung.planning_scene_);
-      auto unit_ladder_graph = sampleSingleConfig(model,
-                                                  cap_rungs_[ptr_last_cap_vert->rung_id_].path_pts_,
-                                                  dt,
-                                                  ptr_last_cap_vert->orientation_,
-                                                  ptr_last_cap_vert->z_axis_angle_);
+      // TODO: temp workaround
+      if(-1 != ptr_last_cap_vert->z_axis_angle_)
+      {
+        model.setPlanningScene(cap_rung.planning_scene_[0]);
+        auto unit_ladder_graph = sampleSingleConfig(model,
+                                                    cap_rungs_[ptr_last_cap_vert->rung_id_].path_pts_[0],
+                                                    dt,
+                                                    ptr_last_cap_vert->orientation_[0],
+                                                    ptr_last_cap_vert->z_axis_angle_);
+      }
+      else
+      {
+        for()
+        {
+
+        }
+      }
 
       graphs.insert(graphs.begin(), unit_ladder_graph);
       graph_indices.insert(graph_indices.begin(), unit_ladder_graph.size());

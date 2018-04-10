@@ -44,6 +44,15 @@ Eigen::Affine3d makePose(const Eigen::Vector3d& position, const Eigen::Matrix3d&
   return m * z_rot;
 }
 
+Eigen::Affine3d makePose(const Eigen::Vector3d& position, const Eigen::Matrix3d& orientation)
+{
+  Eigen::Affine3d m = Eigen::Affine3d::Identity();
+  m.matrix().block<3,3>(0,0) = orientation;
+  m.matrix().col(3).head<3>() = position;
+
+  return m;
+}
+
 int randomSampleInt(int lower, int upper)
 {
   std::random_device rd;
@@ -76,28 +85,35 @@ double randomSampleDouble(double lower, double upper)
   }
 }
 
-// original generate sampling function used in spatial extrusion
+// TODO: original generate sampling function used only in spatial extrusion
 std::vector<Eigen::Affine3d> generateSample(const descartes_planner::CapRung& cap_rung,
                                             descartes_planner::CapVert& cap_vert)
 {
   // sample int for orientation
   int o_sample = randomSampleInt(0, cap_rung.orientations_.size()-1);
 
-  Eigen::Matrix3d orientation_sample = cap_rung.orientations_[o_sample];
+  assert(cap_rung.orientations_.size() > 0);
+  assert(cap_rung.orientations_[0].size() > o_sample);
+
+  Eigen::Matrix3d orientation_sample = cap_rung.orientations_[0][o_sample];
 
   // sample [0,1] for axis, z_axis_angle = b_rand * 2 * Pi
 
   double x_axis_sample = randomSampleDouble(0.0, 1.0) * 2 * M_PI;
 
+  assert(cap_rung.path_pts_.size() > 0);
+  assert(cap_rung.path_pts_[0].size() > 0);
+
   std::vector<Eigen::Affine3d> poses;
-  poses.reserve(cap_rung.path_pts_.size());
-  for(auto& pt : cap_rung.path_pts_)
+  poses.reserve(cap_rung.path_pts_[0].size());
+  for(auto& pt : cap_rung.path_pts_[0])
   {
     poses.push_back(makePose(pt, orientation_sample, x_axis_sample));
   }
 
+  // TODO: should be a std::vector too?
   cap_vert.z_axis_angle_ = x_axis_sample;
-  cap_vert.orientation_ = orientation_sample;
+  cap_vert.orientation_.push_back(orientation_sample);
 
   return poses;
 }
