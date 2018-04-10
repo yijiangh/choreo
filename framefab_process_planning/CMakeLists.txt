@@ -73,6 +73,7 @@ add_executable(framefab_process_planning_node
 	#
 	src/generate_motion_plan.cpp
 	src/construct_planning_scene.cpp
+	src/semi_constrained_cartesian_planning.cpp
 	)
 
 ## Add cmake target dependencies of the executable/library

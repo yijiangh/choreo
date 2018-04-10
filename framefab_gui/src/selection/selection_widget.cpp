@@ -220,6 +220,7 @@ void framefab_gui::SelectionWidget::orderValueChanged()
   // call visualization srv
   framefab_msgs::VisualizeSelectedPath srv;
 
+  // TODO: MAGIC SWITCH!!
   // TODO: the assembly task type should be a part of model param
   // TODO: hardcoded to picknplace for now
 //  srv.request.assembly_type = srv.request.SPATIAL_EXTRUSION;

@@ -470,6 +470,7 @@ void FrameFabCoreService::taskSequenceProcessingActionCallback(const framefab_ms
       // call task_sequence_processing srv
       framefab_msgs::TaskSequenceProcessing srv;
 
+      // TODO: MAGIC SWITCH!!
       // TODO: this process type should be a part of MODEL param
 //      srv.request.action = srv.request.SPATIAL_EXTRUSION;
       srv.request.action = srv.request.PICKNPLACE;

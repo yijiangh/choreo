@@ -10,7 +10,6 @@ Panels:
         - /MotionPlanning1/Scene Robot1
         - /MotionPlanning1/Planned Path1
         - /TF1/Frames1
-        - /PlanningScene1
         - /PlanningScene1/Scene Geometry1
         - /PlanningScene1/Scene Robot1
         - /MarkerArray1
@@ -18,7 +17,7 @@ Panels:
         - /MarkerArray3
         - /MarkerArray4
       Splitter Ratio: 0.474801064
-    Tree Height: 299
+    Tree Height: 356
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -144,81 +143,111 @@ Visualization Manager:
         Show Robot Visual: false
       Value: false
     - Class: rviz/TF
-      Enabled: true
+      Enabled: false
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        base_link:
-          Value: true
-        eef_base_link:
-          Value: true
-        eef_tcp_frame:
-          Value: true
-        robot_base:
-          Value: true
-        robot_base_link:
-          Value: true
-        robot_link_1:
-          Value: true
-        robot_link_2:
-          Value: true
-        robot_link_3:
-          Value: true
-        robot_link_4:
-          Value: true
-        robot_link_5:
-          Value: true
-        robot_link_6:
-          Value: true
-        robot_tool0:
-          Value: true
-        workspace_base_link:
-          Value: true
-        workspace_objects:
-          Value: true
       Marker Scale: 0.0500000007
       Name: TF
       Show Arrows: false
       Show Axes: true
       Show Names: false
       Tree:
-        base_link:
-          robot_base_link:
-            robot_base:
-              {}
-            robot_link_1:
-              robot_link_2:
-                robot_link_3:
-                  robot_link_4:
-                    robot_link_5:
-                      robot_link_6:
-                        robot_tool0:
-                          eef_base_link:
-                            eef_tcp_frame:
-                              {}
-          workspace_base_link:
-            workspace_objects:
-              {}
+        {}
       Update Interval: 0
-      Value: true
+      Value: false
     - Alpha: 1
       Class: rviz/RobotModel
       Collision Enabled: false
-      Enabled: false
+      Enabled: true
       Links:
         All Links Enabled: true
         Expand Joint Details: false
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        eef_base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        eef_tcp_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        material_feeder_material_feeder:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        material_feeder_mount_point:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        robot_base:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        robot_base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        robot_link_1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        robot_link_2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        robot_link_3:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        robot_link_4:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        robot_link_5:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        robot_link_6:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        robot_tool0:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        workspace_base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        workspace_objects:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
       Name: RobotModel
       Robot Description: robot_description
       TF Prefix: ""
       Update Interval: 0
-      Value: false
+      Value: true
       Visual Enabled: true
     - Class: moveit_rviz_plugin/PlanningScene
-      Enabled: true
+      Enabled: false
       Move Group Namespace: ""
       Name: PlanningScene
       Planning Scene Topic: move_group/monitored_planning_scene
@@ -248,6 +277,15 @@ Visualization Manager:
             Show Trail: false
             Value: true
           eef_tcp_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          material_feeder_material_feeder:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          material_feeder_mount_point:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -306,14 +344,13 @@ Visualization Manager:
         Robot Alpha: 0.600000024
         Show Robot Collision: false
         Show Robot Visual: true
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /framefab_core_service/path_visualization
       Name: MarkerArray
       Namespaces:
-        Axis: true
-        mesh: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -371,30 +408,30 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.0902035758
+      Pitch: 0.0352037586
       Target Frame: arm_base_link
       Value: XYOrbit (rviz)
-      Yaw: 5.58173513
+      Yaw: 5.61173487
     Saved: ~
 Window Geometry:
   Displays:
     collapsed: false
   FrameFabPanel:
     collapsed: false
-  Height: 1026
+  Height: 1176
   Hide Left Dock: false
   Hide Right Dock: false
   MotionPlanning:
     collapsed: false
   MotionPlanning - Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000100000000000001b4000003bcfc020000000cfb0000001a004600720061006d006500460061006200500061006e0065006c01000000280000024a0000005c00fffffffb000000100044006900730070006c00610079007301000002780000016c000000d700fffffffb0000000800480065006c00700000000342000000bb0000000000000000fb0000000a005600690065007700730000000028000000ea000000ad00fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000028000002110000000000000000fb00000022004600720061006d0065004600610062005200760069007a00500061006e0065006c0000000028000002180000000000000000fb0000001200530065006c0065006300740069006f006e00000003bb000000bf0000006100fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007300000003d8000000a20000006100fffffffb0000002e004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d00200053006c00690064006500720000000000ffffffff0000004a00fffffffb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670000000028000001cc000001cc00fffffffb000000100044006900730070006c006100790073000000027a00000200000000d700ffffff000004d6000003bc00000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000100000000000001b400000452fc020000000cfb0000001a004600720061006d006500460061006200500061006e0065006c0100000028000002a70000005c00fffffffb000000100044006900730070006c00610079007301000002d5000001a5000000d700fffffffb0000000800480065006c00700000000342000000bb0000000000000000fb0000000a005600690065007700730000000028000000ea000000ad00fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000028000002110000000000000000fb00000022004600720061006d0065004600610062005200760069007a00500061006e0065006c0000000028000002180000000000000000fb0000001200530065006c0065006300740069006f006e00000003bb000000bf0000006100fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007300000003d8000000a20000006100fffffffb0000002e004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d00200053006c00690064006500720000000000ffffffff0000004a00fffffffb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670000000028000001cc000001cc00fffffffb000000100044006900730070006c006100790073000000027a00000200000000d700ffffff000005c60000045200000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Tool Properties:
     collapsed: false
   Views:
     collapsed: false
-  Width: 1680
+  Width: 1920
   X: 0
-  Y: 169
+  Y: 24

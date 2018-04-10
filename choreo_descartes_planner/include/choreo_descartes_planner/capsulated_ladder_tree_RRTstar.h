@@ -32,6 +32,17 @@ class CapsulatedLadderTreeRRTstar
 
   ~CapsulatedLadderTreeRRTstar();
 
+  std::vector<std::vector<int>> getGraphPartitionIds() const
+  {
+    assert(cap_rungs_.size() > 0);
+    std::vector<std::vector<int>> p_ids;
+
+    for(const auto& c : cap_rungs_)
+    {
+      p_ids.push_back(c.sub_segment_ids_);
+    }
+  }
+
   // TODO: should pass generate sample, feasibility checking function in
   // use RRT* on a ladder tree to get optimal capsulated solution
   // return the cost of the solution, if no sol found, return numerical max
