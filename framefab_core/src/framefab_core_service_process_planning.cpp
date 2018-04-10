@@ -29,7 +29,7 @@ ProcessPlanResult FrameFabCoreService::generateProcessPlan(const int& selected_p
 {
   ProcessPlanResult result;
 
-  bool success = false;
+  bool fetch_co_success = false;
   std::vector<framefab_msgs::UnitProcessPlan> process_plan;
 
   // get task sequence file name as ladder graph file name
@@ -56,6 +56,9 @@ ProcessPlanResult FrameFabCoreService::generateProcessPlan(const int& selected_p
 
     srv.request.assembly_type = choreo::ASSEMBLY_TYPE_PICKNPLACE;
     srv.request.as_pnp = as_pnp_;
+
+    // no need to call seq planner for collision objs
+    fetch_co_success = true;
   }
 
   if(choreo::ASSEMBLY_TYPE_SPATIAL_EXTRUSION == assembly_type_)
@@ -66,7 +69,7 @@ ProcessPlanResult FrameFabCoreService::generateProcessPlan(const int& selected_p
     if(!task_sequence_planning_srv_client_.call(ts_srv))
     {
       ROS_ERROR_STREAM("[Core] task sequence planning service read wireframe failed.");
-      success = false;
+      fetch_co_success = false;
     }
     else
     {
@@ -77,12 +80,12 @@ ProcessPlanResult FrameFabCoreService::generateProcessPlan(const int& selected_p
       if (!task_sequence_planning_srv_client_.call(ts_srv))
       {
         ROS_WARN_STREAM("[Core] task sequence planning service construct collision objects failed.");
-        success = false;
+        fetch_co_success = false;
       }
       else
       {
         srv.request.wf_collision_objs = ts_srv.response.wf_collision_objs;
-        success = true;
+        fetch_co_success = true;
       }
     }
 
@@ -90,9 +93,9 @@ ProcessPlanResult FrameFabCoreService::generateProcessPlan(const int& selected_p
     srv.request.env_collision_objs = env_objs_;
   }
 
-  assert(success);
+  assert(fetch_co_success);
 
-  if(success)
+  if(fetch_co_success)
   {
     if (process_planning_client_.call(srv))
     {

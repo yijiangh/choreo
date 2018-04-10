@@ -561,6 +561,29 @@ bool generateMotionPlan(
   return true;
 }
 
+namespace {
+
+void testApplyPlanningScene(ros::ServiceClient& planning_scene_diff_client,
+                            planning_scene::PlanningScenePtr& planning_scene)
+{
+  // update the planning scene
+  if (!planning_scene_diff_client.waitForExistence())
+  {
+    ROS_ERROR_STREAM("[Tr Planning] cannot connect with planning scene diff server...");
+  }
+
+  moveit_msgs::ApplyPlanningScene srv;
+
+  planning_scene->getPlanningSceneMsg(srv.request.scene);
+
+  if (!planning_scene_diff_client.call(srv))
+  {
+    ROS_ERROR_STREAM("[Tr Planning] Failed to publish TEST planning scene diff srv!");
+  }
+}
+
+}
+
 // TODO: picknplace overload
 bool generateMotionPlan(
     const std::string world_frame,
@@ -570,32 +593,51 @@ bool generateMotionPlan(
     const double clt_rrt_timeout,
     const std::string &move_group_name,
     const std::vector<double> &start_state,
+    const framefab_msgs::AssemblySequencePickNPlace& as_pnp,
     descartes_core::RobotModelPtr model,
     moveit::core::RobotModelConstPtr moveit_model,
     ros::ServiceClient &planning_scene_diff_client,
     std::vector <framefab_msgs::UnitProcessPlan> &plans)
 {
-//  // Step 0: Sanity checks
-//  if (segs.size() == 0 || task_seq.size() != segs.size())
-//  {
-//    ROS_ERROR_STREAM("[Process Planning] input descartes Constrained Segment size" << segs.size());
-//    return false;
-//  }
-//  assert(task_seq.size() == wf_collision_objs.size());
-//
-//  plans.resize(segs.size());
-//  const std::vector <std::string> &joint_names =
-//      moveit_model->getJointModelGroup(move_group_name)->getActiveJointModelNames();
-//
-//  // Step 1: Let's create all of our planning scenes to collision check against
-//  std::vector <planning_scene::PlanningScenePtr> planning_scenes_shrinked_approach;
-//  std::vector <planning_scene::PlanningScenePtr> planning_scenes_shrinked_depart;
-//  std::vector <planning_scene::PlanningScenePtr> planning_scenes_full;
-//  constructPlanningScenes(moveit_model, wf_collision_objs,
-//                          planning_scenes_shrinked_approach,
-//                          planning_scenes_shrinked_depart,
-//                          planning_scenes_full);
-//
+  plans.resize(as_pnp.sequenced_elements.size());
+  const std::vector <std::string> &joint_names =
+      moveit_model->getJointModelGroup(move_group_name)->getActiveJointModelNames();
+
+  // Step 1: Let's create all of our planning scenes to collision check against
+  std::vector <planning_scene::PlanningScenePtr> planning_scenes_transition2pick;
+  std::vector <planning_scene::PlanningScenePtr> planning_scenes_pick;
+  std::vector <planning_scene::PlanningScenePtr> planning_scenes_transition2place;
+  std::vector <planning_scene::PlanningScenePtr> planning_scenes_place;
+
+  std::vector<collision_detection::AllowedCollisionMatrix> pick_acms;
+  std::vector<collision_detection::AllowedCollisionMatrix> place_acms;
+
+  constructPlanningScenes(moveit_model,
+                          world_frame,
+                          as_pnp,
+                          planning_scenes_transition2pick,
+                          planning_scenes_pick,
+                          pick_acms,
+                          planning_scenes_transition2place,
+                          planning_scenes_place,
+                          place_acms);
+
+  double pause_time = 2.0;
+  for(int i = 0; i < as_pnp.sequenced_elements.size(); i++)
+  {
+    testApplyPlanningScene(planning_scene_diff_client, planning_scenes_transition2pick[i]);
+    ros::WallDuration(pause_time).sleep();
+
+    testApplyPlanningScene(planning_scene_diff_client, planning_scenes_pick[i]);
+    ros::WallDuration(pause_time).sleep();
+
+    testApplyPlanningScene(planning_scene_diff_client, planning_scenes_transition2place[i]);
+    ros::WallDuration(pause_time).sleep();
+
+    testApplyPlanningScene(planning_scene_diff_client, planning_scenes_place[i]);
+    ros::WallDuration(pause_time).sleep();
+  }
+
 //  // Step 2: CLT RRT* to solve process trajectory
 //  CLTRRTforProcessROSTraj(model, segs, clt_rrt_unit_process_timeout, clt_rrt_timeout,
 //                          planning_scenes_shrinked_approach, planning_scenes_shrinked_depart,

@@ -614,12 +614,13 @@ void FrameFabCoreService::processPlanningActionCallback(const framefab_msgs::Pro
 
       visual_tools_.cleanUpAllPaths();
 
-      if(0 != as_pnp_.sequenced_elements.size())
+      if(choreo::ASSEMBLY_TYPE_PICKNPLACE == assembly_type_)
       {
-        // TODO, get seq id and grasp id, trigger visualization, visualize_ee option
+        assert(as_pnp_.sequenced_elements.size() > 0);
         visual_tools_.visualizeSequencePickNPlaceUntil(goal_in->index);
       }
-      else
+
+      if(choreo::ASSEMBLY_TYPE_SPATIAL_EXTRUSION == assembly_type_)
       {
         // TODO: this is only used for spatial extrusion
         visual_tools_.visualizePathUntil(goal_in->index);

@@ -28,7 +28,7 @@ const static rviz_visual_tools::colors END_EFFECTOR_COLOR = rviz_visual_tools::T
 
 const static rviz_visual_tools::scales GRASP_POSE_ARROW_SIZE = rviz_visual_tools::XXXSMALL;
 
-const static std::string MESH_FILE_PREFIX = "file://";
+const static std::string FILE_URL_PREFIX = "file://";
 
 const static Eigen::Affine3d ZERO_POSE = Eigen::Affine3d::Identity();
 
@@ -165,13 +165,13 @@ void choreo_visual_tools::ChoreoVisualTools::visualizeAllSequencePickNPlace()
 
     visual_tools_->publishMesh(
         ZERO_POSE,
-        MESH_FILE_PREFIX + current_as.file_path + current_as.pick_element_geometry_file_name,
+        FILE_URL_PREFIX + current_as.file_path + current_as.pick_element_geometry_file_name,
         PICK_COLOR,
         PNP_MESH_SCALE);
 
     visual_tools_->publishMesh(
         ZERO_POSE,
-        MESH_FILE_PREFIX + current_as.file_path + current_as.place_element_geometry_file_name,
+        FILE_URL_PREFIX + current_as.file_path + current_as.place_element_geometry_file_name,
         PLACE_COLOR,
         PNP_MESH_SCALE);
   }
@@ -219,13 +219,13 @@ void choreo_visual_tools::ChoreoVisualTools::visualizeSequencePickNPlaceUntil(in
 
   visual_tools_->publishMesh(
       ZERO_POSE,
-      MESH_FILE_PREFIX + current_as.file_path + current_as.pick_element_geometry_file_name,
+      FILE_URL_PREFIX + current_as.file_path + current_as.pick_element_geometry_file_name,
       PICK_COLOR,
       PNP_MESH_SCALE);
 
   visual_tools_->publishMesh(
       ZERO_POSE,
-      MESH_FILE_PREFIX + current_as.file_path + current_as.place_element_geometry_file_name,
+      FILE_URL_PREFIX + current_as.file_path + current_as.place_element_geometry_file_name,
       PLACE_COLOR,
       PNP_MESH_SCALE);
 
@@ -252,7 +252,7 @@ void choreo_visual_tools::ChoreoVisualTools::visualizeSequencePickNPlaceUntil(in
 
     visual_tools_->publishMesh(
         ZERO_POSE,
-        MESH_FILE_PREFIX + as.file_path + as.place_element_geometry_file_name,
+        FILE_URL_PREFIX + as.file_path + as.place_element_geometry_file_name,
         p_c,
         PNP_MESH_SCALE);
   }
@@ -277,7 +277,7 @@ void choreo_visual_tools::ChoreoVisualTools::visualizeSequencePickNPlaceUntil(in
 
     visual_tools_->publishMesh(
         ZERO_POSE,
-        MESH_FILE_PREFIX + as.file_path + as.pick_element_geometry_file_name,
+        FILE_URL_PREFIX + as.file_path + as.pick_element_geometry_file_name,
         p_c,
         PNP_MESH_SCALE);
   }
@@ -429,7 +429,7 @@ void choreo_visual_tools::ChoreoVisualTools::visualizeSupportSurfaces(
 
     visual_tools_->publishMesh(
         ZERO_POSE,
-        MESH_FILE_PREFIX + as_pnp_.file_path + pick_surf,
+        FILE_URL_PREFIX + as_pnp_.file_path + pick_surf,
         p_c,
         PNP_MESH_SCALE);
   }
@@ -452,7 +452,7 @@ void choreo_visual_tools::ChoreoVisualTools::visualizeSupportSurfaces(
 
     visual_tools_->publishMesh(
         ZERO_POSE,
-        MESH_FILE_PREFIX + as_pnp_.file_path + place_surf,
+        FILE_URL_PREFIX + as_pnp_.file_path + place_surf,
         p_c,
         PNP_MESH_SCALE);
   }

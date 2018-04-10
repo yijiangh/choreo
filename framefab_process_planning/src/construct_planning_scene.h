@@ -32,19 +32,21 @@ planning_scene::PlanningScenePtr constructPlanningScene(const planning_scene::Pl
 // TODO: should replace with a more general one, quickfix is an overload
 // overload for picknplace planning scene construction
 void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
-                             const std::string& world_frame,
-                             const framefab_msgs::AssemblySequencePickNPlace,
-                             std::vector<planning_scene::PlanningScenePtr>& planning_scenes_transition2pick,
-                             std::vector<planning_scene::PlanningScenePtr>& planning_scenes_pick,
-                             std::vector<planning_scene::PlanningScenePtr>& planning_scenes_transition2place,
-                             std::vector<planning_scene::PlanningScenePtr>& planning_scenes_place);
+                                     const std::string& world_frame,
+                                     const framefab_msgs::AssemblySequencePickNPlace& as_pnp,
+                                     std::vector<planning_scene::PlanningScenePtr>& planning_scenes_transition2pick,
+                                     std::vector<planning_scene::PlanningScenePtr>& planning_scenes_pick,
+                                     std::vector<collision_detection::AllowedCollisionMatrix>& pick_acms,
+                                     std::vector<planning_scene::PlanningScenePtr>& planning_scenes_transition2place,
+                                     std::vector<planning_scene::PlanningScenePtr>& planning_scenes_place,
+                                     std::vector<collision_detection::AllowedCollisionMatrix>& place_acms);
 
 // overload for spatial extrusion planning scene construction
 void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
-                             const std::vector <framefab_msgs::WireFrameCollisionObject> &wf_collision_objs,
-                             std::vector<planning_scene::PlanningScenePtr>& planning_scenes_shrinked_approach,
-                             std::vector<planning_scene::PlanningScenePtr>& planning_scenes_shrinked_depart,
-                             std::vector<planning_scene::PlanningScenePtr>& planning_scenes_full);
+                                     const std::vector <framefab_msgs::WireFrameCollisionObject> &wf_collision_objs,
+                                     std::vector<planning_scene::PlanningScenePtr>& planning_scenes_shrinked_approach,
+                                     std::vector<planning_scene::PlanningScenePtr>& planning_scenes_shrinked_depart,
+                                     std::vector<planning_scene::PlanningScenePtr>& planning_scenes_full);
 
 }
 

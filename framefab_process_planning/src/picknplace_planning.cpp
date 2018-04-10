@@ -3,14 +3,14 @@
 //
 
 #include <framefab_process_planning/framefab_process_planning.h>
-#include <ros/console.h>
 
+#include "generate_motion_plan.h"
 #include "path_transitions.h"
 #include "common_utils.h"
 
-// for immediate execution
-#include <actionlib/client/simple_action_client.h>
-#include <control_msgs/FollowJointTrajectoryAction.h>
+#include <framefab_msgs/SequencedElement.h>
+
+#include <ros/console.h>
 
 namespace {
 
@@ -50,8 +50,12 @@ bool ProcessPlanningManager::handlePickNPlacePlanning(
 //  // construct segs for descartes & copy chosen task sequence
 //  std::vector<descartes_planner::ConstrainedSegment> constrained_segs =
 //      toDescartesConstrainedPath(req.task_sequence, req.index, constrained_seg_params);
-//  const std::vector<framefab_msgs::ElementCandidatePoses>
-//      chosen_task_seq(req.task_sequence.begin(), req.task_sequence.begin() + constrained_segs.size());
+
+  // copy & crop up to the required index
+  assert(req.index > 0 && req.index < req.as_pnp.sequenced_elements.size());
+  framefab_msgs::AssemblySequencePickNPlace as_pnp = req.as_pnp;
+  as_pnp.sequenced_elements = std::vector<framefab_msgs::SequencedElement>(
+      as_pnp.sequenced_elements.begin(), as_pnp.sequenced_elements.begin() + req.index);
 
   // TODO: this shouldn't remove collision objs in xacro?
   // clear existing objs from previous planning
@@ -65,18 +69,25 @@ bool ProcessPlanningManager::handlePickNPlacePlanning(
 //  }
 
   // TODO: remember to crop the assembly seq according to the requested id
-//  if(generateMotionPlan(hotend_model_, constrained_segs, chosen_task_seq, req.wf_collision_objs, world_frame_,
-//                        req.use_saved_graph, req.file_name,
-//                        req.clt_rrt_unit_process_timeout, req.clt_rrt_timeout,
-//                        moveit_model_, planning_scene_diff_client_,
-//                        hotend_group_name_, current_joints, res.plan))
-//  {
-//    return true;
-//  }
-//  else
-//  {
-//    return false;
-//  }
+  if(generateMotionPlan(world_frame_,
+                        req.use_saved_graph,
+                        req.file_name,
+                        req.clt_rrt_unit_process_timeout,
+                        req.clt_rrt_timeout,
+                        hotend_group_name_,
+                        current_joints,
+                        as_pnp,
+                        hotend_model_,
+                        moveit_model_,
+                        planning_scene_diff_client_,
+                        res.plan))
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
 
 }
 

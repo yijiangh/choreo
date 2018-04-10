@@ -14,6 +14,8 @@
 
 #include <moveit_msgs/AttachedCollisionObject.h>
 
+#include <geometry_msgs/Point.h>
+
 const static std::string PICKNPLACE_EEF_NAME = "mit_arch_suction_gripper";
 
 const static std::string GET_PLANNING_SCENE_SERVICE = "get_planning_scene";
@@ -32,6 +34,15 @@ void setEmptyPoseMsg(geometry_msgs::Pose& pose)
   pose.orientation.x= 0.0;
   pose.orientation.y= 0.0;
   pose.orientation.z= 0.0;
+}
+
+geometry_msgs::Point reversePointMsg(const geometry_msgs::Point& p)
+{
+  geometry_msgs::Point rp;
+  rp.x = - p.x;
+  rp.y = - p.y;
+  rp.z = - p.z;
+  return rp;
 }
 
 }
@@ -84,8 +95,8 @@ planning_scene::PlanningScenePtr constructPlanningScene(const planning_scene::Pl
 }
 
 void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
-                             const framefab_msgs::AssemblySequencePickNPlace as_pnp,
                              const std::string& world_frame,
+                             const framefab_msgs::AssemblySequencePickNPlace& as_pnp,
                              std::vector<planning_scene::PlanningScenePtr>& planning_scenes_transition2pick,
                              std::vector<planning_scene::PlanningScenePtr>& planning_scenes_pick,
                              std::vector<collision_detection::AllowedCollisionMatrix>& pick_acms,
@@ -234,6 +245,10 @@ void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
     // attach pick element to ee
     // TODO: needs to apply a "reverse" linear transformation using the grasp pose
     last_attached_co.object = pick_cos[i];
+    assert(last_attached_co.object.mesh_poses.size() > 0);
+    assert(se.grasps.size() > 0);
+    last_attached_co.object.mesh_poses[0].position = reversePointMsg(se.grasps[0].pick_grasp_pose.position);
+
     last_attached_co.object.operation = last_attached_co.object.ADD;
     pick_scene->processAttachedCollisionObjectMsg(last_attached_co);
 
@@ -252,6 +267,10 @@ void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
 
     // TODO: needs to apply a "reverse" linear transformation using the grasp pose
     last_attached_co.object = place_cos[i];
+    assert(last_attached_co.object.mesh_poses.size() > 0);
+    assert(se.grasps.size() > 0);
+    last_attached_co.object.mesh_poses[0].position = reversePointMsg(se.grasps[0].place_grasp_pose.position);
+
     last_attached_co.object.operation = last_attached_co.object.ADD;
     place_scene->processAttachedCollisionObjectMsg(last_attached_co);
 

@@ -151,10 +151,6 @@ Visualization Manager:
           Value: true
         eef_tcp_frame:
           Value: true
-        material_feeder_material_feeder:
-          Value: true
-        material_feeder_mount_point:
-          Value: true
         robot_base:
           Value: true
         robot_base_link:
@@ -190,9 +186,6 @@ Visualization Manager:
             robot_link_1:
               robot_link_2:
                 robot_link_3:
-                  material_feeder_mount_point:
-                    material_feeder_material_feeder:
-                      {}
                   robot_link_4:
                     robot_link_5:
                       robot_link_6:
@@ -225,15 +218,6 @@ Visualization Manager:
           Show Trail: false
           Value: true
         eef_tcp_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        material_feeder_material_feeder:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        material_feeder_mount_point:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -296,7 +280,7 @@ Visualization Manager:
       Value: true
       Visual Enabled: true
     - Class: moveit_rviz_plugin/PlanningScene
-      Enabled: false
+      Enabled: true
       Move Group Namespace: ""
       Name: PlanningScene
       Planning Scene Topic: move_group/monitored_planning_scene
@@ -316,16 +300,82 @@ Visualization Manager:
           Expand Link Details: false
           Expand Tree: false
           Link Tree Style: Links in Alphabetic Order
+          base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          eef_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          eef_tcp_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          robot_base:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          robot_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          robot_link_1:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          robot_link_2:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          robot_link_3:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          robot_link_4:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          robot_link_5:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          robot_link_6:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          robot_tool0:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          workspace_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          workspace_objects:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
         Robot Alpha: 1
         Show Robot Collision: false
         Show Robot Visual: false
-      Value: false
+      Value: true
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /framefab_core_service/path_visualization
       Name: MarkerArray
       Namespaces:
-        {}
+        Axis: true
+        mesh: true
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray

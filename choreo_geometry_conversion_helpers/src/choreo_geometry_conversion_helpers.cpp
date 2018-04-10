@@ -27,6 +27,7 @@ void planeToEigenAffine3dImpl(const Eigen::Vector3d& o, const Eigen::Matrix3d& m
 
 namespace choreo_geometry_conversion_helpers
 {
+const static std::string FILE_URL_PREFIX = "file://";
 
 void planeAxesToEigenMatrix(const Eigen::Vector3d& x_axis, const Eigen::Vector3d& y_axis, const Eigen::Vector3d& z_axis,
                             Eigen::Matrix3d& m)
@@ -84,7 +85,7 @@ void savedSTLToMeshShapeMsg(const std::string& file_path, const Eigen::Vector3d&
 {
   assert(boost::filesystem::exists(file_path));
 
-  shapes::Mesh* m = shapes::createMeshFromResource(file_path, scale_vector);
+  shapes::Mesh* m = shapes::createMeshFromResource(FILE_URL_PREFIX + file_path, scale_vector);
 
   shapes::ShapeMsg mesh_msg;
   shapes::constructMsgFromShape(m, mesh_msg);
