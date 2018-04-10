@@ -12,6 +12,8 @@
 #include <moveit_msgs/ApplyPlanningScene.h>
 #include <moveit_msgs/GetPlanningScene.h>
 
+#include <moveit_msgs/AttachedCollisionObject.h>
+
 const static std::string PICKNPLACE_EEF_NAME = "mit_arch_suction_gripper";
 
 const static std::string GET_PLANNING_SCENE_SERVICE = "get_planning_scene";
@@ -95,30 +97,6 @@ void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
 
   const auto build_scenes_start = ros::Time::now();
 
-  // get current planning scene as base scene
-  ros::NodeHandle nh;
-  auto planning_scene_client = nh.serviceClient<moveit_msgs::GetPlanningScene>(GET_PLANNING_SCENE_SERVICE);
-
-  if (!planning_scene_client.waitForExistence())
-  {
-    ROS_ERROR_STREAM("[Process Planning] cannot connect with get planning scene server...");
-  }
-
-  moveit_msgs::GetPlanningScene srv;
-  srv.request.components.components =
-      moveit_msgs::PlanningSceneComponents::ROBOT_STATE
-          | moveit_msgs::PlanningSceneComponents::WORLD_OBJECT_GEOMETRY;
-
-  if (!planning_scene_client.call(srv))
-  {
-    ROS_ERROR_STREAM("[Process Planning] Failed to fetch planning scene srv!");
-  }
-
-  planning_scene::PlanningScenePtr root_scene(new planning_scene::PlanningScene(moveit_model));
-  root_scene->getCurrentStateNonConst().setToDefaultValues();
-  root_scene->getCurrentStateNonConst().update();
-  root_scene->setPlanningSceneDiffMsg(srv.response.scene);
-
   // parse all the collision objects, they are naturally named after id number
   std::vector <moveit_msgs::CollisionObject> pick_cos;
   std::vector <moveit_msgs::CollisionObject> place_cos;
@@ -134,6 +112,7 @@ void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
   planning_scenes_place.clear();
 
   // TODO: replace this hard-coded eef name!!
+  // TODO: not sure if this is the right ik link
   const robot_model::JointModelGroup *eef = moveit_model->getEndEffector(PICKNPLACE_EEF_NAME);
   assert(eef);
   const std::string &ik_link = eef->getEndEffectorParentGroup().second;
@@ -177,21 +156,106 @@ void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
             MESH_SCALE_VECTOR,
             world_frame,
             empty_pose));
+
+    assert(se.order_id == pick_cos.size() - 1 && se.order_id == place_cos.size() - 1);
   }
 
   assert(pick_cos.size() == as_pnp.sequenced_elements.size());
   assert(place_cos.size() == as_pnp.sequenced_elements.size());
 
   // construct planning scene
-  for (const auto &se : as_pnp.sequenced_elements)
+
+  // get current planning scene as base scene
+  ros::NodeHandle nh;
+  auto planning_scene_client = nh.serviceClient<moveit_msgs::GetPlanningScene>(GET_PLANNING_SCENE_SERVICE);
+
+  if (!planning_scene_client.waitForExistence())
   {
+    ROS_ERROR_STREAM("[Process Planning] cannot connect with get planning scene server...");
+  }
+
+  moveit_msgs::GetPlanningScene srv;
+  srv.request.components.components =
+      moveit_msgs::PlanningSceneComponents::ROBOT_STATE
+          | moveit_msgs::PlanningSceneComponents::WORLD_OBJECT_GEOMETRY;
+
+  if (!planning_scene_client.call(srv))
+  {
+    ROS_ERROR_STREAM("[Process Planning] Failed to fetch planning scene srv!");
+  }
+
+  planning_scene::PlanningScenePtr root_scene(new planning_scene::PlanningScene(moveit_model));
+  root_scene->getCurrentStateNonConst().setToDefaultValues();
+  root_scene->getCurrentStateNonConst().update();
+  root_scene->setPlanningSceneDiffMsg(srv.response.scene);
+
+  // TODO: if a material feeder (repetitive picking) is used
+  // TODO: this part needs to be changed as these blocks will collide
+  // add all pick elements to the init pick scene
+  for(int i = 0; i < as_pnp.sequenced_elements.size(); i++)
+  {
+    pick_cos[i].operation = pick_cos[i].ADD;
+    assert(root_scene->processCollisionObjectMsg(pick_cos[i]));
+  }
+
+  moveit_msgs::AttachedCollisionObject last_attached_co;
+
+  for(int i=0; i < as_pnp.sequenced_elements.size(); i++)
+  {
+    const auto& se = as_pnp.sequenced_elements[i];
+    assert(i == se.order_id);
+
     // transition 2 pick
+    planning_scene::PlanningScenePtr last_place_scene = 0==i ? root_scene : planning_scenes_place.back();
+
+    auto tr2pick_scene = last_place_scene->diff();
+
+    // add last place element
+    if(i > 0)
+    {
+      place_cos[i-1].operation = place_cos[i-1].REMOVE;
+      tr2pick_scene->processCollisionObjectMsg(place_cos[i-1]);
+
+      // remove attach last element to end effector
+      assert(last_attached_co.object.meshes.size() > 0 || last_attached_co.object.primitives.size() > 0);
+      last_attached_co.object.operation = last_attached_co.object.REMOVE;
+      tr2pick_scene->processAttachedCollisionObjectMsg(last_attached_co);
+    }
+
+    planning_scenes_transition2pick.push_back(tr2pick_scene);
 
     // pick: approach - pick - depart
+    auto pick_scene = tr2pick_scene->diff();
+
+    // remove pick element
+    pick_cos[i].operation = pick_cos[i].REMOVE;
+    pick_scene->processCollisionObjectMsg(pick_cos[i]);
+
+    // attach pick element to ee
+    // TODO: needs to apply a "reverse" linear transformation using the grasp pose
+    last_attached_co.object = pick_cos[i];
+    last_attached_co.object.operation = last_attached_co.object.ADD;
+    pick_scene->processAttachedCollisionObjectMsg(last_attached_co);
+
+    planning_scenes_pick.push_back(pick_scene);
 
     // transition 2 place
+    auto tr2place_scene = pick_scene->diff();
+
+    planning_scenes_transition2place.push_back(tr2place_scene);
 
     // place: approach - place (drop) - depart
+    auto place_scene = tr2place_scene->diff();
+    // remove pick attached element
+    last_attached_co.object.operation = last_attached_co.object.REMOVE;
+    place_scene->processAttachedCollisionObjectMsg(last_attached_co);
+
+    // TODO: needs to apply a "reverse" linear transformation using the grasp pose
+    last_attached_co.object = place_cos[i];
+    last_attached_co.object.operation = last_attached_co.object.ADD;
+    place_scene->processAttachedCollisionObjectMsg(last_attached_co);
+
+    planning_scenes_place.push_back(place_scene);
 
     // Allowed Collision Object
     auto pick_acm = root_scene->getAllowedCollisionMatrixNonConst();
