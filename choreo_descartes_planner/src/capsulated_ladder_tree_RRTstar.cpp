@@ -6,7 +6,7 @@
 #include "choreo_descartes_planner/capsulated_ladder_tree_RRTstar.h"
 
 #include "choreo_descartes_planner/pose_sampling_helpers.h"
-#include "pose_verification_helpers.h"
+#include "../include/choreo_descartes_planner/pose_verification_helpers.h"
 
 // ladder graph & DAG (solution extraction)
 #include <descartes_planner/ladder_graph.h>
@@ -36,6 +36,11 @@ CapsulatedLadderTreeRRTstar::CapsulatedLadderTreeRRTstar(
   // sanity check
   assert(segs.size() == planning_scenes.size());
 
+  if(planning_scenes_completed.size() > 0)
+  {
+    assert(planning_scenes_completed.size() == planning_scenes.size());
+  }
+
   // intialize cap rungs
   cap_rungs_.reserve(segs.size());
   for(size_t i=0; i < segs.size(); i++)
@@ -53,20 +58,13 @@ CapsulatedLadderTreeRRTstar::CapsulatedLadderTreeRRTstar(
       cap_rung.orientations_.push_back(orient);
     }
 
-//    if(ConstrainedSegment::PROCESS_TYPE::CONNECT == segs[i].process_type)
-//    {
-//      // ideal orientation orthogonal to the element
-//      cap_rung.ideal_o_to_element_angle = M_PI / 2;
-//    }
-//    else
-//    {
-//      // ideal orientation is aligned to the element
-//      cap_rung.ideal_o_to_element_angle = 0.0;
-//    }
-
     // planning scene
     cap_rung.planning_scene_ = planning_scenes[i];
-    cap_rung.planning_scene_completed_ = planning_scenes_completed[i];
+
+    if(planning_scenes_completed.size() > 0)
+    {
+      cap_rung.planning_scene_completed_ = planning_scenes_completed[i];
+    }
 
     // input z axis disc
     cap_rung.z_axis_disc_ = segs[i].z_axis_disc;
@@ -123,8 +121,10 @@ double CapsulatedLadderTreeRRTstar::solve(descartes_core::RobotModel& model,
 
     do
     {
+      // TODO: app-dependent
       std::vector<Eigen::Affine3d> poses = generateSample(cap_rung, *ptr_cap_vert);
 
+      // TODO: app-dependent
       if(checkFeasibility(model, poses, cap_rung, *ptr_cap_vert))
       {
         ptr_cap_vert->setParentVertPtr(ptr_prev_vert);
@@ -166,8 +166,11 @@ double CapsulatedLadderTreeRRTstar::solve(descartes_core::RobotModel& model,
 
     // sample cap_vert
     CapVert* ptr_new_vert = new CapVert(model.getDOF());
+
+    // TODO: app-dependent
     auto poses = generateSample(cap_rung_sample, *ptr_new_vert);
 
+    // TODO: app-dependent
     if(checkFeasibility(model, poses, cap_rung_sample, *ptr_new_vert))
     {
       // find nearest node in tree

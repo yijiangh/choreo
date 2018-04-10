@@ -4,6 +4,7 @@
 
 #include "pose_sampling_helpers.h"
 
+// opened for external usage without linking to library
 namespace descartes_planner
 {
 
@@ -75,6 +76,7 @@ double randomSampleDouble(double lower, double upper)
   }
 }
 
+// original generate sampling function used in spatial extrusion
 std::vector<Eigen::Affine3d> generateSample(const descartes_planner::CapRung& cap_rung,
                                             descartes_planner::CapVert& cap_vert)
 {

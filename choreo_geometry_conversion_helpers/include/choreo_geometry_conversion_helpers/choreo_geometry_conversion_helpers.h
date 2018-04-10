@@ -8,12 +8,18 @@
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/Quaternion.h>
 #include <geometry_msgs/Pose.h>
+#include <geometry_msgs/Vector3.h>
 #include <shape_msgs/Mesh.h>
 #include <moveit_msgs/CollisionObject.h>
 #include <moveit_msgs/AttachedCollisionObject.h>
 
 namespace choreo_geometry_conversion_helpers
 {
+
+// TODO: place holder (not fully developed), do not use this one now!
+// TODO: should have optional angles input
+void convertOrientationVectors(const std::vector<geometry_msgs::Vector3>& orients_msg,
+                               std::vector<Eigen::Matrix3d>& m_orients);
 
 // Rotation representations
 void planeAxesToEigenMatrix(const Eigen::Vector3d& x_axis, const Eigen::Vector3d& y_axis, const Eigen::Vector3d& z_axis,

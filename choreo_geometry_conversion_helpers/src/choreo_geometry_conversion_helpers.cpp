@@ -7,6 +7,45 @@
 #include <boost/filesystem.hpp>
 
 namespace{
+
+void convertOrientationVectors(
+    const std::vector<geometry_msgs::Vector3>& orients_msg,
+    std::vector<Eigen::Matrix3d>& m_orients)
+{
+  m_orients.clear();
+
+  for(auto v : orients_msg)
+  {
+    // eigen_vec = local z axis
+    Eigen::Vector3d eigen_vec;
+    tf::vectorMsgToEigen(v, eigen_vec);
+
+    // TODO: this should be removed
+    eigen_vec *= -1.0;
+    eigen_vec.normalize();
+
+    // construct local x axis & y axis
+    Eigen::Vector3d candidate_dir = Eigen::Vector3d::UnitX();
+    if ( std::abs(eigen_vec.dot(Eigen::Vector3d::UnitX())) > 0.8 )
+    {
+      // if z axis = UnitX,
+      candidate_dir = Eigen::Vector3d::UnitY();
+    }
+
+    Eigen::Vector3d y_vec = eigen_vec.cross(candidate_dir).normalized();
+
+    Eigen::Vector3d x_vec = y_vec.cross(eigen_vec).normalized();
+
+    // JM
+    Eigen::Matrix3d m = Eigen::Matrix3d::Identity();
+    m.col(0) = x_vec;
+    m.col(1) = y_vec;
+    m.col(2) = eigen_vec;
+
+    m_orients.push_back(m);
+  }
+}
+
 void planeAxesToEigenMatrixImpl(const Eigen::Vector3d& x_axis, const Eigen::Vector3d& y_axis, const Eigen::Vector3d& z_axis,
                                 Eigen::Matrix3d& m)
 {

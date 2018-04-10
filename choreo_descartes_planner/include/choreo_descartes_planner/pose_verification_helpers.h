@@ -5,7 +5,7 @@
 #ifndef FRAMEFAB_MPP_POSE_VERIFICATION_HELPERS_H
 #define FRAMEFAB_MPP_POSE_VERIFICATION_HELPERS_H
 
-#include "../include/choreo_descartes_planner/pose_sampling_helpers.h"
+#include "pose_sampling_helpers.h"
 #include "choreo_descartes_planner/capsulated_ladder_tree.h"
 
 namespace descartes_planner

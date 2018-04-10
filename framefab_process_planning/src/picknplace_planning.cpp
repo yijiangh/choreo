@@ -33,42 +33,24 @@ bool ProcessPlanningManager::handlePickNPlacePlanning(
 
   const static double LINEAR_VEL = 0.1; // (m/s)
   const static double LINEAR_DISCRETIZATION = 0.005; // meters
-//  // the distance between angular steps about z for each orientationcreateCollisionObject
-//  const static double ANGULAR_DISCRETIZATION = PRINT_ANGLE_DISCRETIZATION; // radians
-//
-//  ConstrainedSegParameters constrained_seg_params;
-//  constrained_seg_params.linear_vel = LINEAR_VEL;
-//  constrained_seg_params.linear_disc = LINEAR_DISCRETIZATION;
-//  constrained_seg_params.angular_disc = ANGULAR_DISCRETIZATION;
-//  constrained_seg_params.retract_dist = RETRACT_DISTANCE;
 
   // TODO: assuming current robot pose is the home pose, this should be read from ros parameter
-  //  Eigen::Affine3d start_home_pose;
-  //  hotend_model_->getFK(current_joints, start_home_pose);
   std::vector<double> current_joints = getCurrentJointState(JOINT_TOPIC_NAME);
-//
-//  // construct segs for descartes & copy chosen task sequence
-//  std::vector<descartes_planner::ConstrainedSegment> constrained_segs =
-//      toDescartesConstrainedPath(req.task_sequence, req.index, constrained_seg_params);
 
   // copy & crop up to the required index
   assert(req.index > 0 && req.index < req.as_pnp.sequenced_elements.size());
   framefab_msgs::AssemblySequencePickNPlace as_pnp = req.as_pnp;
   as_pnp.sequenced_elements = std::vector<framefab_msgs::SequencedElement>(
-      as_pnp.sequenced_elements.begin(), as_pnp.sequenced_elements.begin() + req.index);
+      as_pnp.sequenced_elements.begin(), as_pnp.sequenced_elements.begin() + req.index + 1);
+
+  // construct segs for descartes & copy chosen task sequence
+  std::vector<descartes_planner::ConstrainedSegment> constrained_segs =
+      toDescartesConstrainedPath(as_pnp, LINEAR_VEL, LINEAR_DISCRETIZATION);
 
   // TODO: this shouldn't remove collision objs in xacro?
   // clear existing objs from previous planning
   clearAllCollisionObjects(planning_scene_diff_client_);
 
-  // TODO: these "still" collision obj construction should be moved in the constructPlanningScene function
-//  // add fixed extra collision objects in the work environment, e.g. heating bed (adjustable)
-//  for(const auto& obj : req.env_collision_objs)
-//  {
-//    addCollisionObject(planning_scene_diff_client_, obj);
-//  }
-
-  // TODO: remember to crop the assembly seq according to the requested id
   if(generateMotionPlan(world_frame_,
                         req.use_saved_graph,
                         req.file_name,
@@ -88,7 +70,6 @@ bool ProcessPlanningManager::handlePickNPlacePlanning(
   {
     return false;
   }
-
 }
 
 }// end ff_process_planning ns

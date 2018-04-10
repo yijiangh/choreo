@@ -9,6 +9,17 @@
 
 #include "construct_planning_scene.h"
 
+//// declare for choreo descartes planners' sampling and feasibility checking function
+//namespace descartes_planner
+//{
+//
+////  generateSample(const descartes_planner::,
+//// descartes_planner::)
+//
+//typedef boost::function<std::vector<Eigen::Affine3d>(const CapRung& cap_rung, const CapVert& cap_vert)> SegmentSamplingFunction;
+//
+//}
+
 // cap ladder tree RRTstar
 #include <choreo_descartes_planner/choreo_ladder_graph_builder.h>
 #include <choreo_descartes_planner/capsulated_ladder_tree_RRTstar.h>
@@ -117,9 +128,11 @@ void CLTRRTforProcessROSTraj(descartes_core::RobotModelPtr model,
   {
     // reconstruct and search, output sol, graphs, graph_indices
     clt_cost = CLT_RRT.solve(*model, clt_rrt_unit_process_timeout, clt_rrt_timeout);
-    CLT_RRT.extractSolution(*model, sol,
+    CLT_RRT.extractSolution(*model,
+                            sol,
                             graphs,
-                            graph_indices, use_saved_graph);
+                            graph_indices,
+                            use_saved_graph);
 
     graph_list_msg = descartes_parser::convertToLadderGraphMsg(graphs);
     saveLadderGraph(saved_graph_file_name, graph_list_msg);

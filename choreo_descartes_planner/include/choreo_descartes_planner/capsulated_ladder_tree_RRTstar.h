@@ -5,12 +5,11 @@
 #ifndef CHOREO_DESCARTES_CAPSULATED_LADDER_TREE_RRTSTAR_H
 #define CHOREO_DESCARTES_CAPSULATED_LADDER_TREE_RRTSTAR_H
 
+#include "constrained_segment.h"
+#include "capsulated_ladder_tree.h"
+
 #include <moveit/planning_scene/planning_scene.h>
 #include <descartes_trajectory/joint_trajectory_pt.h>
-
-// for ConstrainedSegment
-#include "choreo_ladder_graph_builder.h"
-#include "capsulated_ladder_tree.h"
 
 namespace descartes_planner
 {
@@ -18,13 +17,22 @@ namespace descartes_planner
 class CapsulatedLadderTreeRRTstar
 {
  public:
-  explicit CapsulatedLadderTreeRRTstar(
+  // for spatial extrusion
+  CapsulatedLadderTreeRRTstar(
       const std::vector<ConstrainedSegment>& segs,
       const std::vector<planning_scene::PlanningScenePtr>& planning_scenes,
-      const std::vector<planning_scene::PlanningScenePtr>& planning_scenes_completed);
+      const std::vector<planning_scene::PlanningScenePtr>& planning_scenes_completed
+      = std::vector<planning_scene::PlanningScenePtr>());
+
+  // for picknplace
+  CapsulatedLadderTreeRRTstar(
+      const std::vector<ConstrainedSegmentPickNPlace>& segs,
+      const std::vector<planning_scene::PlanningScenePtr>& planning_scenes_pick,
+      const std::vector<planning_scene::PlanningScenePtr>& planning_scenes_place);
 
   ~CapsulatedLadderTreeRRTstar();
 
+  // TODO: should pass generate sample, feasibility checking function in
   // use RRT* on a ladder tree to get optimal capsulated solution
   // return the cost of the solution, if no sol found, return numerical max
   double solve(descartes_core::RobotModel& model, double clt_rrt_unit_process_timeout, double clt_rrt_timeout);
@@ -38,6 +46,16 @@ class CapsulatedLadderTreeRRTstar
 
  private:
   std::vector<CapRung> cap_rungs_;
+
+  // TODO
+  // template:
+  // std::vector<Eigen::Affine3d> generateSample(const descartes_planner::CapRung& cap_rung,
+  // descartes_planner::CapVert& cap_vert)
+//  descartes_planner::SegmentSamplingFunction custom_sampling_fn_;
+
+  // TODO
+  // template:
+
 };
 }
 

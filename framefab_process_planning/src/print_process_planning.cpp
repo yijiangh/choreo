@@ -55,10 +55,11 @@ bool ProcessPlanningManager::handlePrintPlanning(framefab_msgs::ProcessPlanning:
   std::vector<double> current_joints = getCurrentJointState(JOINT_TOPIC_NAME);
 
   // construct segs for descartes & copy chosen task sequence
-  std::vector<descartes_planner::ConstrainedSegment> constrained_segs =
-      toDescartesConstrainedPath(req.task_sequence, req.index, constrained_seg_params);
   const std::vector<framefab_msgs::ElementCandidatePoses>
-      chosen_task_seq(req.task_sequence.begin(), req.task_sequence.begin() + constrained_segs.size());
+      chosen_task_seq(req.task_sequence.begin(), req.task_sequence.begin() + req.index + 1);
+
+  std::vector<descartes_planner::ConstrainedSegment> constrained_segs =
+      toDescartesConstrainedPath(chosen_task_seq, constrained_seg_params);
 
   // clear existing objs from previous planning
   clearAllCollisionObjects(planning_scene_diff_client_);

@@ -7,16 +7,16 @@
 
 #include "common_utils.h"
 
-#include <Eigen/Geometry>
-
 // msgs
-//#include <framefab_msgs/BlendingPlanParameters.h>
+#include <framefab_msgs/AssemblySequencePickNPlace.h>
 #include <framefab_msgs/ElementCandidatePoses.h>
-#include "eigen_conversions/eigen_msg.h"
+#include <eigen_conversions/eigen_msg.h>
 
 #include <descartes_core/robot_model.h>
 #include <choreo_descartes_planner/choreo_ladder_graph_builder.h>
 #include <moveit/planning_scene/planning_scene.h>
+
+#include <Eigen/Geometry>
 
 namespace framefab_process_planning
 {
@@ -26,14 +26,27 @@ struct ConstrainedSegParameters
 {
   double linear_vel;
   double linear_disc;
+
+  // used only in spatial extrusion
   double angular_disc;
   double retract_dist;
 };
 
-std::vector<descartes_planner::ConstrainedSegment>
-toDescartesConstrainedPath(
+// for picknplace
+std::vector<descartes_planner::ConstrainedSegment> toDescartesConstrainedPath(
+    const framefab_msgs::AssemblySequencePickNPlace& task_sequence,
+    const double& linear_vel, const double& linear_disc);
+
+// TODO: should update this to a more universal one
+// this version is dedicated to spatial extrusion
+std::vector<descartes_planner::ConstrainedSegment> toDescartesConstrainedPath(
     const std::vector<framefab_msgs::ElementCandidatePoses>& task_sequence,
-    const int selected_path_id, const ConstrainedSegParameters& transition_params);
+    const ConstrainedSegParameters& transition_params);
+
+std::vector<descartes_planner::ConstrainedSegment> toDescartesConstrainedPath(
+    const std::vector<framefab_msgs::ElementCandidatePoses>& task_sequence,
+    const double& linear_vel, const double& linear_disc,
+    const double& angular_disc, const double& retract_dist);
 
 bool retractPath(const std::vector<double>& start_joint, double retract_dist, double TCP_speed,
                  const std::vector<Eigen::Matrix3d>& eef_directions,

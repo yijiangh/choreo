@@ -48,7 +48,7 @@ void convertOrientationVector(
 
     // construct local x axis & y axis
     Eigen::Vector3d candidate_dir = Eigen::Vector3d::UnitX();
-    if ( std::abs(eigen_vec.dot(Eigen::Vector3d::UnitX())) > 0.8 )
+    if (std::abs(eigen_vec.dot(Eigen::Vector3d::UnitX())) > 0.8)
     {
       // if z axis = UnitX,
       candidate_dir = Eigen::Vector3d::UnitY();
@@ -70,25 +70,50 @@ void convertOrientationVector(
 
 } // end utility function ns
 
-std::vector<descartes_planner::ConstrainedSegment>
-framefab_process_planning::toDescartesConstrainedPath(const std::vector<framefab_msgs::ElementCandidatePoses>& task_sequence,
-                                                      const int index, const ConstrainedSegParameters& seg_params)
+namespace framefab_process_planning
+{
+std::vector<descartes_planner::ConstrainedSegment> toDescartesConstrainedPath(
+    const framefab_msgs::AssemblySequencePickNPlace& as_pnp,
+    const double& linear_vel, const double& linear_disc)
 {
   using ConstrainedSegment = descartes_planner::ConstrainedSegment;
 
-  // index is under 0-index convention in C++, thus + 1 for full size
-  int selected_path_num = index + 1;
-  std::vector<ConstrainedSegment> segs(selected_path_num);
+  assert(linear_disc > 0 && linear_vel > 0);
+  assert(as_pnp.sequenced_elements.size() > 0);
+
+  std::vector<ConstrainedSegment> segs(as_pnp.sequenced_elements.size());
+
+  // TODO
+//  tf::pointMsgToEigen(path_pose.start_pt, seg.start);
+//  tf::pointMsgToEigen(path_pose.end_pt, seg.end);
+//  convertOrientationVector(path_pose.feasible_orients, seg.orientations);
+}
+
+std::vector <descartes_planner::ConstrainedSegment>
+toDescartesConstrainedPath(const std::vector <framefab_msgs::ElementCandidatePoses> &task_sequence,
+                           const ConstrainedSegParameters &seg_params)
+{
+  using ConstrainedSegment = descartes_planner::ConstrainedSegment;
+
+  assert(task_sequence.size() > 0);
+  std::vector <ConstrainedSegment> segs(task_sequence.size());
+
+  assert(seg_params.linear_disc > 0 && seg_params.linear_vel > 0);
+  assert(seg_params.angular_disc > 0 && seg_params.retract_dist > 0);
 
   // Inline function for adding a sequence of motions
   auto add_segment = [seg_params]
-      (ConstrainedSegment& seg, const framefab_msgs::ElementCandidatePoses path_pose)
+      (ConstrainedSegment &seg, const framefab_msgs::ElementCandidatePoses path_pose)
   {
     tf::pointMsgToEigen(path_pose.start_pt, seg.start);
     tf::pointMsgToEigen(path_pose.end_pt, seg.end);
     convertOrientationVector(path_pose.feasible_orients, seg.orientations);
 
-    switch(path_pose.type)
+    seg.linear_vel = seg_params.linear_vel;
+    seg.linear_disc = seg_params.linear_disc;
+
+    // TODO: spatial extrusion specific
+    switch (path_pose.type)
     {
       case framefab_msgs::ElementCandidatePoses::SUPPORT:
       {
@@ -107,13 +132,11 @@ framefab_process_planning::toDescartesConstrainedPath(const std::vector<framefab
       }
     }
 
-    seg.linear_vel = seg_params.linear_vel;
-    seg.linear_disc = seg_params.linear_disc;
     seg.z_axis_disc = seg_params.angular_disc;
     seg.retract_dist = seg_params.retract_dist;
   };
 
-  for (std::size_t i = 0; i < selected_path_num; ++i)
+  for (std::size_t i = 0; i < task_sequence.size(); ++i)
   {
     add_segment(segs[i], task_sequence[i]);
   } // end segments
@@ -121,16 +144,29 @@ framefab_process_planning::toDescartesConstrainedPath(const std::vector<framefab
   return segs;
 }
 
-bool framefab_process_planning::retractPath(
-    const std::vector<double>& start_joint, double retract_dist, double TCP_speed,
-    const std::vector<Eigen::Matrix3d>& eef_directions,
-    descartes_core::RobotModelPtr& model,
-    std::vector<std::vector<double>>& retract_jt_traj)
+std::vector <descartes_planner::ConstrainedSegment> toDescartesConstrainedPath(
+    const std::vector <framefab_msgs::ElementCandidatePoses> &task_sequence,
+    const double &linear_vel, const double &linear_disc, const double &angular_disc, const double &retract_dist)
 {
-  if(retract_dist < MIN_RETRACTION_DIST)
+  ConstrainedSegParameters sp;
+  sp.linear_vel = linear_vel;
+  sp.linear_disc = linear_disc;
+  sp.angular_disc = angular_disc;
+  sp.retract_dist = retract_dist;
+
+  return toDescartesConstrainedPath(task_sequence, sp);
+}
+
+bool retractPath(
+    const std::vector<double> &start_joint, double retract_dist, double TCP_speed,
+    const std::vector <Eigen::Matrix3d> &eef_directions,
+    descartes_core::RobotModelPtr &model,
+    std::vector <std::vector<double>> &retract_jt_traj)
+{
+  if (retract_dist < MIN_RETRACTION_DIST)
   {
     ROS_ERROR_STREAM("[process planning] recursive retraction sampling fails, retraction dist "
-                        << retract_dist << "/" << MIN_RETRACTION_DIST);
+                         << retract_dist << "/" << MIN_RETRACTION_DIST);
     return false;
   }
 
@@ -138,14 +174,14 @@ bool framefab_process_planning::retractPath(
 
   // solve FK to retrieve start eef plane
   Eigen::Affine3d start_pose;
-  if(!model->getFK(start_joint, start_pose))
+  if (!model->getFK(start_joint, start_pose))
   {
     return false;
   }
 
   const auto retract_sample_start = ros::Time::now();
 
-  std::vector<Eigen::Affine3d> retract_eef_poses;
+  std::vector <Eigen::Affine3d> retract_eef_poses;
   descartes_planner::LadderGraph graph(model->getDOF());
 
   const descartes_core::TimingConstraint timing(retract_dist / TCP_speed);
@@ -154,17 +190,17 @@ bool framefab_process_planning::retractPath(
   bool first_try = true;
   bool exist_pose_not_feasible = true;
 
-  while((ros::Time::now() - retract_sample_start).toSec() < RETRACT_OFFSET_SAMPLE_TIMEOUT)
+  while ((ros::Time::now() - retract_sample_start).toSec() < RETRACT_OFFSET_SAMPLE_TIMEOUT)
   {
     // generate index sample
     retract_eef_poses.clear();
     graph.clear();
 
     Eigen::Matrix3d offset_vec;
-    if(first_try)
+    if (first_try)
     {
       // transit the start eef plane along the direction of the local z axis
-      offset_vec = start_pose.matrix().block<3,3>(0,0);
+      offset_vec = start_pose.matrix().block<3, 3>(0, 0);
     }
     else
     {
@@ -179,10 +215,10 @@ bool framefab_process_planning::retractPath(
     auto end_pt = retract_pose.matrix().col(3).head<3>();
     double ds = (st_pt - end_pt).norm() / 2;
 
-    std::vector<Eigen::Vector3d> path_pts = descartes_planner::discretizePositions(st_pt, end_pt, ds);
+    std::vector <Eigen::Vector3d> path_pts = descartes_planner::discretizePositions(st_pt, end_pt, ds);
     graph.resize(path_pts.size());
 
-    for(auto& pt : path_pts)
+    for (auto &pt : path_pts)
     {
       Eigen::Affine3d pose = start_pose;
       pose.matrix().col(3).head<3>() = pt;
@@ -192,18 +228,18 @@ bool framefab_process_planning::retractPath(
 
     exist_pose_not_feasible = false;
 
-    for(int i = 0; i < retract_eef_poses.size(); i++)
+    for (int i = 0; i < retract_eef_poses.size(); i++)
     {
-      std::vector<std::vector<double>> retract_jt_vec;
+      std::vector <std::vector<double>> retract_jt_vec;
       retract_jt_vec.clear();
 
-      if(0 == i)
+      if (0 == i)
       {
         retract_jt_vec.push_back(start_joint);
       }
       else
       {
-        if(!model->getAllIK(retract_eef_poses[i], retract_jt_vec))
+        if (!model->getAllIK(retract_eef_poses[i], retract_jt_vec))
         {
           exist_pose_not_feasible = true;
           break;
@@ -213,9 +249,9 @@ bool framefab_process_planning::retractPath(
       graph.assignRung(i, descartes_core::TrajectoryID::make_nil(), timing, retract_jt_vec);
     }
 
-    if(!exist_pose_not_feasible)
+    if (!exist_pose_not_feasible)
     {
-      if(!first_try)
+      if (!first_try)
       {
         ROS_INFO_STREAM("[retraction planning] sampled retraction pose used.");
       }
@@ -226,10 +262,9 @@ bool framefab_process_planning::retractPath(
     first_try = false;
   }
 
-
-  for(std::size_t i = 0; i < graph.size(); i++)
+  for (std::size_t i = 0; i < graph.size(); i++)
   {
-    if(0 == graph.rungSize(i) || exist_pose_not_feasible)
+    if (0 == graph.rungSize(i) || exist_pose_not_feasible)
     {
       ROS_WARN_STREAM("[process planning] retraction sampling fails, recursively decrease retract dist to "
                           << retract_dist * 0.8);
@@ -242,15 +277,15 @@ bool framefab_process_planning::retractPath(
   {
     const auto start_idx = i;
     const auto end_idx = i + 1;
-    const auto& joints1 = graph.getRung(start_idx).data;
-    const auto& joints2 = graph.getRung(end_idx).data;
-    const auto& tm = graph.getRung(end_idx).timing;
+    const auto &joints1 = graph.getRung(start_idx).data;
+    const auto &joints2 = graph.getRung(end_idx).data;
+    const auto &tm = graph.getRung(end_idx).timing;
 
     const auto start_size = joints1.size() / dof;
     const auto end_size = joints2.size() / dof;
 
-    descartes_planner::DefaultEdgesWithTime builder (start_size, end_size, dof, tm.upper,
-                                                     model->getJointVelocityLimits());
+    descartes_planner::DefaultEdgesWithTime builder(start_size, end_size, dof, tm.upper,
+                                                    model->getJointVelocityLimits());
     for (size_t k = 0; k < start_size; k++) // from rung
     {
       const auto start_index = k * dof;
@@ -264,7 +299,7 @@ bool framefab_process_planning::retractPath(
       builder.next(k);
     }
 
-    std::vector<descartes_planner::LadderGraph::EdgeList> edges = builder.result();
+    std::vector <descartes_planner::LadderGraph::EdgeList> edges = builder.result();
 
     graph.assignEdges(i, std::move(edges));
   }
@@ -277,9 +312,11 @@ bool framefab_process_planning::retractPath(
   for (size_t j = 0; j < path_idxs.size(); ++j)
   {
     const auto idx = path_idxs[j];
-    const auto* data = graph.vertex(j, idx);
+    const auto *data = graph.vertex(j, idx);
     retract_jt_traj.push_back(std::vector<double>(data, data + dof));
   }
 
   return true;
+}
+
 }

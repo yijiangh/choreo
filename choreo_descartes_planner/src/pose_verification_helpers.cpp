@@ -2,14 +2,15 @@
 // Created by yijiangh on 4/9/18.
 //
 
-#include "pose_verification_helpers.h"
+#include "../include/choreo_descartes_planner/pose_verification_helpers.h"
 
 namespace descartes_planner
 {
 
 bool checkFeasibility(
     descartes_core::RobotModel& model,
-    const std::vector<Eigen::Affine3d>& poses, descartes_planner::CapRung& cap_rung,
+    const std::vector<Eigen::Affine3d>& poses,
+    descartes_planner::CapRung& cap_rung,
     descartes_planner::CapVert& cap_vert)
 {
   // sanity check

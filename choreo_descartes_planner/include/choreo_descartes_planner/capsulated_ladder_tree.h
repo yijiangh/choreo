@@ -133,14 +133,17 @@ struct CapRung
   // TODO: this is temporal patch to add element that is being printed
   planning_scene::PlanningScenePtr planning_scene_completed_;
 
-//  std::set<size_t> conflict_ids_;
   // ONLY USED in spatial extrusion
   // discretization degree for rotation around central z axis
   double z_axis_disc_;
 
   // used in line movement discretization
   double linear_vel_;
+
+  // partition of path points inside (needs to be divided later)
+  std::vector<int> sub_segment_ids_;
 };
+
 }
 
 #endif //DESCARTES_CAPSULATED_LADDER_TREE_H
