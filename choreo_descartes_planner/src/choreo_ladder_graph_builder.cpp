@@ -138,10 +138,10 @@ LadderGraph sampleSingleConfig(const descartes_core::RobotModel &model,
 
   for (const auto &o : origins)
   {
-    poses.push_back(makePose(o, orientation, z_axis_angle));
+    poses.push_back(makePose(o, orientation));
   }
 
-  return generateLadderGraphFromPoses(model, poses);
+  return generateLadderGraphFromPoses(model, poses, dt);
 }
 
 LadderGraph sampleConstrainedPaths(const descartes_core::RobotModel &model,
@@ -191,6 +191,12 @@ void appendInTime(LadderGraph &current, const LadderGraph &next)
 {
   const auto ref_size = current.size();
   const auto new_total_size = ref_size + next.size();
+
+  if(0 == ref_size)
+  {
+    current = next;
+    return;
+  }
 
   // So step 1 is to literally add the two sets of joints and edges together to make
   // one longer graph

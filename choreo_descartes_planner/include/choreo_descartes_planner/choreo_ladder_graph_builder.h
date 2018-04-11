@@ -18,8 +18,10 @@
 namespace descartes_planner
 {
 
-LadderGraph generateLadderGraphFromPoses(const descartes_core::RobotModel& model,
-                                         const std::vector<Eigen::Affine3d>& ps);
+LadderGraph sampleSingleConfig(const descartes_core::RobotModel &model,
+                               const std::vector <Eigen::Vector3d> &origins,
+                               const Eigen::Matrix3d &orientation,
+                               const double dt);
 
 LadderGraph sampleSingleConfig(const descartes_core::RobotModel& model,
                                const std::vector<Eigen::Vector3d>& origins,

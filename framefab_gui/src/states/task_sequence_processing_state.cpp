@@ -68,7 +68,6 @@ void framefab_gui::TaskSequenceProcessingState::taskSequenceProcessOrPlan()
   gui_ptr_->setButtonsEnabled(false);
 
   std::string assembly_type;
-
   // it will first try to call tasks sequence processor to see if we can read any existing sequence result
   bool found_task_seq = makeTaskSequenceProcessingRequest(gui_ptr_->params().modelInputParams(),
                                        gui_ptr_->params().taskSequenceInputParams(), assembly_type);
@@ -113,6 +112,7 @@ bool framefab_gui::TaskSequenceProcessingState::makeTaskSequenceProcessingReques
   }
   else
   {
+    assembly_type.clear();
     return false;
   }
 }

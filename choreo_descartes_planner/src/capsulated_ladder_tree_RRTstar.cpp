@@ -49,8 +49,7 @@ CapsulatedLadderTreeRRTstar::CapsulatedLadderTreeRRTstar(
 
     // end effector path pts
     auto points = discretizePositions(segs[i].start, segs[i].end, segs[i].linear_disc);
-    cap_rung.path_pts_.resize(1);
-    cap_rung.path_pts_[0] = points;
+    cap_rung.path_pts_.push_back(points);
 
     // feasible orientations
     cap_rung.orientations_.resize(1);
@@ -300,31 +299,46 @@ void CapsulatedLadderTreeRRTstar::extractSolution(descartes_core::RobotModel& mo
     {
       // construct unit ladder graph for each cap rungpath_pts_
       const auto cap_rung = cap_rungs_[ptr_last_cap_vert->rung_id_];
-      double traverse_length = (cap_rung.path_pts_.front() - cap_rung.path_pts_.back()).norm();
-      const auto dt = traverse_length / cap_rung.linear_vel_;
 
-      // TODO: temp workaround
+      LadderGraph unit_ladder_graph(dof);
+
+      // TODO: temp workaround to distinguish spatial extrusion and picknplace
       if(-1 != ptr_last_cap_vert->z_axis_angle_)
       {
+        assert(cap_rung.linear_vel_ > 0);
+
+        double traverse_length = (cap_rung.path_pts_[0].front() - cap_rung.path_pts_[0].back()).norm();
+        const auto dt = traverse_length / cap_rung.linear_vel_;
         model.setPlanningScene(cap_rung.planning_scene_[0]);
-        auto unit_ladder_graph = sampleSingleConfig(model,
-                                                    cap_rungs_[ptr_last_cap_vert->rung_id_].path_pts_[0],
-                                                    dt,
-                                                    ptr_last_cap_vert->orientation_[0],
-                                                    ptr_last_cap_vert->z_axis_angle_);
+        unit_ladder_graph = sampleSingleConfig(model,
+                                               cap_rungs_[ptr_last_cap_vert->rung_id_].path_pts_[0],
+                                               dt,
+                                               ptr_last_cap_vert->orientation_[0],
+                                               ptr_last_cap_vert->z_axis_angle_);
       }
       else
       {
-        for()
-        {
+        assert(cap_rung.sub_segment_ids_.size() == cap_rung.path_pts_.size());
+        assert(cap_rung.sub_segment_ids_.size() == cap_rung.orientations_.size());
+        assert(cap_rung.sub_segment_ids_.size() == cap_rung. planning_scene_.size());
 
+        for(int i=0; i < cap_rung.sub_segment_ids_.size(); i++)
+        {
+          double traverse_length = (cap_rung.path_pts_[i].front() - cap_rung.path_pts_[i].back()).norm();
+          const auto dt = traverse_length / cap_rung.linear_vel_;
+
+          appendInTime(unit_ladder_graph, sampleSingleConfig(model,
+                                                             cap_rungs_[ptr_last_cap_vert->rung_id_].path_pts_[i],
+                                                             ptr_last_cap_vert->orientation_[i],
+                                                             dt));
         }
       }
 
       graphs.insert(graphs.begin(), unit_ladder_graph);
       graph_indices.insert(graph_indices.begin(), unit_ladder_graph.size());
       ptr_last_cap_vert = ptr_last_cap_vert->getParentVertPtr();
-    }
+    } // end while
+
   }
   else
   {
