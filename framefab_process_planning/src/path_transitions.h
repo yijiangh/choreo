@@ -12,8 +12,9 @@
 #include <framefab_msgs/ElementCandidatePoses.h>
 #include <eigen_conversions/eigen_msg.h>
 
+#include <choreo_descartes_planner/constrained_segment.h>
+
 #include <descartes_core/robot_model.h>
-#include <choreo_descartes_planner/choreo_ladder_graph_builder.h>
 #include <moveit/planning_scene/planning_scene.h>
 
 #include <Eigen/Geometry>
@@ -33,7 +34,7 @@ struct ConstrainedSegParameters
 };
 
 // for picknplace
-std::vector<descartes_planner::ConstrainedSegment> toDescartesConstrainedPath(
+std::vector<descartes_planner::ConstrainedSegmentPickNPlace> toDescartesConstrainedPath(
     const framefab_msgs::AssemblySequencePickNPlace& task_sequence,
     const double& linear_vel, const double& linear_disc);
 

@@ -472,8 +472,8 @@ void FrameFabCoreService::taskSequenceProcessingActionCallback(const framefab_ms
 
       // TODO: MAGIC SWITCH!!
       // TODO: this process type should be a part of MODEL param
-      srv.request.action = srv.request.SPATIAL_EXTRUSION;
-//      srv.request.action = srv.request.PICKNPLACE;
+//      srv.request.action = srv.request.SPATIAL_EXTRUSION;
+      srv.request.action = srv.request.PICKNPLACE;
 
       srv.request.model_params = model_input_params_;
       srv.request.task_sequence_params = task_sequence_input_params_;

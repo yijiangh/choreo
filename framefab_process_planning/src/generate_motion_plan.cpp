@@ -451,6 +451,7 @@ bool generateMotionPlan(
     const double clt_rrt_timeout,
     const std::string &move_group_name,
     const std::vector<double> &start_state,
+    const std::vector<descartes_planner::ConstrainedSegmentPickNPlace> &segs,
     const framefab_msgs::AssemblySequencePickNPlace& as_pnp,
     descartes_core::RobotModelPtr model,
     moveit::core::RobotModelConstPtr moveit_model,
@@ -501,10 +502,16 @@ bool generateMotionPlan(
 //    ros::WallDuration(pause_time).sleep();
 //  }
 
-//  // Step 2: CLT RRT* to solve process trajectory
-//  CLTRRTforProcessROSTraj(model, segs, clt_rrt_unit_process_timeout, clt_rrt_timeout,
-//                          planning_scenes_shrinked_approach, planning_scenes_shrinked_depart,
-//                          task_seq, plans, saved_graph_file_name, use_saved_graph);
+  // Step 2: CLT RRT* to solve process trajectory
+//  CLTRRTforProcessROSTraj(model,
+//                          segs,
+//                          clt_rrt_unit_process_timeout,
+//                          clt_rrt_timeout,
+//                          planning_scenes_shrinked_approach,
+//                          planning_scenes_shrinked_depart,
+//                          plans,
+//                          saved_graph_file_name,
+//                          use_saved_graph);
 //
 //  // retract planning
 //  retractionPlanning(model, planning_scenes_shrinked_approach, planning_scenes_shrinked_depart, segs, plans);

@@ -72,7 +72,7 @@ void convertOrientationVector(
 
 namespace framefab_process_planning
 {
-std::vector<descartes_planner::ConstrainedSegment> toDescartesConstrainedPath(
+std::vector<descartes_planner::ConstrainedSegmentPickNPlace> toDescartesConstrainedPath(
     const framefab_msgs::AssemblySequencePickNPlace& as_pnp,
     const double& linear_vel, const double& linear_disc)
 {
@@ -81,12 +81,14 @@ std::vector<descartes_planner::ConstrainedSegment> toDescartesConstrainedPath(
   assert(linear_disc > 0 && linear_vel > 0);
   assert(as_pnp.sequenced_elements.size() > 0);
 
-  std::vector<ConstrainedSegment> segs(as_pnp.sequenced_elements.size());
+//  std::vector<ConstrainedSegmentPickNPlace> segs(as_pnp.sequenced_elements.size());
 
   // TODO
 //  tf::pointMsgToEigen(path_pose.start_pt, seg.start);
 //  tf::pointMsgToEigen(path_pose.end_pt, seg.end);
 //  convertOrientationVector(path_pose.feasible_orients, seg.orientations);
+
+//  return segs;
 }
 
 std::vector <descartes_planner::ConstrainedSegment>
@@ -96,7 +98,7 @@ toDescartesConstrainedPath(const std::vector <framefab_msgs::ElementCandidatePos
   using ConstrainedSegment = descartes_planner::ConstrainedSegment;
 
   assert(task_sequence.size() > 0);
-  std::vector <ConstrainedSegment> segs(task_sequence.size());
+  std::vector<ConstrainedSegment> segs(task_sequence.size());
 
   assert(seg_params.linear_disc > 0 && seg_params.linear_vel > 0);
   assert(seg_params.angular_disc > 0 && seg_params.retract_dist > 0);
@@ -145,7 +147,7 @@ toDescartesConstrainedPath(const std::vector <framefab_msgs::ElementCandidatePos
 }
 
 std::vector <descartes_planner::ConstrainedSegment> toDescartesConstrainedPath(
-    const std::vector <framefab_msgs::ElementCandidatePoses> &task_sequence,
+    const std::vector<framefab_msgs::ElementCandidatePoses> &task_sequence,
     const double &linear_vel, const double &linear_disc, const double &angular_disc, const double &retract_dist)
 {
   ConstrainedSegParameters sp;

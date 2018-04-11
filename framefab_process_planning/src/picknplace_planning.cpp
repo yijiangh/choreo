@@ -43,8 +43,9 @@ bool ProcessPlanningManager::handlePickNPlacePlanning(
   as_pnp.sequenced_elements = std::vector<framefab_msgs::SequencedElement>(
       as_pnp.sequenced_elements.begin(), as_pnp.sequenced_elements.begin() + req.index + 1);
 
+  // TODO:finish this
   // construct segs for descartes & copy chosen task sequence
-  std::vector<descartes_planner::ConstrainedSegment> constrained_segs =
+  std::vector<descartes_planner::ConstrainedSegmentPickNPlace> constrained_segs =
       toDescartesConstrainedPath(as_pnp, LINEAR_VEL, LINEAR_DISCRETIZATION);
 
   // TODO: this shouldn't remove collision objs in xacro?
@@ -58,6 +59,7 @@ bool ProcessPlanningManager::handlePickNPlacePlanning(
                         req.clt_rrt_timeout,
                         hotend_group_name_,
                         current_joints,
+                        constrained_segs,
                         as_pnp,
                         hotend_model_,
                         moveit_model_,
