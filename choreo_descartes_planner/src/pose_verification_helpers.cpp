@@ -37,8 +37,7 @@ bool checkFeasibility(
     {
       // TODO: this is temporal workaround
       // the last pose, prevent eef collide with element being printed
-      model.setPlanningScene(
-          cap_rung.planning_scene_completed_.size()>0 ? cap_rung.planning_scene_completed_[0] : cap_rung.planning_scene_[0]);
+      model.setPlanningScene(cap_rung.planning_scene_completed_.size()>0 ? cap_rung.planning_scene_completed_[0] : cap_rung.planning_scene_[0]);
     }
 
     model.getAllIK(poses[c_id], joint_poses);

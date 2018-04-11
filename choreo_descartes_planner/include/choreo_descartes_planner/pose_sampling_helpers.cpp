@@ -90,7 +90,7 @@ std::vector<Eigen::Affine3d> generateSample(const descartes_planner::CapRung& ca
                                             descartes_planner::CapVert& cap_vert)
 {
   // sample int for orientation
-  int o_sample = randomSampleInt(0, cap_rung.orientations_.size()-1);
+  int o_sample = randomSampleInt(0, cap_rung.orientations_[0].size()-1);
 
   assert(cap_rung.orientations_.size() > 0);
   assert(cap_rung.orientations_[0].size() > o_sample);

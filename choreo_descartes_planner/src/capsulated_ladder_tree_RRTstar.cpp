@@ -305,11 +305,10 @@ void CapsulatedLadderTreeRRTstar::extractSolution(descartes_core::RobotModel& mo
       // TODO: temp workaround to distinguish spatial extrusion and picknplace
       if(-1 != ptr_last_cap_vert->z_axis_angle_)
       {
-        assert(cap_rung.linear_vel_ > 0);
-
         double traverse_length = (cap_rung.path_pts_[0].front() - cap_rung.path_pts_[0].back()).norm();
         const auto dt = traverse_length / cap_rung.linear_vel_;
         model.setPlanningScene(cap_rung.planning_scene_[0]);
+
         unit_ladder_graph = sampleSingleConfig(model,
                                                cap_rungs_[ptr_last_cap_vert->rung_id_].path_pts_[0],
                                                dt,
