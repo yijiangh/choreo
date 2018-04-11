@@ -76,12 +76,27 @@ std::vector<descartes_planner::ConstrainedSegmentPickNPlace> toDescartesConstrai
     const framefab_msgs::AssemblySequencePickNPlace& as_pnp,
     const double& linear_vel, const double& linear_disc)
 {
-  using ConstrainedSegment = descartes_planner::ConstrainedSegment;
+  using ConstrainedSegmentPickNPlace = descartes_planner::ConstrainedSegmentPickNPlace;
 
   assert(linear_disc > 0 && linear_vel > 0);
   assert(as_pnp.sequenced_elements.size() > 0);
 
-//  std::vector<ConstrainedSegmentPickNPlace> segs(as_pnp.sequenced_elements.size());
+  std::vector<ConstrainedSegmentPickNPlace> segs(as_pnp.sequenced_elements.size());
+
+  for(const auto& se : as_pnp.sequenced_elements)
+  {
+    assert(se.grasps.size() > 0);
+    tf::pointMsgToEigen(se.grasps[0].pick_grasp_approach_pose.point, segs[i].pick_approach);
+    tf::pointMsgToEigen(se.grasps[0].pick_grasp_pose.point, segs[i].pick);
+    tf::pointMsgToEigen(se.grasps[0].pick_grasp_depart_pose.point, segs[i].pick_depart);
+
+    tf::pointMsgToEigen(se.grasps[0].place_grasp_approach_pose.point, segs[i].place_approach);
+    tf::pointMsgToEigen(se.grasps[0].place_grasp_pose.point, segs[i].place);
+    tf::pointMsgToEigen(se.grasps[0].place_grasp_depart_pose.point, segs[i].place_depart);
+
+    segs[i].pick_orientations
+
+  }
 
   // TODO
 //  tf::pointMsgToEigen(path_pose.start_pt, seg.start);

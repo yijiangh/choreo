@@ -35,11 +35,8 @@ struct ConstrainedSegment
 
 struct ConstrainedSegmentPickNPlace
 {
-  Eigen::Vector3d pick_start, pick_end;
-  Eigen::Vector3d place_start, place_end;
-
-  std::vector<Eigen::Matrix3d> pick_orientations;
-  std::vector<Eigen::Matrix3d> place_orientations;
+  std::vector<Eigen::Vector3d> path_pts;
+  std::vector<std::vector<Eigen::Matrix3d>> orientations;
 
   double linear_disc; /** The distance between sampled points in linear space (I'd like to do this automatically) */
   double linear_vel; /** Linear velocity between each disc point */
