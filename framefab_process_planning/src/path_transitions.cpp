@@ -113,24 +113,24 @@ std::vector<descartes_planner::ConstrainedSegmentPickNPlace> toDescartesConstrai
     // six path points in total
     segs[i].orientations.resize(4);
 
-    for(int i=0; i < se.grasps.size(); i++)
+    for(int j=0; j < se.grasps.size(); j++)
     {
-      const auto& g = se.grasps[i];
+      const auto& g = se.grasps[j];
       Eigen::Quaterniond q;
 
       // convert geometry_msgs::Quaterion back to eigen::Quaterion
       // then back to matrix3d
       tf::quaternionMsgToEigen(g.pick_grasp_approach_pose.orientation, q);
-      segs[i].orientations[1].push_back(q.toRotationMatrix());
+      segs[i].orientations[0].push_back(q.toRotationMatrix());
 
       tf::quaternionMsgToEigen(g.pick_grasp_pose.orientation, q);
-      segs[i].orientations[2].push_back(q.toRotationMatrix());
+      segs[i].orientations[1].push_back(q.toRotationMatrix());
 
       tf::quaternionMsgToEigen(g.place_grasp_approach_pose.orientation, q);
-      segs[i].orientations[3].push_back(q.toRotationMatrix());
+      segs[i].orientations[2].push_back(q.toRotationMatrix());
 
       tf::quaternionMsgToEigen(g.place_grasp_pose.orientation, q);
-      segs[i].orientations[4].push_back(q.toRotationMatrix());
+      segs[i].orientations[3].push_back(q.toRotationMatrix());
     }
 
     segs[i].planning_scenes.push_back(planning_scene_pick[i]);

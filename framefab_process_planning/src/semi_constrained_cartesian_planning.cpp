@@ -165,7 +165,7 @@ void CLTRRTforProcessROSTraj(descartes_core::RobotModelPtr model,
   }
 }
 
-// TODO: overhead for picknplace
+// TODO: overload for picknplace
 void CLTRRTforProcessROSTraj(descartes_core::RobotModelPtr model,
                              const framefab_msgs::AssemblySequencePickNPlace& as_pnp,
                              const double clt_rrt_unit_process_timeout,
@@ -210,6 +210,8 @@ void CLTRRTforProcessROSTraj(descartes_core::RobotModelPtr model,
   // construct segs for descartes & copy chosen task sequence
   const std::vector<descartes_planner::ConstrainedSegmentPickNPlace> segs =
       toDescartesConstrainedPath(as_pnp, planning_scenes_pick, planning_scenes_place, linear_vel, linear_disc);
+
+  ROS_INFO_STREAM("[CLT RRT*] Constrained segment constructed.");
 
   // partition indices will be init inside CLT_RRT
   descartes_planner::CapsulatedLadderTreeRRTstar CLT_RRT(segs);

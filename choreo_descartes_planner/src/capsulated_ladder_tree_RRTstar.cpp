@@ -506,4 +506,5 @@ void CapsulatedLadderTreeRRTstar::extractSolution(descartes_core::RobotModel& mo
   ROS_INFO_STREAM("[CLTRRT] Graph construction and searching took: "
                       << (graph_build_end - graph_build_start).toSec() << " seconds");
 }
+
 } //end namespace descartes planner
