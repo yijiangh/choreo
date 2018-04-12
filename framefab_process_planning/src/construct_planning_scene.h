@@ -34,12 +34,8 @@ planning_scene::PlanningScenePtr constructPlanningScene(const planning_scene::Pl
 void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
                                      const std::string& world_frame,
                                      const framefab_msgs::AssemblySequencePickNPlace& as_pnp,
-                                     std::vector<planning_scene::PlanningScenePtr>& planning_scenes_transition2pick,
-                                     std::vector<planning_scene::PlanningScenePtr>& planning_scenes_pick,
-                                     std::vector<collision_detection::AllowedCollisionMatrix>& pick_acms,
-                                     std::vector<planning_scene::PlanningScenePtr>& planning_scenes_transition2place,
-                                     std::vector<planning_scene::PlanningScenePtr>& planning_scenes_place,
-                                     std::vector<collision_detection::AllowedCollisionMatrix>& place_acms);
+                                     std::vector<std::vector<planning_scene::PlanningScenePtr>>& planning_scenes_transition,
+                                     std::vector<std::vector<planning_scene::PlanningScenePtr>>& planning_scenes_subprocess);
 
 // overload for spatial extrusion planning scene construction
 void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,

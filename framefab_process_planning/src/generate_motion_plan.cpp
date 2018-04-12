@@ -267,6 +267,174 @@ void transitionPlanning(std::vector <framefab_msgs::UnitProcessPlan> &plans,
                                                                  << " seconds.");
 }
 
+void transitionPlanningPickNPlace(std::vector <framefab_msgs::UnitProcessPlan> &plans,
+                                  moveit::core::RobotModelConstPtr moveit_model,
+                                  ros::ServiceClient &planning_scene_diff_client,
+                                  const std::string &move_group_name,
+                                  const std::vector<double> &start_state,
+                                  const std::vector<std::vector<planning_scene::PlanningScenePtr>>& planning_scenes)
+{
+  if (plans.size() == 0)
+  {
+    ROS_ERROR("[transionPlanning] plans size = 0!");
+    assert(false);
+  }
+
+  const auto tr_planning_start = ros::Time::now();
+
+//  // generate full eef collision object
+//  bool add_eef_full = true;
+//  auto full_eef_collision_obj = framefab_process_planning::addFullEndEffectorCollisionObject(add_eef_full);
+
+  std::vector<int> planning_failure_ids;
+
+  std::vector<double> last_joint_pose = start_state;
+  std::vector<double> current_first_joint_pose;
+
+  std::vector<framefab_msgs::SubProcess> tr_sub_processes;
+
+  for (size_t i = 0; i < plans.size(); i++)
+  {
+    ROS_INFO_STREAM("[Transition Planning] process #" << i);
+
+    // transition planning scenes' number
+    // <transition> - <sub-process> - <transition> - <sub-process> -... - <sub-process>
+    assert(planning_scenes[i].size() == plans[i].sub_process_array.size());
+
+    for (size_t j = 0; j < plans[i].sub_process_array.size(); j++)
+    {
+      if(0 == j)
+      {
+        // last joint pose from last unit process's last subprocess
+        if (0 != i)
+        {
+          last_joint_pose = plans[i - 1].sub_process_array.back().joint_array.points.back().positions;
+        }
+      }
+      else
+      {
+        last_joint_pose = plans[i].sub_process_array[j-1].joint_array.points.back().positions;
+      }
+
+      current_first_joint_pose = plans[i].sub_process_array[j].joint_array.points.front().positions;
+
+      if (last_joint_pose == current_first_joint_pose)
+      {
+        // skip transition planning
+        continue;
+      }
+
+      // update the planning scene
+      if (!planning_scene_diff_client.waitForExistence())
+      {
+        ROS_ERROR_STREAM("[Tr Planning] cannot connect with planning scene diff server...");
+      }
+
+      moveit_msgs::ApplyPlanningScene srv;
+      auto scene = planning_scenes[i][j]->diff();
+
+//      if (!scene_with_attached_eef->processAttachedCollisionObjectMsg(full_eef_collision_obj))
+//      {
+//        ROS_ERROR_STREAM("[Tr Planning] planning scene # " << i << "fails to add attached full eef collision geometry");
+//      }
+
+      scene->getPlanningSceneMsg(srv.request.scene);
+
+      if (!planning_scene_diff_client.call(srv))
+      {
+        ROS_ERROR_STREAM("[Tr Planning] Failed to publish planning scene diff srv!");
+      }
+
+      int repeat_planning_call = 0;
+      trajectory_msgs::JointTrajectory ros_trans_traj;
+
+      bool joint_target_meet = true;
+      while (repeat_planning_call < TRANSITION_PLANNING_LOOP_COUNT)
+      {
+        // reset joint target meet flag
+        joint_target_meet = true;
+
+        ros_trans_traj = framefab_process_planning::getMoveitTransitionPlan(move_group_name,
+                                                                            last_joint_pose,
+                                                                            current_first_joint_pose,
+                                                                            start_state,
+                                                                            moveit_model);
+
+        // TODO: recover from transition planning failure
+        if (repeat_planning_call > 0)
+        {
+          ROS_WARN_STREAM("[Process Planning] transition planning retry - round "
+                              << repeat_planning_call << "/" << TRANSITION_PLANNING_LOOP_COUNT);
+        }
+
+        if (0 == ros_trans_traj.points.size())
+        {
+//        ROS_ERROR_STREAM("[Process Planning] Transition planning fails.");
+          joint_target_meet = false;
+          repeat_planning_call++;
+          continue;
+        }
+
+        for (int s = 0; s < current_first_joint_pose.size(); s++)
+        {
+          if (current_first_joint_pose[s] - ros_trans_traj.points.back().positions[s] > 0.0001)
+          {
+            joint_target_meet = false;
+            break;
+          }
+        }
+
+        if (joint_target_meet)
+        {
+          std::string retry_msg = repeat_planning_call > 0 ? "retry" : "";
+          ROS_WARN_STREAM("[Process Planning] transition planning "
+                              << retry_msg << " succeed!");
+          break;
+        }
+
+        repeat_planning_call++;
+      }
+
+      if (!joint_target_meet)
+      {
+        planning_failure_ids.push_back(i);
+        ROS_ERROR_STREAM("[Tr planning] transition planning fails at index #" << i << ", subprocess #" << j);
+        continue;
+      }
+
+      framefab_msgs::SubProcess sub_process;
+
+      sub_process.process_type = framefab_msgs::SubProcess::TRANSITION;
+      sub_process.main_data_type = framefab_msgs::SubProcess::JOINT;
+      sub_process.joint_array = ros_trans_traj;
+
+      tr_sub_processes.push_back(sub_process);
+    } // end subprocess
+
+    // weave transition in
+    std::vector<framefab_msgs::SubProcess> sps;
+
+    assert(tr_sub_processes.size() == plans[i].sub_process_array.size());
+
+    for(size_t j = 0; j < plans[i].sub_process_array.size(); j++)
+    {
+      sps.push_back(tr_sub_processes[j]);
+      sps.push_back(plans[i].sub_process_array[j]);
+    }
+
+    plans[i].sub_process_array = sps;
+  }// end process
+
+  for (auto id : planning_failure_ids)
+  {
+    ROS_ERROR_STREAM("[Tr planning] transition planning fails at process #" << id);
+  }
+
+  const auto tr_planning_end = ros::Time::now();
+  ROS_INFO_STREAM("[Process Planning] Transition Planning took " << (tr_planning_end - tr_planning_start).toSec()
+                                                                 << " seconds.");
+}
+
 void adjustTrajectoryTiming(std::vector <framefab_msgs::UnitProcessPlan> &plans,
                             const std::vector <std::string> &joint_names,
                             const std::string world_frame)
@@ -331,6 +499,55 @@ void appendTCPPoseToPlans(const descartes_core::RobotModelPtr model,
       else
       {
         model->setPlanningScene(planning_scenes_shrinked[process_id_count]);
+      }
+
+      for (const auto &jt_pt : sub_process.joint_array.points)
+      {
+        Eigen::Affine3d TCP_pose = Eigen::Affine3d::Identity();
+        geometry_msgs::Pose geo_pose_msg;
+
+        // convert it to TCP pose
+        if (!model->getFK(jt_pt.positions, TCP_pose))
+        {
+          ROS_ERROR_STREAM("FK solution failed at unit process #" << sub_process.unit_process_id
+                                                                  << ", subprocess #" << sub_process.sub_process_id
+                                                                  << ", process type: " << sub_process.process_type
+                                                                  << " (0: process, 1: near_model, 2: transition)");
+        }
+
+        // affine3d to geometry_msg/pose
+        tf::poseEigenToMsg(TCP_pose, geo_pose_msg);
+
+        sub_process.TCP_pose_array.push_back(geo_pose_msg);
+      }
+    }
+//    ROS_INFO_STREAM("[Process Planning] process #" << process_id_count << "TCP added.");
+    process_id_count++;
+  }
+}
+
+void appendTCPPoseToPlansPickNPlace(const descartes_core::RobotModelPtr model,
+                                    const std::vector<std::vector<planning_scene::PlanningScenePtr>>& planning_scenes_transition,
+                                    const std::vector<std::vector<planning_scene::PlanningScenePtr>>& planning_scenes_subprocess,
+                                    std::vector<framefab_msgs::UnitProcessPlan>& plans)
+{
+  int process_id_count = 0;
+  for (auto &unit_plan : plans)
+  {
+    int sp_count = 0;
+    int tr_count = 0;
+
+    for (auto &sub_process : unit_plan.sub_process_array)
+    {
+      if (sub_process.process_type == framefab_msgs::SubProcess::TRANSITION)
+      {
+        model->setPlanningScene(planning_scenes_transition[process_id_count][tr_count]);
+        tr_count++;
+      }
+      else
+      {
+        model->setPlanningScene(planning_scenes_subprocess[process_id_count][sp_count]);
+        sp_count++;
       }
 
       for (const auto &jt_pt : sub_process.joint_array.points)
@@ -464,44 +681,14 @@ bool generateMotionPlan(
       moveit_model->getJointModelGroup(move_group_name)->getActiveJointModelNames();
 
   // Step 1: Let's create all of our planning scenes to collision check against
-  std::vector <planning_scene::PlanningScenePtr> planning_scenes_transition2pick;
-  std::vector <planning_scene::PlanningScenePtr> planning_scenes_pick;
-  std::vector <planning_scene::PlanningScenePtr> planning_scenes_transition2place;
-  std::vector <planning_scene::PlanningScenePtr> planning_scenes_place;
-
-  // TODO: acm not used now
-  std::vector<collision_detection::AllowedCollisionMatrix> pick_acms;
-  std::vector<collision_detection::AllowedCollisionMatrix> place_acms;
+  std::vector<std::vector<planning_scene::PlanningScenePtr>> planning_scenes_transition;
+  std::vector<std::vector<planning_scene::PlanningScenePtr>> planning_scenes_subprocess;
 
   constructPlanningScenes(moveit_model,
                           world_frame,
                           as_pnp,
-                          planning_scenes_transition2pick,
-                          planning_scenes_pick,
-                          pick_acms,
-                          planning_scenes_transition2place,
-                          planning_scenes_place,
-                          place_acms);
-
-//  double pause_time = 2.0;
-//  for(int i = 0; i < as_pnp.sequenced_elements.size(); i++)
-//  {
-//    ROS_INFO_STREAM("#" << i << ": transition 2 pick");
-//    testApplyPlanningScene(planning_scene_diff_client, planning_scenes_transition2pick[i]);
-//    ros::WallDuration(pause_time).sleep();
-//
-//    ROS_INFO_STREAM("#" << i << ": pick");
-//    testApplyPlanningScene(planning_scene_diff_client, planning_scenes_pick[i]);
-//    ros::WallDuration(pause_time).sleep();
-//
-//    ROS_INFO_STREAM("#" << i << ": transition 2 place");
-//    testApplyPlanningScene(planning_scene_diff_client, planning_scenes_transition2place[i]);
-//    ros::WallDuration(pause_time).sleep();
-//
-//    ROS_INFO_STREAM("#" << i << ": place");
-//    testApplyPlanningScene(planning_scene_diff_client, planning_scenes_place[i]);
-//    ros::WallDuration(pause_time).sleep();
-//  }
+                          planning_scenes_transition,
+                          planning_scenes_subprocess);
 
   // Step 2: CLT RRT* to solve process trajectory
   CLTRRTforProcessROSTraj(model,
@@ -510,8 +697,7 @@ bool generateMotionPlan(
                           clt_rrt_timeout,
                           linear_vel,
                           linear_disc,
-                          planning_scenes_pick,
-                          planning_scenes_place,
+                          planning_scenes_subprocess,
                           plans,
                           saved_graph_file_name,
                           use_saved_graph);
@@ -519,15 +705,15 @@ bool generateMotionPlan(
   // skip retract planning for picknplace
 
 //  // Step 5 : Plan for transition between each pair of sequential path
-//  transitionPlanning(plans, moveit_model, planning_scene_diff_client, move_group_name,
-//                     start_state, planning_scenes_full);
-//
+  transitionPlanningPickNPlace(plans, moveit_model, planning_scene_diff_client, move_group_name,
+                               start_state, planning_scenes_subprocess);
+
 //  // Step 7 : fill in trajectory's time headers and pack into sub_process_plans
 //  // for each unit_process (process id is added here too)
-//  adjustTrajectoryTiming(plans, joint_names, world_frame);
-//
+  adjustTrajectoryTiming(plans, joint_names, world_frame);
+
 //  // Step 8: fill in TCP pose according to trajectories
-//  appendTCPPoseToPlans(model, planning_scenes_shrinked_approach, planning_scenes_full, plans);
+  appendTCPPoseToPlansPickNPlace(model, planning_scenes_transition, planning_scenes_subprocess, plans);
 
   ROS_INFO("[Process Planning] trajectories solved and packing finished");
   return true;

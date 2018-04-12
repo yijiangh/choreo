@@ -36,8 +36,7 @@ struct ConstrainedSegParameters
 // TODO: overload for picknplace
 std::vector<descartes_planner::ConstrainedSegmentPickNPlace> toDescartesConstrainedPath(
     const framefab_msgs::AssemblySequencePickNPlace& task_sequence,
-    const std::vector<planning_scene::PlanningScenePtr>& planning_scene_pick,
-    const std::vector<planning_scene::PlanningScenePtr>& planning_scene_place,
+    const std::vector<std::vector<planning_scene::PlanningScenePtr>>& planning_scene_pick,
     const double& linear_vel, const double& linear_disc);
 
 // TODO: should update this to a more universal one

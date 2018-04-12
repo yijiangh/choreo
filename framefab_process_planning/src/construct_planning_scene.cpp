@@ -97,12 +97,8 @@ planning_scene::PlanningScenePtr constructPlanningScene(const planning_scene::Pl
 void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
                              const std::string& world_frame,
                              const framefab_msgs::AssemblySequencePickNPlace& as_pnp,
-                             std::vector<planning_scene::PlanningScenePtr>& planning_scenes_transition2pick,
-                             std::vector<planning_scene::PlanningScenePtr>& planning_scenes_pick,
-                             std::vector<collision_detection::AllowedCollisionMatrix>& pick_acms,
-                             std::vector<planning_scene::PlanningScenePtr>& planning_scenes_transition2place,
-                             std::vector<planning_scene::PlanningScenePtr>& planning_scenes_place,
-                             std::vector<collision_detection::AllowedCollisionMatrix>& place_acms)
+                             std::vector<std::vector<planning_scene::PlanningScenePtr>>& planning_scenes_transition,
+                             std::vector<std::vector<planning_scene::PlanningScenePtr>>& planning_scenes_subprocess)
 {
   using namespace choreo_geometry_conversion_helpers;
 
@@ -115,12 +111,9 @@ void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
   std::map <std::string, moveit_msgs::CollisionObject> pick_support_surfaces;
   std::map <std::string, moveit_msgs::CollisionObject> place_support_surfaces;
 
-  pick_acms.clear();
-  place_acms.clear();
-  planning_scenes_transition2pick.clear();
-  planning_scenes_pick.clear();
-  planning_scenes_transition2place.clear();
-  planning_scenes_place.clear();
+  int overall_process_num = as_pnp.sequenced_elements.size();
+  planning_scenes_transition.resize(overall_process_num);
+  planning_scenes_subprocess.resize(overall_process_num);
 
   // TODO: replace this hard-coded eef name!!
   // TODO: not sure if this is the right ik link
@@ -128,7 +121,7 @@ void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
   assert(eef);
   const std::string &ik_link = eef->getEndEffectorParentGroup().second;
 
-  ROS_INFO_STREAM("ik link: " << ik_link);
+//  ROS_INFO_STREAM("ik link: " << ik_link);
 
   // use empty pose for all objs, as the positions are built in the mesh itself (using global base frame)
   geometry_msgs::Pose empty_pose;
@@ -219,7 +212,7 @@ void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
     assert(i == se.order_id);
 
     // transition 2 pick
-    planning_scene::PlanningScenePtr last_place_scene = 0==i ? root_scene : planning_scenes_place.back();
+    planning_scene::PlanningScenePtr last_place_scene = 0==i ? root_scene : planning_scenes_subprocess[i-1].back();
 
     auto tr2pick_scene = last_place_scene->diff();
 
@@ -235,7 +228,7 @@ void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
       assert(tr2pick_scene->processCollisionObjectMsg(place_cos[i-1]));
     }
 
-    planning_scenes_transition2pick.push_back(tr2pick_scene);
+    planning_scenes_transition[i].push_back(tr2pick_scene);
 
 //    ROS_INFO_STREAM("#" << i << ": tr 2 pick");
 
@@ -259,14 +252,19 @@ void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
 //    last_attached_co.object.operation = last_attached_co.object.ADD;
 //    assert(pick_scene->processAttachedCollisionObjectMsg(last_attached_co));
 
-    planning_scenes_pick.push_back(pick_scene);
+    // approach and depart
+    planning_scenes_subprocess[i].push_back(pick_scene);
+
+    planning_scenes_transition[i].push_back(pick_scene);
+
+    planning_scenes_subprocess[i].push_back(pick_scene);
 
 //    ROS_INFO_STREAM("#" << i << ": pick");
 
     // transition 2 place
     auto tr2place_scene = pick_scene->diff();
 
-    planning_scenes_transition2place.push_back(tr2place_scene);
+    planning_scenes_transition[i].push_back(tr2place_scene);
 
 //    ROS_INFO_STREAM("#" << i << ": tr 2 place");
 
@@ -290,7 +288,11 @@ void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
 //    last_attached_co.object.operation = last_attached_co.object.ADD;
 //    assert(place_scene->processAttachedCollisionObjectMsg(last_attached_co));
 
-    planning_scenes_place.push_back(place_scene);
+    planning_scenes_subprocess[i].push_back(place_scene);
+
+    planning_scenes_transition[i].push_back(place_scene);
+
+    planning_scenes_subprocess[i].push_back(place_scene);
 
 //    ROS_INFO_STREAM("#" << i << ": place");
 

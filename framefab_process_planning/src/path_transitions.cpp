@@ -74,16 +74,14 @@ namespace framefab_process_planning
 {
 std::vector<descartes_planner::ConstrainedSegmentPickNPlace> toDescartesConstrainedPath(
     const framefab_msgs::AssemblySequencePickNPlace& as_pnp,
-    const std::vector<planning_scene::PlanningScenePtr>& planning_scene_pick,
-    const std::vector<planning_scene::PlanningScenePtr>& planning_scene_place,
+    const std::vector<std::vector<planning_scene::PlanningScenePtr>>& planning_scene_subprocess,
     const double& linear_vel, const double& linear_disc)
 {
   using ConstrainedSegmentPickNPlace = descartes_planner::ConstrainedSegmentPickNPlace;
 
   assert(linear_disc > 0 && linear_vel > 0);
   assert(as_pnp.sequenced_elements.size() > 0);
-  assert(as_pnp.sequenced_elements.size() == planning_scene_pick.size());
-  assert(as_pnp.sequenced_elements.size() == planning_scene_place.size());
+  assert(as_pnp.sequenced_elements.size() == planning_scene_subprocess.size());
 
   std::vector<ConstrainedSegmentPickNPlace> segs(as_pnp.sequenced_elements.size());
 
@@ -133,10 +131,9 @@ std::vector<descartes_planner::ConstrainedSegmentPickNPlace> toDescartesConstrai
       segs[i].orientations[3].push_back(q.toRotationMatrix());
     }
 
-    segs[i].planning_scenes.push_back(planning_scene_pick[i]);
-    segs[i].planning_scenes.push_back(planning_scene_pick[i]);
-    segs[i].planning_scenes.push_back(planning_scene_place[i]);
-    segs[i].planning_scenes.push_back(planning_scene_place[i]);
+    // TODO: picknplace specific, hardcoded the number 4 here!
+    assert(planning_scene_subprocess[i].size() == 4);
+    segs[i].planning_scenes = planning_scene_subprocess[i];
 
     segs[i].linear_vel = linear_vel;
     segs[i].linear_disc = linear_disc;

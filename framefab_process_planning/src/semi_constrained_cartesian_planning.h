@@ -34,9 +34,8 @@ void CLTRRTforProcessROSTraj(descartes_core::RobotModelPtr model,
                              const double clt_rrt_timeout,
                              const double& linear_vel,
                              const double& linear_disc,
-                             const std::vector<planning_scene::PlanningScenePtr> &planning_scenes_pick,
-                             const std::vector<planning_scene::PlanningScenePtr> &planning_scenes_place,
-                             std::vector <framefab_msgs::UnitProcessPlan> &plans,
+                             const std::vector<std::vector<planning_scene::PlanningScenePtr>>& planning_scenes_subprocess,
+                             std::vector <framefab_msgs::UnitProcessPlan>& plans,
                              const std::string &saved_graph_file_name,
                              bool use_saved_grap);
 }

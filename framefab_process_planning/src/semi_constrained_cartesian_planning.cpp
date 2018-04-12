@@ -172,9 +172,8 @@ void CLTRRTforProcessROSTraj(descartes_core::RobotModelPtr model,
                              const double clt_rrt_timeout,
                              const double& linear_vel,
                              const double& linear_disc,
-                             const std::vector<planning_scene::PlanningScenePtr> &planning_scenes_pick,
-                             const std::vector<planning_scene::PlanningScenePtr> &planning_scenes_place,
-                             std::vector <framefab_msgs::UnitProcessPlan> &plans,
+                             const std::vector<std::vector<planning_scene::PlanningScenePtr>>& planning_scenes_subprocess,
+                             std::vector <framefab_msgs::UnitProcessPlan>& plans,
                              const std::string &saved_graph_file_name,
                              bool use_saved_graph)
 {
@@ -209,7 +208,7 @@ void CLTRRTforProcessROSTraj(descartes_core::RobotModelPtr model,
 
   // construct segs for descartes & copy chosen task sequence
   const std::vector<descartes_planner::ConstrainedSegmentPickNPlace> segs =
-      toDescartesConstrainedPath(as_pnp, planning_scenes_pick, planning_scenes_place, linear_vel, linear_disc);
+      toDescartesConstrainedPath(as_pnp, planning_scenes_subprocess, linear_vel, linear_disc);
 
   ROS_INFO_STREAM("[CLT RRT*] Constrained segment constructed.");
 
@@ -292,6 +291,10 @@ void CLTRRTforProcessROSTraj(descartes_core::RobotModelPtr model,
       if(k <= 1)
       {
         sub_process.comment = "pick";
+      }
+      else
+      {
+        sub_process.comment = "place";
       }
 
       sub_process.joint_array.points = std::vector<trajectory_msgs::JointTrajectoryPoint>(it, it + graph_indices[i][k]);
