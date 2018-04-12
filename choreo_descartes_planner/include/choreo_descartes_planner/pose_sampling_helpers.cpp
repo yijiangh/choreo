@@ -137,8 +137,7 @@ std::vector<std::vector<Eigen::Affine3d>> generateSamplePickNPlace(const descart
   // for each kinematics family
   for(int i=0; i<cap_rung.path_pts_.size(); i++)
   {
-    assert(cap_rung.orientations_.size() > 0);
-    assert(cap_rung.orientations_[0].size() > o_sample);
+    assert(cap_rung.orientations_[0].size() == cap_rung.orientations_[i].size());
 
     const auto orient = cap_rung.orientations_[i][o_sample];
 

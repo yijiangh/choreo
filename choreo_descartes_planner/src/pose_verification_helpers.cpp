@@ -83,7 +83,7 @@ bool checkFeasibilityPickNPlace(
 {
   // sanity check
   assert(cap_rung.path_pts_.size() > 0);
-  int kin_family_size = cap_rung.path_pts_.size();
+  const int kin_family_size = cap_rung.path_pts_.size();
 
   assert(poses.size() == kin_family_size);
   assert(cap_rung.planning_scene_.size() == kin_family_size);
@@ -93,7 +93,7 @@ bool checkFeasibilityPickNPlace(
 
   for(int k=0; k<kin_family_size; k++)
   {
-    std::vector <std::vector<double>> joint_poses;
+    std::vector<std::vector<double>> joint_poses;
 
     // check ik feasibility for each of the path points
     for (size_t c_id = 0; c_id < poses[k].size(); c_id++)
@@ -101,9 +101,8 @@ bool checkFeasibilityPickNPlace(
       joint_poses.clear();
 
       model.setPlanningScene(cap_rung.planning_scene_[k]);
-      model.getAllIK(poses[k][c_id], joint_poses);
 
-      if (joint_poses.empty())
+      if (!model.getAllIK(poses[k][c_id], joint_poses))
       {
         // current capsule is invalid if there exists one path point without feasible kinematics solution.
         return false;

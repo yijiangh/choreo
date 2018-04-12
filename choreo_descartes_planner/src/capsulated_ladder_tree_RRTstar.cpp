@@ -93,7 +93,7 @@ CapsulatedLadderTreeRRTstar::CapsulatedLadderTreeRRTstar(
     assert(segs[i].planning_scenes.size() == segs[i].path_pts.size());
 
     // iterate through all kinematics families
-    int k_family_size = segs[i].path_pts.size();
+    const int k_family_size = segs[i].path_pts.size();
     cap_rung.path_pts_.resize(k_family_size);
     cap_rung.orientations_.resize(k_family_size);
     cap_rung.planning_scene_.resize(k_family_size);
@@ -291,9 +291,9 @@ double CapsulatedLadderTreeRRTstar::solvePickNPlace(descartes_core::RobotModel& 
 
   if(rrt_star_timeout < 5.0)
   {
-    rrt_star_timeout = 4*cap_rungs_.size();
+    double updated_rrt_star_timeout = 4*cap_rungs_.size();
     logWarn("[CLT-RRT] rrt star timeout %.2f s, smaller than 5.0s, set to default timeout %.2f s",
-            rrt_star_timeout, rrt_star_timeout);
+            rrt_star_timeout, updated_rrt_star_timeout);
   }
 
   // find initial solution
@@ -455,6 +455,10 @@ void CapsulatedLadderTreeRRTstar::extractSolution(descartes_core::RobotModel& mo
         {
           double traverse_length = (cap_rung.path_pts_[i].front() - cap_rung.path_pts_[i].back()).norm();
           const auto dt = traverse_length / cap_rung.linear_vel_;
+
+          assert(cap_rung.path_pts_[i].size() == cap_rung.sub_segment_ids_[i]);
+
+          model.setPlanningScene(cap_rung.planning_scene_[i]);
 
           appendInTime(unit_ladder_graph, sampleSingleConfig(model,
                                                              cap_rungs_[ptr_last_cap_vert->rung_id_].path_pts_[i],
