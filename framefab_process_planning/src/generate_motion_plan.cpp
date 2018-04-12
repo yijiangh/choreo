@@ -449,9 +449,10 @@ bool generateMotionPlan(
     const std::string &saved_graph_file_name,
     const double clt_rrt_unit_process_timeout,
     const double clt_rrt_timeout,
+    const double& linear_vel,
+    const double& linear_disc,
     const std::string &move_group_name,
     const std::vector<double> &start_state,
-    const std::vector<descartes_planner::ConstrainedSegmentPickNPlace> &segs,
     const framefab_msgs::AssemblySequencePickNPlace& as_pnp,
     descartes_core::RobotModelPtr model,
     moveit::core::RobotModelConstPtr moveit_model,
@@ -503,19 +504,20 @@ bool generateMotionPlan(
 //  }
 
   // Step 2: CLT RRT* to solve process trajectory
-//  CLTRRTforProcessROSTraj(model,
-//                          segs,
-//                          clt_rrt_unit_process_timeout,
-//                          clt_rrt_timeout,
-//                          planning_scenes_shrinked_approach,
-//                          planning_scenes_shrinked_depart,
-//                          plans,
-//                          saved_graph_file_name,
-//                          use_saved_graph);
-//
-//  // retract planning
-//  retractionPlanning(model, planning_scenes_shrinked_approach, planning_scenes_shrinked_depart, segs, plans);
-//
+  CLTRRTforProcessROSTraj(model,
+                          as_pnp,
+                          clt_rrt_unit_process_timeout,
+                          clt_rrt_timeout,
+                          linear_vel,
+                          linear_disc,
+                          planning_scenes_pick,
+                          planning_scenes_place,
+                          plans,
+                          saved_graph_file_name,
+                          use_saved_graph);
+
+  // skip retract planning for picknplace
+
 //  // Step 5 : Plan for transition between each pair of sequential path
 //  transitionPlanning(plans, moveit_model, planning_scene_diff_client, move_group_name,
 //                     start_state, planning_scenes_full);

@@ -26,9 +26,7 @@ class CapsulatedLadderTreeRRTstar
 
   // for picknplace
   CapsulatedLadderTreeRRTstar(
-      const std::vector<ConstrainedSegmentPickNPlace>& segs,
-      const std::vector<planning_scene::PlanningScenePtr>& planning_scenes_pick,
-      const std::vector<planning_scene::PlanningScenePtr>& planning_scenes_place);
+      const std::vector<ConstrainedSegmentPickNPlace>& segs);
 
   ~CapsulatedLadderTreeRRTstar();
 
@@ -41,12 +39,17 @@ class CapsulatedLadderTreeRRTstar
     {
       p_ids.push_back(c.sub_segment_ids_);
     }
+
+    return p_ids;
   }
 
   // TODO: should pass generate sample, feasibility checking function in
   // use RRT* on a ladder tree to get optimal capsulated solution
   // return the cost of the solution, if no sol found, return numerical max
   double solve(descartes_core::RobotModel& model, double clt_rrt_unit_process_timeout, double clt_rrt_timeout);
+
+  // TODO: temporal function for solve PnP, this should be merged to a more universal solve function
+  double solvePickNPlace(descartes_core::RobotModel& model, double clt_rrt_unit_process_timeout, double clt_rrt_timeout);
 
   // construct ladder graph for each capsule and apply DAG search to get full trajectory solution
   void extractSolution(descartes_core::RobotModel& model,

@@ -11,7 +11,7 @@
 
 #include <framefab_msgs/UnitProcessPlan.h>
 #include <framefab_msgs/ElementCandidatePoses.h>
-
+#include <framefab_msgs/AssemblySequencePickNPlace.h>
 
 namespace framefab_process_planning
 {
@@ -29,14 +29,16 @@ void CLTRRTforProcessROSTraj(descartes_core::RobotModelPtr model,
 
 // TODO: overhead for picknplace
 void CLTRRTforProcessROSTraj(descartes_core::RobotModelPtr model,
-                             std::vector<descartes_planner::ConstrainedSegmentPickNPlace>& segs,
+                             const framefab_msgs::AssemblySequencePickNPlace& as_pnp,
                              const double clt_rrt_unit_process_timeout,
                              const double clt_rrt_timeout,
+                             const double& linear_vel,
+                             const double& linear_disc,
                              const std::vector<planning_scene::PlanningScenePtr> &planning_scenes_pick,
                              const std::vector<planning_scene::PlanningScenePtr> &planning_scenes_place,
                              std::vector <framefab_msgs::UnitProcessPlan> &plans,
                              const std::string &saved_graph_file_name,
-                             bool use_saved_graph);
+                             bool use_saved_grap);
 }
 
 #endif //FRAMEFAB_MPP_SEMI_CONSTRAINED_CARTESIAN_PLANNING_H

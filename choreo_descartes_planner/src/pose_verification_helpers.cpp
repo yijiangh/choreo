@@ -75,6 +75,70 @@ bool checkFeasibility(
   return true;
 }
 
+bool checkFeasibilityPickNPlace(
+    descartes_core::RobotModel& model,
+    const std::vector<std::vector<Eigen::Affine3d>>& poses,
+    descartes_planner::CapRung& cap_rung,
+    descartes_planner::CapVert& cap_vert)
+{
+  // sanity check
+  assert(cap_rung.path_pts_.size() > 0);
+  int kin_family_size = cap_rung.path_pts_.size();
+
+  assert(poses.size() == kin_family_size);
+  assert(cap_rung.planning_scene_.size() == kin_family_size);
+
+  std::vector<double> st_jt;
+  std::vector<double> end_jt;
+
+  for(int k=0; k<kin_family_size; k++)
+  {
+    std::vector <std::vector<double>> joint_poses;
+
+    // check ik feasibility for each of the path points
+    for (size_t c_id = 0; c_id < poses[k].size(); c_id++)
+    {
+      joint_poses.clear();
+
+      model.setPlanningScene(cap_rung.planning_scene_[k]);
+      model.getAllIK(poses[k][c_id], joint_poses);
+
+      if (joint_poses.empty())
+      {
+        // current capsule is invalid if there exists one path point without feasible kinematics solution.
+        return false;
+      }
+      else
+      {
+        // only store all kinematics solutions for only start (at first kin family)
+        // and last (at last kin family)
+        if (0 == c_id && 0 == k)
+        {
+          // turn packed joint solution in a contiguous array
+          for (const auto &sol : joint_poses)
+          {
+            st_jt.insert(st_jt.end(), sol.cbegin(), sol.cend());
+          }
+          cap_vert.start_joint_data_ = st_jt;
+        }
+
+        if (poses[k].size() - 1 == c_id && kin_family_size - 1 == k)
+        {
+          // turn packed joint solution in a contiguous array
+          for (const auto &sol : joint_poses)
+          {
+            end_jt.insert(end_jt.end(), sol.cbegin(), sol.cend());
+          }
+          cap_vert.end_joint_data_ = end_jt;
+        }
+      }
+    }// end loop over poses
+  }
+
+  // all poses are valid (have feasible ik solutions)!
+  return true;
+}
+
 bool domainDiscreteEnumerationCheck(
     descartes_core::RobotModel& model,
     descartes_planner::CapRung& cap_rung,

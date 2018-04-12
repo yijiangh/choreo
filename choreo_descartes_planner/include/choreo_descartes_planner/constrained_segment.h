@@ -5,8 +5,8 @@
 #ifndef FRAMEFAB_MPP_CONSTRAINED_SEGMENT_H
 #define FRAMEFAB_MPP_CONSTRAINED_SEGMENT_H
 
+#include <moveit/planning_scene/planning_scene.h>
 #include <Eigen/Geometry>
-
 #include <vector>
 
 namespace descartes_planner
@@ -35,8 +35,9 @@ struct ConstrainedSegment
 
 struct ConstrainedSegmentPickNPlace
 {
-  std::vector<Eigen::Vector3d> path_pts;
+  std::vector<std::vector<Eigen::Vector3d>> path_pts;
   std::vector<std::vector<Eigen::Matrix3d>> orientations;
+  std::vector<planning_scene::PlanningScenePtr> planning_scenes;
 
   double linear_disc; /** The distance between sampled points in linear space (I'd like to do this automatically) */
   double linear_vel; /** Linear velocity between each disc point */

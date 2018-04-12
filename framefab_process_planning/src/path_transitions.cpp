@@ -74,36 +74,75 @@ namespace framefab_process_planning
 {
 std::vector<descartes_planner::ConstrainedSegmentPickNPlace> toDescartesConstrainedPath(
     const framefab_msgs::AssemblySequencePickNPlace& as_pnp,
+    const std::vector<planning_scene::PlanningScenePtr>& planning_scene_pick,
+    const std::vector<planning_scene::PlanningScenePtr>& planning_scene_place,
     const double& linear_vel, const double& linear_disc)
 {
   using ConstrainedSegmentPickNPlace = descartes_planner::ConstrainedSegmentPickNPlace;
 
   assert(linear_disc > 0 && linear_vel > 0);
   assert(as_pnp.sequenced_elements.size() > 0);
+  assert(as_pnp.sequenced_elements.size() == planning_scene_pick.size());
+  assert(as_pnp.sequenced_elements.size() == planning_scene_place.size());
 
   std::vector<ConstrainedSegmentPickNPlace> segs(as_pnp.sequenced_elements.size());
 
-  for(const auto& se : as_pnp.sequenced_elements)
+  for(int i=0;i <as_pnp.sequenced_elements.size(); i++)
   {
+    const auto& se = as_pnp.sequenced_elements[i];
+
     assert(se.grasps.size() > 0);
-    tf::pointMsgToEigen(se.grasps[0].pick_grasp_approach_pose.point, segs[i].pick_approach);
-    tf::pointMsgToEigen(se.grasps[0].pick_grasp_pose.point, segs[i].pick);
-    tf::pointMsgToEigen(se.grasps[0].pick_grasp_depart_pose.point, segs[i].pick_depart);
+    segs[i].path_pts.resize(4);
 
-    tf::pointMsgToEigen(se.grasps[0].place_grasp_approach_pose.point, segs[i].place_approach);
-    tf::pointMsgToEigen(se.grasps[0].place_grasp_pose.point, segs[i].place);
-    tf::pointMsgToEigen(se.grasps[0].place_grasp_depart_pose.point, segs[i].place_depart);
+    segs[i].path_pts[0].resize(2);
+    tf::pointMsgToEigen(se.grasps[0].pick_grasp_approach_pose.position, segs[i].path_pts[0][0]);
+    tf::pointMsgToEigen(se.grasps[0].pick_grasp_pose.position, segs[i].path_pts[0][1]);
 
-    segs[i].pick_orientations
+    segs[i].path_pts[1].resize(2);
+    tf::pointMsgToEigen(se.grasps[0].pick_grasp_pose.position, segs[i].path_pts[1][0]);
+    tf::pointMsgToEigen(se.grasps[0].pick_grasp_retreat_pose.position, segs[i].path_pts[1][1]);
 
+    segs[i].path_pts[2].resize(2);
+    tf::pointMsgToEigen(se.grasps[0].place_grasp_approach_pose.position, segs[i].path_pts[2][0]);
+    tf::pointMsgToEigen(se.grasps[0].place_grasp_pose.position, segs[i].path_pts[2][1]);
+
+    segs[i].path_pts[3].resize(2);
+    tf::pointMsgToEigen(se.grasps[0].place_grasp_pose.position, segs[i].path_pts[3][0]);
+    tf::pointMsgToEigen(se.grasps[0].place_grasp_retreat_pose.position, segs[i].path_pts[3][1]);
+
+    // six path points in total
+    segs[i].orientations.resize(4);
+
+    for(int i=0; i < se.grasps.size(); i++)
+    {
+      const auto& g = se.grasps[i];
+      Eigen::Quaterniond q;
+
+      // convert geometry_msgs::Quaterion back to eigen::Quaterion
+      // then back to matrix3d
+      tf::quaternionMsgToEigen(g.pick_grasp_approach_pose.orientation, q);
+      segs[i].orientations[1].push_back(q.toRotationMatrix());
+
+      tf::quaternionMsgToEigen(g.pick_grasp_pose.orientation, q);
+      segs[i].orientations[2].push_back(q.toRotationMatrix());
+
+      tf::quaternionMsgToEigen(g.place_grasp_approach_pose.orientation, q);
+      segs[i].orientations[3].push_back(q.toRotationMatrix());
+
+      tf::quaternionMsgToEigen(g.place_grasp_pose.orientation, q);
+      segs[i].orientations[4].push_back(q.toRotationMatrix());
+    }
+
+    segs[i].planning_scenes.push_back(planning_scene_pick[i]);
+    segs[i].planning_scenes.push_back(planning_scene_pick[i]);
+    segs[i].planning_scenes.push_back(planning_scene_place[i]);
+    segs[i].planning_scenes.push_back(planning_scene_place[i]);
+
+    segs[i].linear_vel = linear_vel;
+    segs[i].linear_disc = linear_disc;
   }
 
-  // TODO
-//  tf::pointMsgToEigen(path_pose.start_pt, seg.start);
-//  tf::pointMsgToEigen(path_pose.end_pt, seg.end);
-//  convertOrientationVector(path_pose.feasible_orients, seg.orientations);
-
-//  return segs;
+  return segs;
 }
 
 std::vector <descartes_planner::ConstrainedSegment>

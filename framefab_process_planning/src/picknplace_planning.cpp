@@ -32,7 +32,7 @@ bool ProcessPlanningManager::handlePickNPlacePlanning(
   assert(req.as_pnp.sequenced_elements.size() > 0);
 
   const static double LINEAR_VEL = 0.1; // (m/s)
-  const static double LINEAR_DISCRETIZATION = 0.005; // meters
+  const static double LINEAR_DISC = 0.003; // meters
 
   // TODO: assuming current robot pose is the home pose, this should be read from ros parameter
   std::vector<double> current_joints = getCurrentJointState(JOINT_TOPIC_NAME);
@@ -43,11 +43,6 @@ bool ProcessPlanningManager::handlePickNPlacePlanning(
   as_pnp.sequenced_elements = std::vector<framefab_msgs::SequencedElement>(
       as_pnp.sequenced_elements.begin(), as_pnp.sequenced_elements.begin() + req.index + 1);
 
-  // TODO:finish this
-  // construct segs for descartes & copy chosen task sequence
-  std::vector<descartes_planner::ConstrainedSegmentPickNPlace> constrained_segs =
-      toDescartesConstrainedPath(as_pnp, LINEAR_VEL, LINEAR_DISCRETIZATION);
-
   // TODO: this shouldn't remove collision objs in xacro?
   // clear existing objs from previous planning
   clearAllCollisionObjects(planning_scene_diff_client_);
@@ -57,9 +52,10 @@ bool ProcessPlanningManager::handlePickNPlacePlanning(
                         req.file_name,
                         req.clt_rrt_unit_process_timeout,
                         req.clt_rrt_timeout,
+                        LINEAR_VEL,
+                        LINEAR_DISC,
                         hotend_group_name_,
                         current_joints,
-                        constrained_segs,
                         as_pnp,
                         hotend_model_,
                         moveit_model_,

@@ -16,7 +16,14 @@ namespace descartes_planner
 // TODO: this one is only used in spatial extrusion
 bool checkFeasibility(
     descartes_core::RobotModel& model,
-    const std::vector<Eigen::Affine3d>& poses, descartes_planner::CapRung& cap_rung,
+    const std::vector<Eigen::Affine3d>& poses,
+    descartes_planner::CapRung& cap_rung,
+    descartes_planner::CapVert& cap_vert);
+
+bool checkFeasibilityPickNPlace(
+    descartes_core::RobotModel& model,
+    const std::vector<std::vector<Eigen::Affine3d>>& poses,
+    descartes_planner::CapRung& cap_rung,
     descartes_planner::CapVert& cap_vert);
 
 bool domainDiscreteEnumerationCheck(

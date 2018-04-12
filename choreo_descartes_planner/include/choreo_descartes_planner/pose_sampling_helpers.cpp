@@ -106,14 +106,51 @@ std::vector<Eigen::Affine3d> generateSample(const descartes_planner::CapRung& ca
 
   std::vector<Eigen::Affine3d> poses;
   poses.reserve(cap_rung.path_pts_[0].size());
-  for(auto& pt : cap_rung.path_pts_[0])
+  for(const auto& pt : cap_rung.path_pts_[0])
   {
     poses.push_back(makePose(pt, orientation_sample, x_axis_sample));
   }
 
   // TODO: should be a std::vector too?
   cap_vert.z_axis_angle_ = x_axis_sample;
-  cap_vert.orientation_.push_back(orientation_sample);
+
+  // spatial extrusion only gets one kinematics segment
+  cap_vert.orientation_.resize(1);
+  cap_vert.orientation_[0] = orientation_sample;
+
+  return poses;
+}
+
+// TODO: should be more universal, not only for pnp
+std::vector<std::vector<Eigen::Affine3d>> generateSamplePickNPlace(const descartes_planner::CapRung& cap_rung,
+                                                                   descartes_planner::CapVert& cap_vert)
+{
+  // sample int for orientation
+  int o_sample = randomSampleInt(0, cap_rung.orientations_[0].size()-1);
+
+  // this index is applied to orientation candidates in each kinematics family
+  assert(cap_rung.path_pts_.size() == cap_rung.sub_segment_ids_.size());
+
+  cap_vert.orientation_.resize(cap_rung.path_pts_.size());
+  std::vector<std::vector<Eigen::Affine3d>> poses(cap_rung.path_pts_.size());
+
+  // for each kinematics family
+  for(int i=0; i<cap_rung.path_pts_.size(); i++)
+  {
+    assert(cap_rung.orientations_.size() > 0);
+    assert(cap_rung.orientations_[0].size() > o_sample);
+
+    const auto orient = cap_rung.orientations_[i][o_sample];
+
+    cap_vert.orientation_[i] = orient;
+
+    poses[i].reserve(cap_rung.path_pts_[0].size());
+
+    for(const auto &pt : cap_rung.path_pts_[i])
+    {
+      poses[i].push_back(makePose(pt, orient));
+    }
+  }
 
   return poses;
 }

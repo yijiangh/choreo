@@ -114,7 +114,7 @@ class CapVert
   // TODO: temporarily used to distinguish two processes
   double z_axis_angle_;
 
-  // base orientation, the chosen orientation for each partition
+  // base orientation, the chosen orientation for each kinematics segment
   std::vector<Eigen::Matrix3d> orientation_;
 
 //  double delta_o_to_ideal_angle_;
@@ -128,6 +128,8 @@ struct CapRung
   std::vector<CapVert*> ptr_cap_verts_;
 
   std::vector<std::vector<Eigen::Vector3d>> path_pts_;
+
+  // stores all the candidate orientations for each kinematics segment (family)
   std::vector<std::vector<Eigen::Matrix3d>> orientations_;
 
   // partition of path points inside (needs to be divided later)

@@ -28,6 +28,10 @@ double randomSampleDouble(double lower, double upper);
 std::vector<Eigen::Affine3d> generateSample(const descartes_planner::CapRung& cap_rung,
                                             descartes_planner::CapVert& cap_vert);
 
+
+std::vector<std::vector<Eigen::Affine3d>> generateSamplePickNPlace(const descartes_planner::CapRung& cap_rung,
+                                                                   descartes_planner::CapVert& cap_vert);
+
 }
 
 #endif //FRAMEFAB_MPP_POSE_SAMPLING_HELPERS_H

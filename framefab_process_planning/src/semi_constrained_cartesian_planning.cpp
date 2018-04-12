@@ -15,6 +15,7 @@
 
 #include "semi_constrained_cartesian_planning.h"
 #include "common_utils.h"
+#include"path_transitions.h"
 
 // cap ladder tree RRTstar
 #include <choreo_descartes_planner/choreo_ladder_graph_builder.h>
@@ -166,9 +167,11 @@ void CLTRRTforProcessROSTraj(descartes_core::RobotModelPtr model,
 
 // TODO: overhead for picknplace
 void CLTRRTforProcessROSTraj(descartes_core::RobotModelPtr model,
-                             std::vector<descartes_planner::ConstrainedSegmentPickNPlace>& segs,
+                             const framefab_msgs::AssemblySequencePickNPlace& as_pnp,
                              const double clt_rrt_unit_process_timeout,
                              const double clt_rrt_timeout,
+                             const double& linear_vel,
+                             const double& linear_disc,
                              const std::vector<planning_scene::PlanningScenePtr> &planning_scenes_pick,
                              const std::vector<planning_scene::PlanningScenePtr> &planning_scenes_place,
                              std::vector <framefab_msgs::UnitProcessPlan> &plans,
@@ -204,14 +207,19 @@ void CLTRRTforProcessROSTraj(descartes_core::RobotModelPtr model,
     }
   }
 
+  // construct segs for descartes & copy chosen task sequence
+  const std::vector<descartes_planner::ConstrainedSegmentPickNPlace> segs =
+      toDescartesConstrainedPath(as_pnp, planning_scenes_pick, planning_scenes_place, linear_vel, linear_disc);
+
   // partition indices will be init inside CLT_RRT
-  descartes_planner::CapsulatedLadderTreeRRTstar CLT_RRT(segs, planning_scenes_pick, planning_scenes_place);
+  descartes_planner::CapsulatedLadderTreeRRTstar CLT_RRT(segs);
 
   // if request size bigger than the saved one, recompute
   if (!use_saved_graph || segs.size() > graphs.size())
   {
+    // TODO: do we need customized extractSolution function?
     // reconstruct and search, output sol, graphs, graph_indices
-    clt_cost = CLT_RRT.solve(*model, clt_rrt_unit_process_timeout, clt_rrt_timeout);
+    clt_cost = CLT_RRT.solvePickNPlace(*model, clt_rrt_unit_process_timeout, clt_rrt_timeout);
     CLT_RRT.extractSolution(*model,
                             sol,
                             graphs,
@@ -226,6 +234,7 @@ void CLTRRTforProcessROSTraj(descartes_core::RobotModelPtr model,
   }
   else
   {
+    // TODO: do we need customized extractSolution function?
     // default start from begin
     std::vector <descartes_planner::LadderGraph> chosen_graphs(graphs.begin(), graphs.begin() + segs.size());
     CLT_RRT.extractSolution(*model,
