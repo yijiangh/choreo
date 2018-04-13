@@ -1,5 +1,6 @@
 #include <framefab_core/framefab_core_service.h>
 
+#include <choreo_planning_capability/choreo_assembly_type_names.h>
 #include <framefab_param_helpers/framefab_param_helpers.h>
 
 //subscribed services
@@ -66,6 +67,7 @@ namespace
 FrameFabCoreService::FrameFabCoreService()
     : save_data_(false),
       selected_task_id_(0),
+      assembly_type_(""),
       framefab_exe_client_(FRAMEFAB_EXE_ACTION_SERVER_NAME, true),
       task_sequence_processing_server_(nh_, TASK_SEQUENCE_PROCESSING_ACTION_SERVER_NAME,
                                        boost::bind(&FrameFabCoreService::taskSequenceProcessingActionCallback, this, _1), false),
@@ -352,6 +354,14 @@ bool FrameFabCoreService::elementNumberRequestServerCallback(
     {
       // for visualization after planning (plan selection phase in UI, visualize traj library)
       res.element_number = selected_task_id_;
+
+      res.grasp_nums.clear();
+      for(const auto& se : as_pnp_.sequenced_elements)
+      {
+        assert(se.grasps.size() > 0);
+        res.grasp_nums.push_back(se.grasps.size());
+      }
+
       break;
     }
     default:
@@ -468,7 +478,8 @@ void FrameFabCoreService::taskSequenceProcessingActionCallback(const framefab_ms
       // call task_sequence_processing srv
       framefab_msgs::TaskSequenceProcessing srv;
 
-      // TODO: this process type should be a part of model param
+      // TODO: MAGIC SWITCH!!
+      // TODO: this process type should be a part of MODEL param
 //      srv.request.action = srv.request.SPATIAL_EXTRUSION;
       srv.request.action = srv.request.PICKNPLACE;
 
@@ -499,6 +510,9 @@ void FrameFabCoreService::taskSequenceProcessingActionCallback(const framefab_ms
           as_pnp_ = srv.response.assembly_sequence_pnp;
 
           task_sequence_processing_result_.assembly_type = as_pnp_.assembly_type;
+
+          // set core service's assembly type
+          assembly_type_ = choreo::ASSEMBLY_TYPE_PICKNPLACE;
         }
 
         if(srv.request.SPATIAL_EXTRUSION == srv.request.action)
@@ -513,7 +527,9 @@ void FrameFabCoreService::taskSequenceProcessingActionCallback(const framefab_ms
           env_objs_ = srv.response.env_collision_objs;
 
           // TODO: this is hardcoded temporarily
-          task_sequence_processing_result_.assembly_type = "spatial_extrusion";
+          task_sequence_processing_result_.assembly_type = choreo::ASSEMBLY_TYPE_SPATIAL_EXTRUSION;
+
+          assembly_type_ = choreo::ASSEMBLY_TYPE_SPATIAL_EXTRUSION;
         }
 
         task_sequence_processing_result_.succeeded = true;
@@ -538,6 +554,7 @@ void FrameFabCoreService::taskSequencePlanningActionCallback(const framefab_msgs
   task_sequence_planning_feedback_.last_completed = "[Core] Recieved request to process task sequence plan\n";
   task_sequence_planning_server_.publishFeedback(task_sequence_planning_feedback_);
 
+  // TODO: not supporting seq planning for picknplace
   // call task_sequence_planning srv
   framefab_msgs::TaskSequencePlanning srv;
   srv.request.action = srv.request.READ_WIREFRAME;
@@ -605,8 +622,19 @@ void FrameFabCoreService::processPlanningActionCallback(const framefab_msgs::Pro
       }
 
       visual_tools_.cleanUpAllPaths();
-      visual_tools_.visualizePathUntil(goal_in->index);
-      visual_tools_.visualizeFeasibleOrientations(goal_in->index, false);
+
+      if(choreo::ASSEMBLY_TYPE_PICKNPLACE == assembly_type_)
+      {
+        assert(as_pnp_.sequenced_elements.size() > 0);
+        visual_tools_.visualizeSequencePickNPlaceUntil(goal_in->index);
+      }
+
+      if(choreo::ASSEMBLY_TYPE_SPATIAL_EXTRUSION == assembly_type_)
+      {
+        // TODO: this is only used for spatial extrusion
+        visual_tools_.visualizePathUntil(goal_in->index);
+        visual_tools_.visualizeFeasibleOrientations(goal_in->index, false);
+      }
 
       bool success = generateMotionLibrary(goal_in->index, trajectory_library_);
 
@@ -626,46 +654,6 @@ void FrameFabCoreService::processPlanningActionCallback(const framefab_msgs::Pro
         process_planning_result_.succeeded = false;
         process_planning_server_.setAborted(process_planning_result_);
       }
-      break;
-    }
-    case framefab_msgs::ProcessPlanningGoal::PICKNPLACE_TEST:
-    {
-      // TODO: this is quick and dirty!
-      process_planning_feedback_.last_completed = "Recieved request to generate pick n place motion plan\n";
-      process_planning_server_.publishFeedback(process_planning_feedback_);
-
-      selected_task_id_ = goal_in->index;
-      use_saved_graph_ = goal_in->use_saved_graph;
-
-      // reset Robot's pose to init pose
-      if(!moveToTargetJointPose(robot_input_params_.init_pose))
-      {
-        process_planning_feedback_.last_completed = "Reset to init robot's pose planning & execution failed\n";
-        process_planning_server_.publishFeedback(process_planning_feedback_);
-        process_planning_result_.succeeded = false;
-        process_planning_server_.setAborted(process_planning_result_);
-        return;
-      }
-
-      bool success = generatePicknPlaceMotionLibrary();
-
-      if(success)
-      {
-        process_planning_feedback_.last_completed = "Finished pick n place planning. Visualizing...\n";
-        process_planning_server_.publishFeedback(process_planning_feedback_);
-        process_planning_result_.succeeded = true;
-        process_planning_server_.setSucceeded(process_planning_result_);
-
-        return;
-      }
-      else
-      {
-        process_planning_feedback_.last_completed = "pick n place Process Planning action failed.\n";
-        process_planning_server_.publishFeedback(process_planning_feedback_);
-        process_planning_result_.succeeded = false;
-        process_planning_server_.setAborted(process_planning_result_);
-      }
-
       break;
     }
     default:
@@ -794,7 +782,16 @@ void FrameFabCoreService::simulateMotionPlansActionCallback(const framefab_msgs:
 //  ros::Duration process_time(goal.joint_traj_array.back().points.back().time_from_start);
       ros::Duration buffer_time(PROCESS_EXE_BUFFER);
 
-      visual_tools_.visualizePathUntil(goal_in->index);
+      if(choreo::ASSEMBLY_TYPE_PICKNPLACE == assembly_type_)
+      {
+        visual_tools_.visualizeSequencePickNPlaceUntil(goal_in->index);
+      }
+
+      if(choreo::ASSEMBLY_TYPE_SPATIAL_EXTRUSION == assembly_type_)
+      {
+        // TODO: this is only used for spatial extrusion
+        visual_tools_.visualizePathUntil(goal_in->index);
+      }
 
       ROS_INFO_STREAM("[Core] Simulation time: " << process_time);
 

@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>choreo_descartes_planner</name>
+  <version>0.0.1</version>
+  <description>
+  This package extends descartes planning package's ability to search joint path on a much larger ladder graph, by using sparse representation capsulated ladder graph (CLT) and run RRT* on this sparse graph. Then the sparse graph is extended back to ladder graph and run shortest path on it. This package is a part of Choreo assembly planning package and contains several assembly application-dependent helper functions.
+  </description>
+
+  <maintainer email="yijiangh@mit.edu">Yijiang Huang</maintainer>
+
+  <license>Apache2.0</license>
+
+  <author email="jonathan.meyer@swri.org">Jonathan Meyer</author>
+  <author email="yijiangh@mit.edu">Yijiang Huang</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>descartes_core</depend>
+  <depend>descartes_trajectory</depend>
+  <depend>descartes_planner</depend>
+
+  <depend>boost</depend>
+  <depend>moveit_core</depend>
+  <depend>roscpp</depend>
+  <depend>pluginlib</depend>
+  <depend>cmake_modules</depend>
+  <depend>eigen</depend>
+
+  <depend>rviz_visual_tools</depend>
+  <depend>eigen_conversions</depend>
+  <depend>moveit_msgs</depend>
+
+</package>

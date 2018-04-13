@@ -1,4 +1,4 @@
-# Enumeration represeting plan type  
+# Enumeration represeting plan type
 # 
 int32 SUPPORT_TYPE=2
 int32 CREATE_TYPE=1

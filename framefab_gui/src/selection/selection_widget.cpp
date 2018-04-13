@@ -40,7 +40,14 @@ void convertParsedAssemblyTypeString(const std::string& p_at, framefab_gui::Sele
 
   // only supports these two for now
   // TODO: default value here for now
-  at = framefab_gui::SelectionWidget::ASSEMBLY_TYPE::PICKNPLACE;
+  if(p_at.empty())
+  {
+    at = framefab_gui::SelectionWidget::ASSEMBLY_TYPE::SPATIAL_EXTRUSION;
+  }
+  else
+  {
+    assert(false);
+  }
 //  assert(p_at == "picknplace" || p_at == "spatial_extrusion");
 }
 
@@ -199,12 +206,14 @@ void framefab_gui::SelectionWidget::orderValueChanged()
   ui_->lineedit_select_number->setText(QString::number(selected_value_));
 
   // synchronize grasp id slider and lineedit
-  assert(grasp_nums_.size() > selected_value_);
-  setMaxGraspNum(grasp_nums_[selected_value_]);
+  if(PICKNPLACE == assembly_type_)
+  {
+    assert(grasp_nums_.size() > selected_value_);
+    setMaxGraspNum(grasp_nums_[selected_value_]);
+  }
 
   //sync checkbox
   ui_->checkbox_visualize_ee->setChecked(visualize_ee_);
-
 
   if(selected_grasp_id_ > max_grasp_num_)
   {
@@ -218,9 +227,12 @@ void framefab_gui::SelectionWidget::orderValueChanged()
   // call visualization srv
   framefab_msgs::VisualizeSelectedPath srv;
 
+  // TODO: MAGIC SWITCH!!
   // TODO: the assembly task type should be a part of model param
-  // hardcoded to picknplace for now
+  // TODO: hardcoded to picknplace for now
+//  srv.request.assembly_type = srv.request.SPATIAL_EXTRUSION;
   srv.request.assembly_type = srv.request.PICKNPLACE;
+
   srv.request.index = selected_value_;
   srv.request.visualize_ee = visualize_ee_;
   srv.request.grasp_id = selected_grasp_id_;
@@ -381,7 +393,7 @@ void framefab_gui::SelectionWidget::showTaskSequenceRecomputePopUp(bool found_ta
   // This should be removed later
   if(PICKNPLACE == assembly_type_)
   {
-    std::string msg = "Sorry... Currently we don't support sequence planning for general picknplace.";
+    std::string msg = "Currently we don't support sequence planning for general picknplace.";
     task_seq_recompute_pop_up_->setDisplayText(msg);
 
     task_seq_recompute_pop_up_->enableButtons(found_task_plan, false);

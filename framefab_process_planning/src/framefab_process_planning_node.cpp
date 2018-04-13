@@ -2,19 +2,27 @@
 // Created by yijiangh on 6/18/17.
 //
 
-#include <ros/ros.h>
 // Process Services
 #include <framefab_process_planning/framefab_process_planning.h>
 
+// srv
+#include <framefab_msgs/ProcessPlanning.h>
+
+#include <ros/ros.h>
+
 // Globals
-const static std::string DEFAULT_PRINT_PLANNING_SERVICE = "process_planning";
+const static std::string PROCESS_PLANNING_SERVICE = "process_planning";
 const static std::string MOVE_TO_TARGET_POSE_SERVICE = "move_to_target_pose";
-const static std::string PICKNPLACE_PLANNING_SERVICE = "picknplace_planning";
+
+namespace
+{
+}// anon util namespace
 
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "framefab_process_planning");
 
+  // TODO: these parmaters' names are misleading, should be more app-neutral
   // Load local parameters
   ros::NodeHandle nh, pnh("~");
   std::string world_frame, hotend_group, hotend_tcp, hotend_base, robot_model_plugin;
@@ -27,7 +35,7 @@ int main(int argc, char** argv)
   // IK Plugin parameter must be specified
   if (robot_model_plugin.empty())
   {
-    ROS_ERROR_STREAM("MUST SPECIFY PARAMETER 'robot_model_plugin' for framefab_process_planning node");
+    ROS_ERROR_STREAM("[process planning] MUST SPECIFY PARAMETER 'robot_model_plugin' for framefab_process_planning node");
     return -1;
   }
 
@@ -39,11 +47,8 @@ int main(int argc, char** argv)
   ProcessPlanningManager manager(world_frame, hotend_group, hotend_tcp, world_frame, robot_model_plugin);
 
   // Plumb in the appropriate ros services
-  ros::ServiceServer print_server = nh.advertiseService(
-      DEFAULT_PRINT_PLANNING_SERVICE, &ProcessPlanningManager::handlePrintPlanning, &manager);
-
-  ros::ServiceServer picknplace_server = nh.advertiseService(
-      PICKNPLACE_PLANNING_SERVICE, &ProcessPlanningManager::handlePickNPlacePlanning, &manager);
+  ros::ServiceServer pp_server = nh.advertiseService(
+      PROCESS_PLANNING_SERVICE, &ProcessPlanningManager::handleProcessPlanning, &manager);
 
    ros::ServiceServer move_to_target_pose_server = nh.advertiseService(
        MOVE_TO_TARGET_POSE_SERVICE, &ProcessPlanningManager::handleMoveToTargetPosePlanAndExecution, &manager);

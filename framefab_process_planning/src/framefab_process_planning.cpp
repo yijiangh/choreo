@@ -3,6 +3,9 @@
 //
 
 #include "framefab_process_planning/framefab_process_planning.h"
+
+#include <choreo_planning_capability/choreo_assembly_type_names.h>
+
 #include <moveit/robot_model_loader/robot_model_loader.h>
 
 // service
@@ -41,4 +44,22 @@ framefab_process_planning::ProcessPlanningManager::ProcessPlanningManager(
 
   planning_scene_diff_client_ =
       nh_.serviceClient<moveit_msgs::ApplyPlanningScene>(APPLY_PLANNING_SCENE_SERVICE);
+}
+
+bool framefab_process_planning::ProcessPlanningManager::handleProcessPlanning(
+    framefab_msgs::ProcessPlanning::Request& req,
+    framefab_msgs::ProcessPlanning::Response& res)
+{
+  if(choreo::ASSEMBLY_TYPE_SPATIAL_EXTRUSION == req.assembly_type)
+  {
+    return handlePrintPlanning(req, res);
+  }
+
+  if(choreo::ASSEMBLY_TYPE_PICKNPLACE == req.assembly_type)
+  {
+    return handlePickNPlacePlanning(req, res);
+  }
+
+  ROS_ERROR("process planning: unknown / unsupported assembly type.");
+  return false;
 }
