@@ -264,6 +264,19 @@ void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
     // transition 2 place
     auto tr2place_scene = pick_scene->diff();
 
+//     TODO: maybe try only use attached one here?
+//     attach pick element to ee
+//     TODO: needs to apply a "reverse" linear transformation using the grasp pose
+//    last_attached_co.object = pick_cos[i];
+//    assert(last_attached_co.object.mesh_poses.size() > 0);
+//    assert(se.grasps.size() > 0);
+//    last_attached_co.object.header.frame_id = ik_link;
+//    last_attached_co.object.mesh_poses[0].position = reversePointMsg(se.grasps[0].pick_grasp_pose.position);
+//
+//    last_attached_co.link_name = ik_link;
+//    last_attached_co.object.operation = last_attached_co.object.ADD;
+//    assert(pick_scene->processAttachedCollisionObjectMsg(last_attached_co));
+
     planning_scenes_transition[i].push_back(tr2place_scene);
 
 //    ROS_INFO_STREAM("#" << i << ": tr 2 place");

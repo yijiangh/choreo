@@ -31,7 +31,7 @@ bool ProcessPlanningManager::handlePickNPlacePlanning(
 
   assert(req.as_pnp.sequenced_elements.size() > 0);
 
-  const static double LINEAR_VEL = 0.1; // (m/s)
+  const static double LINEAR_VEL = 0.5; // (m/s)
   const static double LINEAR_DISC = 0.003; // meters
 
   // TODO: assuming current robot pose is the home pose, this should be read from ros parameter

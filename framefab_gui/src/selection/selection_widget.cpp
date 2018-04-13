@@ -393,7 +393,7 @@ void framefab_gui::SelectionWidget::showTaskSequenceRecomputePopUp(bool found_ta
   // This should be removed later
   if(PICKNPLACE == assembly_type_)
   {
-    std::string msg = "Sorry... Currently we don't support sequence planning for general picknplace.";
+    std::string msg = "Currently we don't support sequence planning for general picknplace.";
     task_seq_recompute_pop_up_->setDisplayText(msg);
 
     task_seq_recompute_pop_up_->enableButtons(found_task_plan, false);

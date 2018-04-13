@@ -354,6 +354,14 @@ bool FrameFabCoreService::elementNumberRequestServerCallback(
     {
       // for visualization after planning (plan selection phase in UI, visualize traj library)
       res.element_number = selected_task_id_;
+
+      res.grasp_nums.clear();
+      for(const auto& se : as_pnp_.sequenced_elements)
+      {
+        assert(se.grasps.size() > 0);
+        res.grasp_nums.push_back(se.grasps.size());
+      }
+
       break;
     }
     default:
@@ -774,7 +782,16 @@ void FrameFabCoreService::simulateMotionPlansActionCallback(const framefab_msgs:
 //  ros::Duration process_time(goal.joint_traj_array.back().points.back().time_from_start);
       ros::Duration buffer_time(PROCESS_EXE_BUFFER);
 
-      visual_tools_.visualizePathUntil(goal_in->index);
+      if(choreo::ASSEMBLY_TYPE_PICKNPLACE == assembly_type_)
+      {
+        visual_tools_.visualizeSequencePickNPlaceUntil(goal_in->index);
+      }
+
+      if(choreo::ASSEMBLY_TYPE_SPATIAL_EXTRUSION == assembly_type_)
+      {
+        // TODO: this is only used for spatial extrusion
+        visual_tools_.visualizePathUntil(goal_in->index);
+      }
 
       ROS_INFO_STREAM("[Core] Simulation time: " << process_time);
 
