@@ -46,7 +46,7 @@ void choreo_visual_tools::ChoreoVisualTools::init(std::string frame_name,
   visual_tools_.reset(
       new moveit_visual_tools::MoveItVisualTools(frame_name, marker_topic, robot_model));
 
-  visual_tools_->setLifetime(120.0);
+//  visual_tools_->setLifetime(120.0);
   visual_tools_->loadMarkerPub();
 
   // Clear messages

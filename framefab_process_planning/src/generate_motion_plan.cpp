@@ -291,8 +291,6 @@ void transitionPlanningPickNPlace(std::vector <framefab_msgs::UnitProcessPlan> &
   std::vector<double> last_joint_pose = start_state;
   std::vector<double> current_first_joint_pose;
 
-  std::vector<framefab_msgs::SubProcess> tr_sub_processes;
-
   for (size_t i = 0; i < plans.size(); i++)
   {
     ROS_INFO_STREAM("[Transition Planning] process #" << i);
@@ -300,6 +298,7 @@ void transitionPlanningPickNPlace(std::vector <framefab_msgs::UnitProcessPlan> &
     // transition planning scenes' number
     // <transition> - <sub-process> - <transition> - <sub-process> -... - <sub-process>
     assert(planning_scenes[i].size() == plans[i].sub_process_array.size());
+    std::vector<framefab_msgs::SubProcess> weaved_sub_process;
 
     for (size_t j = 0; j < plans[i].sub_process_array.size(); j++)
     {
@@ -318,111 +317,100 @@ void transitionPlanningPickNPlace(std::vector <framefab_msgs::UnitProcessPlan> &
 
       current_first_joint_pose = plans[i].sub_process_array[j].joint_array.points.front().positions;
 
-      if (last_joint_pose == current_first_joint_pose)
+      if (last_joint_pose != current_first_joint_pose)
       {
-        // skip transition planning
-        continue;
-      }
+        // update the planning scene
+        if (!planning_scene_diff_client.waitForExistence())
+        {
+          ROS_ERROR_STREAM("[Tr Planning] cannot connect with planning scene diff server...");
+        }
 
-      // update the planning scene
-      if (!planning_scene_diff_client.waitForExistence())
-      {
-        ROS_ERROR_STREAM("[Tr Planning] cannot connect with planning scene diff server...");
-      }
-
-      moveit_msgs::ApplyPlanningScene srv;
-      auto scene = planning_scenes[i][j]->diff();
+        moveit_msgs::ApplyPlanningScene srv;
+        auto scene = planning_scenes[i][j]->diff();
 
 //      if (!scene_with_attached_eef->processAttachedCollisionObjectMsg(full_eef_collision_obj))
 //      {
 //        ROS_ERROR_STREAM("[Tr Planning] planning scene # " << i << "fails to add attached full eef collision geometry");
 //      }
 
-      scene->getPlanningSceneMsg(srv.request.scene);
+        scene->getPlanningSceneMsg(srv.request.scene);
 
-      if (!planning_scene_diff_client.call(srv))
-      {
-        ROS_ERROR_STREAM("[Tr Planning] Failed to publish planning scene diff srv!");
-      }
-
-      int repeat_planning_call = 0;
-      trajectory_msgs::JointTrajectory ros_trans_traj;
-
-      bool joint_target_meet = true;
-      while (repeat_planning_call < TRANSITION_PLANNING_LOOP_COUNT)
-      {
-        // reset joint target meet flag
-        joint_target_meet = true;
-
-        ros_trans_traj = framefab_process_planning::getMoveitTransitionPlan(move_group_name,
-                                                                            last_joint_pose,
-                                                                            current_first_joint_pose,
-                                                                            start_state,
-                                                                            moveit_model);
-
-        // TODO: recover from transition planning failure
-        if (repeat_planning_call > 0)
+        if (!planning_scene_diff_client.call(srv))
         {
-          ROS_WARN_STREAM("[Process Planning] transition planning retry - round "
-                              << repeat_planning_call << "/" << TRANSITION_PLANNING_LOOP_COUNT);
+          ROS_ERROR_STREAM("[Tr Planning] Failed to publish planning scene diff srv!");
         }
 
-        if (0 == ros_trans_traj.points.size())
+        int repeat_planning_call = 0;
+        trajectory_msgs::JointTrajectory ros_trans_traj;
+
+        bool joint_target_meet = true;
+        while (repeat_planning_call < TRANSITION_PLANNING_LOOP_COUNT)
         {
+          // reset joint target meet flag
+          joint_target_meet = true;
+
+          ros_trans_traj = framefab_process_planning::getMoveitTransitionPlan(move_group_name,
+                                                                              last_joint_pose,
+                                                                              current_first_joint_pose,
+                                                                              start_state,
+                                                                              moveit_model);
+
+          // TODO: recover from transition planning failure
+          if (repeat_planning_call > 0)
+          {
+            ROS_WARN_STREAM("[Process Planning] transition planning retry - round "
+                                << repeat_planning_call << "/" << TRANSITION_PLANNING_LOOP_COUNT);
+          }
+
+          if (0 == ros_trans_traj.points.size())
+          {
 //        ROS_ERROR_STREAM("[Process Planning] Transition planning fails.");
-          joint_target_meet = false;
+            joint_target_meet = false;
+            repeat_planning_call++;
+            continue;
+          }
+
+          for (int s = 0; s < current_first_joint_pose.size(); s++)
+          {
+            if (current_first_joint_pose[s] - ros_trans_traj.points.back().positions[s] > 0.0001)
+            {
+              joint_target_meet = false;
+              break;
+            }
+          }
+
+          if (joint_target_meet)
+          {
+            std::string retry_msg = repeat_planning_call > 0 ? "retry" : "";
+            ROS_WARN_STREAM("[Process Planning] transition planning "
+                                << retry_msg << " succeed!");
+            break;
+          }
+
           repeat_planning_call++;
+        } // end while
+
+        if (!joint_target_meet)
+        {
+          planning_failure_ids.push_back(i);
+          ROS_ERROR_STREAM("[Tr planning] transition planning fails at index #" << i << ", subprocess #" << j);
           continue;
         }
 
-        for (int s = 0; s < current_first_joint_pose.size(); s++)
-        {
-          if (current_first_joint_pose[s] - ros_trans_traj.points.back().positions[s] > 0.0001)
-          {
-            joint_target_meet = false;
-            break;
-          }
-        }
+        framefab_msgs::SubProcess sub_process;
 
-        if (joint_target_meet)
-        {
-          std::string retry_msg = repeat_planning_call > 0 ? "retry" : "";
-          ROS_WARN_STREAM("[Process Planning] transition planning "
-                              << retry_msg << " succeed!");
-          break;
-        }
+        sub_process.process_type = framefab_msgs::SubProcess::TRANSITION;
+        sub_process.main_data_type = framefab_msgs::SubProcess::JOINT;
+        sub_process.joint_array = ros_trans_traj;
 
-        repeat_planning_call++;
+        weaved_sub_process.push_back(sub_process);
       }
 
-      if (!joint_target_meet)
-      {
-        planning_failure_ids.push_back(i);
-        ROS_ERROR_STREAM("[Tr planning] transition planning fails at index #" << i << ", subprocess #" << j);
-        continue;
-      }
+      weaved_sub_process.push_back(plans[i].sub_process_array[j]);
 
-      framefab_msgs::SubProcess sub_process;
-
-      sub_process.process_type = framefab_msgs::SubProcess::TRANSITION;
-      sub_process.main_data_type = framefab_msgs::SubProcess::JOINT;
-      sub_process.joint_array = ros_trans_traj;
-
-      tr_sub_processes.push_back(sub_process);
     } // end subprocess
 
-    // weave transition in
-    std::vector<framefab_msgs::SubProcess> sps;
-
-    assert(tr_sub_processes.size() == plans[i].sub_process_array.size());
-
-    for(size_t j = 0; j < plans[i].sub_process_array.size(); j++)
-    {
-      sps.push_back(tr_sub_processes[j]);
-      sps.push_back(plans[i].sub_process_array[j]);
-    }
-
-    plans[i].sub_process_array = sps;
+    plans[i].sub_process_array = weaved_sub_process;
   }// end process
 
   for (auto id : planning_failure_ids)
