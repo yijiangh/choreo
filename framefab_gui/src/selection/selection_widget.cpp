@@ -230,8 +230,8 @@ void framefab_gui::SelectionWidget::orderValueChanged()
   // TODO: MAGIC SWITCH!!
   // TODO: the assembly task type should be a part of model param
   // TODO: hardcoded to picknplace for now
-//  srv.request.assembly_type = srv.request.SPATIAL_EXTRUSION;
-  srv.request.assembly_type = srv.request.PICKNPLACE;
+  srv.request.assembly_type = srv.request.SPATIAL_EXTRUSION;
+//  srv.request.assembly_type = srv.request.PICKNPLACE;
 
   srv.request.index = selected_value_;
   srv.request.visualize_ee = visualize_ee_;

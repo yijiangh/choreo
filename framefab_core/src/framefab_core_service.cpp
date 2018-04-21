@@ -353,7 +353,7 @@ bool FrameFabCoreService::elementNumberRequestServerCallback(
     case framefab_msgs::ElementNumberRequest::Request::REQUEST_SELECTED_TASK_NUMBER:
     {
       // for visualization after planning (plan selection phase in UI, visualize traj library)
-      res.element_number = selected_task_id_;
+      res.element_number = selected_task_id_ + 1;
 
       res.grasp_nums.clear();
       for(const auto& se : as_pnp_.sequenced_elements)
@@ -480,8 +480,8 @@ void FrameFabCoreService::taskSequenceProcessingActionCallback(const framefab_ms
 
       // TODO: MAGIC SWITCH!!
       // TODO: this process type should be a part of MODEL param
-//      srv.request.action = srv.request.SPATIAL_EXTRUSION;
-      srv.request.action = srv.request.PICKNPLACE;
+      srv.request.action = srv.request.SPATIAL_EXTRUSION;
+//      srv.request.action = srv.request.PICKNPLACE;
 
       srv.request.model_params = model_input_params_;
       srv.request.task_sequence_params = task_sequence_input_params_;
