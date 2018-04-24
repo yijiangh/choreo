@@ -119,6 +119,8 @@ class SeqAnalyzer
 
   bool TestRobotKinematics(WF_edge* e, const std::vector<lld>& colli_map);
 
+  WF_edge* RouteEdgeDirection(const WF_edge* prev_e, WF_edge* e);
+
  private:
   // robot kinematics related
   // the collision obj's update and recover are called

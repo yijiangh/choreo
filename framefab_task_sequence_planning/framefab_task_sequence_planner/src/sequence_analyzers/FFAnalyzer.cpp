@@ -295,10 +295,19 @@ bool FFAnalyzer::GenerateSeq(int l, int h, int t)
   }
 
   int cnt = 0;
+  WF_edge* prev_e = NULL;
+
   /* ranked by weight */
   for (it = choice.begin(); it != choice.end(); it++)
   {
-    WF_edge *ej = it->second;
+    if(print_queue_.size() > 0)
+    {
+      prev_e = print_queue_.back();
+    }
+
+//    WF_edge* ej = it->second;
+
+    WF_edge* ej = RouteEdgeDirection(prev_e, it->second);
     print_queue_.push_back(ej);
 
     /* update printed subgraph */
