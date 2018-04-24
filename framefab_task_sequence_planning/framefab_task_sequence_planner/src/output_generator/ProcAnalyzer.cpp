@@ -26,9 +26,6 @@ ProcAnalyzer::ProcAnalyzer(SeqAnalyzer *seqanalyzer, const char *path)
   debug_ = false;
 
   ROS_INFO_STREAM("[ts planner] json output path: " << std::string(path_));
-
-  // 60 degrees
-  MaxEdgeAngle_ = F_PI / 18 * 6;
 }
 
 bool ProcAnalyzer::ProcPrint()
@@ -67,36 +64,31 @@ bool ProcAnalyzer::ProcPrint()
   }
 
   // extracting start and end nodes
-  point prev_end_node(0, 0, 0);
-
   for (int i = 0; i < planning_result.size(); i++)
   {
     Process temp = process_list_[i];
     WF_edge* e = planning_result[i].e_;
 
+    int orig_j = e->ID();
+
+    // st node index
+    int uj = ptr_frame->GetEndu(orig_j);
+    temp.start_ = ptr_frame->GetVert(uj)->Position();
+
+    // end node index
+    int vj = ptr_frame->GetEndv(orig_j);
+    temp.end_ = ptr_frame->GetVert(vj)->Position();
+
     if (e->isPillar())
     {
-      if ((e->pvert_->Position()).z() > (e->ppair_->pvert_->Position()).z())
-      {
-        temp.end_ = e->pvert_->Position();
-        temp.start_ = e->ppair_->pvert_->Position();
-      }
-      else
-      {
-        temp.start_ = e->pvert_->Position();
-        temp.end_ = e->ppair_->pvert_->Position();
-      }
-
       temp.fan_state_ = true;
     }
     else
     {
       // non-pillar element
       // init
-      point start_node = e->ppair_->pvert_->Position();
-      point end_node = e->pvert_->Position();
-      const bool start_node_exist = IfPointInVector(start_node);
-      const bool end_node_exist = IfPointInVector(end_node);
+      const bool start_node_exist = IfPointInVector(temp.start_);
+      const bool end_node_exist = IfPointInVector(temp.end_);
 
       // sanity check: at least one of the nodes should exist
       assert(start_node_exist || end_node_exist);
@@ -113,71 +105,25 @@ bool ProcAnalyzer::ProcPrint()
       if (start_node_exist != end_node_exist)
       {
         temp.fan_state_ = true;
-        if (start_node_exist)
-        {
-          temp.start_ = start_node;
-          temp.end_ = end_node;
-        }
-        else
-        {
-          temp.start_ = end_node;
-          temp.end_ = start_node;
-        }
       }
       else
       {
         // AND - both of them exist, "connect type"
-
-        // prioritize printing upwards
-        if(start_node.z() > end_node.z())
-        {
-          point tmp_swap = end_node;
-          end_node = start_node;
-          start_node = tmp_swap;
-        }
-        else
-        {
-          // use previous end point as start node if possible
-          // i.e. prefer continuous printing
-          if (prev_end_node == end_node || prev_end_node == start_node)
-          {
-            if (prev_end_node == end_node)
-            {
-              point tmp_swap = start_node;
-              start_node = end_node;
-              end_node = tmp_swap;
-            }
-            //else start node already agrees with prev_end_node, then keep rolling!
-          }
-          else
-          {
-            // we prefer the start node to be close
-            if (trimesh::dist(end_node, prev_end_node) < trimesh::dist(start_node, prev_end_node))
-            {
-              point tmp_swap = start_node;
-              start_node = end_node;
-              end_node = tmp_swap;
-            }
-          }
-        }
-
         temp.fan_state_ = false;
-        temp.start_ = start_node;
-        temp.end_ = end_node;
       }
     }
 
     // pillar shouldn't have been printed yet
-    if (!IfPointInVector(temp.end_))
-    {
-      exist_point_.push_back(temp.end_);
-    }
     if (!IfPointInVector(temp.start_))
     {
       exist_point_.push_back(temp.start_);
     }
 
-    prev_end_node = temp.end_;
+    if (!IfPointInVector(temp.end_))
+    {
+      exist_point_.push_back(temp.end_);
+    }
+
     process_list_[i] = temp;
   } // end loop for all elements (planning_result)
 
@@ -222,7 +168,6 @@ bool ProcAnalyzer::WriteJson()
 
     // start & end node coordination
     point p_st = temp.start_;
-
     rapidjson::Value st_pt(rapidjson::kArrayType);
     st_pt.PushBack(Value().SetDouble(truncDigits(p_st.x(), FF_TRUNC_SCALE)), allocator);
     st_pt.PushBack(Value().SetDouble(truncDigits(p_st.y(), FF_TRUNC_SCALE)), allocator);
@@ -338,77 +283,4 @@ bool ProcAnalyzer::IfPointInVector(point p)
       return true;
   }
   return false;
-}
-
-bool ProcAnalyzer::IfCoOrientation(GeoV3 a, vector<GeoV3> &b)
-{
-  for (int i = 0; i < b.size(); i++)
-  {
-    if (angle(a, b[i]) < (F_PI / 2))
-    {
-      return true;
-    }
-  }
-  return false;
-}
-
-void ProcAnalyzer::CheckProcess(Process &a)
-{
-  GeoV3 t = a.end_ - a.start_;
-
-  t.normalize();
-  vector<GeoV3> temp_normal;
-
-  if (!IfCoOrientation(t, a.normal_))
-  {
-    point temp = a.end_;
-    a.end_ = a.start_;
-    a.start_ = temp;
-    for (int i = 0; i < a.normal_.size(); i++)
-    {
-      if (angle(t, a.normal_[i]) < (F_PI / 2))
-      {
-        continue;
-      }
-      else
-      {
-        temp_normal.push_back(a.normal_[i]);
-      }
-    }
-  }
-  else
-  {
-    for (int i = 0; i < a.normal_.size(); i++)
-    {
-      if (angle(t, a.normal_[i]) < (F_PI / 2))
-      {
-        temp_normal.push_back(a.normal_[i]);
-      }
-    }
-  }
-
-  a.normal_ = temp_normal;
-}
-
-void ProcAnalyzer::Filter(Process &a)
-{
-  GeoV3 t = a.end_ - a.start_;
-  t.normalize();
-  vector <GeoV3> temp;
-
-  if (IfCoOrientation(t, a.normal_))
-  {
-    for (int i = 0; i < a.normal_.size(); i++)
-    {
-      if (angle(t, a.normal_[i]) < MaxEdgeAngle_)
-      {
-        temp.push_back(a.normal_[i]);
-      }
-    }
-  }
-
-  if (temp.size())
-  {
-    a.normal_ = temp;
-  }
 }

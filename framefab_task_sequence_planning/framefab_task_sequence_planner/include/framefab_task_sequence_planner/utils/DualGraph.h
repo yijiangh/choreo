@@ -161,6 +161,7 @@ public:
 	double	minZ()				{ return minz_; }
 
 	bool isExistingVert(int u)		{ return (exist_vert_[u] > 0); }
+  	int  getExistingVertValence(int u) { return exist_vert_[u]; }
 	bool isExistingEdge(WF_edge *e)	{ return exist_edge_[e->ID()]; }
 
 	bool isAdjacent(int i, int j)
