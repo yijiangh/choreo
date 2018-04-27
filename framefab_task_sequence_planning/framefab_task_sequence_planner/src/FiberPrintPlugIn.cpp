@@ -526,11 +526,11 @@ bool FiberPrintPlugIn::handleTaskSequencePlanning(
         delete ptr_frame_;
       }
 
-      ROS_INFO_STREAM("[Ts planning] wire frame read : " << file_path);
-
       // TODO: if contains keyword "pwf"
       ptr_frame_ = new WireFrame();
       ptr_frame_->LoadFromPWF(&fp[0]);
+
+      ROS_INFO_STREAM("[Ts planning] wire frame read : " << file_path);
 
       double unit_scale;
       Eigen::Vector3d ref_pt(req.model_params.ref_pt_x, req.model_params.ref_pt_y, req.model_params.ref_pt_z);

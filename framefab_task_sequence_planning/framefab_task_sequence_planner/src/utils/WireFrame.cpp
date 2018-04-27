@@ -151,6 +151,8 @@ void WireFrame::LoadFromPWF(const char *path)
 
   FILE *fp = fopen(path, "r");
 
+  assert(fp);
+
   try
   {
     // read vertexes
@@ -200,6 +202,17 @@ void WireFrame::LoadFromPWF(const char *path)
         strcpy(tmp, tok);
         tmp[strcspn(tmp, " ")] = 0;
         int layer = (int)atof(tmp);
+
+        if(!(0 <= u && u < pvert_list_->size()))
+        {
+          ROS_ERROR_STREAM("read layer: start node id overflow: " << u << "/" << pvert_list_->size());
+          assert(0 <= u && u < pvert_list_->size());
+        }
+        if(!(0 <= v && v < pvert_list_->size()))
+        {
+          ROS_ERROR_STREAM("read layer: end node id overflow: " << v << "/" << pvert_list_->size());
+          assert(0 <= v && v < pvert_list_->size());
+        }
 
         WF_edge *e = InsertEdge((*pvert_list_)[u], (*pvert_list_)[v]);
         if (e != NULL)
@@ -252,6 +265,17 @@ void WireFrame::LoadFromPWF(const char *path)
 
         if (prev != -1)
         {
+          if(!(0 <= prev && prev < pvert_list_->size()))
+          {
+            ROS_ERROR_STREAM("read lines: start node id overflow: " << prev << "/" << pvert_list_->size());
+            assert(0 <= prev && prev < pvert_list_->size());
+          }
+          if(!(0 <= curv && curv < pvert_list_->size()))
+          {
+            ROS_ERROR_STREAM("read lines: end node id overflow: " << curv << "/" << pvert_list_->size());
+            assert(0 <= curv && curv < pvert_list_->size());
+          }
+
           InsertEdge((*pvert_list_)[prev], (*pvert_list_)[curv]);
         }
 
@@ -699,6 +723,7 @@ WF_vert* WireFrame::InsertVertex(Vec3f p)
   {
     if (Dist(p, (*pvert_list_)[i]->Position()) < 1e-3)
     {
+      ROS_WARN_STREAM("duplicate point read! (" << p.x() << ", " << p.y() << ", " << p.z() << ")");
       return ( *pvert_list_)[i];
     }
   }
