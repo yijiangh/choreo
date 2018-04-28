@@ -389,8 +389,8 @@ void SeqAnalyzer::UpdateStateMap(WF_edge *order_e, vector<vector<lld>> &state_ma
     // for each unprinted edge in wireframe, full graph arc consistency
     // it makes no sense to prune pillar's domain, since we only allow z-axis for pillar's printing
     // (and they are printed first)
-    if (dual_i != dual_j && !ptr_dualgraph_->isExistingEdge(target_e)
-        && !target_e->isPillar())
+    if (dual_i != dual_j && !ptr_dualgraph_->isExistingEdge(target_e) && !target_e->isPillar())
+//        && target_e->Layer() < 9)
 //        && target_e->CenterDistanceTo(order_e) < STATEMAP_UPDATE_DISTANCE)
     {
       // prune order_e's domain with target_e's existence

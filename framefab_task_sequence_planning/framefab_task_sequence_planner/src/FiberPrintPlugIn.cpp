@@ -406,7 +406,9 @@ bool FiberPrintPlugIn::DirectSearch()
 
     ptr_seqanalyzer_->setFrameMsgs(frame_msgs_);
 
-    if (!ptr_seqanalyzer_->SeqPrint())
+    ROS_INFO_STREAM("[TSP] Seq Analyzer init.");
+
+    if (!ptr_seqanalyzer_->SeqPrintLayer(2))
     {
       ROS_WARN("Model not printable!");
       return false;

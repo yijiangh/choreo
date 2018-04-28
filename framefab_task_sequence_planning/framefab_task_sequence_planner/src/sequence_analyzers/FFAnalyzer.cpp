@@ -10,6 +10,8 @@ bool FFAnalyzer::SeqPrint()
 
   Init();
 
+  ROS_INFO_STREAM("[TSP] FF Analyzer init.");
+
   /* split layers */
   /* label stores layer index of each dual node */
   int layer_size = ptr_frame_->SizeOfLayer();
@@ -18,11 +20,14 @@ bool FFAnalyzer::SeqPrint()
   for (int i = 0; i < Nd_; i++)
   {
     WF_edge *e = ptr_frame_->GetEdge(ptr_wholegraph_->e_orig_id(i));
+    assert(e);
     layers_[e->Layer()].push_back(e);
   }
 
-//  int print_until = layer_size;
-  int print_until = 6;
+  int print_until = layer_size;
+//  int print_until = 8;
+
+  assert(print_until <= layer_size);
 
   for (int l = 0; l < print_until; l++)
   {
@@ -106,6 +111,8 @@ bool FFAnalyzer::SeqPrintLayer(int layer_id)
 
   Init();
 
+  ROS_INFO_STREAM("[TSP] FF Analyzer init.");
+
   /* split layers */
   /* label stores layer index of each dual node */
   int layer_size = ptr_frame_->SizeOfLayer();
@@ -114,6 +121,7 @@ bool FFAnalyzer::SeqPrintLayer(int layer_id)
   for (int i = 0; i < Nd_; i++)
   {
     WF_edge *e = ptr_frame_->GetEdge(ptr_wholegraph_->e_orig_id(i));
+    assert(e);
     layers_[e->Layer()].push_back(e);
   }
 
@@ -218,11 +226,19 @@ bool FFAnalyzer::SeqPrintLayer(int layer_id)
       max_base_dist_ = max(max_base_dist_, dist);
     }
 
-    if(!GenerateSeq(lb, h, t))
+    search_rerun_ = 0;
+    bSuccess = false;
+
+    while(!bSuccess && search_rerun_ < 5)
     {
-      fprintf(stderr,
-              "All possible start edge at layer %d has been tried but no feasible sequence is obtained.\n", lb);
-      bSuccess = false;
+      bSuccess = GenerateSeq(lb, h, t);
+      search_rerun_++;
+    }
+
+    if(!bSuccess)
+    {
+      ROS_ERROR("All possible start edge at layer %d has been tried but no feasible sequence is obtained after %d iterations.",
+                lb, search_rerun_);
       break;
     }
   }
