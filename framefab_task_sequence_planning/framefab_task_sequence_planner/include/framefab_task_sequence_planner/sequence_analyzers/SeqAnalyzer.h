@@ -95,7 +95,7 @@ class SeqAnalyzer
 
  public:
   virtual bool SeqPrint();
-  virtual bool SeqPrintLayer(int layer_id);
+  virtual bool SeqPrintLayer(std::vector<int> layer_id);
 
   virtual void PrintOutTimer();
 

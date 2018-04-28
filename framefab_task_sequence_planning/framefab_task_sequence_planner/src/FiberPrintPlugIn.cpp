@@ -408,7 +408,13 @@ bool FiberPrintPlugIn::DirectSearch()
 
     ROS_INFO_STREAM("[TSP] Seq Analyzer init.");
 
-    if (!ptr_seqanalyzer_->SeqPrintLayer(2))
+    std::vector<int> target_ids;
+    for(int i = 13; i <= 16; i++)
+    {
+      target_ids.push_back(i);
+    }
+
+    if (!ptr_seqanalyzer_->SeqPrint())
     {
       ROS_WARN("Model not printable!");
       return false;

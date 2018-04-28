@@ -18,7 +18,7 @@
 
 const static std::string GET_PLANNING_SCENE_SERVICE = "get_planning_scene";
 const static double ROBOT_KINEMATICS_CHECK_TIMEOUT = 10.0;
-const double STATEMAP_UPDATE_DISTANCE = 100; // mm
+const double STATEMAP_UPDATE_DISTANCE = 300; // mm
 
 namespace{
 // copy from graph_builder.cpp
@@ -202,7 +202,7 @@ bool SeqAnalyzer::SeqPrint()
   return false;
 }
 
-bool SeqAnalyzer::SeqPrintLayer(int layer_id)
+bool SeqAnalyzer::SeqPrintLayer(std::vector<int> layer_id)
 {
   return false;
 }
@@ -390,9 +390,17 @@ void SeqAnalyzer::UpdateStateMap(WF_edge *order_e, vector<vector<lld>> &state_ma
     // it makes no sense to prune pillar's domain, since we only allow z-axis for pillar's printing
     // (and they are printed first)
     if (dual_i != dual_j && !ptr_dualgraph_->isExistingEdge(target_e) && !target_e->isPillar())
-//        && target_e->Layer() < 9)
-//        && target_e->CenterDistanceTo(order_e) < STATEMAP_UPDATE_DISTANCE)
     {
+      if(target_e->CenterDistanceTo(order_e) > STATEMAP_UPDATE_DISTANCE)
+      {
+        continue;
+      }
+
+      if(target_e->Layer() >= 17)
+      {
+        continue;
+      }
+
       // prune order_e's domain with target_e's existence
       // arc consistency pruning
       vector<lld> tmp(3);
@@ -422,6 +430,11 @@ void SeqAnalyzer::RecoverStateMap(WF_edge* order_e, vector<vector<lld>>& state_m
 
     if(dual_i != dual_j && !ptr_dualgraph_->isExistingEdge(target_e) && !target_e->isPillar())
     {
+      if(target_e->CenterDistanceTo(order_e) > STATEMAP_UPDATE_DISTANCE)
+      {
+        continue;
+      }
+
       for(int k = 0; k < 3; k++)
       {
         angle_state_[dual_j][k] = state_map[k][p];
