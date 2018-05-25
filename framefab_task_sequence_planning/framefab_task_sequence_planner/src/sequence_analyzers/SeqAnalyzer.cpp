@@ -396,10 +396,10 @@ void SeqAnalyzer::UpdateStateMap(WF_edge *order_e, vector<vector<lld>> &state_ma
         continue;
       }
 
-      if(target_e->Layer() >= 17)
-      {
-        continue;
-      }
+//      if(target_e->Layer() >= 17)
+//      {
+//        continue;
+//      }
 
       // prune order_e's domain with target_e's existence
       // arc consistency pruning

@@ -53,7 +53,7 @@ const static std::string GET_PLANNER_PARAM_SERVICE = "get_planner_params";
 const static int RRT_WEIRD_SOL_NUM_THRESHOLD = 40;
 
 Eigen::Affine3d framefab_process_planning::createNominalTransform(const geometry_msgs::Pose& ref_pose,
-                                                               const geometry_msgs::Point& pt)
+                                                                  const geometry_msgs::Point& pt)
 {
   Eigen::Affine3d eigen_pose;
   Eigen::Vector3d eigen_pt;
@@ -74,7 +74,7 @@ Eigen::Affine3d framefab_process_planning::createNominalTransform(const geometry
 }
 
 Eigen::Affine3d framefab_process_planning::createNominalTransform(const geometry_msgs::Pose& ref_pose,
-                                                               const double z_adjust)
+                                                                  const double z_adjust)
 {
   Eigen::Affine3d eigen_pose;
 
@@ -84,7 +84,7 @@ Eigen::Affine3d framefab_process_planning::createNominalTransform(const geometry
 }
 
 Eigen::Affine3d framefab_process_planning::createNominalTransform(const Eigen::Affine3d &ref_pose,
-                                                               const double z_adjust)
+                                                                  const double z_adjust)
 {
   // Reverse the Z axis
   Eigen::Affine3d flip_z;
@@ -371,7 +371,7 @@ bool framefab_process_planning::clearAllCollisionObjects(ros::ServiceClient& pla
 
 framefab_process_planning::DescartesTraj
 framefab_process_planning::createJointPath(const std::vector<double>& start,
-                                        const std::vector<double>& stop, double dtheta)
+                                           const std::vector<double>& stop, double dtheta)
 {
   JointVector path = interpolateJoint(start, stop, dtheta);
   DescartesTraj result;
@@ -417,7 +417,20 @@ trajectory_msgs::JointTrajectory framefab_process_planning::getMoveitPlan(
   // Make connection the planning-service offered by the MoveIt MoveGroup node
   ros::NodeHandle nh;
 
-  ROS_INFO_STREAM("[Moveit Planning] planner: " << DEFAULT_MOVEIT_PLANNER_ID);
+  std::string planner_name;
+  if(!ros::param::get("~planner", planner_name))
+  {
+    ROS_WARN_STREAM("[Tr planning] planner param fetch fails.");
+  }
+
+  if("ompl" != planner_name)
+  {
+    ROS_INFO_STREAM("[Moveit Transition Planning] planner: " << planner_name);
+  }
+  else
+  {
+    ROS_INFO_STREAM("[Moveit Transition Planning] planner: " << planner_name << " - " << DEFAULT_MOVEIT_PLANNER_ID);
+  }
 
   ros::ServiceClient client =
       nh.serviceClient<moveit_msgs::GetMotionPlan>(DEFAULT_MOVEIT_PLANNING_SERVICE_NAME);
@@ -505,12 +518,13 @@ trajectory_msgs::JointTrajectory framefab_process_planning::getMoveitTransitionP
 
   if(!force_insert_reset)
   {
-    if (client.call(req, res))
+    bool plan_call_success = client.call(req, res);
+    if (plan_call_success && res.motion_plan_response.error_code.SUCCESS == res.motion_plan_response.error_code.val)
     {
       ROS_INFO_STREAM("[Tr Planning] direct transition planning succeed!");
       jt = res.motion_plan_response.trajectory.joint_trajectory;
 
-      if("ompl" == planner_name)
+      if ("ompl" == planner_name)
       {
         if (jt.points.size() > RRT_WEIRD_SOL_NUM_THRESHOLD)
         {
@@ -558,15 +572,16 @@ trajectory_msgs::JointTrajectory framefab_process_planning::getMoveitTransitionP
     trajectory_msgs::JointTrajectory jt_to_goal;
 
     // reset planning
-    if(client.call(req_to_reset, res))
+    bool plan_call_success = client.call(req_to_reset, res);
+    if (plan_call_success && res.motion_plan_response.error_code.SUCCESS == res.motion_plan_response.error_code.val)
     {
       jt_to_reset = res.motion_plan_response.trajectory.joint_trajectory;
       ROS_WARN("[Tr Planning] reset planning success.");
     }
     else
     {
-     ROS_ERROR("%s: Unable to call MoveIt path planning service: '%s' or planning failed, AFTER RESETTING POSE",
-              __FUNCTION__, DEFAULT_MOVEIT_PLANNING_SERVICE_NAME.c_str());
+      ROS_ERROR("%s: Unable to call MoveIt path planning service: '%s' or planning failed, AFTER RESETTING POSE",
+                __FUNCTION__, DEFAULT_MOVEIT_PLANNING_SERVICE_NAME.c_str());
 //      throw std::runtime_error("Unable to generate reset MoveIt path plan");
       jt.points.clear();
 
@@ -574,15 +589,16 @@ trajectory_msgs::JointTrajectory framefab_process_planning::getMoveitTransitionP
     }
 
     // goal planning
-    if(client.call(req_to_goal, res))
+    plan_call_success = client.call(req_to_goal, res);
+    if (plan_call_success && res.motion_plan_response.error_code.SUCCESS == res.motion_plan_response.error_code.val)
     {
       jt_to_goal = res.motion_plan_response.trajectory.joint_trajectory;
       ROS_WARN("[Tr Planning] reset to goal planning success.");
     }
     else
     {
-     ROS_ERROR("%s: Unable to call MoveIt path planning service: '%s' or planning failed, AFTER RESETTING POSE",
-              __FUNCTION__, DEFAULT_MOVEIT_PLANNING_SERVICE_NAME.c_str());
+      ROS_ERROR("%s: Unable to call MoveIt path planning service: '%s' or planning failed, AFTER RESETTING POSE",
+                __FUNCTION__, DEFAULT_MOVEIT_PLANNING_SERVICE_NAME.c_str());
 //      throw std::runtime_error("Unable to generate reset to goal MoveIt path plan");
       jt.points.clear();
 
@@ -636,7 +652,7 @@ trajectory_msgs::JointTrajectory framefab_process_planning::planFreeMove(
 }
 
 double framefab_process_planning::freeSpaceCostFunction(const std::vector<double> &source,
-                                                     const std::vector<double> &target)
+                                                        const std::vector<double> &target)
 {
   const double FREE_SPACE_MAX_ANGLE_DELTA =
       M_PI; // The maximum angle a joint during a freespace motion

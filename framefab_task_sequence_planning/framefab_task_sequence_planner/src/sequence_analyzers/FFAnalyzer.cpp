@@ -24,8 +24,8 @@ bool FFAnalyzer::SeqPrint()
     layers_[e->Layer()].push_back(e);
   }
 
-//  int print_until = layer_size;
-  int print_until = 17;
+  int print_until = layer_size;
+//  int print_until = 17;
 
   assert(print_until <= layer_size);
 

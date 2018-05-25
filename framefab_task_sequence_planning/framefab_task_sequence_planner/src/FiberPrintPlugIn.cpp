@@ -409,7 +409,7 @@ bool FiberPrintPlugIn::DirectSearch()
     ROS_INFO_STREAM("[TSP] Seq Analyzer init.");
 
     std::vector<int> target_ids;
-    for(int i = 13; i <= 16; i++)
+    for(int i = 37; i <= 39; i++)
     {
       target_ids.push_back(i);
     }

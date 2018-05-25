@@ -219,7 +219,8 @@ void WireFrame::LoadFromPWF(const char *path)
         {
           if(e->Layer() != -1)
           {
-            ROS_WARN_STREAM("Overwrite previously set id! - prev layer id : " << e->Layer());
+            ROS_WARN_STREAM("Overwrite previously set id! - prev layer id : " << e->Layer()
+            << ", current id: " << layer);
             assert(e->Layer() == -1);
           }
 
