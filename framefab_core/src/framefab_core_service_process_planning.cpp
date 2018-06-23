@@ -129,5 +129,10 @@ bool FrameFabCoreService::moveToTargetJointPose(std::vector<double> joint_pose)
   srv.request.type = srv.request.JOINT_POSE;
   srv.request.pose = joint_pose;
 
+  for(auto j : joint_pose)
+  {
+    ROS_INFO_STREAM("reset joint: " << j);
+  }
+
   return move_to_pose_client_.call(srv);
 }
