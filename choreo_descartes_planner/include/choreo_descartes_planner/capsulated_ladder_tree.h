@@ -11,6 +11,7 @@
 #include <moveit/planning_scene/planning_scene.h>
 
 const static double ORIENTATION_PREFERENCE_WEIGHT = 0.0;
+const static double EXTERNAL_AXIS_PENALIZE_COST = 1000.0;
 
 namespace descartes_planner
 {
@@ -51,10 +52,30 @@ class CapVert
 
         std::vector<double> delta_buffer;
 
-        for (size_t k = 0; k < dof; k++)
+        if(dof <= 6)
         {
-          delta_buffer.push_back(std::abs(v->end_joint_data_[prev_end_index+k]
-                                         - this->start_joint_data_[this_start_index+k]));
+          for (size_t k = 0; k < dof; k++)
+          {
+            delta_buffer.push_back(std::abs(v->end_joint_data_[prev_end_index + k]
+                                                - this->start_joint_data_[this_start_index + k]));
+          }
+        }
+        else
+        {
+          // penalize linear track movement
+          for (size_t k = 0; k < dof; k++)
+          {
+            double axis_weight = 1.0;
+
+            if(k >= dof - 6)
+            {
+              axis_weight = EXTERNAL_AXIS_PENALIZE_COST;
+            }
+
+            delta_buffer.push_back(axis_weight *
+                std::abs(v->end_joint_data_[prev_end_index + k]
+                             - this->start_joint_data_[this_start_index + k]));
+          }
         }
 
         double tmp_cost = std::accumulate(delta_buffer.begin(), delta_buffer.end(), 0.0);

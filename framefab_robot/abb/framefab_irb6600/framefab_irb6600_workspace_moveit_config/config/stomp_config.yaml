@@ -1,12 +1,12 @@
 stomp/rail_robot_manipulator:
   group_name: rail_robot_manipulator
   optimization:
-    num_timesteps: 70
+    num_timesteps: 150
     num_iterations: 70
     num_iterations_after_valid: 0    
     num_rollouts: 10
-    max_rollouts: 10 
-    initialization_method: 3 #[1 : LINEAR_INTERPOLATION, 2 : CUBIC_POLYNOMIAL, 3 : MININUM_CONTROL_COST
+    max_rollouts: 100
+    initialization_method: 1 #[1 : LINEAR_INTERPOLATION, 2 : CUBIC_POLYNOMIAL, 3 : MININUM_CONTROL_COST
     control_cost_weight: 0.0
   task:
     noise_generator:
