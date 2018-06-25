@@ -1,0 +1,15 @@
+model_input:
+ ref_pt_x: 500.0
+ ref_pt_y: 0.0
+ ref_pt_z: 0.0
+
+ element_diameter: 1.5
+ shrink_length: 5
+
+ unit_type: 0
+
+ file_name: "/home"
+
+ clt_rrt_unit_process_timeout: 0.0
+
+ clt_rrt_timeout: 0.0

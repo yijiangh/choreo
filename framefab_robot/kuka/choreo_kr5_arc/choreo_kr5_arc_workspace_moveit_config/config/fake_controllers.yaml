@@ -1,0 +1,18 @@
+controller_list:
+  - name: fake_rail_robot_manipulator_controller
+    joints:
+      - linear_axis_actuation_joint
+      - robot_joint_a1
+      - robot_joint_a2
+      - robot_joint_a3
+      - robot_joint_a4
+      - robot_joint_a5
+      - robot_joint_a6
+  - name: fake_manipulator_controller
+    joints:
+      - robot_joint_a1
+      - robot_joint_a2
+      - robot_joint_a3
+      - robot_joint_a4
+      - robot_joint_a5
+      - robot_joint_a6

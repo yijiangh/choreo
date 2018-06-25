@@ -110,7 +110,7 @@ void choreo_visual_tools::ChoreoVisualTools::convertWireFrameVisual(
     tf::pointMsgToEigen(path_array[i].start_pt, v_unit_path.start_pt);
     tf::pointMsgToEigen(path_array[i].end_pt, v_unit_path.end_pt);
     v_unit_path.layer_id = path_array[i].layer_id;
-    v_unit_path.diameter = path_array[i].element_diameter * VISUAL_DIAMETER_SCALE;
+    v_unit_path.diameter = path_array[i].element_diameter;
 
     visual_path_array.push_back(v_unit_path);
   }
@@ -395,7 +395,7 @@ void choreo_visual_tools::ChoreoVisualTools::visualizeAllWireFrame()
     visual_tools_->publishCylinder(visual_path_array_[i].start_pt,
                                    visual_path_array_[i].end_pt,
                                    type_color,
-                                   visual_path_array_[i].diameter * VISUAL_DIAMETER_SCALE);
+                                   visual_path_array_[i].diameter * VISUAL_DIAMETER_SCALE * 10);
   }
 
   visual_tools_->trigger();

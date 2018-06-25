@@ -11,7 +11,7 @@
 #include <moveit/planning_scene/planning_scene.h>
 
 const static double ORIENTATION_PREFERENCE_WEIGHT = 0.0;
-const static double EXTERNAL_AXIS_PENALIZE_COST = 1000.0;
+const static double EXTERNAL_AXIS_PENALIZE_COST = 100.0;
 
 namespace descartes_planner
 {
@@ -67,7 +67,7 @@ class CapVert
           {
             double axis_weight = 1.0;
 
-            if(k >= dof - 6)
+            if(k < dof - 6)
             {
               axis_weight = EXTERNAL_AXIS_PENALIZE_COST;
             }

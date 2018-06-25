@@ -1,0 +1,64 @@
+<?xml version="1.0" ?>
+<robot name="choreo_kr5_arc_workspace" xmlns:xacro="http://ros.org/wiki/xacro">
+
+	<xacro:property name="half_pi" value="1.5707963267948966"/>
+	<xacro:include filename="$(find choreo_kr5_arc_support)/urdf/resources/materials.xacro"/>
+  <xacro:include filename="$(find kuka_kr5_support)/urdf/kr5_arc_macro.xacro"/>
+	<xacro:include filename="$(find asw_end_effector)/urdf/asw_eef_macro.xacro"/>
+	<xacro:include filename="$(find ucla_linear_axis)/urdf/ucla_linear_axis_macro.xacro"/>
+
+	<xacro:property name="workcell_width" value="1.0"/>
+	<xacro:property name="workcell_length" value="3.0"/>
+	<xacro:property name="workcell_height" value="0.01"/>
+	<xacro:property name="workcell_thickness" value="0.01"/>
+
+  <xacro:kuka_kr5_arc prefix="robot_"/>
+  <xacro:asw_eef prefix="eef_"/>
+  <xacro:ucla_linear_axis prefix="linear_axis_"/>
+
+	<!-- Link list -->
+  <link name="base_link"/>
+	<!-- End of link list -->
+
+  <material name="workcell_material">
+   <color rgba="0.8 1.0 0.8 0.2"/>
+  </material>
+
+  <link name="print_bed">
+  <visual>
+    <origin xyz="2.1 0 ${0.4-0.5*workcell_height}"/>
+    <geometry>
+      <box size="${workcell_width} ${workcell_length} ${workcell_height}"/>
+    </geometry>
+    <material name="workcell_material"/>
+  </visual>
+	</link>
+
+  <joint name="world_to_print_bed" type="fixed">
+    <parent link="base_link" />
+    <child link="print_bed" />
+    <origin xyz="0 0 0"/>
+  </joint>
+
+	<!-- Joint list -->
+	<!--bind the rail to word_frame, can be disabled if using modile platform-->
+	<joint name="linear_axis_to_base_link" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 ${half_pi}"/>
+    <parent link="base_link"/>
+    <child link="linear_axis_base_link"/>
+  </joint>
+
+  <joint name="robot_to_linear_axis" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 -${half_pi}"/>
+    <parent link="linear_axis_robot_mount"/>
+    <child link="robot_base_link"/>
+  </joint>
+
+	<joint name="ee_to_robot" type="fixed">
+		<parent link="robot_tool0"/>
+		<child link="eef_base_link"/>
+		<origin xyz="0 0 0" rpy="0 0 0"/>
+	</joint>
+	<!-- End of joint list -->
+
+</robot>

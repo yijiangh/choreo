@@ -1,0 +1,6 @@
+<robot file="choreo_kr150_2_linear_track_workspace.dae">
+  <Manipulator name="choreo_kr150_2_workspace">
+    <base>linear_axis_base_link</base>
+    <effector>robot_tool0</effector>
+  </Manipulator>
+</robot>
