@@ -1,25 +1,37 @@
+# NOTE: The build lifecycle on Travis.ci is something like this:
+#    before_install
+#    install
+#    before_script
+#    script
+#    after_success or after_failure
+#    after_script
+#    OPTIONAL before_deploy
+#    OPTIONAL deploy
+#    OPTIONAL after_deploy
+
 sudo: required
 dist: trusty
 language: generic
-
 compiler:
   - gcc
-
 notifications:
   email:
     on_failure: always
+    recipients:
+      - yijiangh@mit.edu
 
 env:
   matrix:
-    - USE_DEB=true
-      ROS_DISTRO="indigo"
-      ROS_REPOSITORY_PATH=http://packages.ros.org/ros/ubuntu
-    - USE_DEB=true
-      ROS_DISTRO="indigo"
-      ROS_REPOSITORY_PATH=http://packages.ros.org/ros-shadow-fixed/ubuntu
+    - USE_DEB=true  ROS_DISTRO="kinetic"   ROS_REPOSITORY_PATH=http://packages.ros.org/ros/ubuntu
+    - USE_DEB=true  ROS_DISTRO="kinetic"   ROS_REPOSITORY_PATH=http://packages.ros.org/ros-shadow-fixed/ubuntu
+
+matrix:
+  allow_failures:
+    - env: USE_DEB=true  ROS_DISTRO="kinetic"   ROS_REPOSITORY_PATH=http://packages.ros.org/ros-shadow-fixed/ubuntu
 
 install:
   - git clone https://github.com/ros-industrial/industrial_ci.git .ci_config
 
 script:
   - source .ci_config/travis.sh
+#  - source ./travis.sh  # Enable this when you have a package-local script
