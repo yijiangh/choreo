@@ -22,7 +22,7 @@
 		  <collision>
 		  	<origin xyz="${eef_mount_offset['transform']['x']} ${eef_mount_offset['transform']['y']} ${eef_mount_offset['transform']['z']}" rpy="0 0 0"/>
 		    <geometry>
-		      <mesh filename="package://asw_end_effector/meshes/collision/asw_hotend_end_effector_shrinked_tip-4mm.stl" scale=".001 .001 .001"/>
+		      <mesh filename="package://asw_end_effector/meshes/collision/asw_hotend_end_effector_shrinked_tip-6mm.stl" scale=".001 .001 .001"/>
 		    </geometry>
 		    <material name="red">
 		      <color rgba="1 0 0 1"/>

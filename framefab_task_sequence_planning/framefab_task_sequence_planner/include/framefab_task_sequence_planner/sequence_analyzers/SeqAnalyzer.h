@@ -95,7 +95,7 @@ class SeqAnalyzer
 
  public:
   virtual bool SeqPrint();
-  virtual bool SeqPrintLayer(int layer_id);
+  virtual bool SeqPrintLayer(std::vector<int> layer_id);
 
   virtual void PrintOutTimer();
 
@@ -118,6 +118,8 @@ class SeqAnalyzer
   bool TestifyStiffness(WF_edge *e);
 
   bool TestRobotKinematics(WF_edge* e, const std::vector<lld>& colli_map);
+
+  WF_edge* RouteEdgeDirection(const WF_edge* prev_e, WF_edge* e);
 
  private:
   // robot kinematics related

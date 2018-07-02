@@ -1,0 +1,5 @@
+rail_robot_manipulator:
+  kinematics_solver: choreo_kr150_2_workspace_rail_robot_manipulator_kinematics/IKFastKinematicsPlugin
+  kinematics_solver_attempts: 3
+  kinematics_solver_search_resolution: 0.005
+  kinematics_solver_timeout: 0.005

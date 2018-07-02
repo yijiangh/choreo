@@ -49,10 +49,6 @@ class ProcAnalyzer
   bool WriteJson();
 
   bool IfPointInVector(point p);
-  bool IfCoOrientation(GeoV3 a, vector<GeoV3> &b);
-  void CheckProcess(Process &a);
-  void Filter(Process &a);
-  void ColorMap(double cost, double &r, double &g, double &b);
 
   inline double truncDigits(double v, double scale) { return ((int)(v / scale)*scale); }
 
@@ -67,7 +63,5 @@ class ProcAnalyzer
 
   bool debug_;
   int support_;
-
-  double MaxEdgeAngle_;
 };
 

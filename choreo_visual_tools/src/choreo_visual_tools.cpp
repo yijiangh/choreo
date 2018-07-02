@@ -27,10 +27,13 @@ const static rviz_visual_tools::colors POST_GRASP_POSE_COLOR = rviz_visual_tools
 const static rviz_visual_tools::colors END_EFFECTOR_COLOR = rviz_visual_tools::TRANSLUCENT_DARK;
 
 const static rviz_visual_tools::scales GRASP_POSE_ARROW_SIZE = rviz_visual_tools::XXXSMALL;
+const static rviz_visual_tools::scales WIREFRAME_SIZE = rviz_visual_tools::XSMALL;
 
 const static std::string FILE_URL_PREFIX = "file://";
 
 const static Eigen::Affine3d ZERO_POSE = Eigen::Affine3d::Identity();
+
+const static double VISUAL_DIAMETER_SCALE = 10;
 
 // TODO: mesh scale should read from input model param
 // default millimeter
@@ -68,7 +71,7 @@ void choreo_visual_tools::ChoreoVisualTools::convertPathVisual(
     tf::pointMsgToEigen(path_array[i].end_pt, v_unit_path.end_pt);
     v_unit_path.type =
         static_cast<choreo_visual_tools::UNIT_PATH_TYPE>(path_array[i].type);
-    v_unit_path.diameter = path_array[i].element_diameter;
+    v_unit_path.diameter = path_array[i].element_diameter * VISUAL_DIAMETER_SCALE;
 
     // fill in feasible orientations
     v_unit_path.oriented_st_pts.clear();
@@ -79,7 +82,7 @@ void choreo_visual_tools::ChoreoVisualTools::convertPathVisual(
       Eigen::Vector3d e;
       tf::vectorMsgToEigen(path_array[i].feasible_orients[j], e);
 
-      e = e * 0.001 * 15;
+      e = e * 0.001 * 15 * VISUAL_DIAMETER_SCALE;
       avr_vec  = avr_vec  + e;
       e = e + v_unit_path.start_pt;
 
@@ -141,7 +144,7 @@ void choreo_visual_tools::ChoreoVisualTools::visualizeAllPaths()
     visual_tools_->publishArrow(
         visual_tools_->getVectorBetweenPoints(visual_path_array_[i].start_pt,
                                               visual_path_array_[i].end_pt),
-        type_color, rviz_visual_tools::XXXXSMALL,
+        type_color, WIREFRAME_SIZE,
         (visual_path_array_[i].start_pt - visual_path_array_[i].end_pt).norm());
   }
 
@@ -192,7 +195,7 @@ void choreo_visual_tools::ChoreoVisualTools::visualizePathUntil(int i)
       visual_tools_->publishArrow(
           visual_tools_->getVectorBetweenPoints(visual_path_array_[j].start_pt,
                                                 visual_path_array_[j].end_pt),
-          rviz_visual_tools::GREY, rviz_visual_tools::XXXXSMALL,
+          rviz_visual_tools::GREY, WIREFRAME_SIZE,
           (visual_path_array_[j].start_pt - visual_path_array_[j].end_pt).norm());
     }
   }
@@ -200,7 +203,7 @@ void choreo_visual_tools::ChoreoVisualTools::visualizePathUntil(int i)
   visual_tools_->publishArrow(
       visual_tools_->getVectorBetweenPoints(visual_path_array_[i].start_pt,
                                             visual_path_array_[i].end_pt),
-      rviz_visual_tools::CYAN, rviz_visual_tools::XXXXSMALL,
+      rviz_visual_tools::CYAN, WIREFRAME_SIZE,
       (visual_path_array_[i].start_pt - visual_path_array_[i].end_pt).norm());
 
   visual_tools_->trigger();
@@ -305,7 +308,7 @@ void choreo_visual_tools::ChoreoVisualTools::visualizeFeasibleOrientations(int i
         visual_path_array_[i].start_pt,
         visual_path_array_[i].oriented_st_pts[j],
         type_color,
-        0.0003,
+        0.0003 * VISUAL_DIAMETER_SCALE,
         "orientation_cylinder");
   }
 
@@ -323,7 +326,7 @@ void choreo_visual_tools::ChoreoVisualTools::visualizeFeasibleOrientations(int i
       visual_path_array_[i].start_pt,
       visual_path_array_[i].avr_orient_vec,
       type_color_avr,
-      0.0003,
+      0.0003 * VISUAL_DIAMETER_SCALE,
       "orientation_cylinder");
 
   visual_tools_->trigger();
@@ -392,7 +395,7 @@ void choreo_visual_tools::ChoreoVisualTools::visualizeAllWireFrame()
     visual_tools_->publishCylinder(visual_path_array_[i].start_pt,
                                    visual_path_array_[i].end_pt,
                                    type_color,
-                                   visual_path_array_[i].diameter);
+                                   visual_path_array_[i].diameter * VISUAL_DIAMETER_SCALE * 10);
   }
 
   visual_tools_->trigger();

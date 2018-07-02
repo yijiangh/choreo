@@ -6,6 +6,8 @@
 
 #include <choreo_geometry_conversion_helpers/choreo_geometry_conversion_helpers.h>
 
+#include <eigen_conversions/eigen_msg.h>
+
 #include <shape_msgs/Mesh.h>
 
 #include <moveit_msgs/PlanningSceneComponents.h>
@@ -264,18 +266,27 @@ void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
     // transition 2 place
     auto tr2place_scene = pick_scene->diff();
 
-//     TODO: maybe try only use attached one here?
+//     TODO: maybe try only use attached one here? WIP
 //     attach pick element to ee
 //     TODO: needs to apply a "reverse" linear transformation using the grasp pose
 //    last_attached_co.object = pick_cos[i];
 //    assert(last_attached_co.object.mesh_poses.size() > 0);
 //    assert(se.grasps.size() > 0);
 //    last_attached_co.object.header.frame_id = ik_link;
-//    last_attached_co.object.mesh_poses[0].position = reversePointMsg(se.grasps[0].pick_grasp_pose.position);
 //
+//    Eigen::Affine3d pick_pose, obj_pose_in_gripper = Eigen::Affine3d::Identity();
+//    tf::poseMsgToEigen(se.grasps[0].pick_grasp_pose, pick_pose);
+//
+//    obj_pose_in_gripper.linear() = pick_pose.linear();
+//    obj_pose_in_gripper.translation() = - obj_pose_in_gripper.linear();
+//
+//    tf::poseEigenToMsg(obj_pose_in_gripper, last_attached_co.object.mesh_poses[0]);
+
+//    last_attached_co.object.mesh_poses[0].position = reversePointMsg(se.grasps[0].pick_grasp_pose.position);
+
 //    last_attached_co.link_name = ik_link;
 //    last_attached_co.object.operation = last_attached_co.object.ADD;
-//    assert(pick_scene->processAttachedCollisionObjectMsg(last_attached_co));
+//    assert(tr2place_scene->processAttachedCollisionObjectMsg(last_attached_co));
 
     planning_scenes_transition[i].push_back(tr2place_scene);
 
@@ -285,11 +296,11 @@ void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
     auto place_scene = tr2place_scene->diff();
 
     // remove pick attached element
-//    last_attached_co.object.operation = last_attached_co.object.REMOVE;
-//    assert(place_scene->processAttachedCollisionObjectMsg(last_attached_co));
-//    // cancel this "auto-release" from removing an attached obj
-//    assert(place_scene->processCollisionObjectMsg(last_attached_co.object));
-//
+    last_attached_co.object.operation = last_attached_co.object.REMOVE;
+    assert(place_scene->processAttachedCollisionObjectMsg(last_attached_co));
+    // cancel this "auto-release" from removing an attached obj
+    assert(place_scene->processCollisionObjectMsg(last_attached_co.object));
+
 //    // TODO: needs to apply a "reverse" linear transformation using the grasp pose
 //    last_attached_co.object = place_cos[i];
 //    assert(last_attached_co.object.mesh_poses.size() > 0);

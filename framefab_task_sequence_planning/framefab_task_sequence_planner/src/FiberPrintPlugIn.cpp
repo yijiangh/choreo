@@ -406,6 +406,14 @@ bool FiberPrintPlugIn::DirectSearch()
 
     ptr_seqanalyzer_->setFrameMsgs(frame_msgs_);
 
+    ROS_INFO_STREAM("[TSP] Seq Analyzer init.");
+
+    std::vector<int> target_ids;
+    for(int i = 37; i <= 39; i++)
+    {
+      target_ids.push_back(i);
+    }
+
     if (!ptr_seqanalyzer_->SeqPrint())
     {
       ROS_WARN("Model not printable!");
@@ -526,11 +534,11 @@ bool FiberPrintPlugIn::handleTaskSequencePlanning(
         delete ptr_frame_;
       }
 
-      ROS_INFO_STREAM("[Ts planning] wire frame read : " << file_path);
-
       // TODO: if contains keyword "pwf"
       ptr_frame_ = new WireFrame();
       ptr_frame_->LoadFromPWF(&fp[0]);
+
+      ROS_INFO_STREAM("[Ts planning] wire frame read : " << file_path);
 
       double unit_scale;
       Eigen::Vector3d ref_pt(req.model_params.ref_pt_x, req.model_params.ref_pt_y, req.model_params.ref_pt_z);

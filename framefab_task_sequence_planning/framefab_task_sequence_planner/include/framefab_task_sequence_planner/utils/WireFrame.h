@@ -288,8 +288,8 @@ class WireFrame
   }
 
  private:
-  vector<WF_vert*> *pvert_list_;
-  vector<WF_edge*> *pedge_list_;
+  std::vector<WF_vert*>* pvert_list_;
+  std::vector<WF_edge*>* pedge_list_;
 
   int fixed_vert_;
   int base_vert_;

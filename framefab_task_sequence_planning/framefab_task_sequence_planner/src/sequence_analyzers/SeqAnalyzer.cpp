@@ -18,7 +18,7 @@
 
 const static std::string GET_PLANNING_SCENE_SERVICE = "get_planning_scene";
 const static double ROBOT_KINEMATICS_CHECK_TIMEOUT = 10.0;
-const double STATEMAP_UPDATE_DISTANCE = 100; // mm
+const double STATEMAP_UPDATE_DISTANCE = 300; // mm
 
 namespace{
 // copy from graph_builder.cpp
@@ -202,7 +202,7 @@ bool SeqAnalyzer::SeqPrint()
   return false;
 }
 
-bool SeqAnalyzer::SeqPrintLayer(int layer_id)
+bool SeqAnalyzer::SeqPrintLayer(std::vector<int> layer_id)
 {
   return false;
 }
@@ -389,10 +389,18 @@ void SeqAnalyzer::UpdateStateMap(WF_edge *order_e, vector<vector<lld>> &state_ma
     // for each unprinted edge in wireframe, full graph arc consistency
     // it makes no sense to prune pillar's domain, since we only allow z-axis for pillar's printing
     // (and they are printed first)
-    if (dual_i != dual_j && !ptr_dualgraph_->isExistingEdge(target_e)
-        && !target_e->isPillar())
-//        && target_e->CenterDistanceTo(order_e) < STATEMAP_UPDATE_DISTANCE)
+    if (dual_i != dual_j && !ptr_dualgraph_->isExistingEdge(target_e) && !target_e->isPillar())
     {
+      if(target_e->CenterDistanceTo(order_e) > STATEMAP_UPDATE_DISTANCE)
+      {
+        continue;
+      }
+
+//      if(target_e->Layer() >= 17)
+//      {
+//        continue;
+//      }
+
       // prune order_e's domain with target_e's existence
       // arc consistency pruning
       vector<lld> tmp(3);
@@ -422,6 +430,11 @@ void SeqAnalyzer::RecoverStateMap(WF_edge* order_e, vector<vector<lld>>& state_m
 
     if(dual_i != dual_j && !ptr_dualgraph_->isExistingEdge(target_e) && !target_e->isPillar())
     {
+      if(target_e->CenterDistanceTo(order_e) > STATEMAP_UPDATE_DISTANCE)
+      {
+        continue;
+      }
+
       for(int k = 0; k < 3; k++)
       {
         angle_state_[dual_j][k] = state_map[k][p];
@@ -765,6 +778,92 @@ bool SeqAnalyzer::TestRobotKinematics(WF_edge* e, const std::vector<lld>& colli_
   // remove the trail edge, change shrinked edges back to full collision objects
   RecoverCollisionObjects(e, true);
   return b_success;
+}
+
+WF_edge* SeqAnalyzer::RouteEdgeDirection(const WF_edge* prev_e, WF_edge* e)
+{
+  int orig_j = e->ID();
+
+  // st node index
+  int uj = ptr_frame_->GetEndu(orig_j);
+  const trimesh::point uj_pt = ptr_frame_->GetVert(uj)->Position();
+  bool exist_uj = ptr_dualgraph_->isExistingVert(uj);
+
+  // end node index
+  int vj = ptr_frame_->GetEndv(orig_j);
+  const trimesh::point vj_pt = ptr_frame_->GetVert(vj)->Position();
+  bool exist_vj = ptr_dualgraph_->isExistingVert(vj);
+
+  if (e->isPillar())
+  {
+    if(uj_pt.z() > vj_pt.z())
+    {
+      return e->ppair_;
+    }
+
+    return e;
+  }
+
+  if(exist_uj & exist_vj)
+  {
+    // connect case
+    int endu_valence = 0;
+    int endv_valence = 0;
+
+    WF_edge *eu = ptr_frame_->GetNeighborEdge(uj);
+    WF_edge *ev = ptr_frame_->GetNeighborEdge(vj);
+
+    endu_valence = ptr_dualgraph_->getExistingVertValence(uj);
+    endv_valence = ptr_dualgraph_->getExistingVertValence(vj);
+
+    if (endv_valence > endu_valence)
+    {
+      return e->ppair_;
+    }
+
+    if(endv_valence == endu_valence)
+    {
+      // valence equals case: use nearest node
+      if (prev_e)
+      {
+        trimesh::point prev_end_node = prev_e->pvert_->Position();
+
+        // use previous end point as start node if possible
+        // i.e. prefer continuous printing
+        if (prev_end_node == uj_pt || prev_end_node == vj_pt)
+        {
+          if (prev_end_node == vj_pt)
+          {
+            return e->ppair_;
+          }
+          //else start node already agrees with prev_end_node, then keep rolling!
+        }
+        else
+        {
+          // we prefer the start node to be close
+          if (trimesh::dist(vj_pt, prev_end_node) < trimesh::dist(uj_pt, prev_end_node))
+          {
+            return e->ppair_;
+          }
+        }
+      }
+    }
+
+    return e;
+  }
+  else
+  {
+    // create case
+    assert(exist_uj || exist_vj);
+
+    if(exist_vj)
+    {
+      // change direction
+      return e->ppair_;
+    }
+
+    return e;
+  }
 }
 
 bool SeqAnalyzer::InputPrintOrder(const std::vector<int>& print_queue)

@@ -82,7 +82,7 @@ class FFAnalyzer : public SeqAnalyzer
 
  public:
   bool SeqPrint();
-  bool SeqPrintLayer(int layer_id);
+  bool SeqPrintLayer(std::vector<int> layer_id);
 
  private:
   bool	 GenerateSeq(int l, int h, int t);

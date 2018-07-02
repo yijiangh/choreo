@@ -10,6 +10,8 @@ bool FFAnalyzer::SeqPrint()
 
   Init();
 
+  ROS_INFO_STREAM("[TSP] FF Analyzer init.");
+
   /* split layers */
   /* label stores layer index of each dual node */
   int layer_size = ptr_frame_->SizeOfLayer();
@@ -18,10 +20,14 @@ bool FFAnalyzer::SeqPrint()
   for (int i = 0; i < Nd_; i++)
   {
     WF_edge *e = ptr_frame_->GetEdge(ptr_wholegraph_->e_orig_id(i));
+    assert(e);
     layers_[e->Layer()].push_back(e);
   }
 
   int print_until = layer_size;
+//  int print_until = 17;
+
+  assert(print_until <= layer_size);
 
   for (int l = 0; l < print_until; l++)
   {
@@ -77,7 +83,7 @@ bool FFAnalyzer::SeqPrint()
     search_rerun_ = 0;
     bSuccess = false;
 
-    while(!bSuccess && search_rerun_ < 5)
+    while(!bSuccess && search_rerun_ < 2)
     {
       bSuccess = GenerateSeq(l, h, t);
       search_rerun_++;
@@ -97,13 +103,18 @@ bool FFAnalyzer::SeqPrint()
   return bSuccess;
 }
 
-bool FFAnalyzer::SeqPrintLayer(int layer_id)
+bool FFAnalyzer::SeqPrintLayer(std::vector<int> layer_ids)
 {
-  assert(ptr_frame_->SizeOfLayer() > layer_id);
+  assert(ptr_frame_->SizeOfLayer()
+             > *std::max_element(layer_ids.begin(), layer_ids.end()));
+
+  ROS_INFO_STREAM("[TSP] Target layers search test.");
 
   FF_analyzer_.Start();
 
   Init();
+
+  ROS_INFO_STREAM("[TSP] FF Analyzer init.");
 
   /* split layers */
   /* label stores layer index of each dual node */
@@ -113,14 +124,20 @@ bool FFAnalyzer::SeqPrintLayer(int layer_id)
   for (int i = 0; i < Nd_; i++)
   {
     WF_edge *e = ptr_frame_->GetEdge(ptr_wholegraph_->e_orig_id(i));
+    assert(e);
     layers_[e->Layer()].push_back(e);
   }
 
-  fprintf(stderr, "Size of target layer %d is %d\n", layer_id, (int)layers_[layer_id].size());
+  for(const int& layer_id : layer_ids)
+  {
+    fprintf(stderr, "Size of target layer %d is %d\n", layer_id, (int)layers_[layer_id].size());
+  }
+
+  int min_tid = *std::min_element(layer_ids.begin(), layer_ids.end());
 
   bool bSuccess = true;
 
-  for(int l=0; l < layer_id; l++)
+  for(int l=0; l < min_tid; l++)
   {
     std::cout << "layer #" << l << std::endl;
 
@@ -133,39 +150,20 @@ bool FFAnalyzer::SeqPrintLayer(int layer_id)
       // update printed graph
       UpdateStructure(e, update_collision_);
 
-//      vector<vector<lld>> tmp_angle(3);
-//      UpdateStateMap(e, tmp_angle);
-
-//      if(layer_id - 1 == l)
-//      {
-        // only update state map for edges in target layer
-//      int Nd = layers_[layer_id].size();
-//
-//      for (int k = 0; k < Nd; k++)
-//      {
-//        WF_edge *ek = layers_[layer_id][k];
-//        int dual_k = ptr_wholegraph_->e_dual_id(ek->ID());
-//
-//        std::vector <lld> tmp(3);
-//        ptr_collision_->DetectCollision(ek, e, tmp);
-//        ptr_collision_->ModifyAngle(angle_state_[dual_k], tmp);
-//        }
-//      }
-
-      vector<vector<lld>> state_map(3);
-      int dual_i = ptr_wholegraph_->e_dual_id(e->ID());
-      int Nd = ptr_wholegraph_->SizeOfVertList();
-
-      for (int dual_j = 0; dual_j < Nd; dual_j++)
+      for(const int& layer_id : layer_ids)
       {
-        WF_edge * target_e = ptr_frame_->GetEdge(ptr_wholegraph_->e_orig_id(dual_j));
+        vector <vector<lld>> state_map(3);
+        int dual_i = ptr_wholegraph_->e_dual_id(e->ID());
 
-        if(layer_id == target_e->Layer())
+        for (int j = 0; j < layers_[layer_id].size(); j++)
         {
+          WF_edge* target_e = layers_[layer_id][j];
+          int dual_j = ptr_wholegraph_->e_dual_id(target_e->ID());
+
           // prune order_e's domain with target_e's existence
           // arc consistency pruning
-          vector<lld> tmp(3);
-          if(ptr_collision_->DetectCollision(target_e, e, tmp))
+          vector <lld> tmp(3);
+          if (ptr_collision_->DetectCollision(target_e, e, tmp))
           {
             for (int k = 0; k < 3; k++)
             {
@@ -175,8 +173,7 @@ bool FFAnalyzer::SeqPrintLayer(int layer_id)
             ptr_collision_->ModifyAngle(angle_state_[dual_j], tmp);
           }
         }
-      }
-
+      } // loop thru target layers
     }
   }
 
@@ -184,7 +181,7 @@ bool FFAnalyzer::SeqPrintLayer(int layer_id)
 
   int target_size = 0;
 
-  for(int lb = layer_id; lb < layer_id+1; lb++)
+  for(const int& lb : layer_ids)
   {
     // search in target layer
     int Nl = layers_[lb].size();
@@ -217,11 +214,19 @@ bool FFAnalyzer::SeqPrintLayer(int layer_id)
       max_base_dist_ = max(max_base_dist_, dist);
     }
 
-    if(!GenerateSeq(lb, h, t))
+    search_rerun_ = 0;
+    bSuccess = false;
+
+    while(!bSuccess && search_rerun_ < 2)
     {
-      fprintf(stderr,
-              "All possible start edge at layer %d has been tried but no feasible sequence is obtained.\n", lb);
-      bSuccess = false;
+      bSuccess = GenerateSeq(lb, h, t);
+      search_rerun_++;
+    }
+
+    if(!bSuccess)
+    {
+      ROS_ERROR("All possible start edge at layer %d has been tried but no feasible sequence is obtained after %d iterations.",
+                lb, search_rerun_);
       break;
     }
   }
@@ -295,10 +300,19 @@ bool FFAnalyzer::GenerateSeq(int l, int h, int t)
   }
 
   int cnt = 0;
+  WF_edge* prev_e = NULL;
+
   /* ranked by weight */
   for (it = choice.begin(); it != choice.end(); it++)
   {
-    WF_edge *ej = it->second;
+    if(print_queue_.size() > 0)
+    {
+      prev_e = print_queue_.back();
+    }
+
+//    WF_edge* ej = it->second;
+
+    WF_edge* ej = RouteEdgeDirection(prev_e, it->second);
     print_queue_.push_back(ej);
 
     /* update printed subgraph */
