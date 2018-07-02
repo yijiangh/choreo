@@ -3,6 +3,8 @@
 ===
 **Choreo: robotic motion planning platform for discrete architectural assembly**
 
+[![Build Status](https://travis-ci.org/yijiangh/Choreo.svg?branch=kinetic-devel)](https://travis-ci.org/yijiangh/Choreo)
+
 Currently we support ROS Kinetic on Ubuntu 16.04.
 
 **Author/Maintainer: [:globe_with_meridians: Yijiang Huang](http://web.mit.edu/yijiangh/www/ "Go to homepage")**
