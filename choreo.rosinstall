@@ -1,4 +1,4 @@
-- git: {local-name: framefab_mpp, uri: 'https://github.com/yijiangh/framefab_mpp.git', version: kinetic-devel}
+- git: {local-name: choreo, uri: 'https://github.com/yijiangh/Choreo', version: kinetic-devel}
 
 # ros industrial dependency
 - git: {local-name: industrial_core, uri: 'https://github.com/ros-industrial/industrial_core.git', version: kinetic-devel}
@@ -6,7 +6,7 @@
 # ros industrial robot dependency
 - git: {local-name: kuka_experimental, uri: 'https://github.com/ros-industrial/kuka_experimental.git', version: indigo-devel}
 
-- git: {local-name: kuka_experimental, uri: 'https://github.com/ros-industrial/abb.git', version: kinetic-devel}
+- git: {local-name: abb, uri: 'https://github.com/ros-industrial/abb.git', version: kinetic-devel}
 
 # descartes
 - git: {local-name: descartes, uri: 'https://github.com/yijiangh/descartes.git', version: yijiangh/graph}

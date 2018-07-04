@@ -17,13 +17,14 @@ compiler:
 notifications:
   email:
     on_failure: always
-    recipients:
-      - yijiangh@mit.edu
+#    recipients:
+#      - yijiangh@mit.edu
 
 env:
   matrix:
-    - USE_DEB=true  ROS_DISTRO="kinetic"   ROS_REPOSITORY_PATH=http://packages.ros.org/ros/ubuntu
-    - USE_DEB=true  ROS_DISTRO="kinetic"   ROS_REPOSITORY_PATH=http://packages.ros.org/ros-shadow-fixed/ubuntu
+#    - USE_DEB=true  ROS_DISTRO="kinetic"   ROS_REPOSITORY_PATH=http://packages.ros.org/ros/ubuntu
+#    - USE_DEB=true  ROS_DISTRO="kinetic"   ROS_REPOSITORY_PATH=http://packages.ros.org/ros-shadow-fixed/ubuntu
+		- ROS_DISTRO=kinetic  UPSTREAM_WORKSPACE=file  $ROSINSTALL_FILENAME="choreo.rosinstall"
 
 matrix:
   allow_failures:
