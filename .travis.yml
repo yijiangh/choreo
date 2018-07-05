@@ -16,14 +16,14 @@ compiler:
   - gcc
 notifications:
   email:
-		on_success: change
+    on_success: change
     on_failure: always
 #    recipients:
 #      - yijiangh@mit.edu
 
 env:
-	global:
-		- ROS_DISTRO=kinetic
+  global:
+    - ROS_DISTRO=kinetic
     - UPSTREAM_WORKSPACE=file
     - ROSINSTALL_FILENAME=choreo.rosinstall
     - NOT_TEST_INSTALL=true
