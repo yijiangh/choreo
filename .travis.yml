@@ -1,14 +1,3 @@
-# NOTE: The build lifecycle on Travis.ci is something like this:
-#    before_install
-#    install
-#    before_script
-#    script
-#    after_success or after_failure
-#    after_script
-#    OPTIONAL before_deploy
-#    OPTIONAL deploy
-#    OPTIONAL after_deploy
-
 sudo: required
 dist: trusty
 language: generic
@@ -16,10 +5,10 @@ compiler:
   - gcc
 notifications:
   email:
-    on_success: change
+    on_success: never
     on_failure: always
-#    recipients:
-#      - yijiangh@mit.edu
+    recipients:
+      - yijiangh@mit.edu
 
 env:
   global:
@@ -37,4 +26,3 @@ install:
 
 script:
   - source .ci_config/travis.sh
-#  - source ./travis.sh  # Enable this when you have a package-local script
