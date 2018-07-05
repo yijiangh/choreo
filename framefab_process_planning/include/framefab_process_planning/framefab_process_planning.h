@@ -4,7 +4,6 @@
 // service
 #include <framefab_msgs/ProcessPlanning.h>
 #include <framefab_msgs/MoveToTargetPose.h>
-#include <framefab_msgs/PickNPlacePlanning.h>
 
 // msg
 #include <framefab_msgs/ElementCandidatePoses.h>

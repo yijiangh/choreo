@@ -126,8 +126,6 @@ class FrameFabCoreService
   ros::ServiceClient move_to_pose_client_;
   ros::ServiceClient output_processing_client_;
 
-  ros::ServiceClient picknplace_planning_client_;
-
   // Actions offered by this class
   ros::NodeHandle nh_;
   actionlib::SimpleActionServer<framefab_msgs::TaskSequenceProcessingAction> task_sequence_processing_server_;

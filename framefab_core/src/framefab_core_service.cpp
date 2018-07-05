@@ -10,8 +10,6 @@
 #include <framefab_msgs/MoveToTargetPose.h>
 #include <framefab_msgs/OutputProcessing.h>
 
-#include <framefab_msgs/PickNPlacePlanning.h>
-
 // msgs
 #include <descartes_msgs/LadderGraphList.h>
 
@@ -143,8 +141,6 @@ bool FrameFabCoreService::init()
   process_planning_client_ = nh_.serviceClient<framefab_msgs::ProcessPlanning>(PROCESS_PLANNING_SERVICE);
   move_to_pose_client_  = nh_.serviceClient<framefab_msgs::MoveToTargetPose>(MOVE_TO_TARGET_POSE_SERVICE);
   output_processing_client_  = nh_.serviceClient<framefab_msgs::OutputProcessing>(OUTPUT_PROCESSING_SERVICE);
-
-  picknplace_planning_client_  = nh_.serviceClient<framefab_msgs::PickNPlacePlanning>(PICKNPLACE_PLANNING_SERVICE);
 
   // publishers
 

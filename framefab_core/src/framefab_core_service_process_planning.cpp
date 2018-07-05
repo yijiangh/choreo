@@ -9,7 +9,6 @@
 #include <framefab_msgs/ProcessPlanning.h>
 #include <framefab_msgs/MoveToTargetPose.h>
 #include <framefab_msgs/TaskSequencePlanning.h>
-#include <framefab_msgs/PickNPlacePlanning.h>
 
 bool FrameFabCoreService::generateMotionLibrary(
     const int selected_path_index, framefab_core_service::TrajectoryLibrary& traj_lib)
@@ -114,13 +113,6 @@ ProcessPlanResult FrameFabCoreService::generateProcessPlan(const int& selected_p
 
   return result;
 }
-
-//bool FrameFabCoreService::generatePicknPlaceMotionLibrary()
-//{
-//  framefab_msgs::PickNPlacePlanning srv;
-//
-//  return picknplace_planning_client_.call(srv);
-//}
 
 bool FrameFabCoreService::moveToTargetJointPose(std::vector<double> joint_pose)
 {
