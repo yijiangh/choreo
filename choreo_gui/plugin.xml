@@ -1,0 +1,9 @@
+<library path="lib/libchoreo_gui">
+  <class  name="choreo_gui/ChoreoPanel"
+          type="choreo_gui::ChoreoPanel"
+          base_class_type="rviz::Panel">
+    <description>
+			A panel widget that can be used in an rviz instance for choreo application
+    </description>
+  </class>
+</library>

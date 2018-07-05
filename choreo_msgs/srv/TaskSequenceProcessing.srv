@@ -1,0 +1,25 @@
+# TODO: this action param should be included in model input params
+int32 SPATIAL_EXTRUSION=1
+int32 PICKNPLACE=2
+
+# process types
+int32 action
+
+choreo_msgs/ModelInputParameters model_params
+choreo_msgs/TaskSequenceInputParameters task_sequence_params
+
+string world_frame
+
+---
+
+#result
+bool succeeded
+
+choreo_msgs/AssemblySequencePickNPlace assembly_sequence_pnp
+
+# DEPRECATED
+# parsed squenced element for 3D printing
+choreo_msgs/ElementCandidatePoses[] process
+
+# working env objects
+moveit_msgs/CollisionObject[] env_collision_objs

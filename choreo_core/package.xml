@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>choreo_core</name>
+  <version>0.1.0</version>
+  
+  <description>
+    this package is the central monitoring node that connects
+    Choreo's specialized packages together. It receives requests from UI
+    package and dispatch / receive computation request to responsible packages.
+  </description>
+
+  <author email="yijiangh@mit.edu">Yijiang Huang</author>
+  <maintainer email="yijiangh@mit.edu">Yijiang Huang</maintainer>
+  
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  
+  <depend>roscpp</depend>
+  <depend>sensor_msgs</depend>
+  <depend>interactive_markers</depend>
+  <depend>moveit_ros_planning_interface</depend>
+  <depend>tf</depend>
+  <depend>tf_conversions</depend>
+
+  <depend>choreo_msgs</depend>
+  <depend>descartes_msgs</depend>
+  <depend>visualization_msgs</depend>
+  <depend>choreo_param_helpers</depend>
+  <depend>choreo_planning_capability</depend>
+  <depend>choreo_visual_tools</depend>
+
+  <build_depend>moveit_ros_move_group</build_depend>
+
+</package>

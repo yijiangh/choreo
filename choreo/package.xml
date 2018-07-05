@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>choreo</name>
+  <version>0.0.0</version>
+  <description>The choreo metapackage</description>
+
+  <author email="yijiangh@mit.edu">Yijiang Huang</author>
+  <maintainer email="yijiangh@mit.edu">Yijiang Huang</maintainer>
+
+  <license>MIT</license>
+  <buildtool_depend>catkin</buildtool_depend>
+
+<!--	TODO: add all exe packages-->
+  <exec_depend>choreo_msgs</exec_depend>
+  <exec_depend>choreo_process_planning</exec_depend>
+
+  <export>
+    <metapackage/>
+  </export>
+</package>

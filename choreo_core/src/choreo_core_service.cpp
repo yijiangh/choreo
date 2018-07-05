@@ -1,0 +1,829 @@
+#include <choreo_core/choreo_core_service.h>
+
+#include <choreo_planning_capability/choreo_assembly_type_names.h>
+#include <choreo_param_helpers/choreo_param_helpers.h>
+
+//subscribed services
+#include <choreo_msgs/TaskSequenceProcessing.h>
+#include <choreo_msgs/TaskSequencePlanning.h>
+#include <choreo_msgs/ProcessPlanning.h>
+#include <choreo_msgs/MoveToTargetPose.h>
+#include <choreo_msgs/OutputProcessing.h>
+
+// msgs
+#include <descartes_msgs/LadderGraphList.h>
+
+// topics and services
+const static std::string SAVE_DATA_BOOL_PARAM = "save_data";
+const static std::string SAVE_LOCATION_PARAM = "save_location";
+
+// TODO: externalize tehse service name as ros params
+// provided services
+const static std::string FRAMEFAB_PARAMETERS_SERVICE = "choreo_parameters";
+const static std::string ELEMENT_NUMBER_REQUEST_SERVICE = "element_member_request";
+const static std::string VISUALIZE_SELECTED_PATH_SERVICE= "visualize_select_path";
+const static std::string GET_AVAILABLE_PROCESS_PLANS_SERVICE= "get_available_process_plans";
+const static std::string OUTPUT_PROCESS_PLANS_SERVICE= "output_process_plans";
+const static std::string QUERY_COMPUTATION_RESULT="query_computation_result";
+
+// subscribed services
+const static std::string TASK_SEQUENCE_PROCESSING_SERVICE = "task_sequence_processing";
+const static std::string TASK_SEQUENCE_PLANNING_SERVICE = "task_sequence_planning";
+const static std::string PROCESS_PLANNING_SERVICE = "process_planning";
+const static std::string MOVE_TO_TARGET_POSE_SERVICE = "move_to_target_pose";
+const static std::string OUTPUT_PROCESSING_SERVICE = "output_processing";
+
+const static std::string PICKNPLACE_PLANNING_SERVICE = "picknplace_planning";
+
+// Default filepaths and namespaces for caching stored parameters
+const static std::string MODEL_INPUT_PARAMS_FILE = "model_input_parameters.msg";
+const static std::string TASK_SEQUENCE_INPUT_PARAMS_FILE = "task_sequence_input_parameters.msg";
+const static std::string ROBOT_INPUT_PARAMS_FILE = "robot_input_parameters.msg";
+const static std::string OUTPUT_SAVE_DIR_INPUT_PARAMS_FILE = "output_save_dir_input_parameters.msg";
+
+// TODO: find a way for rviz to read these hard-coded markers_array topic name automatically
+// Visualization Maker topics
+const static std::string PATH_VISUAL_TOPIC = "path_visualization";
+const static std::string PRINT_BED_VISUAL_TOPIC = "print_bed_visualization";
+
+// TODO: externalize these action names as ros params
+// subscribed action server name - note: must be same to client's name
+const static std::string FRAMEFAB_EXE_ACTION_SERVER_NAME = "choreo_execution_as";
+const static std::string TASK_SEQUENCE_PROCESSING_ACTION_SERVER_NAME = "task_sequence_processing_action";
+const static std::string TASK_SEQUENCE_PLANNING_ACTION_SERVER_NAME = "task_sequence_planning_action";
+const static std::string PROCESS_PLANNING_ACTION_SERVER_NAME = "process_planning_action";
+
+// serving action
+const static std::string SIMULATE_MOTION_PLAN_ACTION_SERVER_NAME = "simulate_motion_plan_as";
+
+const static int PROCESS_EXE_BUFFER = 5;  // Additional time [s] buffer between when blending should end and timeout
+
+namespace
+{
+}// util namespace
+
+ChoreoCoreService::ChoreoCoreService()
+    : save_data_(false),
+      selected_task_id_(0),
+      assembly_type_(""),
+      choreo_exe_client_(FRAMEFAB_EXE_ACTION_SERVER_NAME, true),
+      task_sequence_processing_server_(nh_, TASK_SEQUENCE_PROCESSING_ACTION_SERVER_NAME,
+                                       boost::bind(&ChoreoCoreService::taskSequenceProcessingActionCallback, this, _1), false),
+      task_sequence_planning_server_(nh_, TASK_SEQUENCE_PLANNING_ACTION_SERVER_NAME,
+                                     boost::bind(&ChoreoCoreService::taskSequencePlanningActionCallback, this, _1), false),
+      process_planning_server_(nh_, PROCESS_PLANNING_ACTION_SERVER_NAME,
+                               boost::bind(&ChoreoCoreService::processPlanningActionCallback, this, _1), false),
+      simulate_motion_plan_server_(nh_, SIMULATE_MOTION_PLAN_ACTION_SERVER_NAME,
+                                   boost::bind(&ChoreoCoreService::simulateMotionPlansActionCallback, this, _1), false)
+{}
+
+bool ChoreoCoreService::init()
+{
+  ros::NodeHandle ph("~");
+
+  // loading parameters
+  // TODO: save location is default to $HOME/.ros/ now,
+  // should be oriented to some customized path
+
+//  ph.getParam(SAVE_DATA_BOOL_PARAM, save_data_);
+//  ph.getParam(SAVE_LOCATION_PARAM, save_location_);
+
+  // Load the 'prefix' that will be combined with parameters msg base names to save to disk
+  ph.param<std::string>("param_cache_prefix", param_cache_prefix_, "");
+  ph.param<std::string>("world_frame", world_frame_, "");
+
+  if (!this->loadModelInputParameters(param_cache_prefix_ + MODEL_INPUT_PARAMS_FILE))
+    ROS_WARN("Unable to load model input parameters.");
+
+  if (!this->loadTaskSequenceInputParameters(param_cache_prefix_ + TASK_SEQUENCE_INPUT_PARAMS_FILE))
+    ROS_WARN("Unable to load path input parameters.");
+
+  if (!this->loadRobotInputParameters(param_cache_prefix_ + ROBOT_INPUT_PARAMS_FILE))
+    ROS_WARN("Unable to load robot input parameters.");
+
+  if (!this->loadOutputSaveDirInputParameters(param_cache_prefix_ + OUTPUT_SAVE_DIR_INPUT_PARAMS_FILE))
+    ROS_WARN("Unable to load output path input parameters.");
+
+  // load plugins (if-need-be)
+
+  // TODO: save default parameters
+
+  // service servers
+  choreo_parameters_server_ =
+      nh_.advertiseService(FRAMEFAB_PARAMETERS_SERVICE,
+                           &ChoreoCoreService::choreoParametersServerCallback, this);
+
+  element_number_sequest_server_ =
+      nh_.advertiseService(ELEMENT_NUMBER_REQUEST_SERVICE,
+                           &ChoreoCoreService::elementNumberRequestServerCallback, this);
+
+  visualize_selected_path_server_ =
+      nh_.advertiseService(VISUALIZE_SELECTED_PATH_SERVICE,
+                           &ChoreoCoreService::visualizeSelectedPathServerCallback, this);
+
+  get_available_process_plans_server_ = nh_.advertiseService(
+      GET_AVAILABLE_PROCESS_PLANS_SERVICE, &ChoreoCoreService::getAvailableProcessPlansCallback, this);
+
+  output_process_plans_server_ = nh_.advertiseService(
+      OUTPUT_PROCESS_PLANS_SERVICE, &ChoreoCoreService::outputProcessPlansCallback, this);
+
+  query_computation_result_server_ = nh_.advertiseService(
+      QUERY_COMPUTATION_RESULT, &ChoreoCoreService::queryComputationResultCallback, this);
+
+  // start local instances
+  visual_tools_.init(world_frame_, PATH_VISUAL_TOPIC);
+
+  // start server
+
+  // service clients
+  task_sequence_processing_srv_client_ = nh_.serviceClient<choreo_msgs::TaskSequenceProcessing>(TASK_SEQUENCE_PROCESSING_SERVICE);
+  task_sequence_planning_srv_client_ = nh_.serviceClient<choreo_msgs::TaskSequencePlanning>(TASK_SEQUENCE_PLANNING_SERVICE);
+  process_planning_client_ = nh_.serviceClient<choreo_msgs::ProcessPlanning>(PROCESS_PLANNING_SERVICE);
+  move_to_pose_client_  = nh_.serviceClient<choreo_msgs::MoveToTargetPose>(MOVE_TO_TARGET_POSE_SERVICE);
+  output_processing_client_  = nh_.serviceClient<choreo_msgs::OutputProcessing>(OUTPUT_PROCESSING_SERVICE);
+
+  // publishers
+
+  // action servers
+  task_sequence_processing_server_.start();
+  task_sequence_planning_server_.start();
+  process_planning_server_.start();
+  simulate_motion_plan_server_.start();
+
+  return true;
+}
+
+void ChoreoCoreService::run()
+{
+  ros::Duration loop_duration(1.0f);
+  while (ros::ok())
+  {
+    loop_duration.sleep();
+  }
+}
+
+bool ChoreoCoreService::loadModelInputParameters(const std::string & filename)
+{
+  using choreo_param_helpers::loadParam;
+  using choreo_param_helpers::loadBoolParam;
+
+  bool success = false;
+
+  success = choreo_param_helpers::fromFile(filename, model_input_params_);
+
+  if(!success)
+  {
+    // otherwise default to the parameter server
+    ros::NodeHandle nh("~/model_input");
+    success = loadParam(nh, "ref_pt_x", model_input_params_.ref_pt_x) &&
+        loadParam(nh, "ref_pt_y", model_input_params_.ref_pt_y) &&
+        loadParam(nh, "ref_pt_z", model_input_params_.ref_pt_z) &&
+        loadParam(nh, "unit_type", model_input_params_.unit_type) &&
+        loadParam(nh, "element_diameter", model_input_params_.element_diameter) &&
+        loadParam(nh, "shrink_length", model_input_params_.shrink_length);
+  }
+
+  return success;
+}
+
+
+void ChoreoCoreService::saveModelInputParameters(const std::string& filename)
+{
+  if (!choreo_param_helpers::toFile(filename, model_input_params_))
+  {
+    ROS_WARN_STREAM("Unable to save model input parameters to: " << filename);
+  }
+}
+
+bool ChoreoCoreService::loadTaskSequenceInputParameters(const std::string & filename)
+{
+  using choreo_param_helpers::loadParam;
+  using choreo_param_helpers::loadBoolParam;
+
+  if(choreo_param_helpers::fromFile(filename, task_sequence_input_params_))
+  {
+    return true;
+  }
+
+  // otherwise default to the parameter server
+  ros::NodeHandle nh("~/task_sequence_input");
+  return loadParam(nh, "file_path", task_sequence_input_params_.file_path);
+}
+
+void ChoreoCoreService::saveTaskSequenceInputParameters(const std::string & filename)
+{
+  if(!choreo_param_helpers::toFile(filename, task_sequence_input_params_))
+  {
+    ROS_WARN_STREAM("Unable to save path input parameters to: " << filename);
+  }
+}
+
+bool ChoreoCoreService::loadRobotInputParameters(const std::string & filename)
+{
+  using choreo_param_helpers::loadParam;
+  using choreo_param_helpers::loadBoolParam;
+
+  if(choreo_param_helpers::fromFile(filename, robot_input_params_))
+  {
+    return true;
+  }
+
+  // otherwise default to the parameter server
+  ros::NodeHandle nh("~/robot_input");
+  return loadParam(nh, "init_pose", robot_input_params_.init_pose);
+}
+
+void ChoreoCoreService::saveRobotInputParameters(const std::string& filename)
+{
+  if (!choreo_param_helpers::toFile(filename, robot_input_params_))
+  {
+    ROS_WARN_STREAM("Unable to save robot input parameters to: " << filename);
+  }
+}
+
+bool ChoreoCoreService::loadOutputSaveDirInputParameters(const std::string & filename)
+{
+  using choreo_param_helpers::loadParam;
+  using choreo_param_helpers::loadBoolParam;
+
+  if(choreo_param_helpers::fromFile(filename, output_save_dir_input_params_))
+  {
+    return true;
+  }
+
+  // otherwise default to the parameter server
+  ros::NodeHandle nh("~/output_save_dir_input");
+  return loadParam(nh, "file_path", output_save_dir_input_params_.file_path);
+}
+
+void ChoreoCoreService::saveOutputSaveDirInputParameters(const std::string & filename)
+{
+  if(!choreo_param_helpers::toFile(filename, output_save_dir_input_params_))
+  {
+    ROS_WARN_STREAM("Unable to save output path input parameters to: " << filename);
+  }
+}
+
+int ChoreoCoreService::checkSavedLadderGraphSize(const std::string& filename)
+{
+  descartes_msgs::LadderGraphList graph_list_msg;
+
+  if(choreo_param_helpers::fromFile(filename, graph_list_msg))
+  {
+    ROS_INFO_STREAM("[Core] saved ladder graph record found!");
+    return graph_list_msg.graph_list.size();
+  }
+  else
+  {
+    ROS_WARN_STREAM("[Core] NO saved ladder graph record found.");
+    return 0;
+  }
+}
+
+bool ChoreoCoreService::choreoParametersServerCallback(
+    choreo_msgs::ChoreoParameters::Request& req,
+    choreo_msgs::ChoreoParameters::Response& res)
+{
+  switch (req.action)
+  {
+    case choreo_msgs::ChoreoParameters::Request::GET_CURRENT_PARAMETERS:
+      res.model_params = model_input_params_;
+      res.task_sequence_params  = task_sequence_input_params_;
+      res.robot_params = robot_input_params_;
+      res.output_save_dir_params = output_save_dir_input_params_;
+      break;
+
+    case choreo_msgs::ChoreoParameters::Request::GET_DEFAULT_PARAMETERS:
+      res.model_params = default_model_input_params_;
+      res.task_sequence_params  = default_task_sequence_input_params_;
+      res.robot_params = default_robot_input_params_;
+      res.output_save_dir_params = default_output_save_dir_input_params_;
+      break;
+
+      // Update the current parameters in this service
+    case choreo_msgs::ChoreoParameters::Request::SET_PARAMETERS:
+    case choreo_msgs::ChoreoParameters::Request::SAVE_PARAMETERS:
+      model_input_params_ = req.model_params;
+      task_sequence_input_params_ = req.task_sequence_params;
+      robot_input_params_ = req.robot_params;
+      output_save_dir_input_params_ = req.output_save_dir_params;
+
+      if (req.action == choreo_msgs::ChoreoParameters::Request::SAVE_PARAMETERS)
+      {
+        this->saveModelInputParameters(param_cache_prefix_ + MODEL_INPUT_PARAMS_FILE);
+        this->saveTaskSequenceInputParameters(param_cache_prefix_ + TASK_SEQUENCE_INPUT_PARAMS_FILE);
+        this->saveRobotInputParameters(param_cache_prefix_ + ROBOT_INPUT_PARAMS_FILE);
+        this->saveOutputSaveDirInputParameters(param_cache_prefix_ + OUTPUT_SAVE_DIR_INPUT_PARAMS_FILE);
+      }
+
+      break;
+  }
+
+  res.succeeded = true;
+  return true;
+}
+
+bool ChoreoCoreService::elementNumberRequestServerCallback(
+    choreo_msgs::ElementNumberRequest::Request& req,
+    choreo_msgs::ElementNumberRequest::Response& res)
+{
+  switch (req.action)
+  {
+    case choreo_msgs::ElementNumberRequest::Request::REQUEST_ELEMENT_NUMBER:
+    {
+      // visualization before planning (path selection phase in UI)
+      // TODO: correct this as a unified request
+      // !!! TEMP DUMP FIX!
+      res.element_number =
+          visual_tools_.getPathArraySize() == 0 ? as_pnp_.element_number : visual_tools_.getPathArraySize();
+
+      res.grasp_nums.clear();
+      for(const auto& se : as_pnp_.sequenced_elements)
+      {
+        assert(se.grasps.size() > 0);
+        res.grasp_nums.push_back(se.grasps.size());
+      }
+
+      break;
+    }
+    case choreo_msgs::ElementNumberRequest::Request::REQUEST_SELECTED_TASK_NUMBER:
+    {
+      // for visualization after planning (plan selection phase in UI, visualize traj library)
+      res.element_number = selected_task_id_ + 1;
+
+      res.grasp_nums.clear();
+      for(const auto& se : as_pnp_.sequenced_elements)
+      {
+        assert(se.grasps.size() > 0);
+        res.grasp_nums.push_back(se.grasps.size());
+      }
+
+      break;
+    }
+    default:
+    {
+      res.element_number = 0;
+      ROS_ERROR_STREAM("Unknown parameter loading request in selection widget");
+      return false;
+    }
+  }
+
+  return true;
+}
+
+bool ChoreoCoreService::visualizeSelectedPathServerCallback(
+    choreo_msgs::VisualizeSelectedPath::Request& req,
+    choreo_msgs::VisualizeSelectedPath::Response& res)
+{
+  if(req.index != req.CLEAN_UP)
+  {
+    if(req.PICKNPLACE == req.assembly_type)
+    {
+      // TODO, get seq id and grasp id, trigger visualization, visualize_ee option
+      visual_tools_.visualizeSequencePickNPlaceUntil(req.index);
+      visual_tools_.visualizeGraspPickNPlace(req.index, req.grasp_id, req.visualize_ee);
+    }
+
+    if(req.SPATIAL_EXTRUSION == req.assembly_type)
+    {
+      // TODO: this is only used for spatial extrusion
+      visual_tools_.visualizePathUntil(req.index);
+      visual_tools_.visualizeFeasibleOrientations(req.index, true);
+    }
+
+    res.succeeded = true;
+  }
+  else
+  {
+    visual_tools_.cleanUpAllPaths();
+    res.succeeded = true;
+  }
+}
+
+bool ChoreoCoreService::getAvailableProcessPlansCallback(
+    choreo_msgs::GetAvailableProcessPlans::Request&,
+    choreo_msgs::GetAvailableProcessPlans::Response& res)
+{
+  typedef choreo_core_service::TrajectoryLibrary::TrajectoryMap::const_iterator MapIter;
+  for (MapIter it = trajectory_library_.get().begin(); it != trajectory_library_.get().end(); ++it)
+  {
+    res.names.push_back(it->first);
+  }
+  return true;
+}
+
+bool ChoreoCoreService::outputProcessPlansCallback(
+    choreo_msgs::OutputProcessPlans::Request& req,
+    choreo_msgs::OutputProcessPlans::Response& res)
+{
+  // call output_processing srv
+  choreo_msgs::OutputProcessing srv;
+
+  // fill in file_path
+  srv.request.file_path = output_save_dir_input_params_.file_path;
+
+  // fill in plans
+  for(auto id : req.names)
+  {
+    if (trajectory_library_.get().find(id) == trajectory_library_.get().end())
+    {
+      ROS_ERROR_STREAM("Plan #" << id << " does not exist. Cannot output.");
+      return false;
+    }
+    else
+    {
+      srv.request.plans.push_back(trajectory_library_.get()[id]);
+    }
+  }
+
+  if(!output_processing_client_.call(srv))
+  {
+    ROS_WARN_STREAM("[choreo_core_service] Unable to call output processing service");
+    return false;
+  }
+  else
+  {
+    return true;
+  }
+}
+
+bool ChoreoCoreService::queryComputationResultCallback(
+    choreo_msgs::QueryComputationRecord::Request &req,
+    choreo_msgs::QueryComputationRecord::Response &res)
+{
+  const int found_saved_graphs_size = checkSavedLadderGraphSize(req.file_name);
+
+  ROS_INFO_STREAM("[CORE] saved graph query - file name: " << req.file_name);
+
+  res.record_found = bool(found_saved_graphs_size);
+  res.found_record_size = found_saved_graphs_size;
+
+  return true;
+}
+
+void ChoreoCoreService::taskSequenceProcessingActionCallback(const choreo_msgs::TaskSequenceProcessingGoalConstPtr &goal_in)
+{
+  switch (goal_in->action)
+  {
+    // TODO: this action goal here should indicate what type of assembly process: picknplace, 3d extrusion, etc.
+    case choreo_msgs::TaskSequenceProcessingGoal::FIND_AND_PROCESS:
+    {
+      task_sequence_processing_feedback_.last_completed = "[Core] Recieved request to process task sequence plan\n";
+      task_sequence_processing_server_.publishFeedback(task_sequence_processing_feedback_);
+
+      // call task_sequence_processing srv
+      choreo_msgs::TaskSequenceProcessing srv;
+
+      // TODO: MAGIC SWITCH!!
+      // TODO: this process type should be a part of MODEL param
+      srv.request.action = srv.request.SPATIAL_EXTRUSION;
+//      srv.request.action = srv.request.PICKNPLACE;
+
+      srv.request.model_params = model_input_params_;
+      srv.request.task_sequence_params = task_sequence_input_params_;
+      srv.request.world_frame = world_frame_;
+
+      if(!task_sequence_processing_srv_client_.call(srv))
+      {
+        ROS_WARN_STREAM("[Core] Unable to call task sequence processing service or find saved task sequence.");
+        task_sequence_processing_feedback_.last_completed = "[Core] Failed to parse saved task sequence!\n";
+        task_sequence_processing_server_.publishFeedback(task_sequence_processing_feedback_);
+        task_sequence_processing_result_.succeeded = false;
+        task_sequence_processing_server_.setAborted(task_sequence_processing_result_);
+      }
+      else
+      {
+        // take srv output, save them
+        task_sequence_processing_feedback_.last_completed = "Finished task sequence processing. Visualizing...\n";
+        task_sequence_processing_server_.publishFeedback(task_sequence_processing_feedback_);
+
+        if(srv.request.PICKNPLACE == srv.request.action)
+        {
+          // TODO: insert new setData function for visual tools here
+          visual_tools_.setAssemblySequencePickNPlace(srv.response.assembly_sequence_pnp);
+          visual_tools_.visualizeAllSequencePickNPlace();
+
+          as_pnp_ = srv.response.assembly_sequence_pnp;
+
+          task_sequence_processing_result_.assembly_type = as_pnp_.assembly_type;
+
+          // set core service's assembly type
+          assembly_type_ = choreo::ASSEMBLY_TYPE_PICKNPLACE;
+        }
+
+        if(srv.request.SPATIAL_EXTRUSION == srv.request.action)
+        {
+          // TODO: this is kept here for archive, should be made compatible to new json data type and visualizer
+          // import data into visual_tools (data initialization)
+          visual_tools_.setProcessPath(srv.response.process);
+          visual_tools_.visualizeAllPaths();
+
+          // save the parsed data to class variables (later used in generateProcessPlan call)
+          task_sequence_ = srv.response.process;
+          env_objs_ = srv.response.env_collision_objs;
+
+          // TODO: this is hardcoded temporarily
+          task_sequence_processing_result_.assembly_type = choreo::ASSEMBLY_TYPE_SPATIAL_EXTRUSION;
+
+          assembly_type_ = choreo::ASSEMBLY_TYPE_SPATIAL_EXTRUSION;
+        }
+
+        task_sequence_processing_result_.succeeded = true;
+
+        task_sequence_processing_server_.setSucceeded(task_sequence_processing_result_);
+      }
+      break;
+    }
+    default:
+    {
+      // NOT SUPPORTING OTHER ACTION GOAL NOW
+      ROS_ERROR_STREAM("Unknown action code '" << goal_in->action << "' request");
+      task_sequence_processing_result_.succeeded = false;
+      task_sequence_processing_server_.setAborted(task_sequence_processing_result_);
+      break;
+    }
+  }
+}
+
+void ChoreoCoreService::taskSequencePlanningActionCallback(const choreo_msgs::TaskSequencePlanningGoalConstPtr &goal_in)
+{
+  task_sequence_planning_feedback_.last_completed = "[Core] Recieved request to process task sequence plan\n";
+  task_sequence_planning_server_.publishFeedback(task_sequence_planning_feedback_);
+
+  // TODO: not supporting seq planning for picknplace
+  // call task_sequence_planning srv
+  choreo_msgs::TaskSequencePlanning srv;
+  srv.request.action = srv.request.READ_WIREFRAME;
+  srv.request.model_params = model_input_params_;
+  srv.request.task_sequence_params = task_sequence_input_params_;
+
+  if(!task_sequence_planning_srv_client_.call(srv))
+  {
+    ROS_WARN_STREAM("[Core] task sequence planning service read wireframe failed.");
+    task_sequence_planning_feedback_.last_completed = "[Core] task sequence planning service read wireframe failed!\n";
+    task_sequence_planning_server_.publishFeedback(task_sequence_planning_feedback_);
+    task_sequence_planning_result_.succeeded = false;
+    task_sequence_planning_server_.setAborted(task_sequence_planning_result_);
+  }
+  else
+  {
+    // import data into visual_tools
+    visual_tools_.setVisualWireFrame(srv.response.element_array);
+
+    visual_tools_.visualizeAllWireFrame();
+
+    srv.request.action = srv.request.TASK_SEQUENCE_SEARCHING;
+
+    if (!task_sequence_planning_srv_client_.call(srv))
+    {
+      ROS_WARN_STREAM("[Core] task sequence planning service seq search failed.");
+      task_sequence_planning_feedback_.last_completed =
+          "[Core] task sequence planning service read seq search failed!\n";
+      task_sequence_planning_server_.publishFeedback(task_sequence_planning_feedback_);
+      task_sequence_planning_result_.succeeded = false;
+      task_sequence_planning_server_.setAborted(task_sequence_planning_result_);
+    }
+    else
+    {
+      // take srv output, save them
+      task_sequence_planning_feedback_.last_completed = "Finished task sequence planning.\n";
+      task_sequence_planning_server_.publishFeedback(task_sequence_planning_feedback_);
+
+      task_sequence_planning_result_.succeeded = true;
+      task_sequence_planning_server_.setSucceeded(task_sequence_planning_result_);
+    }
+  }
+}
+
+void ChoreoCoreService::processPlanningActionCallback(const choreo_msgs::ProcessPlanningGoalConstPtr &goal_in)
+{
+  switch (goal_in->action)
+  {
+    case choreo_msgs::ProcessPlanningGoal::GENERATE_MOTION_PLAN_AND_PREVIEW:
+    {
+      process_planning_feedback_.last_completed = "Recieved request to generate motion plan\n";
+      process_planning_server_.publishFeedback(process_planning_feedback_);
+
+      selected_task_id_ = goal_in->index;
+      use_saved_graph_ = goal_in->use_saved_graph;
+
+      // reset Robot's pose to init pose
+      if(!moveToTargetJointPose(robot_input_params_.init_pose))
+      {
+        process_planning_feedback_.last_completed = "Reset to init robot's pose planning & execution failed\n";
+        process_planning_server_.publishFeedback(process_planning_feedback_);
+        process_planning_result_.succeeded = false;
+        process_planning_server_.setAborted(process_planning_result_);
+        return;
+      }
+
+      visual_tools_.cleanUpAllPaths();
+
+      if(choreo::ASSEMBLY_TYPE_PICKNPLACE == assembly_type_)
+      {
+        assert(as_pnp_.sequenced_elements.size() > 0);
+        visual_tools_.visualizeSequencePickNPlaceUntil(goal_in->index);
+      }
+
+      if(choreo::ASSEMBLY_TYPE_SPATIAL_EXTRUSION == assembly_type_)
+      {
+        // TODO: this is only used for spatial extrusion
+        visual_tools_.visualizePathUntil(goal_in->index);
+        visual_tools_.visualizeFeasibleOrientations(goal_in->index, false);
+      }
+
+      bool success = generateMotionLibrary(goal_in->index, trajectory_library_);
+
+      if(success)
+      {
+        process_planning_feedback_.last_completed = "Finished planning. Visualizing...\n";
+        process_planning_server_.publishFeedback(process_planning_feedback_);
+        process_planning_result_.succeeded = true;
+        process_planning_server_.setSucceeded(process_planning_result_);
+
+        return;
+      }
+      else
+      {
+        process_planning_feedback_.last_completed = "Process Planning action failed.\n";
+        process_planning_server_.publishFeedback(process_planning_feedback_);
+        process_planning_result_.succeeded = false;
+        process_planning_server_.setAborted(process_planning_result_);
+      }
+      break;
+    }
+    default:
+    {
+      ROS_ERROR_STREAM("[Core] Unknown action code '" << goal_in->action << "' request");
+      break;
+    }
+  }
+}
+
+//namespace{
+//void appendTrajectoryHeaders(const trajectory_msgs::JointTrajectory &orig_traj,
+//                             trajectory_msgs::JointTrajectory &traj,
+//                             const double sim_time_scale)
+//{
+//  traj.joint_names = orig_traj.joint_names;
+//  traj.header.frame_id = orig_traj.header.frame_id;
+//  traj.header.stamp = orig_traj.header.stamp + orig_traj.points.back().time_from_start;
+//
+//  // set time_from_start relative to first point
+//  ros::Duration base_time = traj.points[0].time_from_start;
+//
+//  for (int i = 0; i < traj.points.size(); i++)
+//  {
+//    traj.points[i].time_from_start -= base_time;
+//
+//    //sim speed tuning
+//    traj.points[i].time_from_start *= sim_time_scale;
+//  }
+//}
+//}
+//
+//void ChoreoCoreService::adjustSimSpeed(double sim_speed)
+//{
+//  // global time_stamp rescale
+//  trajectory_msgs::JointTrajectory last_filled_jts = trajectory_library_.get().begin()->second.sub_process_array[0].joint_array;
+//
+//  // shift first jts array
+//  for (int i = 0; i < last_filled_jts.points().size(); i++)
+//  {
+//    last_filled_jts.points[i].time_from_start *= sim_speed;
+//  }
+//
+//  // inline function for append trajectory headers (adjust time frame)
+//  void adjustTrajectoryHeaders = [sim_speed](trajectory_msgs::JointTrajectory& last_filled_jts, choreo_msgs::SubProcess& sp)
+//  {
+//    appendTrajectoryHeaders(last_filled_jts, sp.joint_array, sim_speed);
+//    last_filled_jts = sp.joint_array;
+//  };
+//
+//  for(auto it = trajectory_library_.get().begin(); it != trajectory_library_.get().end(); ++it)
+//  {
+//    for (size_t j = 0; j < it->second.sub_process_array.size(); j++)
+//    {
+//      adjustTrajectoryHeaders(last_filled_jts, it->second.sub_process_array[j]);
+//    }
+//  }
+//}
+
+void ChoreoCoreService::simulateMotionPlansActionCallback(const choreo_msgs::SimulateMotionPlanGoalConstPtr& goal_in)
+{
+  switch (goal_in->action)
+  {
+    case choreo_msgs::SimulateMotionPlanGoal::RESET_TO_DEFAULT_POSE:
+    {
+      if (!moveToTargetJointPose(robot_input_params_.init_pose))
+      {
+        ROS_ERROR("[Core] Reset to init robot's pose planning & execution failed");
+        simulate_motion_plan_result_.code = choreo_msgs::SimulateMotionPlanResult::RESET_POSE_FAIL;
+        simulate_motion_plan_server_.setAborted(simulate_motion_plan_result_);
+      }
+      else
+      {
+        simulate_motion_plan_result_.code = choreo_msgs::SimulateMotionPlanResult::SUCCESS;
+        simulate_motion_plan_server_.setSucceeded(simulate_motion_plan_result_);
+      }
+
+      break;
+    }
+    case choreo_msgs::SimulateMotionPlanGoal::SINGLE_PATH_RUN:
+    case choreo_msgs::SimulateMotionPlanGoal::ALL_PATHS_UNTIL_SELECTED_RUN:
+    {
+      std::string lib_sort_id = std::to_string(goal_in->index);
+
+      // If plan does not exist, abort and return
+      if (trajectory_library_.get().find(lib_sort_id) == trajectory_library_.get().end())
+      {
+        ROS_WARN_STREAM("[Core] Motion plan #" << lib_sort_id << " does not exist. Cannot execute.");
+        simulate_motion_plan_result_.code = choreo_msgs::SimulateMotionPlanResult::NO_SUCH_NAME;
+        simulate_motion_plan_server_.setAborted(simulate_motion_plan_result_);
+        return;
+      }
+      else
+      {
+        ROS_INFO_STREAM("[Core] Motion plan #" << lib_sort_id << " found");
+      }
+
+      if (0 == goal_in->index)
+      {
+        // reset Robot's pose to init pose
+        if (!moveToTargetJointPose(robot_input_params_.init_pose))
+        {
+          ROS_ERROR("[Core] Reset to init robot's pose planning & execution failed");
+          simulate_motion_plan_result_.code = choreo_msgs::SimulateMotionPlanResult::RESET_POSE_FAIL;
+          simulate_motion_plan_server_.setAborted(simulate_motion_plan_result_);
+        }
+      }
+
+      // Send command to execution server
+      choreo_msgs::ProcessExecutionGoal goal;
+      ros::Duration process_time(0);
+
+      for (auto sp : trajectory_library_.get()[lib_sort_id].sub_process_array)
+      {
+        goal.joint_traj_array.push_back(sp.joint_array);
+        process_time += sp.joint_array.points.back().time_from_start;
+      }
+
+      goal.wait_for_execution = goal_in->wait_for_execution;
+      goal.simulate = goal_in->simulate;
+
+      // communicating with choreo execution gatekeeper server
+      actionlib::SimpleActionClient <choreo_msgs::ProcessExecutionAction> *exe_client = &choreo_exe_client_;
+      exe_client->sendGoal(goal);
+
+//  ros::Duration process_time(goal.joint_traj_array.back().points.back().time_from_start);
+      ros::Duration buffer_time(PROCESS_EXE_BUFFER);
+
+      if(choreo::ASSEMBLY_TYPE_PICKNPLACE == assembly_type_)
+      {
+        visual_tools_.visualizeSequencePickNPlaceUntil(goal_in->index);
+      }
+
+      if(choreo::ASSEMBLY_TYPE_SPATIAL_EXTRUSION == assembly_type_)
+      {
+        // TODO: this is only used for spatial extrusion
+        visual_tools_.visualizePathUntil(goal_in->index);
+      }
+
+      ROS_INFO_STREAM("[Core] Simulation time: " << process_time);
+
+      if (exe_client->waitForResult(process_time + buffer_time))
+      {
+        simulate_motion_plan_result_.code = choreo_msgs::SimulateMotionPlanResult::SUCCESS;
+        simulate_motion_plan_server_.setSucceeded(simulate_motion_plan_result_);
+      }
+      else
+      {
+        simulate_motion_plan_result_.code = choreo_msgs::SimulateMotionPlanResult::TIMEOUT;
+        simulate_motion_plan_server_.setAborted(simulate_motion_plan_result_);
+      }
+
+      break;
+    }
+    default:
+    {
+      ROS_ERROR_STREAM("[Core] Unknown action code for SimulateMotionPlan " << goal_in->action << "' request");
+      break;
+    }
+  }
+}
+
+int main(int argc, char** argv)
+{
+  ros::init(argc, argv, "choreo_core_service");
+  ros::AsyncSpinner spinner(4);
+  spinner.start();
+  ChoreoCoreService core_srv;
+
+  if (core_srv.init())
+  {
+    ROS_INFO("[Core] choreo core service online.");
+    core_srv.run();
+  }
+
+  ros::waitForShutdown();
+}

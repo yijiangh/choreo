@@ -1,0 +1,23 @@
+# Goal
+int32 FIND_AND_PROCESS=0
+
+# action specification, see enumeration above
+int32 action
+
+bool use_default_parameters
+choreo_msgs/ModelInputParameters model_params
+choreo_msgs/TaskSequenceInputParameters task_sequence_params
+
+---
+
+#Result
+
+# make sure that path_post_processor works normally
+bool succeeded
+
+string assembly_type
+
+---
+
+# Feedback
+string last_completed

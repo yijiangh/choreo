@@ -14,8 +14,8 @@
 // For visualizing things in rviz
 #include <moveit_visual_tools/moveit_visual_tools.h>
 
-#include <framefab_msgs/ElementCandidatePoses.h>
-#include <framefab_msgs/AssemblySequencePickNPlace.h>
+#include <choreo_msgs/ElementCandidatePoses.h>
+#include <choreo_msgs/AssemblySequencePickNPlace.h>
 
 namespace choreo_visual_tools
 {
@@ -42,7 +42,7 @@ struct VisualUnitProcessPath
 
 class ChoreoVisualTools
 {
-  typedef std::vector<framefab_msgs::ElementCandidatePoses> PathArray;
+  typedef std::vector<choreo_msgs::ElementCandidatePoses> PathArray;
   typedef std::vector<choreo_visual_tools::VisualUnitProcessPath> VisualPathArray;
 
  public:
@@ -98,7 +98,7 @@ class ChoreoVisualTools
 
   // PICKNPLACE
   //
-  void setAssemblySequencePickNPlace(const framefab_msgs::AssemblySequencePickNPlace& as_pnp) { as_pnp_ = as_pnp; }
+  void setAssemblySequencePickNPlace(const choreo_msgs::AssemblySequencePickNPlace& as_pnp) { as_pnp_ = as_pnp; }
 
   void visualizeSequencePickNPlaceUntil(int index);
 
@@ -127,7 +127,7 @@ class ChoreoVisualTools
   VisualPathArray visual_path_array_;
 
   // TODO: should try to make two assembly type's function unites under one scheme
-  framefab_msgs::AssemblySequencePickNPlace as_pnp_;
+  choreo_msgs::AssemblySequencePickNPlace as_pnp_;
 
   // Pointer to the robot model
   moveit::core::RobotModelConstPtr robot_model_;
