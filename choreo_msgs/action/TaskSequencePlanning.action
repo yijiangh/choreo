@@ -1,0 +1,16 @@
+
+# action specification, see enumeration above
+# int32 action
+
+choreo_msgs/ModelInputParameters model_params
+choreo_msgs/TaskSequenceInputParameters task_sequence_params
+
+---
+
+#Result
+bool succeeded
+
+---
+
+# Feedback
+string last_completed

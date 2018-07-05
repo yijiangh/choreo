@@ -13,7 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   tf_conversions
   visualization_msgs
-  framefab_msgs
+  choreo_msgs
 )
 
 find_package(Eigen3 REQUIRED)
@@ -28,7 +28,7 @@ catkin_package(
     moveit_core
     geometry_msgs
     visualization_msgs
-    framefab_msgs
+    choreo_msgs
   INCLUDE_DIRS include
 )
 

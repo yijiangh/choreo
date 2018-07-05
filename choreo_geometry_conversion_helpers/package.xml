@@ -7,7 +7,7 @@
 
   <maintainer email="yijiangh@mit.edu">Yijiang Huang</maintainer>
 
-  <license>BSD</license>
+  <license>MIT</license>
 
   <author email="yijiangh@mit.edu">Yijiang Huang</author>
 
@@ -20,6 +20,6 @@
   <depend>geometry_msgs</depend>
   <depend>shape_msgs</depend>
   <depend>moveit_msgs</depend>
-  <depend>framefab_msgs</depend>
+  <depend>choreo_msgs</depend>
 
 </package>

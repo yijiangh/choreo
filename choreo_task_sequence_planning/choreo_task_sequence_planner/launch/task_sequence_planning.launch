@@ -1,0 +1,15 @@
+<launch>
+  <arg name="world_frame"/>
+  <arg name="hotend_group"/>
+  <arg name="hotend_tcp"/>
+	<arg name="hotend_base"/>
+  <arg name="robot_model_plugin"/>
+
+  <node name="choreo_task_sequence_planner" pkg="choreo_task_sequence_planner" type="choreo_task_sequence_planner_node" output="screen">
+    <param name="world_frame" value="$(arg world_frame)"/>
+    <param name="hotend_group" value="$(arg hotend_group)"/>
+    <param name="hotend_tcp" value="$(arg hotend_tcp)"/>
+		<param name="hotend_base" value="$(arg hotend_base)"/>
+    <param name="robot_model_plugin" value="$(arg robot_model_plugin)"/>
+  </node>
+</launch>

@@ -1,0 +1,20 @@
+int32 READ_WIREFRAME=0
+int32 TASK_SEQUENCE_SEARCHING=1
+int32 REQUEST_COLLISION_OBJS=2
+
+int32 action
+
+choreo_msgs/ModelInputParameters model_params
+choreo_msgs/TaskSequenceInputParameters task_sequence_params
+
+choreo_msgs/ElementCandidatePoses[] element_array
+
+---
+
+# save result
+bool succeeded
+
+choreo_msgs/ElementCandidatePoses[] element_array
+
+# partially shrinked collision objs
+choreo_msgs/WireFrameCollisionObject[] wf_collision_objs

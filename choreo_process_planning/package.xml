@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>choreo_process_planning</name>
+  <version>0.1.0</version>
+  <description>
+    The process planning package handles joint trajectory planning.
+  </description>
+
+  <maintainer email="yijiangh@mit.edu">Yijiang Huang</maintainer>
+  <author email="yijiangh@mit.edu">Yijiang Huang</author>
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>descartes_core</depend>
+  <depend>descartes_moveit</depend>
+  <depend>descartes_trajectory</depend>
+  <depend>descartes_parser</depend>
+  <depend>descartes_planner</depend>
+  <depend>choreo_descartes_planner</depend>
+
+  <depend>choreo_msgs</depend>
+  <depend>moveit_msgs</depend>
+
+  <depend>geometric_shapes</depend>
+  <depend>moveit_core</depend>
+  <depend>moveit_ros_planning_interface</depend>
+  <depend>roscpp</depend>
+
+  <depend>rviz_visual_tools</depend>
+
+  <depend>choreo_planning_capability</depend>
+  <depend>choreo_param_helpers</depend>
+  <depend>choreo_geometry_conversion_helpers</depend>
+  <depend>eigen_conversions</depend>
+
+</package>

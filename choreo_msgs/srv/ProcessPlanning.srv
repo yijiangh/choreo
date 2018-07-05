@@ -1,0 +1,39 @@
+string assembly_type
+
+int32 ALL=-1
+
+# selected task id
+int32 index
+
+# toggle for serializing saved ladder graph
+# and skip the lengthy CLT-RRT computation
+bool use_saved_graph
+
+string file_name
+
+float64 clt_rrt_unit_process_timeout
+
+float64 clt_rrt_timeout
+
+## only for spatial extrusion
+#########################
+# TODO: maybe remove these two collision object as we can configure from stl?
+# working env collision objs
+moveit_msgs/CollisionObject[] env_collision_objs
+
+# sequenced collision objs
+choreo_msgs/WireFrameCollisionObject[] wf_collision_objs
+
+# TODO: consider merging this to the new assembly sequence msg
+# the actual path the tool will follow
+choreo_msgs/ElementCandidatePoses[] task_sequence
+
+## only for picknplace
+#########################
+# TODO: consider as a more general replacement to the ElementCandidatePoses msg above
+choreo_msgs/AssemblySequencePickNPlace as_pnp
+
+---
+
+# computed process plan result
+choreo_msgs/UnitProcessPlan[] plan
