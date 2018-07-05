@@ -77,7 +77,7 @@ catkin_package(
 include_directories(
 	include
 	${catkin_INCLUDE_DIRS}
-	${GECODE_INCLUDE_DIRS}
+#	${GECODE_INCLUDE_DIRS}
 )
 
 set(${PROJECT_NAME}_UTILS_SRC_FILES
@@ -99,7 +99,7 @@ set(${PROJECT_NAME}_UTILS_SRC_FILES
 set(${PROJECT_NAME}_SEQUENCE_ANALYZERS_SRC_FILES
 	src/sequence_analyzers/FFAnalyzer.cpp
 	src/sequence_analyzers/SeqAnalyzer.cpp
-	src/sequence_analyzers/GecodeAnalyzer.cpp
+#	src/sequence_analyzers/GecodeAnalyzer.cpp
 	)
 
 set(${PROJECT_NAME}_OUTPUT_GENERATOR_SRC_FILES
@@ -118,7 +118,7 @@ add_library(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
 	${catkin_LIBRARIES}
 	${LAPACK_LIBRARIES}
-	${GECODE_LIBRARIES}
+#	${GECODE_LIBRARIES}
 	)
 
 add_executable(${PROJECT_NAME}_node

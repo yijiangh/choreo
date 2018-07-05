@@ -46,7 +46,7 @@
 #include "framefab_task_sequence_planner/utils/Stiffness.h"
 
 #include "framefab_task_sequence_planner/sequence_analyzers/FFAnalyzer.h"
-#include "framefab_task_sequence_planner/sequence_analyzers/GecodeAnalyzer.h"
+//#include "framefab_task_sequence_planner/sequence_analyzers/GecodeAnalyzer.h"
 
 #include "framefab_task_sequence_planner/output_generator/ProcAnalyzer.h"
 
