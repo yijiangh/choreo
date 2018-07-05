@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>choreo_gui</name>
+  <version>0.1.0</version>
+  <description>The choreo_gui package presents an alternative front end for the choreo
+    project that is focused on providing an easy to use, ATM-like interface for operating the system end to end.</description>
+
+  <maintainer email="yijiangh@mit.edu">Yijiang Huang</maintainer>
+  <author email="yijiangh@mit.edu">Yijiang Huang</author>
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>choreo_msgs</depend>
+  <depend>roscpp</depend>
+  <depend>rviz</depend>
+
+  <export>
+   <rviz plugin="${prefix}/plugin.xml"/>
+  </export>
+
+</package>

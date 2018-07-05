@@ -13,7 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
 	shape_msgs
 	moveit_msgs
-  framefab_msgs
+  choreo_msgs
 )
 
 find_package(Eigen3 REQUIRED)
@@ -31,7 +31,7 @@ catkin_package(
 		geometry_msgs
 	  shape_msgs
 		moveit_msgs
-	  framefab_msgs
+	  choreo_msgs
 	DEPENDS EIGEN3
 	INCLUDE_DIRS include
 )

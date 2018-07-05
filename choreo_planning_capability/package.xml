@@ -7,7 +7,7 @@
   </description>
 
   <maintainer email="yijiangh@mit.edu">Yijiang Huang</maintainer>
-  <license>Apache 2.0</license>
+  <license>MIT</license>
 
   <buildtool_depend>catkin</buildtool_depend>
 

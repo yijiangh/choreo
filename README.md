@@ -1,43 +1,32 @@
 
-[<img src="http://digitalstructures.mit.edu/theme/digistruct/images/digital-structures-logo-gray.svg" width="150">](http://digitalstructures.mit.edu/) Choreo
+Choreo
 ===
-**Choreo: robotic motion planning platform for discrete architectural assembly**
+**A robotic motion planning platform for discrete architectural assembly**
 
 [![Build Status](https://travis-ci.org/yijiangh/Choreo.svg?branch=kinetic-devel)](https://travis-ci.org/yijiangh/Choreo)
 
-Currently we support ROS Kinetic on Ubuntu 16.04.
+Currently we support [ROS-kinetic] on Ubuntu 16.04.
 
-**Author/Maintainer: [:globe_with_meridians: Yijiang Huang](http://web.mit.edu/yijiangh/www/ "Go to homepage")**
+[<img src="http://digitalstructures.mit.edu/theme/digistruct/images/digital-structures-logo-gray.svg" width="150">](http://digitalstructures.mit.edu/)
+&nbsp; &nbsp; &nbsp; &nbsp;
+[<img src="http://web.mit.edu/files/images/homepage/default/mit_logo.gif?v=1530763211" width="80">](http://web.mit.edu/)
 
 ## <img align="center" height="15" src="https://i.imgur.com/x1morBF.png"/> Installation
-- Install ROS-Kinetic on Ubuntu 16.04 
-    
-  Follow the instructions [here](http://wiki.ros.org/kinetic/Installation/Ubuntu)
 
-- Install [python_catkin_tools](http://catkin-tools.readthedocs.io/en/latest/index.html) to enable ```catkin build```.
-  ```bash
-  sudo apt-get install python-catkin-tools
-  ```
+### Build from source
 
-- Install [wstool](http://wiki.ros.org/wstool) for managing the repos inside the workspace
-  ```bash
-  sudo apt install python-wstool
-  ```
-
-- Install [moveit](http://moveit.ros.org/install/).
-  ```bash
-  sudo apt-get install ros-kinetic-moveit
-  ```
-
-- Install [moveit visual tools](https://github.com/ros-planning/moveit_visual_tools) for pose visualization.
-  ```bash
-  sudo apt-get install ros-kinetic-moveit-visual-tools 
-  ```
+| Name | Description | Install
+| --- | --- | --- |
+| [ROS-kinetic] | base ROS system on Ubuntu 16.04 | follow instruction [here](http://wiki.ros.org/kinetic/Installation/Ubuntu) |
+| [python_catkin_tools] | catkin build tool | ```sudo apt-get install python-catkin-tools``` |
+| [wstool] | workspace version control | ```sudo apt install python-wstool``` |
+| [moveit!] | The Moveit! motion planning framework | ```sudo apt-get install ros-kinetic-moveit``` |
+| [moveit visual tools] | visualization aids in rviz | ```sudo apt-get install ros-kinetic-moveit-visual-tools``` |
 
 - Cd into the 'src' directory of your catkin workspace (```~/catkin_ws/src``` in my case) and run the following:
   ```bash
   wstool init . 
-  wstool merge https://github.com/yijiangh/framefab_mpp/raw/kinetic-devel/framefab_mpp.rosinstall
+  wstool merge https://github.com/yijiangh/framefab_mpp/raw/kinetic-devel/choreo.rosinstall
   wstool update
   rosdep install --from-paths . --ignore-src
   ```
@@ -49,38 +38,17 @@ Currently we support ROS Kinetic on Ubuntu 16.04.
   source devel/setup.bash
   ```
 
+### Docker image
+
+Coming soon.
+
 ## <img align="center" height="15" src="https://i.imgur.com/x1morBF.png"/> Quick start demo
 
-To launch the application:
-```
-roslaunch framefab_kr6_r900_support kr6_r900_framefab.launch
-```
-We should be able to launch the app as the pciture below shows if everything goes smoothly:
-
-For the first launch, we should tell framefab_mpp where to locate the input model file:
-
-1. Click on ```Params``` Button.
-
-2. Click on ```Path Input``` Button.
-
-3. Click on ```input dir``` Button to choose input file path. For demonstration purpose, we offer two example files:
-simple_frame_result.json and bunny_result.json, located in ```~/catkin_ws/src/framefab_mpp/framefab_core/data```.[1]
-
-4. Click on ```Save``` button after selection for save and accept this file path. The saved file path will be automatically loaded unless you choose and save a new one following step 1 - 3. ```Accept``` button is used for one-shot entering: the entered file path will not be saved.
-
-5. Close the Params panel by clicking on the red cross icon of the window.
-
-6. Click on ```Next``` button to continue.
-
-You'll see this if you choosed simple_frame_result.json in step 3.The arrow shows the direction of the printing (start and end nodes). Blue elements are supporting elements (pillars). The reds are connecting elements (connecting two existed nodes). The blues are creating elements (one end of the element will be created).
-
-7. View the construction sequence by dragging the slider, clicking on the ```<``` and ```>``` button or entering desired number in the text box. Click on ```Plan``` button to tell the planner to plan until the index you choose or click on ```Select All``` to plan for all elements in the model. The Grey elements are printed elements in the chosen state. The transparent one is the one to be printed. The green lines at starting node indicate all the feasible orientations (computed by [framefab](https://github.com/yijiangh/FrameFab)) for end effector for printing the current element (transparent one).
-
-8. After planning is finished, click on ```Next``` to check the simulation.
-
-[1] Please note that the input file format here is a customized json format, generated by a sequence finding software [framefab](https://github.com/yijiangh/FrameFab). Integration of framefab into this package is still in progress.
+Coming soon.
 
 ## <img align="center" height="15" src="https://i.imgur.com/x1morBF.png"/> Code API
+
+Coming soon.
 
 ## <img align="center" height="15" src="https://i.imgur.com/dHQx91Q.png"/> Publications
 
@@ -89,3 +57,9 @@ Coming soon.
 ## <img align="center" height="15" src="https://i.imgur.com/H4NwgMg.png"/> Bugs & Feature Requests
 
 Please report bugs and request features using the [Issue Tracker](https://github.com/yijiangh/Choreo/issues).
+
+[ROS-kinetic]: http://wiki.ros.org/kinetic
+[python_catkin_tools]: http://catkin-tools.readthedocs.io/en/latest/index.html
+[wstool]: http://wiki.ros.org/wstool
+[moveit!]: http://moveit.ros.org/install/
+[moveit visual tools]: https://github.com/ros-planning/moveit_visual_tools

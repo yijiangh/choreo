@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>choreo_param_helpers</name>
+
+  <version>0.1.0</version>
+
+  <description>
+    This package implements routines for loading, saving, and checking for the
+    existence of user parameters. This package should work with only "include".
+  </description>
+
+  <maintainer email="yijiangh@mit.edu">Yijiang Huang</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>roscpp</depend>
+
+</package>

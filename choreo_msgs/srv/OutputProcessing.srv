@@ -1,0 +1,11 @@
+# from core_service to output_processor
+
+string file_path
+
+choreo_msgs/UnitProcessPlan[] plans
+
+---
+
+# result
+
+bool succeeded

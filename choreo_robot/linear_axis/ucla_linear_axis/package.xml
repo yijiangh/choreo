@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>ucla_linear_axis</name>
+  <version>0.1.0</version>
+  <description>
+    URDF robot description model for UCLA linear axis. Geometric model adapted from KUKA PRC UCLA linear axis component.
+  </description>
+
+  <maintainer email="yijiangh@mit.edu">Yijiang Huang</maintainer>
+
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <exec_depend>industrial_robot_client</exec_depend>
+
+</package>

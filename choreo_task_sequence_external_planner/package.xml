@@ -1,0 +1,21 @@
+<package format="2">
+  <name>choreo_task_sequence_external_planner</name>
+  <version>0.5.1</version>
+  <description>Python interface for external A.I. or constraint-based modeling packages and solvers behind them, e.g. Minizinc and stripstream.</description>
+
+  <author email="yijiangh@mit.edu">Yijiang Huang</author>
+  <maintainer email="yijiangh@mit.edu">Yijiang Huang</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>choreo_msgs</depend>
+  <depend>industrial_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>trajectory_msgs</depend>
+
+  <exec_depend>python-rospkg</exec_depend>
+  <exec_depend>rospy</exec_depend>
+
+</package>
