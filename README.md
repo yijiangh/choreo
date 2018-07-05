@@ -26,7 +26,7 @@ Currently we support [ROS-kinetic] on Ubuntu 16.04.
 - Cd into the 'src' directory of your catkin workspace (```~/catkin_ws/src``` in my case) and run the following:
   ```bash
   wstool init . 
-  wstool merge https://github.com/yijiangh/framefab_mpp/raw/kinetic-devel/framefab_mpp.rosinstall
+  wstool merge https://github.com/yijiangh/framefab_mpp/raw/kinetic-devel/choreo.rosinstall
   wstool update
   rosdep install --from-paths . --ignore-src
   ```
