@@ -52,7 +52,19 @@ Coming soon.
 
 ## <img align="center" height="15" src="https://i.imgur.com/dHQx91Q.png"/> Publications
 
-Coming soon.
+If you use this work, please consider citing as follows:
+
+    @incollection{huang2018robarch,
+      title={Robotic extrusion of architectural structures with nonstandard topology},
+      author={Huang, Yijiang and Carstensen, Josephine and Tessmer, Lavender and Mueller, Caitlin},
+      booktitle={Robotic Fabrication in Architecture, Art and Design 2018},
+      year={2018},
+      publisher={Springer}
+    }
+
+Applications of Choreo:
+
+- Spatial extrusion of Topology Optimized 3D Trusses, [paper link](http://web.mit.edu/yijiangh/www//papers/HuangCarstensenMueller_IASS2018.pdf)
 
 ## <img align="center" height="15" src="https://i.imgur.com/H4NwgMg.png"/> Bugs & Feature Requests
 
