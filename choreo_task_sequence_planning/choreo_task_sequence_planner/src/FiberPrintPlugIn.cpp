@@ -409,7 +409,7 @@ bool FiberPrintPlugIn::DirectSearch()
     ROS_INFO_STREAM("[TSP] Seq Analyzer init.");
 
     std::vector<int> target_ids;
-    for(int i = 37; i <= 39; i++)
+    for(int i = 35; i <= 53; i++)
     {
       target_ids.push_back(i);
     }
@@ -558,9 +558,9 @@ bool FiberPrintPlugIn::handleTaskSequencePlanning(
     }
     case choreo_msgs::TaskSequencePlanning::Request::TASK_SEQUENCE_SEARCHING:
     {
-      double Wp = 1.0;
-      double Wa = 1.0;
-      double Wi = 3.0;
+      double Wp = 0.0; // position cost Ep
+      double Wa = 1.0; // distance cost Ed
+      double Wi = 1.0; // collision cost Ec
 
       if(NULL != ptr_parm_)
       {

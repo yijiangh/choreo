@@ -27,13 +27,16 @@ const static rviz_visual_tools::colors POST_GRASP_POSE_COLOR = rviz_visual_tools
 const static rviz_visual_tools::colors END_EFFECTOR_COLOR = rviz_visual_tools::TRANSLUCENT_DARK;
 
 const static rviz_visual_tools::scales GRASP_POSE_ARROW_SIZE = rviz_visual_tools::XXXSMALL;
-const static rviz_visual_tools::scales WIREFRAME_SIZE = rviz_visual_tools::XSMALL;
+
+// TODO: should be moved to UI
+//******************
+const static rviz_visual_tools::scales WIREFRAME_SIZE = rviz_visual_tools::XXXSMALL;
+const static double VISUAL_DIAMETER_SCALE = 1;
+//******************
 
 const static std::string FILE_URL_PREFIX = "file://";
 
 const static Eigen::Affine3d ZERO_POSE = Eigen::Affine3d::Identity();
-
-const static double VISUAL_DIAMETER_SCALE = 10;
 
 // TODO: mesh scale should read from input model param
 // default millimeter
@@ -395,7 +398,7 @@ void choreo_visual_tools::ChoreoVisualTools::visualizeAllWireFrame()
     visual_tools_->publishCylinder(visual_path_array_[i].start_pt,
                                    visual_path_array_[i].end_pt,
                                    type_color,
-                                   visual_path_array_[i].diameter * VISUAL_DIAMETER_SCALE * 10);
+                                   visual_path_array_[i].diameter * VISUAL_DIAMETER_SCALE);
   }
 
   visual_tools_->trigger();

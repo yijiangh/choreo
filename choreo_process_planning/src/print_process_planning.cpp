@@ -40,7 +40,9 @@ bool ProcessPlanningManager::handlePrintPlanning(choreo_msgs::ProcessPlanning::R
   const static double LINEAR_VEL = 0.1; // (m/s)
   const static double RETRACT_DISTANCE = 0.010; // meters
 
-  const static double LINEAR_DISCRETIZATION = 0.005; // meters
+  // 0.005
+  const static double LINEAR_DISCRETIZATION = 0.05; // meters
+
   // the distance between angular steps about z for each orientationcreateCollisionObject
   const static double ANGULAR_DISCRETIZATION = PRINT_ANGLE_DISCRETIZATION; // radians
 

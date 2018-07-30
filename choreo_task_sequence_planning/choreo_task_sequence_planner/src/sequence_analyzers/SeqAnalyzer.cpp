@@ -730,6 +730,7 @@ bool SeqAnalyzer::TestRobotKinematics(WF_edge* e, const std::vector<lld>& colli_
     tf::pointMsgToEigen(frame_msgs_[e->ID()].start_pt, end_pt);
   }
 
+  // TODO: this disc should be exposed
   std::vector<Eigen::Vector3d> path_pts = discretizePositions(st_pt, end_pt, 0.005);
 
 //  ROS_INFO_STREAM("path pts size: " << path_pts.size());
