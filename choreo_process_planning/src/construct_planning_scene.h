@@ -7,6 +7,7 @@
 
 #include <choreo_msgs/AssemblySequencePickNPlace.h>
 #include <choreo_msgs/WireFrameCollisionObject.h>
+#include <choreo_msgs/UnitProcessPlan.h>
 
 #include <moveit_msgs/CollisionObject.h>
 #include <moveit_msgs/AttachedCollisionObject.h>
@@ -31,11 +32,18 @@ planning_scene::PlanningScenePtr constructPlanningScene(const planning_scene::Pl
 
 // TODO: should replace with a more general one, quickfix is an overload
 // overload for picknplace planning scene construction
-void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
-                                     const std::string& world_frame,
-                                     const choreo_msgs::AssemblySequencePickNPlace& as_pnp,
-                                     std::vector<std::vector<planning_scene::PlanningScenePtr>>& planning_scenes_transition,
-                                     std::vector<std::vector<planning_scene::PlanningScenePtr>>& planning_scenes_subprocess);
+void constructSubprocessPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
+                                       const std::string& world_frame,
+                                       const choreo_msgs::AssemblySequencePickNPlace& as_pnp,
+                                       std::vector<std::vector<planning_scene::PlanningScenePtr>>& planning_scenes_subprocess);
+
+void constructTransitionPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,
+                                       descartes_core::RobotModelPtr model,
+                                       const std::string& world_frame,
+                                       const choreo_msgs::AssemblySequencePickNPlace& as_pnp,
+                                       const std::vector <choreo_msgs::UnitProcessPlan>& plans,
+                                       const std::vector<std::vector<planning_scene::PlanningScenePtr>>& planning_scenes_subprocess,
+                                       std::vector<std::vector<planning_scene::PlanningScenePtr>>& planning_scenes_transition);
 
 // overload for spatial extrusion planning scene construction
 void constructPlanningScenes(moveit::core::RobotModelConstPtr moveit_model,

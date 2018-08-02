@@ -297,10 +297,11 @@ void transitionPlanningPickNPlace(std::vector <choreo_msgs::UnitProcessPlan> &pl
 
     // transition planning scenes' number
     // <transition> - <sub-process> - <transition> - <sub-process> -... - <sub-process>
-    assert(planning_scenes[i].size() == plans[i].sub_process_array.size());
+//    assert(planning_scenes[i].size() == plans[i].sub_process_array.size());
+
     std::vector<choreo_msgs::SubProcess> weaved_sub_process;
 
-    for (size_t j = 0; j < plans[i].sub_process_array.size(); j++)
+    for (size_t j = 0; j < plans[i].sub_process_array.size()/2; j++)
     {
       if(0 == j)
       {
@@ -312,10 +313,10 @@ void transitionPlanningPickNPlace(std::vector <choreo_msgs::UnitProcessPlan> &pl
       }
       else
       {
-        last_joint_pose = plans[i].sub_process_array[j-1].joint_array.points.back().positions;
+        last_joint_pose = plans[i].sub_process_array[j].joint_array.points.back().positions;
       }
 
-      current_first_joint_pose = plans[i].sub_process_array[j].joint_array.points.front().positions;
+      current_first_joint_pose = plans[i].sub_process_array[j*2].joint_array.points.front().positions;
 
       if (last_joint_pose != current_first_joint_pose)
       {
@@ -327,11 +328,6 @@ void transitionPlanningPickNPlace(std::vector <choreo_msgs::UnitProcessPlan> &pl
 
         moveit_msgs::ApplyPlanningScene srv;
         auto scene = planning_scenes[i][j]->diff();
-
-//      if (!scene_with_attached_eef->processAttachedCollisionObjectMsg(full_eef_collision_obj))
-//      {
-//        ROS_ERROR_STREAM("[Tr Planning] planning scene # " << i << "fails to add attached full eef collision geometry");
-//      }
 
         scene->getPlanningSceneMsg(srv.request.scene);
 
@@ -406,7 +402,8 @@ void transitionPlanningPickNPlace(std::vector <choreo_msgs::UnitProcessPlan> &pl
         weaved_sub_process.push_back(sub_process);
       }
 
-      weaved_sub_process.push_back(plans[i].sub_process_array[j]);
+      weaved_sub_process.push_back(plans[i].sub_process_array[j*2]);
+      weaved_sub_process.push_back(plans[i].sub_process_array[j*2+1]);
 
     } // end subprocess
 
@@ -672,10 +669,9 @@ bool generateMotionPlan(
   std::vector<std::vector<planning_scene::PlanningScenePtr>> planning_scenes_transition;
   std::vector<std::vector<planning_scene::PlanningScenePtr>> planning_scenes_subprocess;
 
-  constructPlanningScenes(moveit_model,
+  constructSubprocessPlanningScenes(moveit_model,
                           world_frame,
                           as_pnp,
-                          planning_scenes_transition,
                           planning_scenes_subprocess);
 
   // Step 2: CLT RRT* to solve process trajectory
@@ -693,8 +689,17 @@ bool generateMotionPlan(
   // skip retract planning for picknplace
 
 //  // Step 5 : Plan for transition between each pair of sequential path
+  // construct transition planning scene
+  // base on grasp pose choice (determine attached collision object's pose)
+  constructTransitionPlanningScenes(moveit_model,
+                                    model,
+                                    world_frame,
+                                    as_pnp,
+                                    plans,
+                                    planning_scenes_subprocess, planning_scenes_transition);
+
   transitionPlanningPickNPlace(plans, moveit_model, planning_scene_diff_client, move_group_name,
-                               start_state, planning_scenes_subprocess);
+                               start_state, planning_scenes_transition);
 
 //  // Step 7 : fill in trajectory's time headers and pack into sub_process_plans
 //  // for each unit_process (process id is added here too)

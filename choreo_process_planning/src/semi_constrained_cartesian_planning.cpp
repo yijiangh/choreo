@@ -23,7 +23,6 @@
 
 #include <descartes_planner/ladder_graph_dag_search_lazy_collision.h>
 #include <descartes_planner/ladder_graph_dag_search.h>
-#include <descartes_planner/dense_planner.h>
 #include <descartes_core/trajectory_pt.h>
 
 #include <moveit/planning_scene/planning_scene.h>
