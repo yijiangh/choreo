@@ -1,0 +1,64 @@
+<?xml version="1.0" ?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+	<xacro:property name="half_pi" value="1.5707963267948966"/>
+	<xacro:include filename="$(find simple_circular_axis)/urdf/resources/materials.xacro"/>
+
+	<xacro:macro name="simple_circular_axis" params="prefix">
+
+	<!--	Link list-->
+
+	<link name="${prefix}base_link">
+	  <visual>
+		<geometry>
+		  <mesh filename="package://simple_circular_axis/meshes/visual/simple_circular_axis_visual.stl" scale=".001 .001 .001"/>
+		</geometry>
+		<xacro:material_gudel_gray/>
+	  </visual>
+	  <collision>
+		<geometry>
+		  <mesh filename="package://simple_circular_axis/meshes/collision/simple_circular_axis_collision.stl" scale=".001 .001 .001"/>
+		</geometry>
+		<xacro:material_gudel_gray/>
+	  </collision>
+	</link>
+
+<!--  <link name="${prefix}carriage">-->
+<!--    <visual>-->
+<!--      <geometry>-->
+<!--        <mesh filename="package://ucla_linear_axis/meshes/visual/ucla_linear_axis_visual_carriage.stl" scale=".001 .001 .001"/>-->
+<!--      </geometry>-->
+<!--			<xacro:material_gudel_green/>-->
+<!--    </visual>-->
+<!--    <collision>-->
+<!--      <geometry>-->
+<!--        <mesh filename="package://ucla_linear_axis/meshes/collision/ucla_linear_axis_collision_carriage.stl" scale=".001 .001 .001"/>-->
+<!--      </geometry>-->
+<!--			<xacro:material_gudel_green/>-->
+<!--    </collision>-->
+<!--  </link>-->
+
+	<link name="${prefix}robot_mount"/>	
+	<link name="${prefix}circular_center"/>
+
+	<!--	End of link list-->
+
+	<!-- Joint list -->
+
+    <joint name="${prefix}circular_joint" type="revolute">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <parent link="${prefix}base_link"/>
+      <child link="${prefix}circular_center"/>
+      <axis xyz="0 0 1"/>
+      <limit effort="0" lower="0" upper="${4*half_pi}" velocity="${0.01*half_pi}"/>
+    </joint>
+
+    <joint name="${prefix}circular_center_to_robot_mount" type="fixed">
+      <origin xyz="1 0 0" rpy="0 0 ${-2*half_pi}"/>
+      <parent link="${prefix}circular_center"/>
+      <child link="${prefix}robot_mount"/>
+    </joint>
+
+	<!-- End of joint list -->
+
+	</xacro:macro>
+</robot>

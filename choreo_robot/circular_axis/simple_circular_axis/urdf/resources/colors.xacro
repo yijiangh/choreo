@@ -1,0 +1,33 @@
+<?xml version="1.0" ?>
+<robot  xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:property name="color_white" value="0.9 0.9 0.9 1.0"/>
+
+  <xacro:property name="color_black" value="0.05 0.05 0.05 1.0"/>
+
+  <xacro:property name="color_light_gray" value="0.4 0.4 0.4 1.0"/>
+
+  <xacro:property name="color_gray" value="0.3 0.3 0.3 1.0"/>
+
+  <xacro:property name="color_dark_gray" value="0.2 0.2 0.2 1.0"/>
+
+  <xacro:property name="color_red" value="1.0 0.0 0.0 1.0"/>
+
+  <xacro:property name="color_green" value="0.0 1.0 0.0 1.0"/>
+
+  <xacro:property name="color_blue" value="0.0 0.0 1.0 1.0"/>
+
+  <xacro:property name="color_yellow" value="0.0 1.0 1.0 1.0"/>
+
+  <xacro:property name="color_gudel_orange" value="${226/255} ${110/255} ${14/255} 1.0"/>
+
+  <xacro:property name="color_gudel_green" value="0.15 0.415 0.165 1.0"/>
+
+  <xacro:property name="color_gudel_gray" value="${197/255} ${199/255} ${196/255} 1.0"/>
+
+  <xacro:property name="color_tan" value="${232/255} ${208/255} ${169/255} 1.0"/>
+
+  <xacro:property name="color_silver" value="0.8 0.8 0.8 1.0"/>
+
+  <xacro:property name="color_pf_green" value="0.15 0.415 0.165 1.0"/>
+
+</robot>

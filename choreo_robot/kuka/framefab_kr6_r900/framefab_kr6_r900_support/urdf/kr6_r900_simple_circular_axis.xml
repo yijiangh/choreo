@@ -1,0 +1,6 @@
+<robot file="kr6_r900_simple_circular_axis.dae">
+  <Manipulator name="kr6_r900_simple_circular_axis">
+    <base>circular_axis_base_link</base>
+    <effector>robot_tool0</effector>
+  </Manipulator>
+</robot>

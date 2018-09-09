@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>simple_rotating_table</name>
+  <version>0.1.0</version>
+  <description>
+	a simple rotating table.
+  </description>
+
+  <maintainer email="yijiangh@mit.edu">Yijiang Huang</maintainer>
+
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <exec_depend>industrial_robot_client</exec_depend>
+
+</package>

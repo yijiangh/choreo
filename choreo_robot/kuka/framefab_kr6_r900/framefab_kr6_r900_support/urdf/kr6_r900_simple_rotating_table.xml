@@ -1,0 +1,6 @@
+<robot file="kr6_r900_simple_rotating_table.dae">
+  <Manipulator name="kr6_r900_simple_rotating_table">
+    <base>rotating_table_model_mount</base>
+    <effector>robot_tool0</effector>
+  </Manipulator>
+</robot>

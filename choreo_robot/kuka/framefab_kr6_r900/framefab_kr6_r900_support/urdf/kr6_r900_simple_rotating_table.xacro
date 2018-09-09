@@ -1,0 +1,45 @@
+<?xml version="1.0" ?>
+<robot name="kr6_r900_simple_rotating_table" xmlns:xacro="http://wiki.ros.org/xacro">
+
+	<xacro:property name="link3_mount_base_x" value="0.06762"/>
+	<xacro:property name="link3_mount_base_y" value="0.0"/>
+	<xacro:property name="link3_mount_base_z" value="0.0925"/>
+
+ 	<xacro:include filename="$(find kuka_kr6_support)/urdf/kr6r900sixx_macro.xacro"/>
+<!--	<xacro:include filename="$(find mit_arch_suction_gripper)/urdf/mit_arch_suction_gripper_macro.xacro"/>-->
+	<xacro:include filename="$(find asw_end_effector)/urdf/asw_eef_macro.xacro"/>
+	<xacro:include filename="$(find simple_rotating_table)/urdf/simple_rotating_table_macro.xacro"/>
+
+	<!-- instantiating arm  --> 
+	<xacro:kuka_kr6r900sixx prefix="robot_"/>
+	<!-- instantiating end effector  -->
+<!--	<xacro:suction_gripper prefix="eef_"/>-->
+	<xacro:asw_eef prefix="eef_"/>
+	<!-- instantiating workspace  -->
+	<xacro:simple_rotating_table prefix="rotating_table_"/>
+
+	<link name="base_link"/>
+
+	<!-- Attach the end effector to the end of the robot arm (tool0) -->
+	<joint name="ee_to_robot" type="fixed">
+		<parent link="robot_tool0"/>
+		<child link="eef_base_link"/>
+		<origin xyz="0 0 0" rpy="0 0 0"/>
+	</joint>
+
+	<!-- start of arm-workcell joint definitions -->
+  
+	<!--bind the rail to word_frame, can be disabled if using modile platform-->
+	<joint name="rotating_table_to_base_link" type="fixed">
+    <origin xyz="1 0 0" rpy="0 0 0"/>
+    <parent link="base_link"/>
+    <child link="rotating_table_base_link"/>
+  </joint>
+
+  <joint name="robot_to_base_link" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <parent link="base_link"/>
+    <child link="robot_base_link"/>
+  </joint>
+
+</robot>
