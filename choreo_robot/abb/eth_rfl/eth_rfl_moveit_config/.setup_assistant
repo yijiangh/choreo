@@ -1,0 +1,10 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: eth_rfl_support
+    relative_path: urdf/eth_rfl.urdf
+  SRDF:
+    relative_path: config/eth_rfl.srdf
+  CONFIG:
+    author_name: Yijiang Huang
+    author_email: yijiangh@mit.edu
+    generated_timestamp: 1536626338
