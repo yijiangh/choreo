@@ -1,0 +1,6 @@
+<robot file="irb6600_with_linear_track_workspace.dae">
+  <Manipulator name="framefab_irb6600_workspace">
+    <base>linear_axis_base_link</base>
+    <effector>robot_tool0</effector>
+  </Manipulator>
+</robot>

@@ -1,0 +1,109 @@
+<?xml version="1.0" ?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+	<xacro:property name="half_pi" value="1.5707963267948966"/>
+	<xacro:include filename="$(find eth_rfl_track)/urdf/resources/materials.xacro"/>
+
+	<xacro:macro name="eth_rfl_track" params="prefix">
+
+	<!--	Link list-->
+
+	<link name="${prefix}base_link">
+	  <visual>
+		<geometry>
+		  <mesh filename="package://eth_rfl_track/meshes/visual/eth_gudel_track_x_rail_visual.stl" scale=".001 .001 .001"/>
+		</geometry>
+		<xacro:material_gudel_gray/>
+	  </visual>
+	  <collision>
+		<geometry>
+		  <mesh filename="package://eth_rfl_track/meshes/collision/eth_gudel_track_x_rail_collision.stl" scale=".001 .001 .001"/>
+		</geometry>
+		<xacro:material_gudel_gray/>
+	  </collision>
+	</link>
+
+  <link name="${prefix}y_bridge">
+    <visual>
+      <geometry>
+        <mesh filename="package://eth_rfl_track/meshes/visual/eth_gudel_track_y_bridge_visual.stl" scale=".001 .001 .001"/>
+      </geometry>
+			<xacro:material_gudel_green/>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://eth_rfl_track/meshes/collision/eth_gudel_track_y_bridge_collision.stl" scale=".001 .001 .001"/>
+      </geometry>
+			<xacro:material_gudel_green/>
+    </collision>
+  </link>
+
+  <link name="${prefix}xy_carriage">
+    <visual>
+      <geometry>
+        <mesh filename="package://eth_rfl_track/meshes/visual/eth_gudel_track_xy_carriage_visual.stl" scale=".001 .001 .001"/>
+      </geometry>
+			<xacro:material_gudel_green/>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://eth_rfl_track/meshes/collision/eth_gudel_track_xy_carriage_collision.stl" scale=".001 .001 .001"/>
+      </geometry>
+			<xacro:material_gudel_green/>
+    </collision>
+  </link>
+
+  <link name="${prefix}z_carriage">
+    <visual>
+      <geometry>
+        <mesh filename="package://eth_rfl_track/meshes/visual/eth_gudel_track_z_carriage_visual.stl" scale=".001 .001 .001"/>
+      </geometry>
+			<xacro:material_gudel_gray/>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://eth_rfl_track/meshes/collision/eth_gudel_track_z_carriage_collision.stl" scale=".001 .001 .001"/>
+      </geometry>
+			<xacro:material_gudel_gray/>
+    </collision>
+  </link>
+
+	<link name="${prefix}robot_mount"/>
+
+	<!--	End of link list-->
+
+	<!-- Joint list -->
+
+  <joint name="${prefix}x_joint" type="prismatic">
+    <parent link="${prefix}base_link"/>
+    <child link="${prefix}y_bridge"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="1 0 0"/>
+    <limit lower="0" upper="20" effort="1" velocity="1.5"/>
+  </joint>
+
+  <joint name="${prefix}y_joint" type="prismatic">
+    <parent link="${prefix}y_bridge"/>
+    <child link="${prefix}xy_carriage"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="0" upper="12.673" effort="1" velocity="1.5"/>
+  </joint>
+
+  <joint name="${prefix}z_joint" type="prismatic">
+    <parent link="${prefix}xy_carriage"/>
+    <child link="${prefix}z_carriage"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="0 0 -1"/>
+    <limit lower="0" upper="1.227" effort="1" velocity="1"/>
+  </joint>
+
+	<joint name="${prefix}z_carriage_mount" type="fixed">
+    <parent link="${prefix}z_carriage"/>
+    <child link="${prefix}robot_mount"/>
+    <origin xyz="0.545 -0.0075 -2.526" rpy="0 ${2*half_pi} 0"/>
+  </joint>
+
+	<!-- End of joint list -->
+
+	</xacro:macro>
+</robot>
