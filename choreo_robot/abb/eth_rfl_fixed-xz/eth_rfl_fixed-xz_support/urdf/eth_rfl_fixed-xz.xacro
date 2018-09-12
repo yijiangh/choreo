@@ -1,0 +1,41 @@
+<?xml version="1.0" ?>
+<robot name="eth_rfl_fixed-xz" xmlns:xacro="http://ros.org/wiki/xacro">
+
+	<xacro:property name="half_pi" value="1.5707963267948966"/>
+
+	<xacro:include filename="$(find eth_rfl_fixed-xz_support)/urdf/resources/materials.xacro"/>
+  <xacro:include filename="$(find abb_irb6640_support)/urdf/irb6640_185_280_macro.xacro"/>
+	<xacro:include filename="$(find mit_arch_suction_gripper)/urdf/mit_arch_suction_gripper_macro.xacro"/>
+	<xacro:include filename="$(find eth_rfl_fixed-xz_track)/urdf/eth_rfl_fixed-xz_track_macro.xacro"/>
+
+  <xacro:abb_irb6640_185_280 prefix="robot_"/>
+  <xacro:suction_gripper prefix="eef_"/>
+  <xacro:eth_rfl_fixed-xz_track prefix="gantry_"/>
+	<!--  <xacro:simple_linear_track_demo_cell prefix=""/>-->
+
+	<!-- Link list -->
+  <link name="base_link"/>
+	<!-- End of link list -->
+
+	<!-- Joint list -->
+	<!--bind the rail to word_frame, can be disabled if using modile platform-->
+	<joint name="gantry_to_base_link" type="fixed">
+    <origin xyz="1.550 0.8675 5.7766" rpy="0 0 0"/>
+    <parent link="base_link"/>
+    <child link="gantry_base_link"/>
+  </joint>
+
+  <joint name="robot_to_gantry" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <parent link="gantry_robot_mount"/>
+    <child link="robot_base_link"/>
+  </joint>
+
+	<joint name="ee_to_robot" type="fixed">
+		<parent link="robot_tool0"/>
+		<child link="eef_base_link"/>
+		<origin xyz="0 0 0" rpy="0 0 0"/>
+	</joint>
+	<!-- End of joint list -->
+
+</robot>

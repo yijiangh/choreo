@@ -1,0 +1,95 @@
+<?xml version="1.0" ?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:include filename="$(find ucla_linear_axis)/urdf/resources/colors.xacro"/>
+
+  <xacro:macro name="material_white">
+    <material name="">
+      <color rgba="${color_white}"/>
+    </material>
+  </xacro:macro>
+
+  <xacro:macro name="material_black">
+    <material name="">
+      <color rgba="${color_black}"/>
+    </material>
+  </xacro:macro>
+
+  <xacro:macro name="material_light_gray">
+    <material name="">
+      <color rgba="${color_light_gray}"/>
+    </material>
+  </xacro:macro>
+
+  <xacro:macro name="material_gray">
+    <material name="">
+      <color rgba="${color_gray}"/>
+    </material>
+  </xacro:macro>
+
+  <xacro:macro name="material_dark_gray">
+    <material name="">
+      <color rgba="${color_dark_gray}"/>
+    </material>
+  </xacro:macro>
+
+  <xacro:macro name="material_red">
+    <material name="">
+      <color rgba="${color_red}"/>
+    </material>
+  </xacro:macro>
+
+  <xacro:macro name="material_blue">
+    <material name="">
+      <color rgba="${color_blue}"/>
+    </material>
+  </xacro:macro>
+
+  <xacro:macro name="material_green">
+    <material name="">
+      <color rgba="${color_green}"/>
+    </material>
+  </xacro:macro>
+
+  <xacro:macro name="material_yellow">
+    <material name="">
+      <color rgba="${color_yellow}"/>
+    </material>
+  </xacro:macro>
+
+  <xacro:macro name="material_gudel_orange">
+    <material name="">
+      <color rgba="${color_gudel_orange}"/>
+    </material>
+  </xacro:macro>
+
+  <xacro:macro name="material_gudel_green">
+    <material name="">
+      <color rgba="${color_gudel_green}"/>
+    </material>
+  </xacro:macro>
+
+  <xacro:macro name="material_gudel_gray">
+    <material name="">
+      <color rgba="${color_gudel_gray}"/>
+    </material>
+  </xacro:macro>
+
+  <xacro:macro name="material_tan">
+    <material name="">
+      <color rgba="${color_tan}"/>
+    </material>
+  </xacro:macro>
+
+  <xacro:macro name="material_silver">
+    <material name="">
+      <color rgba="${color_silver}"/>
+    </material>
+  </xacro:macro>
+
+  <xacro:macro name="material_pf_green">
+    <material name="">
+      <color rgba="${color_pf_green}"/>
+    </material>
+  </xacro:macro>
+</robot>

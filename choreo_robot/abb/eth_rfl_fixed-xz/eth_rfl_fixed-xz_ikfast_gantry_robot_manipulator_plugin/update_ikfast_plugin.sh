@@ -1,0 +1,1 @@
+rosrun moveit_kinematics create_ikfast_moveit_plugin.py eth_rfl_fixed-xz gantry_robot_manipulator eth_rfl_fixed-xz_ikfast_gantry_robot_manipulator_plugin /home/yijiangh/catkin_ws/src/choreo/choreo_robot/abb/eth_rfl_fixed-xz/eth_rfl_fixed-xz_ikfast_gantry_robot_manipulator_plugin/src/eth_rfl_fixed-xz_gantry_robot_manipulator_ikfast_solver.cpp
