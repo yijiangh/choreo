@@ -15,13 +15,9 @@
     <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
     <disable_collisions link1="eef_base_link" link2="gantry_base_link" reason="Never" />
     <disable_collisions link1="eef_base_link" link2="gantry_y_bridge" reason="Never" />
-    <disable_collisions link1="eef_base_link" link2="robot_link_2" reason="Never" />
     <disable_collisions link1="eef_base_link" link2="robot_link_3" reason="Never" />
-    <disable_collisions link1="eef_base_link" link2="robot_link_4" reason="Never" />
     <disable_collisions link1="eef_base_link" link2="robot_link_5" reason="Never" />
     <disable_collisions link1="eef_base_link" link2="robot_link_6" reason="Adjacent" />
-    <disable_collisions link1="eef_base_link" link2="robot_link_cylinder" reason="Never" />
-    <disable_collisions link1="eef_base_link" link2="robot_link_piston" reason="Never" />
     <disable_collisions link1="gantry_base_link" link2="gantry_xy_carriage" reason="Never" />
     <disable_collisions link1="gantry_base_link" link2="gantry_y_bridge" reason="Adjacent" />
     <disable_collisions link1="gantry_base_link" link2="gantry_z_carriage" reason="Never" />
@@ -32,16 +28,14 @@
     <disable_collisions link1="gantry_base_link" link2="robot_link_4" reason="Never" />
     <disable_collisions link1="gantry_base_link" link2="robot_link_5" reason="Never" />
     <disable_collisions link1="gantry_base_link" link2="robot_link_6" reason="Never" />
-    <disable_collisions link1="gantry_base_link" link2="robot_link_cylinder" reason="Never" />
-    <disable_collisions link1="gantry_base_link" link2="robot_link_piston" reason="Never" />
+    <disable_collisions link1="gantry_base_link" link2="workspace_objects" reason="Adjacent" />
     <disable_collisions link1="gantry_xy_carriage" link2="gantry_y_bridge" reason="Adjacent" />
     <disable_collisions link1="gantry_xy_carriage" link2="gantry_z_carriage" reason="Adjacent" />
     <disable_collisions link1="gantry_xy_carriage" link2="robot_base_link" reason="Default" />
     <disable_collisions link1="gantry_xy_carriage" link2="robot_link_1" reason="Never" />
     <disable_collisions link1="gantry_xy_carriage" link2="robot_link_2" reason="Never" />
     <disable_collisions link1="gantry_xy_carriage" link2="robot_link_3" reason="Never" />
-    <disable_collisions link1="gantry_xy_carriage" link2="robot_link_cylinder" reason="Never" />
-    <disable_collisions link1="gantry_xy_carriage" link2="robot_link_piston" reason="Never" />
+    <disable_collisions link1="gantry_xy_carriage" link2="workspace_objects" reason="Never" />
     <disable_collisions link1="gantry_y_bridge" link2="gantry_z_carriage" reason="Default" />
     <disable_collisions link1="gantry_y_bridge" link2="robot_base_link" reason="Never" />
     <disable_collisions link1="gantry_y_bridge" link2="robot_link_1" reason="Never" />
@@ -50,39 +44,30 @@
     <disable_collisions link1="gantry_y_bridge" link2="robot_link_4" reason="Never" />
     <disable_collisions link1="gantry_y_bridge" link2="robot_link_5" reason="Never" />
     <disable_collisions link1="gantry_y_bridge" link2="robot_link_6" reason="Never" />
-    <disable_collisions link1="gantry_y_bridge" link2="robot_link_cylinder" reason="Never" />
-    <disable_collisions link1="gantry_y_bridge" link2="robot_link_piston" reason="Never" />
+    <disable_collisions link1="gantry_y_bridge" link2="workspace_objects" reason="Never" />
     <disable_collisions link1="gantry_z_carriage" link2="robot_base_link" reason="Adjacent" />
     <disable_collisions link1="gantry_z_carriage" link2="robot_link_1" reason="Never" />
     <disable_collisions link1="gantry_z_carriage" link2="robot_link_2" reason="Never" />
     <disable_collisions link1="gantry_z_carriage" link2="robot_link_3" reason="Never" />
-    <disable_collisions link1="gantry_z_carriage" link2="robot_link_cylinder" reason="Never" />
-    <disable_collisions link1="gantry_z_carriage" link2="robot_link_piston" reason="Never" />
+    <disable_collisions link1="gantry_z_carriage" link2="workspace_objects" reason="Never" />
     <disable_collisions link1="robot_base_link" link2="robot_link_1" reason="Adjacent" />
     <disable_collisions link1="robot_base_link" link2="robot_link_2" reason="Never" />
     <disable_collisions link1="robot_base_link" link2="robot_link_3" reason="Never" />
-    <disable_collisions link1="robot_base_link" link2="robot_link_cylinder" reason="Never" />
-    <disable_collisions link1="robot_base_link" link2="robot_link_piston" reason="Never" />
+    <disable_collisions link1="robot_base_link" link2="workspace_objects" reason="Never" />
     <disable_collisions link1="robot_link_1" link2="robot_link_2" reason="Adjacent" />
-    <disable_collisions link1="robot_link_1" link2="robot_link_3" reason="Never" />
-    <disable_collisions link1="robot_link_1" link2="robot_link_cylinder" reason="Adjacent" />
-    <disable_collisions link1="robot_link_1" link2="robot_link_piston" reason="Default" />
+    <disable_collisions link1="robot_link_1" link2="robot_link_4" reason="Never" />
+    <disable_collisions link1="robot_link_1" link2="robot_link_5" reason="Never" />
+    <disable_collisions link1="robot_link_1" link2="robot_link_6" reason="Never" />
+    <disable_collisions link1="robot_link_1" link2="workspace_objects" reason="Never" />
     <disable_collisions link1="robot_link_2" link2="robot_link_3" reason="Adjacent" />
+    <disable_collisions link1="robot_link_2" link2="robot_link_4" reason="Never" />
     <disable_collisions link1="robot_link_2" link2="robot_link_5" reason="Never" />
     <disable_collisions link1="robot_link_2" link2="robot_link_6" reason="Never" />
-    <disable_collisions link1="robot_link_2" link2="robot_link_piston" reason="Adjacent" />
+    <disable_collisions link1="robot_link_2" link2="workspace_objects" reason="Never" />
     <disable_collisions link1="robot_link_3" link2="robot_link_4" reason="Adjacent" />
     <disable_collisions link1="robot_link_3" link2="robot_link_5" reason="Never" />
     <disable_collisions link1="robot_link_3" link2="robot_link_6" reason="Never" />
-    <disable_collisions link1="robot_link_3" link2="robot_link_cylinder" reason="Never" />
-    <disable_collisions link1="robot_link_3" link2="robot_link_piston" reason="Never" />
     <disable_collisions link1="robot_link_4" link2="robot_link_5" reason="Adjacent" />
-    <disable_collisions link1="robot_link_4" link2="robot_link_cylinder" reason="Never" />
-    <disable_collisions link1="robot_link_4" link2="robot_link_piston" reason="Never" />
+    <disable_collisions link1="robot_link_4" link2="robot_link_6" reason="Default" />
     <disable_collisions link1="robot_link_5" link2="robot_link_6" reason="Adjacent" />
-    <disable_collisions link1="robot_link_5" link2="robot_link_cylinder" reason="Never" />
-    <disable_collisions link1="robot_link_5" link2="robot_link_piston" reason="Never" />
-    <disable_collisions link1="robot_link_6" link2="robot_link_cylinder" reason="Never" />
-    <disable_collisions link1="robot_link_6" link2="robot_link_piston" reason="Never" />
-    <disable_collisions link1="robot_link_cylinder" link2="robot_link_piston" reason="Default" />
 </robot>

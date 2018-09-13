@@ -76,7 +76,7 @@
   <joint name="${prefix}x_joint" type="fixed">
     <parent link="${prefix}base_link"/>
     <child link="${prefix}y_bridge"/>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <origin xyz="12.173 0 0" rpy="0 0 0"/>
   </joint>
 
   <joint name="${prefix}y_joint" type="prismatic">

@@ -4,14 +4,17 @@
 	<xacro:property name="half_pi" value="1.5707963267948966"/>
 
 	<xacro:include filename="$(find eth_rfl_fixed-xz_support)/urdf/resources/materials.xacro"/>
-  <xacro:include filename="$(find abb_irb6640_support)/urdf/irb6640_185_280_macro.xacro"/>
-	<xacro:include filename="$(find mit_arch_suction_gripper)/urdf/mit_arch_suction_gripper_macro.xacro"/>
+<!--  <xacro:include filename="$(find abb_irb6640_support)/urdf/irb6640_185_280_macro.xacro"/>-->
+  <xacro:include filename="$(find abb_irb4400_support)/urdf/irb4400l_30_243_macro.xacro"/>
+	<xacro:include filename="$(find eth_rfl_gripper)/urdf/eth_rfl_gripper_macro.xacro"/>
 	<xacro:include filename="$(find eth_rfl_fixed-xz_track)/urdf/eth_rfl_fixed-xz_track_macro.xacro"/>
+	<xacro:include filename="$(find eth_rfl_fixed-xz_support)/urdf/robarch_2018_workspace.xacro"/>
 
-  <xacro:abb_irb6640_185_280 prefix="robot_"/>
-  <xacro:suction_gripper prefix="eef_"/>
+  <xacro:abb_irb4400l_30_243 prefix="robot_"/>
+<!--  <xacro:abb_irb6640_185_280 prefix="robot_"/>-->
+  <xacro:eth_rfl_gripper prefix="eef_"/>
   <xacro:eth_rfl_fixed-xz_track prefix="gantry_"/>
-	<!--  <xacro:simple_linear_track_demo_cell prefix=""/>-->
+	<xacro:robarch_2018_workspace prefix="workspace_"/>
 
 	<!-- Link list -->
   <link name="base_link"/>
@@ -34,6 +37,12 @@
 	<joint name="ee_to_robot" type="fixed">
 		<parent link="robot_tool0"/>
 		<child link="eef_base_link"/>
+		<origin xyz="0 0 0" rpy="0 ${half_pi} 0"/>
+	</joint>
+
+	<joint name="world_to_workspace" type="fixed">
+		<parent link="base_link"/>
+		<child link="workspace_base_link"/>
 		<origin xyz="0 0 0" rpy="0 0 0"/>
 	</joint>
 	<!-- End of joint list -->
