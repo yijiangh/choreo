@@ -11,7 +11,7 @@
 #include <moveit/planning_scene/planning_scene.h>
 
 const static double ORIENTATION_PREFERENCE_WEIGHT = 0.0;
-const static double EXTERNAL_AXIS_PENALIZE_COST = 100.0;
+const static double EXTERNAL_AXIS_PENALIZE_COST = 1.0;
 
 namespace descartes_planner
 {

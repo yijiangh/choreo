@@ -38,6 +38,7 @@ const static int TRANSITION_PLANNING_LOOP_COUNT = 5;
 
 namespace choreo_process_planning
 {
+// spatial extrusion
 void retractionPlanning(descartes_core::RobotModelPtr model,
                         const std::vector <planning_scene::PlanningScenePtr> &planning_scenes_approach,
                         const std::vector <planning_scene::PlanningScenePtr> &planning_scenes_depart,
@@ -130,6 +131,7 @@ void retractionPlanning(descartes_core::RobotModelPtr model,
                                                                     << " seconds.");
 }
 
+// spatial extrusion
 void transitionPlanning(std::vector <choreo_msgs::UnitProcessPlan> &plans,
                         moveit::core::RobotModelConstPtr moveit_model,
                         ros::ServiceClient &planning_scene_diff_client,

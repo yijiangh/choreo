@@ -18,7 +18,7 @@
 
 #include <geometry_msgs/Point.h>
 
-const static std::string PICKNPLACE_EEF_NAME = "mit_arch_suction_gripper";
+const static std::string PICKNPLACE_EEF_NAME = "eth_rfl_gripper";
 
 const static std::string GET_PLANNING_SCENE_SERVICE = "get_planning_scene";
 

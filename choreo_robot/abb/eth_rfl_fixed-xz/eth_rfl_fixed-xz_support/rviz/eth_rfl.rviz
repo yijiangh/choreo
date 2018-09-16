@@ -7,9 +7,10 @@ Panels:
         - /Global Options1
         - /Grid1
         - /PlanningScene1/Scene Robot1
+        - /RobotModel1
         - /TF1
       Splitter Ratio: 0.478386164
-    Tree Height: 345
+    Tree Height: 155
   - Class: rviz/Help
     Name: Help
   - Class: rviz/Views
@@ -197,25 +198,26 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        linear_axis_base_link:
+        gantry_base_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        linear_axis_carriage:
+        gantry_robot_mount:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        gantry_xy_carriage:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        linear_axis_robot_mount:
+        gantry_y_bridge:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        linear_axis_zero:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        print_bed:
+          Value: true
+        gantry_z_carriage:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -259,20 +261,19 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        robot_link_cylinder:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        robot_link_piston:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
         robot_tool0:
           Alpha: 1
           Show Axes: false
           Show Trail: false
+        workspace_base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        workspace_objects:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
       Name: RobotModel
       Robot Description: robot_description
       TF Prefix: ""
@@ -280,22 +281,81 @@ Visualization Manager:
       Value: true
       Visual Enabled: true
     - Class: rviz/TF
-      Enabled: false
+      Enabled: true
       Frame Timeout: 15
       Frames:
         All Enabled: true
+        base_link:
+          Value: true
+        eef_base_link:
+          Value: true
+        eef_tcp_frame:
+          Value: true
+        gantry_base_link:
+          Value: true
+        gantry_robot_mount:
+          Value: true
+        gantry_xy_carriage:
+          Value: true
+        gantry_y_bridge:
+          Value: true
+        gantry_z_carriage:
+          Value: true
+        robot_base:
+          Value: true
+        robot_base_link:
+          Value: true
+        robot_link_1:
+          Value: true
+        robot_link_2:
+          Value: true
+        robot_link_3:
+          Value: true
+        robot_link_4:
+          Value: true
+        robot_link_5:
+          Value: true
+        robot_link_6:
+          Value: true
+        robot_tool0:
+          Value: true
+        workspace_base_link:
+          Value: true
+        workspace_objects:
+          Value: true
       Marker Scale: 0.300000012
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: false
       Tree:
-        {}
+        base_link:
+          gantry_base_link:
+            gantry_y_bridge:
+              gantry_xy_carriage:
+                gantry_z_carriage:
+                  gantry_robot_mount:
+                    robot_base_link:
+                      robot_base:
+                        {}
+                      robot_link_1:
+                        robot_link_2:
+                          robot_link_3:
+                            robot_link_4:
+                              robot_link_5:
+                                robot_link_6:
+                                  robot_tool0:
+                                    eef_base_link:
+                                      eef_tcp_frame:
+                                        {}
+          workspace_base_link:
+            workspace_objects:
+              {}
       Update Interval: 0
-      Value: false
+      Value: true
   Enabled: true
   Global Options:
-    Background Color: 38; 41; 200
+    Background Color: 255; 255; 255
     Default Light: true
     Fixed Frame: base_link
     Frame Rate: 30
@@ -309,32 +369,32 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 8.6316328
+      Distance: 18.2101364
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.342013597
-        Y: -0.0897814035
-        Z: 2.13348017e-06
+        X: 17.6234798
+        Y: 8.53813839
+        Z: 2.84370662e-06
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.0197962187
+      Pitch: -0.0752037838
       Target Frame: base_link
       Value: XYOrbit (rviz)
-      Yaw: 5.83993149
+      Yaw: 3.91492772
     Saved: ~
 Window Geometry:
   ChoreoPanel:
     collapsed: false
   Displays:
     collapsed: false
-  Height: 1176
+  Height: 744
   Help:
     collapsed: false
   Hide Left Dock: false
@@ -343,9 +403,9 @@ Window Geometry:
     collapsed: false
   MotionPlanning - Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000100000000000001d100000452fc0200000009fb0000000800480065006c00700000000342000000bb0000007300fffffffb0000000a0056006900650077007300000003b0000000b0000000ad00fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000374000001890000000000000000fb0000002e004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d00200053006c00690064006500720000000000ffffffff0000004a00fffffffb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670000000287000001d7000001cc00fffffffb0000001a004600720061006d006500460061006200500061006e0065006c01000000410000025f0000000000000000fb0000001600430068006f00720065006f00500061006e0065006c0100000028000002670000005c00fffffffb000000100044006900730070006c0061007900730100000295000001e5000000d700ffffff000005a90000045200000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000100000000000001d1000002a2fc0200000009fb0000000800480065006c00700000000342000000bb0000007300fffffffb0000000a0056006900650077007300000003b0000000b0000000ad00fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000374000001890000000000000000fb0000002e004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d00200053006c00690064006500720000000000ffffffff0000004a00fffffffb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670000000287000001d7000001cc00fffffffb0000001a004600720061006d006500460061006200500061006e0065006c01000000410000025f0000000000000000fb0000001600430068006f00720065006f00500061006e0065006c0100000028000001750000005c00fffffffb000000100044006900730070006c00610079007301000001a300000127000000d700ffffff0000037f000002a200000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Views:
     collapsed: false
-  Width: 1920
+  Width: 1366
   X: 0
   Y: 24

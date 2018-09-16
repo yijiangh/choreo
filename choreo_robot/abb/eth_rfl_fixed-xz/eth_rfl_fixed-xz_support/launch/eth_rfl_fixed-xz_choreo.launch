@@ -7,13 +7,13 @@
 
 	<arg name="robot_model_plugin" value="descartes_moveit/IkFastMoveitStateAdapter"/>
 	<arg name="world_frame" value="/base_link"/>
-	<arg name="hotend_group" value="rail_robot_manipulator"/>
+	<arg name="hotend_group" value="gantry_robot_manipulator"/>
 	<arg name="hotend_tcp" value="eef_tcp_frame"/>
-	<arg name="hotend_base" value="linear_axis_base_link"/>
+	<arg name="hotend_base" value="gantry_y_bridge"/>
 	<arg name="planner" value="stomp" />
 
 <!--	for descartes ikfast plugin-->
-	<param name="ikfast_base_frame" type="string" value="linear_axis_base_link"/>
+	<param name="ikfast_base_frame" type="string" value="gantry_y_bridge"/>
 	<param name="ikfast_tool_frame" type="string" value="robot_tool0"/>
 
   <arg name="debug_rviz" default="false"/>
@@ -53,7 +53,7 @@
   <!-- Brings up the core choreo service - the central coordination -->
   <include file="$(find choreo_core)/launch/choreo_core.launch">
 		<arg name="world_frame" value="$(arg world_frame)"/>
-    <arg name="config_path" value="$(find framefab_irb6600_support)/config"/>
+    <arg name="config_path" value="$(find eth_rfl_fixed-xz_support)/config"/>
     <arg name="debug" value="$(arg debug_core)"/>
     <arg name="save_data" value="$(arg save_data)" />
     <arg name="save_location" value="$(arg save_location)" />
@@ -61,14 +61,14 @@
 
   <!-- rviz w/ specified configuration -->
   <group if="$(arg debug_rviz)">
-    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find framefab_irb6600_support)/rviz/irb6600_framefab.rviz" output="screen" launch-prefix="xterm -e gdb --args" required="true"/>
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find eth_rfl_fixed-xz_support)/rviz/eth_rfl.rviz" output="screen" launch-prefix="xterm -e gdb --args" required="true"/>
   </group>
   <group unless="$(arg debug_rviz)">
-    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find framefab_irb6600_support)/rviz/irb6600_framefab.rviz" output="screen" launch-prefix="nice" required="true"/>
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find eth_rfl_fixed-xz_support)/rviz/eth_rfl.rviz" output="screen" launch-prefix="nice" required="true"/>
   </group>
 
   <!-- Bring up the MoveIt interface to the real or simulated robot -->
-  <include file="$(find framefab_irb6600_workspace_moveit_config)/launch/moveit_planning_execution.launch">
+  <include file="$(find eth_rfl_fixed-xz_moveit_config)/launch/moveit_planning_execution.launch">
     <arg name="rviz" value="false"/>
     <arg name="sim" value="$(arg sim_robot)"/>
     <arg name="robot_ip" value="$(arg robot_ip)" unless="$(arg sim_robot)"/>

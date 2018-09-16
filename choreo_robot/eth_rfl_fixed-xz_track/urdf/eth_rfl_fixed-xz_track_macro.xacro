@@ -76,7 +76,7 @@
   <joint name="${prefix}x_joint" type="fixed">
     <parent link="${prefix}base_link"/>
     <child link="${prefix}y_bridge"/>
-    <origin xyz="12.173 0 0" rpy="0 0 0"/>
+    <origin xyz="10.5 0 0" rpy="0 0 0"/>
   </joint>
 
   <joint name="${prefix}y_joint" type="prismatic">
@@ -90,13 +90,13 @@
   <joint name="${prefix}z_joint" type="fixed">
     <parent link="${prefix}xy_carriage"/>
     <child link="${prefix}z_carriage"/>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <origin xyz="0 0 -1" rpy="0 0 0"/>
   </joint>
 
 	<joint name="${prefix}z_carriage_mount" type="fixed">
     <parent link="${prefix}z_carriage"/>
     <child link="${prefix}robot_mount"/>
-    <origin xyz="0.545 -0.0075 -2.526" rpy="0 ${2*half_pi} 0"/>
+    <origin xyz="0.545 -0.0075 -1.2" rpy="0 ${2*half_pi} 0"/>
   </joint>
 
 	<!-- End of joint list -->

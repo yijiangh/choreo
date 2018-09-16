@@ -12,6 +12,11 @@
     <group name="gantry_robot_manipulator">
         <chain base_link="gantry_y_bridge" tip_link="robot_tool0" />
     </group>
+    <group name="manipulator_ee">
+        <chain base_link="robot_tool0" tip_link="eef_tcp_frame" />
+    </group>
+    <!--END EFFECTOR: Purpose: Represent information about an end effector.-->
+    <end_effector name="eth_rfl_gripper" parent_link="eef_tcp_frame" group="manipulator_ee" />
     <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
     <disable_collisions link1="eef_base_link" link2="gantry_base_link" reason="Never" />
     <disable_collisions link1="eef_base_link" link2="gantry_y_bridge" reason="Never" />
@@ -31,10 +36,13 @@
     <disable_collisions link1="gantry_base_link" link2="workspace_objects" reason="Adjacent" />
     <disable_collisions link1="gantry_xy_carriage" link2="gantry_y_bridge" reason="Adjacent" />
     <disable_collisions link1="gantry_xy_carriage" link2="gantry_z_carriage" reason="Adjacent" />
-    <disable_collisions link1="gantry_xy_carriage" link2="robot_base_link" reason="Default" />
+    <disable_collisions link1="gantry_xy_carriage" link2="robot_base_link" reason="Never" />
     <disable_collisions link1="gantry_xy_carriage" link2="robot_link_1" reason="Never" />
     <disable_collisions link1="gantry_xy_carriage" link2="robot_link_2" reason="Never" />
     <disable_collisions link1="gantry_xy_carriage" link2="robot_link_3" reason="Never" />
+    <disable_collisions link1="gantry_xy_carriage" link2="robot_link_4" reason="Never" />
+    <disable_collisions link1="gantry_xy_carriage" link2="robot_link_5" reason="Never" />
+    <disable_collisions link1="gantry_xy_carriage" link2="robot_link_6" reason="Never" />
     <disable_collisions link1="gantry_xy_carriage" link2="workspace_objects" reason="Never" />
     <disable_collisions link1="gantry_y_bridge" link2="gantry_z_carriage" reason="Default" />
     <disable_collisions link1="gantry_y_bridge" link2="robot_base_link" reason="Never" />

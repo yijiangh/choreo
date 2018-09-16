@@ -91,6 +91,8 @@ bool checkFeasibilityPickNPlace(
   std::vector<double> st_jt;
   std::vector<double> end_jt;
 
+//  ROS_INFO_STREAM("kin_family size: " << kin_family_size);
+
   for(int k=0; k<kin_family_size; k++)
   {
     std::vector<std::vector<double>> joint_poses;
@@ -104,6 +106,8 @@ bool checkFeasibilityPickNPlace(
 
       if (!model.getAllIK(poses[k][c_id], joint_poses))
       {
+//        ROS_INFO_STREAM("ik fails for pose " << k << ", inter " << c_id);
+
         // current capsule is invalid if there exists one path point without feasible kinematics solution.
         return false;
       }

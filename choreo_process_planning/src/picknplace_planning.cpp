@@ -32,13 +32,13 @@ bool ProcessPlanningManager::handlePickNPlacePlanning(
   assert(req.as_pnp.sequenced_elements.size() > 0);
 
   const static double LINEAR_VEL = 0.5; // (m/s)
-  const static double LINEAR_DISC = 0.003; // meters
+  const static double LINEAR_DISC = 0.1; // meters
 
   // TODO: assuming current robot pose is the home pose, this should be read from ros parameter
   std::vector<double> current_joints = getCurrentJointState(JOINT_TOPIC_NAME);
 
   // copy & crop up to the required index
-  assert(req.index > 0 && req.index < req.as_pnp.sequenced_elements.size());
+//  assert(req.index > 0 && req.index < req.as_pnp.sequenced_elements.size());
   choreo_msgs::AssemblySequencePickNPlace as_pnp = req.as_pnp;
   as_pnp.sequenced_elements = std::vector<choreo_msgs::SequencedElement>(
       as_pnp.sequenced_elements.begin(), as_pnp.sequenced_elements.begin() + req.index + 1);

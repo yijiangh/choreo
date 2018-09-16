@@ -12,7 +12,7 @@
 /// See the License for the specific language governing permissions and
 /// limitations under the License.
 ///
-/// ikfast version 0x1000004a generated on 2018-09-13 01:20:10.246699
+/// ikfast version 0x1000004a generated on 2018-09-13 19:41:00.324221
 /// Generated using solver transform6d
 /// To compile with gcc:
 ///     gcc -lstdc++ ik.cpp
@@ -363,7 +363,7 @@ eetrans[1]=((-0.0075)+(((0.2)*x9))+(((-1.0)*x18*x33))+((x5*(((((-1.0)*x19*x29))+
 eerot[6]=(((x41*x5))+((x30*x40)));
 eerot[7]=(((x10*x48))+((x11*x39*x7)));
 eerot[8]=(((x11*x48))+((x10*x40*x7)));
-eetrans[2]=((-3.206)+(((1.38)*x26))+((x30*(((((-0.14)*x29))+((x15*x4))))))+((x5*(((((0.14)*x26))+((x15*x2))))))+(((-1.0)*x20*x4))+((x12*x2))+(((-0.89)*x3))+((x13*x2)));
+eetrans[2]=((-2.88)+(((1.38)*x26))+((x30*(((((-0.14)*x29))+((x15*x4))))))+((x5*(((((0.14)*x26))+((x15*x2))))))+(((-1.0)*x20*x4))+((x12*x2))+(((-0.89)*x3))+((x13*x2)));
 }
 
 IKFAST_API int GetNumFreeParameters() { return 1; }
@@ -404,7 +404,7 @@ new_px=((-0.545)+px+(((-0.14)*r00)));
 new_r10=r22;
 new_r11=((-1.0)*r21);
 new_r12=((-1.0)*r20);
-new_py=((-2.526)+(((0.14)*r20))+(((-1.0)*pz)));
+new_py=((-2.2)+(((0.14)*r20))+(((-1.0)*pz)));
 new_r20=((-1.0)*r12);
 new_r21=r11;
 new_r22=r10;
@@ -15716,7 +15716,7 @@ IKSolver solver;
 return solver.ComputeIk(eetrans,eerot,pfree,solutions);
 }
 
-IKFAST_API const char* GetKinematicsHash() { return "5ff669ce12b5155b5979a6629384d069"; }
+IKFAST_API const char* GetKinematicsHash() { return "1be8cb1bfa41cb1c5dc75eb7f102dc44"; }
 
 IKFAST_API const char* GetIkFastVersion() { return "0x1000004a"; }
 

@@ -8,3 +8,6 @@ controller_list:
       - robot_joint_4
       - robot_joint_5
       - robot_joint_6
+  - name: fake_manipulator_ee_controller
+    joints:
+      []

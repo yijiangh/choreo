@@ -92,6 +92,7 @@ std::vector<descartes_planner::ConstrainedSegmentPickNPlace> toDescartesConstrai
     assert(se.grasps.size() > 0);
     segs[i].path_pts.resize(4);
 
+    // grasp TCP point will be the same for same element
     segs[i].path_pts[0].resize(2);
     tf::pointMsgToEigen(se.grasps[0].pick_grasp_approach_pose.position, segs[i].path_pts[0][0]);
     tf::pointMsgToEigen(se.grasps[0].pick_grasp_pose.position, segs[i].path_pts[0][1]);
@@ -99,6 +100,10 @@ std::vector<descartes_planner::ConstrainedSegmentPickNPlace> toDescartesConstrai
     segs[i].path_pts[1].resize(2);
     tf::pointMsgToEigen(se.grasps[0].pick_grasp_pose.position, segs[i].path_pts[1][0]);
     tf::pointMsgToEigen(se.grasps[0].pick_grasp_retreat_pose.position, segs[i].path_pts[1][1]);
+
+    ROS_INFO_STREAM(se.grasps[0].place_grasp_approach_pose.position);
+    ROS_INFO_STREAM(se.grasps[0].place_grasp_pose.position);
+    ROS_INFO_STREAM(se.grasps[0].place_grasp_retreat_pose.position);
 
     segs[i].path_pts[2].resize(2);
     tf::pointMsgToEigen(se.grasps[0].place_grasp_approach_pose.position, segs[i].path_pts[2][0]);

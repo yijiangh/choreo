@@ -26,7 +26,7 @@ const static rviz_visual_tools::colors POST_GRASP_POSE_COLOR = rviz_visual_tools
 
 const static rviz_visual_tools::colors END_EFFECTOR_COLOR = rviz_visual_tools::TRANSLUCENT_DARK;
 
-const static rviz_visual_tools::scales GRASP_POSE_ARROW_SIZE = rviz_visual_tools::XXXSMALL;
+const static rviz_visual_tools::scales GRASP_POSE_ARROW_SIZE = rviz_visual_tools::XXSMALL;
 
 // TODO: should be moved to UI
 //******************
