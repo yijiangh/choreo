@@ -9,3 +9,6 @@
 
 # descartes
 - git: {local-name: descartes, uri: 'https://github.com/yijiangh/descartes.git', version: yijiangh/graph}
+
+# stomp
+- git: {local-name: industrial_moveit, uri: 'https://github.com/ros-industrial/industrial_moveit.git', version: kinetic-devel}
