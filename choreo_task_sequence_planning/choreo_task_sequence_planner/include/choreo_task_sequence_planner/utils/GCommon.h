@@ -37,9 +37,9 @@
 #include <cmath>
 
 // end effector discretization meta parameter
-static const int THETA_DISC = 5;
-static const int PHI_DISC = 10;
-static const int DIR_SPHERE_DIVISION = 50;
+static const int THETA_DISC = 10;
+static const int PHI_DISC = 20;
+static const int DIR_SPHERE_DIVISION = 200;
 
 #define FILENMAX 128
 

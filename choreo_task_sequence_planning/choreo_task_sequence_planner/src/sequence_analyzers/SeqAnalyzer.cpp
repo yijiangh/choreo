@@ -413,10 +413,6 @@ void SeqAnalyzer::RecoverStateMap(const WF_edge* exist_e, const std::map<int, EE
 
   for(auto it = recov_cmap.begin(); it != recov_cmap.end(); it++)
   {
-//      if(target_e->CenterDistanceTo(exist_e) > STATEMAP_UPDATE_DISTANCE)
-//      {
-//        continue;
-//      }
     assert(0 <= it->first && it->first < ptr_wholegraph_->SizeOfVertList());
     assert(it->second.size() == DIR_SPHERE_DIVISION);
 
