@@ -385,8 +385,6 @@ bool FiberPrintPlugIn::Init()
 
 bool FiberPrintPlugIn::DirectSearch()
 {
-  fiber_print_.Start();
-
   if(Init())
   {
     assert(ptr_frame_->SizeOfEdgeList() == frame_msgs_.size());
@@ -398,7 +396,7 @@ bool FiberPrintPlugIn::DirectSearch()
         ptr_parm_,
         ptr_path_,
         terminal_output_,
-        file_output_,
+        true,
         hotend_model_,
         moveit_model_,
         hotend_group_name_
@@ -408,20 +406,18 @@ bool FiberPrintPlugIn::DirectSearch()
 
     ROS_INFO_STREAM("[TSP] Seq Analyzer init.");
 
-    std::vector<int> target_ids;
-    for(int i = 35; i <= 53; i++)
-    {
-      target_ids.push_back(i);
-    }
+//    std::vector<int> target_ids;
+//    for(int i = 35; i <= 53; i++)
+//    {
+//      target_ids.push_back(i);
+//    }
 
     if (!ptr_seqanalyzer_->SeqPrint())
     {
       ROS_WARN("Model not printable!");
       return false;
     }
-
-    fiber_print_.Stop();
-    fiber_print_.Print("Direct Search:");
+    ptr_seqanalyzer_->PrintOutTimer();
 
     return true;
   }
@@ -573,7 +569,7 @@ bool FiberPrintPlugIn::handleTaskSequencePlanning(
       ptr_path_ = "/home";
       const char* json_output_path = req.task_sequence_params.file_path.c_str();
 
-      terminal_output_ = true;
+      terminal_output_ = false;
 
       if(DirectSearch())
       {

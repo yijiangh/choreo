@@ -31,7 +31,10 @@ bool FFAnalyzer::SeqPrint()
 
   for (int l = 0; l < print_until; l++)
   {
-    fprintf(stderr, "Size of layer %d is %d\n", l, (int)layers_[l].size());
+//    if(terminal_output_)
+//    {
+    fprintf(stderr, "Size of layer %d is %d\n", l, (int) layers_[l].size());
+//    }
     assert((int)layers_[l].size() != 0);
   }
 
@@ -91,12 +94,14 @@ bool FFAnalyzer::SeqPrint()
 
     if(!bSuccess)
     {
-      ROS_ERROR("All possible start edge at layer %d has been tried but no feasible sequence is obtained after %d iterations.", l, search_rerun_);
+      ROS_ERROR(
+          "All possible start edge at layer %d has been tried but no feasible sequence is obtained after %d iterations.", l, search_rerun_);
       break;
     }
   }
 
-  fprintf(stderr, "\n\nFFAnalyzer seq search finished:\n Number of edges: %d\nNumber of partial assignment visited: %d, Number of backtrack: %d\n\n",
+  fprintf(stderr,
+          "\n\nFFAnalyzer seq search finished:\n Number of edges: %d\nNumber of partial assignment visited: %d, Number of backtrack: %d\n\n",
           ptr_wholegraph_->SizeOfVertList(), num_p_assign_visited_, num_backtrack_);
 
   FF_analyzer_.Stop();
@@ -436,11 +441,16 @@ double FFAnalyzer::GenerateCost(WF_edge *ej, const int h, const int t, const int
       if (terminal_output_)
       {
         fprintf(stderr, "...collision test failed at edge #%d.\n", ej->ID() / 2);
-      }
 
-      fprintf(stderr, "fail edge vert u: (%f, %f, %f), vert v: (%f, %f, %f)\n\n",
-              ej->pvert_->Position().x(), ej->pvert_->Position().y(), ej->pvert_->Position().z(),
-              ej->ppair_->pvert_->Position().x(), ej->ppair_->pvert_->Position().y(), ej->ppair_->pvert_->Position().z());
+        fprintf(stderr,
+                "fail edge vert u: (%f, %f, %f), vert v: (%f, %f, %f)\n\n",
+                ej->pvert_->Position().x(),
+                ej->pvert_->Position().y(),
+                ej->pvert_->Position().z(),
+                ej->ppair_->pvert_->Position().x(),
+                ej->ppair_->pvert_->Position().y(),
+                ej->ppair_->pvert_->Position().z());
+      }
 
       return -2;
     }
@@ -466,15 +476,15 @@ double FFAnalyzer::GenerateCost(WF_edge *ej, const int h, const int t, const int
     }
 
     /* stiffness test */
-//    if (!ej->isPillar() && !TestifyStiffness(ej))
-//    {
-//      /* examination failed */
-//      if (terminal_output_)
-//      {
-//        fprintf(stderr, "...stiffness examination failed at edge #%d.\n\n", ej->ID() / 2);
-//      }
+    if (!ej->isPillar() && !TestifyStiffness(ej))
+    {
+      /* examination failed */
+      if (terminal_output_)
+      {
+        fprintf(stderr, "...stiffness examination failed at edge #%d.\n\n", ej->ID() / 2);
+      }
 //      return -1;
-//    }
+    }
 
     // Forward Checking
     // limit forward checking only to current layer
@@ -503,8 +513,11 @@ double FFAnalyzer::GenerateCost(WF_edge *ej, const int h, const int t, const int
 
         if(0 == future_angle)
         {
-          fprintf(stderr, "...FC pruning - collision test failed at edge #%d to future edge #%d.\n\n",
-                  ej->ID() / 2, ek->ID() / 2);
+          if(terminal_output_)
+          {
+            fprintf(stderr, "...FC pruning - collision test failed at edge #%d to future edge #%d.\n\n",
+                    ej->ID() / 2, ek->ID() / 2);
+          }
           return -1;
         }
 
@@ -560,14 +573,10 @@ void FFAnalyzer::PrintOutTimer()
   printf("***FFAnalyzer timer result:\n");
   FF_analyzer_.Print("FFAnalyzer:");
 
-  if (terminal_output_)
+  if (keep_timing_)
   {
-    upd_struct_.Print("UpdateStructure:");
-    rec_struct_.Print("RecoverStructure:");
-    upd_map_.Print("UpdateStateMap:");
-    upd_map_collision_.Print("DetectCollision:");
-    rec_map_.Print("RecoverStateMap:");
-    test_stiff_.Print("TestifyStiffness:");
+    test_kin_.Print("Test Kinematics:");
+    test_stiff_.Print("Test Stiffness:");
   }
   else
   {
