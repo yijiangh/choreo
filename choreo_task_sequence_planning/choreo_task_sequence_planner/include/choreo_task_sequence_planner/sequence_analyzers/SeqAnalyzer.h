@@ -110,7 +110,6 @@ class SeqAnalyzer
  protected:
   void Init();
 
-  void PrintPillars();
   void UpdateStructure(WF_edge *e, bool update_collision = false);
   void RecoverStructure(WF_edge *e, bool update_collision = false);
   void UpdateStateMap(WF_edge *e, vector<vector<lld>> &state_map);
@@ -167,6 +166,16 @@ class SeqAnalyzer
 
   Timer	test_stiff_;
   Timer test_kin_;
+  Timer test_collision_;
+
+  Timer upd_frame_;
+  Timer retr_frame_;
+
+  Timer upd_dir_map_;
+  Timer retr_dir_map_;
+
+  Timer upd_collision_;
+  Timer retr_collision_;
 
   descartes_core::RobotModelPtr hotend_model_;
   moveit::core::RobotModelConstPtr moveit_model_;

@@ -259,51 +259,13 @@ void SeqAnalyzer::Init()
   num_backtrack_ = 0;
 }
 
-void SeqAnalyzer::PrintPillars()
-{
-  /* ranked by x */
-  multimap<double, WF_edge*, std::greater<double>>base_queue;
-  multimap<double, WF_edge*, std::greater<double>>::iterator it;
-  for (int dual_i = 0; dual_i < Nd_; dual_i++)
-  {
-    WF_edge *e = ptr_frame_->GetEdge(ptr_wholegraph_->e_orig_id(dual_i));
-    if (e->isPillar())
-    {
-      point center = e->CenterPos();
-      base_queue.insert(make_pair(center.x(), e));
-      // TODO: enable collision checking and greedy tsp here
-    }
-  }
-
-  if(terminal_output_)
-  {
-    fprintf(stderr, "Size of base queue: %d, full graph domain pruning in progress.\n", (int)base_queue.size());
-  }
-
-  for(it = base_queue.begin(); it != base_queue.end(); it++)
-  {
-    WF_edge* e = it->second;
-    print_queue_.push_back(e);
-
-    ROS_INFO_STREAM("pillar # " << std::distance(base_queue.begin(), it) << " domain pruning.");
-
-    // update printed graph
-    UpdateStructure(e, update_collision_);
-
-    ROS_INFO_STREAM("collision updated.");
-
-    // update collision (geometric domain)
-    // tmp is the pruned domain by direct arc consistency pruning
-    vector<vector<lld>> tmp_angle(3);
-    UpdateStateMap(e, tmp_angle);
-
-    ROS_INFO_STREAM("Domain updated.");
-    ROS_INFO_STREAM("--------");
-  }
-}
-
 void SeqAnalyzer::UpdateStructure(WF_edge *e, bool update_collision)
 {
+  if(keep_timing_)
+  {
+    upd_frame_.Start();
+  }
+
   if(update_collision)
   {
     // add full collision obj without shrinking
@@ -352,10 +314,20 @@ void SeqAnalyzer::UpdateStructure(WF_edge *e, bool update_collision)
       D0_[6 * (Ns - 1) + i] = sum_D[i];
     }
   }
+
+  if(keep_timing_)
+  {
+    upd_frame_.Stop();
+  }
 }
 
 void SeqAnalyzer::RecoverStructure(WF_edge *e, bool update_collision)
 {
+  if(keep_timing_)
+  {
+    retr_frame_.Start();
+  }
+
   int dual_del = ptr_dualgraph_->RemoveUpdation(e);
 
   /* modify D0 */
@@ -375,10 +347,20 @@ void SeqAnalyzer::RecoverStructure(WF_edge *e, bool update_collision)
     // pop full collision obj without dealing with neighnoring edges
     RecoverCollisionObjects(e, false);
   }
+
+  if(keep_timing_)
+  {
+    retr_frame_.Stop();
+  }
 }
 
 void SeqAnalyzer::UpdateStateMap(WF_edge *order_e, vector<vector<lld>> &state_map)
 {
+  if(keep_timing_)
+  {
+    upd_dir_map_.Start();
+  }
+
   int dual_i = ptr_wholegraph_->e_dual_id(order_e->ID());
   int Nd = ptr_wholegraph_->SizeOfVertList();
 
@@ -391,12 +373,7 @@ void SeqAnalyzer::UpdateStateMap(WF_edge *order_e, vector<vector<lld>> &state_ma
     // (and they are printed first)
     if (dual_i != dual_j && !ptr_dualgraph_->isExistingEdge(target_e) && !target_e->isPillar())
     {
-      if(target_e->CenterDistanceTo(order_e) > STATEMAP_UPDATE_DISTANCE)
-      {
-        continue;
-      }
-
-//      if(target_e->Layer() >= 17)
+//      if(target_e->CenterDistanceTo(order_e) > STATEMAP_UPDATE_DISTANCE)
 //      {
 //        continue;
 //      }
@@ -416,10 +393,20 @@ void SeqAnalyzer::UpdateStateMap(WF_edge *order_e, vector<vector<lld>> &state_ma
       }
     }
   }
+
+  if(keep_timing_)
+  {
+    upd_dir_map_.Stop();
+  }
 }
 
 void SeqAnalyzer::RecoverStateMap(WF_edge* order_e, vector<vector<lld>>& state_map)
 {
+  if(keep_timing_)
+  {
+    retr_dir_map_.Start();
+  }
+
   int dual_i = ptr_wholegraph_->e_dual_id(order_e->ID());
   int Nd = ptr_wholegraph_->SizeOfVertList();
   int p = 0;
@@ -442,10 +429,20 @@ void SeqAnalyzer::RecoverStateMap(WF_edge* order_e, vector<vector<lld>>& state_m
       p++;
     }
   }
+
+  if(keep_timing_)
+  {
+    retr_dir_map_.Stop();
+  }
 }
 
 std::vector<moveit_msgs::CollisionObject> SeqAnalyzer::UpdateCollisionObjects(WF_edge* e, bool shrink)
 {
+  if(keep_timing_)
+  {
+    upd_collision_.Start();
+  }
+
   int orig_j;
   if (e->ID() < e->ppair_->ID())
   {
@@ -543,11 +540,21 @@ std::vector<moveit_msgs::CollisionObject> SeqAnalyzer::UpdateCollisionObjects(WF
     }
   }
 
+  if(keep_timing_)
+  {
+    upd_collision_.Stop();
+  }
+
   return added_collision_objs;
 }
 
 std::vector<moveit_msgs::CollisionObject> SeqAnalyzer::RecoverCollisionObjects(WF_edge* e, bool shrink)
 {
+  if(keep_timing_)
+  {
+    retr_collision_.Start();
+  }
+
   int orig_j;
   if (e->ID() < e->ppair_->ID())
   {
@@ -632,6 +639,11 @@ std::vector<moveit_msgs::CollisionObject> SeqAnalyzer::RecoverCollisionObjects(W
         eu = eu->pnext_;
       }
     }
+  }
+
+  if(keep_timing_)
+  {
+    retr_collision_.Stop();
   }
 
   return recovered_collision_objs;

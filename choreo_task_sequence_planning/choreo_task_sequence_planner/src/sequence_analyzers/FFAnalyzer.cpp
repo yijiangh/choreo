@@ -86,7 +86,7 @@ bool FFAnalyzer::SeqPrint()
     search_rerun_ = 0;
     bSuccess = false;
 
-    while(!bSuccess && search_rerun_ < 2)
+    while(!bSuccess && search_rerun_ < 1)
     {
       bSuccess = GenerateSeq(l, h, t);
       search_rerun_++;
@@ -369,7 +369,6 @@ double FFAnalyzer::GenerateCost(WF_edge *ej, const int h, const int t, const int
   // check arc consistency for all unprinted elements
   if (!ptr_dualgraph_->isExistingEdge(ej))
   {
-    double	P = 0; // stabiliy weight
     double  A = 0; // adjacency weight
     double	I = 0; // influence weight
 
@@ -384,44 +383,17 @@ double FFAnalyzer::GenerateCost(WF_edge *ej, const int h, const int t, const int
     int vj = ptr_frame_->GetEndv(orig_j);
     bool exist_uj = ptr_dualgraph_->isExistingVert(uj);
     bool exist_vj = ptr_dualgraph_->isExistingVert(vj);
-    double z = 0.0;
-
-    if(max_z_ != min_z_)
-    {
-      z = (ej->CenterPos().z() - min_z_) / (max_z_ - min_z_);
-    }
-    else
-    {
-      z = 0.0;
-    }
 
     // prune floating edge
     if(!ej->isPillar())
     {
       if (exist_uj && exist_vj)
       {
-        /* edge j share two ends with printed structure */
-        P = z;
       }
       else
       {
         if (exist_uj || exist_vj)
         {
-          /* edge j share one end with printed structure */
-          double ang;
-          point pos_uj = ptr_frame_->GetPosition(uj);
-          point pos_vj = ptr_frame_->GetPosition(vj);
-
-          if (exist_uj)
-          {
-            ang = Geometry::angle(point(0, 0, 1), pos_vj - pos_uj);
-          }
-          else
-          {
-            ang = Geometry::angle(point(0, 0, 1), pos_uj - pos_vj);
-          }
-
-          P = z * exp(ang);
         }
         else
         {
@@ -435,7 +407,16 @@ double FFAnalyzer::GenerateCost(WF_edge *ej, const int h, const int t, const int
     }
 
     /* collision test */
+    if(keep_timing_)
+    {
+      test_collision_.Start();
+    }
     int free_angle = ptr_collision_->ColFreeAngle(angle_state_[dual_j]);
+    if(keep_timing_)
+    {
+      test_collision_.Stop();
+    }
+
     if (free_angle == 0)
     {
       if (terminal_output_)
@@ -489,52 +470,65 @@ double FFAnalyzer::GenerateCost(WF_edge *ej, const int h, const int t, const int
     // Forward Checking
     // limit forward checking only to current layer
     /* influence weight */
-    int Nl = layers_[l].size();
-    int remaining_num = 0;
-    double forward_checking_factor = 1.0;
+    bool use_fc = 0;
 
-    for (int k = 0; k < Nl; k++)
+    if(use_fc)
     {
-      WF_edge* ek = layers_[l][k];
-      int dual_k = ptr_wholegraph_->e_dual_id(ek->ID());
+      int Nl = layers_[l].size();
+      int remaining_num = 0;
+      double forward_checking_factor = 1.0;
 
-      // considered edge is not ej itself and it's not printed yet
-      if (dual_j != dual_k && !ptr_dualgraph_->isExistingEdge(ek))
+      if (keep_timing_)
       {
-        vector<lld> tmp(3);
-        ptr_collision_->DetectCollision(ek, ej, tmp);
-
-        for (int o = 0; o < 3; o++)
-        {
-          tmp[o] |= angle_state_[dual_k][o];
-        }
-
-        int future_angle = ptr_collision_->ColFreeAngle(tmp);
-
-        if(0 == future_angle)
-        {
-          if(terminal_output_)
-          {
-            fprintf(stderr, "...FC pruning - collision test failed at edge #%d to future edge #%d.\n\n",
-                    ej->ID() / 2, ek->ID() / 2);
-          }
-          return -1;
-        }
-
-        double d_ratio = (double)future_angle / (double)ptr_collision_->Divide();
-        I += exp(- forward_checking_factor * d_ratio * d_ratio);
-
-        remaining_num++;
+        gen_cost_fc_.Start();
       }
-    }
+      for (int k = 0; k < Nl; k++)
+      {
+        WF_edge *ek = layers_[l][k];
+        int dual_k = ptr_wholegraph_->e_dual_id(ek->ID());
 
-    if(0 != remaining_num)
-    {
-      I /= remaining_num;
-    }
-    else
-    {
-      I = 0.0;
+        // considered edge is not ej itself and it's not printed yet
+        if (dual_j != dual_k && !ptr_dualgraph_->isExistingEdge(ek))
+        {
+          vector <lld> tmp(3);
+          ptr_collision_->DetectCollision(ek, ej, tmp);
+
+          for (int o = 0; o < 3; o++)
+          {
+            tmp[o] |= angle_state_[dual_k][o];
+          }
+
+          int future_angle = ptr_collision_->ColFreeAngle(tmp);
+
+          if (0 == future_angle)
+          {
+            if (terminal_output_)
+            {
+              fprintf(stderr, "...FC pruning - collision test failed at edge #%d to future edge #%d.\n\n",
+                  ej->ID() / 2, ek->ID() / 2);
+            }
+            return -1;
+          }
+
+          double d_ratio = (double) future_angle / (double) ptr_collision_->Divide();
+          I += exp(-forward_checking_factor * d_ratio * d_ratio);
+
+          remaining_num++;
+        }
+      }
+      if (keep_timing_)
+      {
+        gen_cost_fc_.Stop();
+      }
+
+      if (0 != remaining_num)
+      {
+        I /= remaining_num;
+      }
+      else
+      {
+        I = 0.0;
+      }
     }
 
     /* adjacency weight (A) */
@@ -554,11 +548,11 @@ double FFAnalyzer::GenerateCost(WF_edge *ej, const int h, const int t, const int
       }
     }
 
-    double cost = Wp_ * P + Wa_ * A + Wi_ * I;
+    double cost = Wa_ * A + Wi_ * I;
 
     if (terminal_output_)
     {
-      fprintf(stderr, "P: %lf, A: %lf, I: %lf\ncost: %f\n\n", P, A, I, cost);
+      fprintf(stderr, "A: %lf, I: %lf\ncost: %f\n\n", A, I, cost);
     }
 
     return cost;
@@ -575,8 +569,24 @@ void FFAnalyzer::PrintOutTimer()
 
   if (keep_timing_)
   {
-    test_kin_.Print("Test Kinematics:");
-    test_stiff_.Print("Test Stiffness:");
+    printf("\n");
+
+    test_stiff_.Print("test stiffness:");;
+    test_kin_.Print("test kinematics:");
+    test_collision_.Print("test collision:");
+
+    upd_frame_.Print("update frame:");
+    retr_frame_.Print("retr frame:");
+
+    upd_dir_map_.Print("update dir map:");
+    retr_dir_map_.Print("retr dir map:");
+
+    upd_collision_.Print("update collision:");
+    retr_collision_.Print("retr collision:");
+
+    gen_cost_fc_.Print("forward check:");
+
+    printf("\n");
   }
   else
   {

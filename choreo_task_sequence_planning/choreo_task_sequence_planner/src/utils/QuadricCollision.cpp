@@ -62,37 +62,37 @@ void QuadricCollision::Init(std::vector<lld>& colli_map)
   colli_map.push_back(temp);
   colli_map.push_back(temp);
 
-  // initial domain pruning
-  for(int i = 0; i < divide_; i++)
-  {
-    lld mask = ((lld) 1 << i);
-
-    for(int j = 0; j < 3; j++)
-    {
-      // i-th bit = 0 means it's feasible
-      double theta = 0.0;
-      if (i < 20)
-      {
-        theta = (j * 3 + 1) * 18.0 / 180.0 * F_PI;
-      }
-
-      if (i > 19 && i < 40)
-      {
-        theta = (j * 3 + 2) * 18.0 / 180.0 * F_PI;
-      }
-
-      if (i > 39)
-      {
-        theta = (j * 3 + 3)* 18.0 / 180.0 * F_PI;
-      }
-
-//      if(theta > F_PI - extruder_.Angle())
-      if(theta > F_PI - 75.0 / 180.0 * F_PI)
-      {
-        colli_map[j] |= mask;
-      }
-    }
-  }
+//  // initial domain pruning
+//  for(int i = 0; i < divide_; i++)
+//  {
+//    lld mask = ((lld) 1 << i);
+//
+//    for(int j = 0; j < 3; j++)
+//    {
+//      // i-th bit = 0 means it's feasible
+//      double theta = 0.0;
+//      if (i < 20)
+//      {
+//        theta = (j * 3 + 1) * 18.0 / 180.0 * F_PI;
+//      }
+//
+//      if (i > 19 && i < 40)
+//      {
+//        theta = (j * 3 + 2) * 18.0 / 180.0 * F_PI;
+//      }
+//
+//      if (i > 39)
+//      {
+//        theta = (j * 3 + 3)* 18.0 / 180.0 * F_PI;
+//      }
+//
+////      if(theta > F_PI - extruder_.Angle())
+//      if(theta > F_PI - 75.0 / 180.0 * F_PI)
+//      {
+//        colli_map[j] |= mask;
+//      }
+//    }
+//  }
 }
 
 bool QuadricCollision::DetectCollision(WF_edge *target_e, DualGraph *ptr_subgraph,
@@ -310,14 +310,14 @@ std::vector<int> QuadricCollision::ConvertCollisionMapToIntMap(const std::vector
 
 bool QuadricCollision::DetectEdge(WF_edge *order_e, std::vector<lld> &result_map)
 {
-  if(WF_edge_euclid_dist(target_e_, order_e) > MAX_COLLISION_CHECK_DIST)
-  {
-    // if this existing edge is too far away from target_e_, we assume that
-    // there's no constraint arc between the target_e and order_e
-
-    // return false if too far away
-    return false;
-  }
+//  if(WF_edge_euclid_dist(target_e_, order_e) > MAX_COLLISION_CHECK_DIST)
+//  {
+//    // if this existing edge is too far away from target_e_, we assume that
+//    // there's no constraint arc between the target_e and order_e
+//
+//    // return false if too far away
+//    return false;
+//  }
 
   int halfM = ptr_frame_->SizeOfEdgeList() / 2;
   int mi = order_e->ID() / 2 * halfM + target_e_->ID() / 2;

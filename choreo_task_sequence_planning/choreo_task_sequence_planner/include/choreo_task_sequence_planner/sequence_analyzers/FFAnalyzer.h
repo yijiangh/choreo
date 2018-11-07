@@ -101,5 +101,8 @@ class FFAnalyzer : public SeqAnalyzer
   double max_base_dist_;
 
   Timer FF_analyzer_;
+  Timer gen_cost_fc_;
+
+
 };
 
