@@ -163,7 +163,6 @@ toDescartesConstrainedPath(const std::vector <choreo_msgs::ElementCandidatePoses
     convertOrientationVector(path_pose.feasible_orients, seg.orientations);
 
     seg.linear_vel = seg_params.linear_vel;
-    seg.linear_disc = seg_params.linear_disc;
 
     // TODO: spatial extrusion specific
     switch (path_pose.type)
@@ -171,16 +170,20 @@ toDescartesConstrainedPath(const std::vector <choreo_msgs::ElementCandidatePoses
       case choreo_msgs::ElementCandidatePoses::SUPPORT:
       {
         seg.process_type = ConstrainedSegment::PROCESS_TYPE::SUPPORT;
+        // TODO: this should be opened to users
+        seg.linear_disc = 0.005;
         break;
       }
       case choreo_msgs::ElementCandidatePoses::CREATE:
       {
         seg.process_type = ConstrainedSegment::PROCESS_TYPE::CREATE;
+        seg.linear_disc = seg_params.linear_disc;
         break;
       }
       case choreo_msgs::ElementCandidatePoses::CONNECT:
       {
         seg.process_type = ConstrainedSegment::PROCESS_TYPE::CONNECT;
+        seg.linear_disc = seg_params.linear_disc;
         break;
       }
     }

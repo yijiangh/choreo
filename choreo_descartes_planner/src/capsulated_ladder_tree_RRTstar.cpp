@@ -204,7 +204,13 @@ double CapsulatedLadderTreeRRTstar::solve(descartes_core::RobotModel& model,
       return std::numeric_limits<double>::max();
     }
 
-    ROS_INFO_STREAM("[CLTRRT] ik solutions found for process #" << rung_id);
+    ROS_INFO_STREAM("[CLTRRT] ik solutions found for process #" << rung_id
+                                                                << ", st ik-"
+                                                                << ptr_cap_vert->start_joint_data_.size()/model.getDOF()
+                                                                << ", end ik-"
+                                                                << ptr_cap_vert->end_joint_data_.size()/model.getDOF()
+    );
+
     rung_id++;
   } // loop over cap_rungs
 
@@ -334,7 +340,13 @@ double CapsulatedLadderTreeRRTstar::solvePickNPlace(descartes_core::RobotModel& 
       return std::numeric_limits<double>::max();
     }
 
-    ROS_INFO_STREAM("[CLTRRT] ik solutions found for process #" << rung_id);
+    ROS_INFO_STREAM("[CLTRRT] ik solutions found for process #" << rung_id
+                                                                << ", st ik-"
+                                                                << ptr_cap_vert->start_joint_data_.size()/model.getDOF()
+                                                                << ", end ik-"
+                                                                << ptr_cap_vert->end_joint_data_.size()/model.getDOF()
+    );
+
     rung_id++;
   } // loop over cap_rungs
 

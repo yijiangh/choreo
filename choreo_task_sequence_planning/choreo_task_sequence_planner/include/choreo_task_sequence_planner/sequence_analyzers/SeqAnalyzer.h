@@ -83,7 +83,7 @@ class SeqAnalyzer
       FiberPrintPARM	*ptr_parm,
       char				*ptr_path,
       bool				terminal_output,
-      bool				file_output,
+      bool				keep_timing,
       descartes_core::RobotModelPtr hotend_model,
       moveit::core::RobotModelConstPtr moveit_model,
       std::string hotend_group_name
@@ -161,16 +161,12 @@ class SeqAnalyzer
 
   /* for debuging */
   bool terminal_output_;
-  bool file_output_;
+  bool keep_timing_;
 
   bool update_collision_;
 
-  Timer	upd_struct_;
-  Timer	rec_struct_;
-  Timer	upd_map_;
-  Timer	upd_map_collision_;
-  Timer	rec_map_;
   Timer	test_stiff_;
+  Timer test_kin_;
 
   descartes_core::RobotModelPtr hotend_model_;
   moveit::core::RobotModelConstPtr moveit_model_;

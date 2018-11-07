@@ -457,8 +457,8 @@ void adjustTrajectoryTiming(std::vector <choreo_msgs::UnitProcessPlan> &plans,
       plans[i].sub_process_array[j].unit_process_id = i;
       plans[i].sub_process_array[j].sub_process_id = j;
 
-      double sim_speed = 1.0;
-      if (2 != plans[i].sub_process_array[j].process_type)
+      double sim_speed = 0.9;
+      if (choreo_msgs::SubProcess::TRANSITION != plans[i].sub_process_array[j].process_type)
       {
         sim_speed = 0.1;
       }

@@ -70,13 +70,13 @@ class FFAnalyzer : public SeqAnalyzer
       FiberPrintPARM		*ptr_parm,
       char				*ptr_path,
       bool				terminal_output,
-      bool				file_output,
+      bool				keep_timing,
       descartes_core::RobotModelPtr hotend_model,
       moveit::core::RobotModelConstPtr moveit_model,
       std::string hotend_group_name
   ) noexcept
       : SeqAnalyzer(ptr_dualgraph, ptr_collision, ptr_stiffness,
-                    ptr_parm, ptr_path, terminal_output, file_output,
+                    ptr_parm, ptr_path, terminal_output, keep_timing,
                     hotend_model, moveit_model, hotend_group_name){}
   ~FFAnalyzer();
 

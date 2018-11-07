@@ -159,7 +159,7 @@ SeqAnalyzer::SeqAnalyzer(
     FiberPrintPARM		*ptr_parm,
     char				*ptr_path,
     bool				terminal_output,
-    bool				file_output,
+    bool				keep_timing,
     descartes_core::RobotModelPtr hotend_model,
     moveit::core::RobotModelConstPtr moveit_model,
     std::string hotend_group_name
@@ -181,7 +181,7 @@ SeqAnalyzer::SeqAnalyzer(
   Nd_ = 0;
 
   terminal_output_ = terminal_output;
-  file_output_ = file_output;
+  keep_timing_ = keep_timing;
 
   update_collision_ = true;
   search_rerun_ = 0;
@@ -639,6 +639,11 @@ std::vector<moveit_msgs::CollisionObject> SeqAnalyzer::RecoverCollisionObjects(W
 
 bool SeqAnalyzer::TestifyStiffness(WF_edge *e)
 {
+  if(keep_timing_)
+  {
+    test_stiff_.Start();
+  }
+
   /* insert a trail edge */
   UpdateStructure(e, false);
 
@@ -675,6 +680,11 @@ bool SeqAnalyzer::TestifyStiffness(WF_edge *e)
   /* remove the trail edge */
   RecoverStructure(e, false);
 
+  if(keep_timing_)
+  {
+    test_stiff_.Stop();
+  }
+
   return bSuccess;
 }
 
@@ -682,6 +692,11 @@ bool SeqAnalyzer::TestRobotKinematics(WF_edge* e, const std::vector<lld>& colli_
 {
   // insert a trail edge, needs to shrink neighnoring edges
   // to avoid collision check between end effector and elements
+  if(keep_timing_)
+  {
+     test_kin_.Start();
+  }
+
   bool b_success = false;
   UpdateCollisionObjects(e, true);
 
@@ -730,6 +745,7 @@ bool SeqAnalyzer::TestRobotKinematics(WF_edge* e, const std::vector<lld>& colli_
     tf::pointMsgToEigen(frame_msgs_[e->ID()].start_pt, end_pt);
   }
 
+  // TODO: this disc should be exposed
   std::vector<Eigen::Vector3d> path_pts = discretizePositions(st_pt, end_pt, 0.005);
 
 //  ROS_INFO_STREAM("path pts size: " << path_pts.size());
@@ -777,6 +793,12 @@ bool SeqAnalyzer::TestRobotKinematics(WF_edge* e, const std::vector<lld>& colli_
 
   // remove the trail edge, change shrinked edges back to full collision objects
   RecoverCollisionObjects(e, true);
+
+  if(keep_timing_)
+  {
+    test_kin_.Stop();
+  }
+
   return b_success;
 }
 

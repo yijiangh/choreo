@@ -840,6 +840,7 @@ bool IKFastKinematicsPlugin::searchPositionIK(const geometry_msgs::Pose& ik_pose
 
   /// search_mode is currently fixed during code generation
   SEARCH_MODE search_mode = OPTIMIZE_MAX_JOINT;
+//  SEARCH_MODE search_mode = OPTIMIZE_FREE_JOINT;
 
   // Check if there are no redundant joints
   if (free_params_.size() == 0)
