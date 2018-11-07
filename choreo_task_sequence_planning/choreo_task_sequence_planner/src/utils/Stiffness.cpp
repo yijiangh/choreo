@@ -609,9 +609,9 @@ void Stiffness::WriteData(VectorXd &D, int id, string fname)
 	double  exagg_static = 5;
 	float	scale = 1;
 
-	stiff_io_.WriteInputData(fpath.c_str(), ptr_dualgraph_, ptr_parm_, terminal_output_);
-	stiff_io_.GnuPltStaticMesh(fpath.c_str(), meshpath.c_str(), plotpath.c_str(),
-		D_joined, exagg_static, scale, ptr_dualgraph_, ptr_dualgraph_->ptr_frame_);
+//	stiff_io_.WriteInputData(fpath.c_str(), ptr_dualgraph_, ptr_parm_, terminal_output_);
+//	stiff_io_.GnuPltStaticMesh(fpath.c_str(), meshpath.c_str(), plotpath.c_str(),
+//		D_joined, exagg_static, scale, ptr_dualgraph_, ptr_dualgraph_->ptr_frame_);
 }
 
 

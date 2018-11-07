@@ -364,7 +364,7 @@ double FFAnalyzer::GenerateCost(WF_edge *ej, const int h, const int t, const int
         if (dual_j != dual_k && !ptr_dualgraph_->isExistingEdge(ek))
         {
           EEDirArray tmp_cmap;
-          ptr_collision_->DetectCollision(ek, ej, ee_dir_states_[dual_k], ee_dir_states_[dual_j],tmp_cmap);
+          ptr_collision_->DetectCollision(ek, ej, ee_dir_states_[dual_k], tmp_cmap);
 
           int future_angle = std::accumulate(tmp_cmap.begin(), tmp_cmap.end(), 0);
 

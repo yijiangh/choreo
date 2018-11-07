@@ -76,7 +76,6 @@ class SeqAnalyzer
   typedef Eigen::Matrix3d M3;
   typedef Eigen::VectorXd VX;
   typedef Eigen::Vector3d V3;
-  typedef std::array<bool, DIR_SPHERE_DIVISION> EEDirArray;
 
  public:
   explicit SeqAnalyzer(
@@ -116,8 +115,8 @@ class SeqAnalyzer
   void UpdateStructure(WF_edge *e, bool update_collision = false);
   void RecoverStructure(WF_edge *e, bool update_collision = false);
 
-  void UpdateStateMap(const WF_edge *e, std::vector<EEDirArray> &state_map);
-  void RecoverStateMap(const WF_edge *e, const std::vector<EEDirArray>& state_map);
+  void UpdateStateMap(const WF_edge *e, std::map<int, EEDirArray> &state_map);
+  void RecoverStateMap(const WF_edge *e, const std::map<int, EEDirArray>& state_map);
 
   bool TestifyStiffness(WF_edge *e);
   bool TestRobotKinematics(WF_edge* e, const EEDirArray& cmap);

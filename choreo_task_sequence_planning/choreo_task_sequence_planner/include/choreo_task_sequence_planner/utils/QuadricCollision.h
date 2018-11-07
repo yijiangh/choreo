@@ -53,13 +53,15 @@
 // geometric tools engine
 #include <GTEnginePCH.h>
 
+#include <Eigen/Core>
+
 using namespace Geometry;
 using namespace std;
 
+typedef std::array<bool, DIR_SPHERE_DIVISION> EEDirArray;
+
 class QuadricCollision
 {
- public:
-  typedef std::array<bool, DIR_SPHERE_DIVISION> EEDirArray;
 
  public:
   QuadricCollision();
@@ -71,15 +73,16 @@ class QuadricCollision
   // theta \in (0, pi), phi \in (0, 2pi)
   // polar angle theta (rad)int angleToCMapId(const double phi, const double theta);
   void cmapIDToAngle(const int id, double& phi, double& theta);
+  int angleToCMapId(const double phi, const double theta);
 
   // assuming exist_e is static collision obj, check target_e's extrusion direction map
   bool DetectCollision(const WF_edge* target_e, const WF_edge* exist_e, EEDirArray& res_cmap);
 
   bool DetectCollision(const WF_edge* target_e, const WF_edge* exist_e,
-                       const EEDirArray& target_cmap, EEDirArray & res_cmap);
+                       const EEDirArray& target_cmap, EEDirArray& res_cmap);
 
   // get initial collision map
-  EEDirArray QuadricCollision::getInitCollisionMap();
+  EEDirArray getInitCollisionMap();
 
   // TODO: should make into a class-free helper functions
   void ModifyAngle(const EEDirArray& cmap, EEDirArray& impacted_cmap);

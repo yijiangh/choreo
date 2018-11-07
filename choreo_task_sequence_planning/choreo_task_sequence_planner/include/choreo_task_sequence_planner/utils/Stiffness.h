@@ -64,7 +64,6 @@
 #include "choreo_task_sequence_planner/FiberPrintPARM.h"
 #include "choreo_task_sequence_planner/utils/CoordTrans.h"
 #include "choreo_task_sequence_planner/utils/GCommon.h"
-#include "choreo_task_sequence_planner/utils/StiffnessIO.h"
 #include "choreo_task_sequence_planner/utils/StiffnessSolver.h"
 #include "choreo_task_sequence_planner/utils/IllCondDetector.h"
 
@@ -140,7 +139,6 @@ public:
 	FiberPrintPARM	*ptr_parm_;
 	char			*ptr_path_;
 
-	StiffnessIO		stiff_io_;
 	StiffnessSolver	stiff_solver_;
 
 	CoordTrans		transf_;

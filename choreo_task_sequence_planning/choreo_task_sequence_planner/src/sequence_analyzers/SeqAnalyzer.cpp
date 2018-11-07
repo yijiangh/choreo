@@ -356,7 +356,7 @@ void SeqAnalyzer::RecoverStructure(WF_edge *e, bool update_collision)
   }
 }
 
-void SeqAnalyzer::UpdateStateMap(const WF_edge *exist_e, std::map<int, EEDirMap>& changed_state_map)
+void SeqAnalyzer::UpdateStateMap(const WF_edge *exist_e, std::map<int, EEDirArray>& changed_state_map)
 {
   // propagate exist_e's impact on unprinted edges' state map
 
@@ -388,7 +388,7 @@ void SeqAnalyzer::UpdateStateMap(const WF_edge *exist_e, std::map<int, EEDirMap>
       // arc consistency pruning
       EEDirArray tmp_cmap;
 
-      if(ptr_collision_->DetectCollision(target_e, exist_e, ee_dir_states_[dual_j], ee_dir_states_[dual_i], tmp_cmap))
+      if(ptr_collision_->DetectCollision(target_e, exist_e, ee_dir_states_[dual_j], tmp_cmap))
       {
         // keep in the states before modification in record
         changed_state_map[dual_j] = ee_dir_states_[dual_j];
@@ -404,14 +404,14 @@ void SeqAnalyzer::UpdateStateMap(const WF_edge *exist_e, std::map<int, EEDirMap>
   }
 }
 
-void SeqAnalyzer::RecoverStateMap(const WF_edge* exist_e, const std::map<int, EEDirMap>& recov_cmap)
+void SeqAnalyzer::RecoverStateMap(const WF_edge* exist_e, const std::map<int, EEDirArray>& recov_cmap)
 {
   if(keep_timing_)
   {
     retr_dir_map_.Start();
   }
 
-  for (it = recov_cmap.begin(); it != recov_cmap.end(); it++)
+  for(auto it = recov_cmap.begin(); it != recov_cmap.end(); it++)
   {
 //      if(target_e->CenterDistanceTo(exist_e) > STATEMAP_UPDATE_DISTANCE)
 //      {

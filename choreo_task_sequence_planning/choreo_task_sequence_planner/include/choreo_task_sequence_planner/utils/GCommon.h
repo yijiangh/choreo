@@ -37,9 +37,9 @@
 #include <cmath>
 
 // end effector discretization meta parameter
-static const int THETA_DISC = 10;
-static const int PHI_DISC = 20;
-static const int DIR_SPHERE_DIVISION = 200;
+static const int THETA_DISC = 5;
+static const int PHI_DISC = 10;
+static const int DIR_SPHERE_DIVISION = 50;
 
 #define FILENMAX 128
 
@@ -66,6 +66,3 @@ static const int DIR_SPHERE_DIVISION = 200;
 // Zvert=1: Z axis is vertical... rotate about Y-axis, then rotate about Z-axis
 // Zvert=0: Y axis is vertical... rotate about Z-axis, then rotate about Y-axis
 #define Zvert 1
-
-#endif /* FIBERPRINT_COMMON_H */
-

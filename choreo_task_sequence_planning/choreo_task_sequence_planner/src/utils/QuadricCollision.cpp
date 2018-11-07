@@ -140,18 +140,13 @@ EEDirArray QuadricCollision::getInitCollisionMap()
   return cmap;
 }
 
-bool QuadricCollision::DetectCollision(const WF_edge *target_e, const WF_edge *exist_e, EEDirMap& result_map)
+bool QuadricCollision::DetectCollision(const WF_edge *target_e, const WF_edge *exist_e, EEDirArray& result_cmap)
 {
-  result_map = init_cmap_;
-  target_e_ = target_e;
-
-  /* collision with edge */
-//  return(DetectEdge(exist_e, result_map));
+  return DetectCollision(target_e, exist_e, init_cmap_, result_cmap);
 }
 
-bool QuadricCollision::DetectCollision(WF_edge* target_e, WF_edge* exist_e,
-                                       const EEDirArray& target_cmap,
-                                       std::vector<lld>& result_cmap)
+bool QuadricCollision::DetectCollision(const WF_edge* target_e, const WF_edge* exist_e,
+                                       const EEDirArray& target_cmap, EEDirArray& result_cmap)
 {
 //  if(WF_edge_euclid_dist(target_e_, exist_e) > MAX_COLLISION_CHECK_DIST)
 //  {
@@ -169,8 +164,9 @@ bool QuadricCollision::DetectCollision(WF_edge* target_e, WF_edge* exist_e,
   // polar angle theta (rad)
   double theta;
 
-  result_cmap.clear();
-  std::copy(target_cmap.begin(), target_cmap.end(), std::back_inserter(result_cmap));
+  result_cmap = target_cmap;
+  assert(std::accumulate(target_cmap.begin(), target_cmap.end(),0)
+             == std::accumulate(result_cmap.begin(), result_cmap.end(),0));
 
   for(int i=0; i<target_cmap.size(); i++)
   {
@@ -184,11 +180,6 @@ bool QuadricCollision::DetectCollision(WF_edge* target_e, WF_edge* exist_e,
         result_cmap[i] = 0;
       }
     }
-  }
-
-  for (int i = 0; i < 3; i++)
-  {
-    result_map[i] |= (*colli_map_[mi])[i];
   }
 
   return true;

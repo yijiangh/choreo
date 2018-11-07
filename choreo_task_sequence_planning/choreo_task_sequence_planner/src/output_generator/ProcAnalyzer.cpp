@@ -33,7 +33,7 @@ bool ProcAnalyzer::ProcPrint()
   WireFrame *ptr_frame = ptr_seqanalyzer_->ptr_frame_;
   DualGraph *ptr_dualgraph = ptr_seqanalyzer_->ptr_dualgraph_;
 
-  QuadricCollision collision_checker = QuadricCollision(ptr_frame);
+//  QuadricCollision collision_checker = QuadricCollision();
 
   std::vector<SingleTaskPlanningResult> planning_result;
   ptr_seqanalyzer_->OutputTaskSequencePlanningResult(planning_result);

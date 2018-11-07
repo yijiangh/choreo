@@ -89,7 +89,6 @@ set(${PROJECT_NAME}_UTILS_SRC_FILES
 	src/utils/ResolveAngle.cpp
 	src/utils/Statistics.cpp
 	src/utils/Stiffness.cpp
-	src/utils/StiffnessIO.cpp
 	src/utils/StiffnessSolver.cpp
 	src/utils/Timer.cpp
 	src/utils/WireFrame.cpp
