@@ -44,75 +44,53 @@
 #ifndef FRAMEFAB_TASK_SEQUENCE_PLANNER_QUADCOLLISION_H
 #define FRAMEFAB_TASK_SEQUENCE_PLANNER_QUADCOLLISION_H
 
+#include "choreo_task_sequence_planner/utils/GCommon.h"
 #include "choreo_task_sequence_planner/utils/Geometry.h"
 #include "choreo_task_sequence_planner/utils/ExtruderCone.h"
 #include "choreo_task_sequence_planner/utils/Triangle.h"
 #include "choreo_task_sequence_planner/utils/WireFrame.h"
-#include "choreo_task_sequence_planner/utils/DualGraph.h"
 
 // geometric tools engine
 #include <GTEnginePCH.h>
-#include <Mathematics/GteTriangle.h>
-#include <Mathematics/GteIntrSegment3Cone3.h>
-#include <Mathematics/GteIntrSegment3Cylinder3.h>
-#include <Mathematics/GteIntrSegment3Triangle3.h>
-#include <Mathematics/GteDistSegmentSegment.h>
-
-#define	STRICT_COLLISION
-
-// used to express feasible end effector directions
-typedef unsigned long long lld;
 
 using namespace Geometry;
 using namespace std;
 
-// theta=(0,180), phi=(0,360)
-// target means unprinted edge under current consideration, order edge means existing edge
-
 class QuadricCollision
 {
  public:
+  typedef std::array<bool, DIR_SPHERE_DIVISION> EEDirArray;
+
+ public:
   QuadricCollision();
-  QuadricCollision(WireFrame *ptr_frame);
-  ~QuadricCollision();
+  ~QuadricCollision() {}
 
- public:
-  void Init(vector <lld> &colli_map);
-  bool DetectCollision(WF_edge* target_e, DualGraph* ptr_subgraph, std::vector<lld>& result_map);
-  bool DetectCollision(WF_edge* target_e, WF_edge* order_e, std::vector<lld>& colli_map);
-  void DetectCollision(WF_edge* target_e, std::vector<WF_edge*> exist_edge, std::vector<GeoV3>& output);
+  // angle-id conversion
+  // https://en.wikipedia.org/wiki/Spherical_coordinate_system
+  // ISO naming convention (commonly used in physics)
+  // theta \in (0, pi), phi \in (0, 2pi)
+  // polar angle theta (rad)int angleToCMapId(const double phi, const double theta);
+  void cmapIDToAngle(const int id, double& phi, double& theta);
 
- public:
-  void ModifyAngle(std::vector<lld>& angle_state, const std::vector<lld>& colli_map);
+  // assuming exist_e is static collision obj, check target_e's extrusion direction map
+  bool DetectCollision(const WF_edge* target_e, const WF_edge* exist_e, EEDirArray& res_cmap);
 
-  int ColFreeAngle(const std::vector<lld>& colli_map);
+  bool DetectCollision(const WF_edge* target_e, const WF_edge* exist_e,
+                       const EEDirArray& target_cmap, EEDirArray & res_cmap);
 
-  std::vector<Eigen::Vector3d> ConvertCollisionMapToEigenDirections(const std::vector<lld>& colli_map);
-  std::vector<int> ConvertCollisionMapToIntMap(const std::vector<lld>& colli_map);
+  // get initial collision map
+  EEDirArray QuadricCollision::getInitCollisionMap();
 
-  inline int Divide()
-  {
-    return 18 * 10 + 2;
-  }
-
- private:
-  // convert to eef direction 3d vector
-  inline GeoV3 Orientation(double theta, double phi)
-  {
-    return GeoV3(sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta));
-  }
-
-  inline Eigen::Vector3d ConvertAngleToEigenDirection(double theta, double phi)
-  {
-    return Eigen::Vector3d(sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta));
-  }
+  // TODO: should make into a class-free helper functions
+  void ModifyAngle(const EEDirArray& cmap, EEDirArray& impacted_cmap);
+  std::vector<Eigen::Vector3d> ConvertCollisionMapToEigenDirections(const EEDirArray& cmap);
 
  private:
-  bool DetectBulk(WF_edge *order_e, double theta, double phi);
-  bool DetectEdge(WF_edge *order_e, vector <lld> &colli_map);
-  bool DetectEdges(std::vector<WF_edge*> exist_edge, double theta, double phi);
+  bool DetectBulk(const WF_edge* target_e, const WF_edge* exist_e,
+                  const double phi, const double theta);
+
+  // all the collision checking cases...
   bool DetectAngle(GeoV3 connect, GeoV3 end, GeoV3 target_end, GeoV3 normal);
-
   bool Case(GeoV3 target_start, GeoV3 target_end,
             GeoV3 order_start, GeoV3 order_end, GeoV3 normal);
   bool SpecialCase(GeoV3 connect, GeoV3 target_s, GeoV3 order_s, GeoV3 normal);
@@ -127,25 +105,11 @@ class QuadricCollision
   void GenerateVolume(GeoV3 start, GeoV3 end, GeoV3 target_start, GeoV3 target_end, GeoV3 normal);
   void GenerateVolume(GeoV3 connect, GeoV3 target_s, GeoV3 order_s, GeoV3 normal);
 
-  bool Parallel(GeoV3 a, GeoV3 b);
-  double Distance(WF_edge *order_e);
-
-  gte::Segment<3, float> Seg(point target_start, point target_end);
-  gte::Segment<3, float> Seg(GeoV3 target_start, GeoV3 target_end);
-  gte::Triangle<3, float> Tri(GeoV3 a, GeoV3 b, GeoV3 c);
-
- public:
-  WireFrame* ptr_frame_;
-  WF_edge* target_e_;
-
  private:
   ExtruderCone extruder_;
   std::vector<Triangle> bulk_;
-  int divide_;
 
-  // compact representation of end effector's feasible direction
-  // each lld is a bit-wise map, value 1 means it causes collision
-  std::vector<std::vector<lld>*> colli_map_;
+  EEDirArray init_cmap_;
 };
 
 #endif

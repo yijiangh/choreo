@@ -16,6 +16,8 @@
 // msg-eigen conversion
 #include <eigen_conversions/eigen_msg.h>
 
+#include "choreo_task_sequence_planner/utils/GCommon.h"
+
 const static std::string GET_PLANNING_SCENE_SERVICE = "get_planning_scene";
 const static double ROBOT_KINEMATICS_CHECK_TIMEOUT = 10.0;
 const double STATEMAP_UPDATE_DISTANCE = 300; // mm
@@ -221,11 +223,11 @@ void SeqAnalyzer::Init()
 
   print_queue_.clear();
 
-  angle_state_.clear();
-  angle_state_.resize(Nd_);
+  ee_dir_states_.clear();
+  ee_dir_states_.resize(Nd_);
   for(int i = 0; i < Nd_; i++)
   {
-    ptr_collision_->Init(angle_state_[i]);
+    ee_dir_states_[i] = ptr_collision_->getInitCollisionMap();
   }
 
   ptr_dualgraph_->Init();
@@ -354,15 +356,18 @@ void SeqAnalyzer::RecoverStructure(WF_edge *e, bool update_collision)
   }
 }
 
-void SeqAnalyzer::UpdateStateMap(WF_edge *order_e, vector<vector<lld>> &state_map)
+void SeqAnalyzer::UpdateStateMap(const WF_edge *exist_e, std::map<int, EEDirMap>& changed_state_map)
 {
+  // propagate exist_e's impact on unprinted edges' state map
+
   if(keep_timing_)
   {
     upd_dir_map_.Start();
   }
 
-  int dual_i = ptr_wholegraph_->e_dual_id(order_e->ID());
+  int dual_i = ptr_wholegraph_->e_dual_id(exist_e->ID());
   int Nd = ptr_wholegraph_->SizeOfVertList();
+  changed_state_map.clear();
 
   for (int dual_j = 0; dual_j < Nd; dual_j++)
   {
@@ -371,25 +376,24 @@ void SeqAnalyzer::UpdateStateMap(WF_edge *order_e, vector<vector<lld>> &state_ma
     // for each unprinted edge in wireframe, full graph arc consistency
     // it makes no sense to prune pillar's domain, since we only allow z-axis for pillar's printing
     // (and they are printed first)
+
     if (dual_i != dual_j && !ptr_dualgraph_->isExistingEdge(target_e) && !target_e->isPillar())
     {
-//      if(target_e->CenterDistanceTo(order_e) > STATEMAP_UPDATE_DISTANCE)
+//      if(target_e->CenterDistanceTo(exist_e) > STATEMAP_UPDATE_DISTANCE)
 //      {
 //        continue;
 //      }
 
-      // prune order_e's domain with target_e's existence
+      // prune exist_e's domain with target_e's existence
       // arc consistency pruning
-      vector<lld> tmp(3);
+      EEDirArray tmp_cmap;
 
-      if(ptr_collision_->DetectCollision(target_e, order_e, tmp))
+      if(ptr_collision_->DetectCollision(target_e, exist_e, ee_dir_states_[dual_j], ee_dir_states_[dual_i], tmp_cmap))
       {
-        for (int k = 0; k < 3; k++)
-        {
-          state_map[k].push_back(angle_state_[dual_j][k]);
-        }
+        // keep in the states before modification in record
+        changed_state_map[dual_j] = ee_dir_states_[dual_j];
 
-        ptr_collision_->ModifyAngle(angle_state_[dual_j], tmp);
+        ptr_collision_->ModifyAngle(tmp_cmap, ee_dir_states_[dual_j]);
       }
     }
   }
@@ -400,34 +404,23 @@ void SeqAnalyzer::UpdateStateMap(WF_edge *order_e, vector<vector<lld>> &state_ma
   }
 }
 
-void SeqAnalyzer::RecoverStateMap(WF_edge* order_e, vector<vector<lld>>& state_map)
+void SeqAnalyzer::RecoverStateMap(const WF_edge* exist_e, const std::map<int, EEDirMap>& recov_cmap)
 {
   if(keep_timing_)
   {
     retr_dir_map_.Start();
   }
 
-  int dual_i = ptr_wholegraph_->e_dual_id(order_e->ID());
-  int Nd = ptr_wholegraph_->SizeOfVertList();
-  int p = 0;
-
-  for(int dual_j = 0; dual_j < Nd; dual_j++)
+  for (it = recov_cmap.begin(); it != recov_cmap.end(); it++)
   {
-    WF_edge * target_e = ptr_frame_->GetEdge(ptr_wholegraph_->e_orig_id(dual_j));
+//      if(target_e->CenterDistanceTo(exist_e) > STATEMAP_UPDATE_DISTANCE)
+//      {
+//        continue;
+//      }
+    assert(0 <= it->first && it->first < ptr_wholegraph_->SizeOfVertList());
+    assert(it->second.size() == DIR_SPHERE_DIVISION);
 
-    if(dual_i != dual_j && !ptr_dualgraph_->isExistingEdge(target_e) && !target_e->isPillar())
-    {
-      if(target_e->CenterDistanceTo(order_e) > STATEMAP_UPDATE_DISTANCE)
-      {
-        continue;
-      }
-
-      for(int k = 0; k < 3; k++)
-      {
-        angle_state_[dual_j][k] = state_map[k][p];
-      }
-      p++;
-    }
+    ee_dir_states_[it->first] = it->second;
   }
 
   if(keep_timing_)
@@ -700,7 +693,7 @@ bool SeqAnalyzer::TestifyStiffness(WF_edge *e)
   return bSuccess;
 }
 
-bool SeqAnalyzer::TestRobotKinematics(WF_edge* e, const std::vector<lld>& colli_map)
+bool SeqAnalyzer::TestRobotKinematics(WF_edge* e, const EEDirArray& cmap)
 {
   // insert a trail edge, needs to shrink neighnoring edges
   // to avoid collision check between end effector and elements
@@ -736,7 +729,8 @@ bool SeqAnalyzer::TestRobotKinematics(WF_edge* e, const std::vector<lld>& colli_
 
   // generate feasible end effector directions for printing edge e
   std::vector<Eigen::Vector3d> direction_vec_list =
-      ptr_collision_->ConvertCollisionMapToEigenDirections(colli_map);
+      ptr_collision_->ConvertCollisionMapToEigenDirections(cmap);
+
   std::vector<Eigen::Matrix3d> direction_matrix_list;
   convertOrientationVector(direction_vec_list, direction_matrix_list);
 
@@ -994,9 +988,8 @@ void SeqAnalyzer::OutputTaskSequencePlanningResult(std::vector<SingleTaskPlannin
     }
     else
     {
-      assert(angle_state_[dual_j].size() > 0);
       // generate feasible end effector directions for printing edge e
-      direction_vec_list = ptr_collision_->ConvertCollisionMapToEigenDirections(angle_state_[dual_j]);
+      direction_vec_list = ptr_collision_->ConvertCollisionMapToEigenDirections(ee_dir_states_[dual_j]);
     }
 
     assert(direction_vec_list.size() > 0);

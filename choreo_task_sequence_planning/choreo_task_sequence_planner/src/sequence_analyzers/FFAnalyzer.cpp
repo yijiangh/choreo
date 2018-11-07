@@ -1,3 +1,6 @@
+#include <numeric>
+
+#include "choreo_task_sequence_planner/utils/GCommon.h"
 #include "choreo_task_sequence_planner/sequence_analyzers/FFAnalyzer.h"
 
 FFAnalyzer::~FFAnalyzer()
@@ -108,140 +111,6 @@ bool FFAnalyzer::SeqPrint()
   return bSuccess;
 }
 
-bool FFAnalyzer::SeqPrintLayer(std::vector<int> layer_ids)
-{
-  assert(ptr_frame_->SizeOfLayer()
-             > *std::max_element(layer_ids.begin(), layer_ids.end()));
-
-  ROS_INFO_STREAM("[TSP] Target layers search test.");
-
-  FF_analyzer_.Start();
-
-  Init();
-
-  ROS_INFO_STREAM("[TSP] FF Analyzer init.");
-
-  /* split layers */
-  /* label stores layer index of each dual node */
-  int layer_size = ptr_frame_->SizeOfLayer();
-  layers_.clear();
-  layers_.resize(layer_size);
-  for (int i = 0; i < Nd_; i++)
-  {
-    WF_edge *e = ptr_frame_->GetEdge(ptr_wholegraph_->e_orig_id(i));
-    assert(e);
-    layers_[e->Layer()].push_back(e);
-  }
-
-  for(const int& layer_id : layer_ids)
-  {
-    fprintf(stderr, "Size of target layer %d is %d\n", layer_id, (int)layers_[layer_id].size());
-  }
-
-  int min_tid = *std::min_element(layer_ids.begin(), layer_ids.end());
-
-  bool bSuccess = true;
-
-  for(int l=0; l < min_tid; l++)
-  {
-    std::cout << "layer #" << l << std::endl;
-
-    for(int s=0; s < layers_[l].size(); s++)
-    {
-      WF_edge* e = layers_[l][s];
-
-      print_queue_.push_back(e);
-
-      // update printed graph
-      UpdateStructure(e, update_collision_);
-
-      for(const int& layer_id : layer_ids)
-      {
-        vector <vector<lld>> state_map(3);
-        int dual_i = ptr_wholegraph_->e_dual_id(e->ID());
-
-        for (int j = 0; j < layers_[layer_id].size(); j++)
-        {
-          WF_edge* target_e = layers_[layer_id][j];
-          int dual_j = ptr_wholegraph_->e_dual_id(target_e->ID());
-
-          // prune order_e's domain with target_e's existence
-          // arc consistency pruning
-          vector <lld> tmp(3);
-          if (ptr_collision_->DetectCollision(target_e, e, tmp))
-          {
-            for (int k = 0; k < 3; k++)
-            {
-              state_map[k].push_back(angle_state_[dual_j][k]);
-            }
-
-            ptr_collision_->ModifyAngle(angle_state_[dual_j], tmp);
-          }
-        }
-      } // loop thru target layers
-    }
-  }
-
-  std::cout << "Update finished." << std::endl;
-
-  int target_size = 0;
-
-  for(const int& lb : layer_ids)
-  {
-    // search in target layer
-    int Nl = layers_[lb].size();
-    int h = print_queue_.size(); // print queue size so far
-    int t = h + Nl;
-
-    target_size += Nl;
-
-    /* max_z_ and min_z_ in current layer */
-    min_base_dist_ = min_z_ = 1e20;
-    max_base_dist_ = max_z_ = -1e20;
-
-    for (int i = 0; i < Nl; i++)
-    {
-      WF_edge *e = layers_[lb][i];
-      point u = e->pvert_->Position();
-      point v = e->ppair_->pvert_->Position();
-      min_z_ = min(min_z_, (double) min(u.z(), v.z()));
-      max_z_ = max(max_z_, (double) max(u.z(), v.z()));
-
-      const auto& st_pt_msg = frame_msgs_[e->ID()].start_pt;
-      const auto& end_pt_msg = frame_msgs_[e->ID()].end_pt;
-
-      // distance to robot base (world_frame 0,0,0)
-      double dist = sqrt(pow((st_pt_msg.x + end_pt_msg.x)/2, 2)
-                             + pow((st_pt_msg.y + end_pt_msg.y)/2, 2)
-                             + pow((st_pt_msg.z + end_pt_msg.z)/2, 2));
-
-      min_base_dist_ = min(min_base_dist_, dist);
-      max_base_dist_ = max(max_base_dist_, dist);
-    }
-
-    search_rerun_ = 0;
-    bSuccess = false;
-
-    while(!bSuccess && search_rerun_ < 2)
-    {
-      bSuccess = GenerateSeq(lb, h, t);
-      search_rerun_++;
-    }
-
-    if(!bSuccess)
-    {
-      ROS_ERROR("All possible start edge at layer %d has been tried but no feasible sequence is obtained after %d iterations.",
-                lb, search_rerun_);
-      break;
-    }
-  }
-
-  fprintf(stderr, "****Reminder: Start of target layers is %d\n", Nd_ - target_size);
-
-  FF_analyzer_.Stop();
-  return bSuccess;
-}
-
 bool FFAnalyzer::GenerateSeq(int l, int h, int t)
 {
   /* last edge */
@@ -325,8 +194,8 @@ bool FFAnalyzer::GenerateSeq(int l, int h, int t)
 
     // update collision (geometric domain)
     // tmp is the pruned domain by direct arc consistency pruning
-    std::vector<std::vector<lld>> tmp_angle(3);
-    UpdateStateMap(ej, tmp_angle);
+    std::map<int, EEDirArray> tmp_cmap;
+    UpdateStateMap(ej, tmp_cmap);
 
     num_p_assign_visited_++;
 
@@ -342,7 +211,7 @@ bool FFAnalyzer::GenerateSeq(int l, int h, int t)
     }
 
     // backtrack
-    RecoverStateMap(ej, tmp_angle);
+    RecoverStateMap(ej, tmp_cmap);
     RecoverStructure(ej, update_collision_);
 
     print_queue_.pop_back();
@@ -363,8 +232,8 @@ bool FFAnalyzer::GenerateSeq(int l, int h, int t)
 
 double FFAnalyzer::GenerateCost(WF_edge *ej, const int h, const int t, const int l)
 {
-  int orig_j = ej->ID();
-  int dual_j = ptr_wholegraph_->e_dual_id(orig_j);
+  const int orig_j = ej->ID();
+  const int dual_j = ptr_wholegraph_->e_dual_id(orig_j);
 
   // check arc consistency for all unprinted elements
   if (!ptr_dualgraph_->isExistingEdge(ej))
@@ -411,7 +280,10 @@ double FFAnalyzer::GenerateCost(WF_edge *ej, const int h, const int t, const int
     {
       test_collision_.Start();
     }
-    int free_angle = ptr_collision_->ColFreeAngle(angle_state_[dual_j]);
+
+    // TODO: just do a summation would be suffice
+    int free_angle = std::accumulate(ee_dir_states_[dual_j].begin(), ee_dir_states_[dual_j].end(), 0);
+
     if(keep_timing_)
     {
       test_collision_.Stop();
@@ -440,7 +312,7 @@ double FFAnalyzer::GenerateCost(WF_edge *ej, const int h, const int t, const int
       /* robot kinematics test */
       if(update_collision_)
       {
-        if (!TestRobotKinematics(ej, angle_state_[dual_j]))
+        if (!TestRobotKinematics(ej, ee_dir_states_[dual_j]))
         {
           /* examination failed */
           if (terminal_output_)
@@ -470,10 +342,11 @@ double FFAnalyzer::GenerateCost(WF_edge *ej, const int h, const int t, const int
     // Forward Checking
     // limit forward checking only to current layer
     /* influence weight */
-    bool use_fc = 0;
+    bool use_fc = 1;
 
     if(use_fc)
     {
+      // consider only edges in the same layer
       int Nl = layers_[l].size();
       int remaining_num = 0;
       double forward_checking_factor = 1.0;
@@ -490,15 +363,10 @@ double FFAnalyzer::GenerateCost(WF_edge *ej, const int h, const int t, const int
         // considered edge is not ej itself and it's not printed yet
         if (dual_j != dual_k && !ptr_dualgraph_->isExistingEdge(ek))
         {
-          vector <lld> tmp(3);
-          ptr_collision_->DetectCollision(ek, ej, tmp);
+          EEDirArray tmp_cmap;
+          ptr_collision_->DetectCollision(ek, ej, ee_dir_states_[dual_k], ee_dir_states_[dual_j],tmp_cmap);
 
-          for (int o = 0; o < 3; o++)
-          {
-            tmp[o] |= angle_state_[dual_k][o];
-          }
-
-          int future_angle = ptr_collision_->ColFreeAngle(tmp);
+          int future_angle = std::accumulate(tmp_cmap.begin(), tmp_cmap.end(), 0);
 
           if (0 == future_angle)
           {
@@ -510,7 +378,7 @@ double FFAnalyzer::GenerateCost(WF_edge *ej, const int h, const int t, const int
             return -1;
           }
 
-          double d_ratio = (double) future_angle / (double) ptr_collision_->Divide();
+          double d_ratio = (double) future_angle / (double) DIR_SPHERE_DIVISION;
           I += exp(-forward_checking_factor * d_ratio * d_ratio);
 
           remaining_num++;

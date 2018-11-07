@@ -102,7 +102,5 @@ class FFAnalyzer : public SeqAnalyzer
 
   Timer FF_analyzer_;
   Timer gen_cost_fc_;
-
-
 };
 

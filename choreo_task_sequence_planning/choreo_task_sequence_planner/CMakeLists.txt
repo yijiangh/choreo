@@ -77,7 +77,6 @@ catkin_package(
 include_directories(
 	include
 	${catkin_INCLUDE_DIRS}
-#	${GECODE_INCLUDE_DIRS}
 )
 
 set(${PROJECT_NAME}_UTILS_SRC_FILES
@@ -98,8 +97,8 @@ set(${PROJECT_NAME}_UTILS_SRC_FILES
 
 set(${PROJECT_NAME}_SEQUENCE_ANALYZERS_SRC_FILES
 	src/sequence_analyzers/FFAnalyzer.cpp
+	src/sequence_analyzers/FFAnalyzer_debug.cpp
 	src/sequence_analyzers/SeqAnalyzer.cpp
-#	src/sequence_analyzers/GecodeAnalyzer.cpp
 	)
 
 set(${PROJECT_NAME}_OUTPUT_GENERATOR_SRC_FILES

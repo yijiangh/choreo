@@ -42,6 +42,7 @@
 #pragma once
 #include <cmath>
 
+#include "choreo_task_sequence_planner/utils/GCommon.h"
 #include "choreo_task_sequence_planner/utils/Timer.h"
 #include "choreo_task_sequence_planner/utils/WireFrame.h"
 #include "choreo_task_sequence_planner/utils/DualGraph.h"
@@ -62,7 +63,8 @@
 #include <descartes_core/robot_model.h>
 #include <pluginlib/class_loader.h>
 
-struct SingleTaskPlanningResult{
+struct SingleTaskPlanningResult
+{
   WF_edge* e_;
   std::vector<Eigen::Vector3d> eef_directions_;
 };
@@ -74,6 +76,7 @@ class SeqAnalyzer
   typedef Eigen::Matrix3d M3;
   typedef Eigen::VectorXd VX;
   typedef Eigen::Vector3d V3;
+  typedef std::array<bool, DIR_SPHERE_DIVISION> EEDirArray;
 
  public:
   explicit SeqAnalyzer(
@@ -112,11 +115,12 @@ class SeqAnalyzer
 
   void UpdateStructure(WF_edge *e, bool update_collision = false);
   void RecoverStructure(WF_edge *e, bool update_collision = false);
-  void UpdateStateMap(WF_edge *e, vector<vector<lld>> &state_map);
-  void RecoverStateMap(WF_edge *e, vector<vector<lld>> &state_map);
-  bool TestifyStiffness(WF_edge *e);
 
-  bool TestRobotKinematics(WF_edge* e, const std::vector<lld>& colli_map);
+  void UpdateStateMap(const WF_edge *e, std::vector<EEDirArray> &state_map);
+  void RecoverStateMap(const WF_edge *e, const std::vector<EEDirArray>& state_map);
+
+  bool TestifyStiffness(WF_edge *e);
+  bool TestRobotKinematics(WF_edge* e, const EEDirArray& cmap);
 
   WF_edge* RouteEdgeDirection(const WF_edge* prev_e, WF_edge* e);
 
@@ -146,8 +150,7 @@ class SeqAnalyzer
 
   std::vector<WF_edge*> print_queue_;
 
-  // feasible end effector direction record, bit-wise map
-  vector<vector<unsigned long long>> angle_state_;
+  std::vector<std::array<bool, DIR_SPHERE_DIVISION>> ee_dir_states_;
 
   VX D0_;
 

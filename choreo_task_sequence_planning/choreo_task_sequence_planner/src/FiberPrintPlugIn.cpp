@@ -362,7 +362,7 @@ bool FiberPrintPlugIn::Init()
     ptr_dualgraph_ = new DualGraph(ptr_frame_);
 
     delete ptr_collision_;
-    ptr_collision_ = new QuadricCollision(ptr_frame_);
+    ptr_collision_ = new QuadricCollision();
 
     delete ptr_stiffness_;
     ptr_stiffness_ = new Stiffness(
@@ -546,9 +546,6 @@ bool FiberPrintPlugIn::handleTaskSequencePlanning(
       addCollisionObject(table);
 
       res.element_array = frame_msgs_;
-
-      // get deformation
-//      GetDeformation();
 
       break;
     }
