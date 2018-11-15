@@ -89,7 +89,7 @@ bool FFAnalyzer::SeqPrint()
     search_rerun_ = 0;
     bSuccess = false;
 
-    while(!bSuccess && search_rerun_ < 1)
+    while(!bSuccess && search_rerun_ < 2)
     {
       bSuccess = GenerateSeq(l, h, t);
       search_rerun_++;
@@ -342,7 +342,8 @@ double FFAnalyzer::GenerateCost(WF_edge *ej, const int h, const int t, const int
     // Forward Checking
     // limit forward checking only to current layer
     /* influence weight */
-    bool use_fc = 1;
+//    bool use_fc = 1;
+    bool use_fc = 0;
 
     if(use_fc)
     {
@@ -399,20 +400,24 @@ double FFAnalyzer::GenerateCost(WF_edge *ej, const int h, const int t, const int
       }
     }
 
-    /* adjacency weight (A) */
-    if(ej->isPillar())
-    {
-      // use dist to robot base as heuristic
-      const auto &st_pt_msg = frame_msgs_[ej->ID()].start_pt;
-      const auto &end_pt_msg = frame_msgs_[ej->ID()].end_pt;
+    bool use_base_to_e = 0;
 
-      // distance to robot base (world_frame 0,0,0)
-      double dist = sqrt(pow((st_pt_msg.x + end_pt_msg.x) / 2, 2)
-                             + pow((st_pt_msg.y + end_pt_msg.y) / 2, 2)
-                             + pow((st_pt_msg.z + end_pt_msg.z) / 2, 2));
-      if (min_base_dist_ != max_base_dist_)
+    if(use_base_to_e)
+    {
+      if (ej->isPillar())
       {
-        A = 1 - (dist - min_base_dist_) / (max_base_dist_ - min_base_dist_);
+        // use dist to robot base as heuristic
+        const auto &st_pt_msg = frame_msgs_[ej->ID()].start_pt;
+        const auto &end_pt_msg = frame_msgs_[ej->ID()].end_pt;
+
+        // distance to robot base (world_frame 0,0,0)
+        double dist = sqrt(pow((st_pt_msg.x + end_pt_msg.x) / 2, 2)
+                               + pow((st_pt_msg.y + end_pt_msg.y) / 2, 2)
+                               + pow((st_pt_msg.z + end_pt_msg.z) / 2, 2));
+        if (min_base_dist_ != max_base_dist_)
+        {
+          A = 1 - (dist - min_base_dist_) / (max_base_dist_ - min_base_dist_);
+        }
       }
     }
 

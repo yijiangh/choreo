@@ -19,8 +19,8 @@
 #include "choreo_task_sequence_planner/utils/GCommon.h"
 
 const static std::string GET_PLANNING_SCENE_SERVICE = "get_planning_scene";
-const static double ROBOT_KINEMATICS_CHECK_TIMEOUT = 10.0;
-const double STATEMAP_UPDATE_DISTANCE = 300; // mm
+const static double ROBOT_KINEMATICS_CHECK_TIMEOUT = 2.0;
+//const double STATEMAP_UPDATE_DISTANCE = 300; // mm
 
 namespace{
 // copy from graph_builder.cpp

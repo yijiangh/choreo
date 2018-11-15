@@ -11,7 +11,7 @@
 
 #include "choreo_task_sequence_planner/utils/QuadricCollision.h"
 
-static const double MAX_COLLISION_CHECK_DIST = 250; // mm
+//static const double MAX_COLLISION_CHECK_DIST = 250; // mm
 
 namespace{
 
