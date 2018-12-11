@@ -113,41 +113,16 @@ void convertWireFrameToMsg(
   wf_msgs.clear();
 
   // set unit scale
-  switch (model_params.unit_type)
-  {
-    case choreo_msgs::ModelInputParameters::MILLIMETER:
-    {
-      unit_scale = 0.001;
-      break;
-    }
-    case choreo_msgs::ModelInputParameters::CENTIMETER:
-    {
-      unit_scale = 0.01;
-      break;
-    }
-    case choreo_msgs::ModelInputParameters::INCH:
-    {
-      unit_scale = 0.0254;
-      break;
-    }
-    case choreo_msgs::ModelInputParameters::FOOT:
-    {
-      unit_scale = 0.3048;
-      break;
-    }
-    default:
-    {
-      ROS_ERROR("Unrecognized Unit type in Model Input Parameters!");
-    }
-  }
+  unit_scale = wire_frame.getUnitScale2Meter();
+  ROS_INFO_STREAM("[ts] wf2msg: unit scale " << unit_scale);
 
   // TODO: this might cause out-of-scale problem!!!
   // default wireframe is in millimeter and might be different to user-specified unit in mpp
   // wireframe default unit is mm, convert to meter
   const auto &base_pt = wire_frame.GetBaseCenterPos();
-  Eigen::Vector3d transf_vec = Eigen::Vector3d(model_params.ref_pt_x * unit_scale - base_pt.x() * 0.001,
-                                               model_params.ref_pt_y * unit_scale - base_pt.y() * 0.001,
-                                               model_params.ref_pt_z * unit_scale - base_pt.z() * 0.001);
+  Eigen::Vector3d transf_vec = Eigen::Vector3d(model_params.ref_pt_x * unit_scale - base_pt.x() * unit_scale,
+                                               model_params.ref_pt_y * unit_scale - base_pt.y() * unit_scale,
+                                               model_params.ref_pt_z * unit_scale - base_pt.z() * unit_scale);
 
   wf_msgs.resize(wire_frame.SizeOfEdgeList());
 
@@ -165,12 +140,12 @@ void convertWireFrameToMsg(
       Eigen::Vector3d eigen_st_pt(e->ppair_->pvert_->Position().x(),
                                   e->ppair_->pvert_->Position().y(),
                                   e->ppair_->pvert_->Position().z());
-      eigen_st_pt = eigen_st_pt * 0.001 + transf_vec;
+      eigen_st_pt = eigen_st_pt * unit_scale + transf_vec;
 
       Eigen::Vector3d eigen_end_pt(e->pvert_->Position().x(),
                                    e->pvert_->Position().y(),
                                    e->pvert_->Position().z());
-      eigen_end_pt = eigen_end_pt * 0.001 + transf_vec;
+      eigen_end_pt = eigen_end_pt * unit_scale + transf_vec;
 
       // in meter
       tf::pointEigenToMsg(eigen_st_pt, element_msg.start_pt);
@@ -215,7 +190,7 @@ moveit_msgs::CollisionObject createPrintTable(const Eigen::Vector3d& ref_pt, con
   moveit_msgs::CollisionObject collision_env_obj;
   std::string env_obj_id = "env_obj_table";
 
-  // table box's dimension
+  // table box's dimension, meter
   double dx = 1;
   double dy = 1;
   double dz = 0.03;
@@ -520,10 +495,10 @@ bool FiberPrintPlugIn::handleTaskSequencePlanning(
     {
       std::string file_path = req.model_params.file_name;
 
-      // TODO: all of these char* should be const char*
-      // convert std::string to writable char*
-      std::vector<char> fp(file_path.begin(), file_path.end());
-      fp.push_back('\0');
+//      // TODO: all of these char* should be const char*
+//      // convert std::string to writable char*
+//      std::vector<char> fp(file_path.begin(), file_path.end());
+//      fp.push_back('\0');
 
       if(NULL != ptr_frame_)
       {
@@ -532,7 +507,7 @@ bool FiberPrintPlugIn::handleTaskSequencePlanning(
 
       // TODO: if contains keyword "pwf"
       ptr_frame_ = new WireFrame();
-      ptr_frame_->LoadFromPWF(&fp[0]);
+      ptr_frame_->LoadFromJson(file_path);
 
       ROS_INFO_STREAM("[Ts planning] wire frame read : " << file_path);
 
@@ -541,6 +516,7 @@ bool FiberPrintPlugIn::handleTaskSequencePlanning(
 
       // TODO: temp functions
       convertWireFrameToMsg(req.model_params, *ptr_frame_, frame_msgs_, unit_scale, world_frame_);
+      assert(unit_scale == ptr_frame_->getUnitScale2Meter() && "scale in model and scale@GUI is different!");
 
       moveit_msgs::CollisionObject table = createPrintTable(ref_pt, unit_scale, world_frame_);
       addCollisionObject(table);

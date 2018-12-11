@@ -1,0 +1,4 @@
+[submodule "conmech"]
+	path = choreo_task_sequence_planning/conmech
+	url = https://github.com/yijiangh/conmech.git
+	branch = master

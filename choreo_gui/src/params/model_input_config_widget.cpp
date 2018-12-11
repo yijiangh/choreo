@@ -88,9 +88,9 @@ void choreo_gui::ModelInputConfigWidget::get_file_path_handler()
 {
   QString filename = QFileDialog::getOpenFileName(
       this,
-      tr("Open File"),
+      tr("Open Geometry File"),
       QString::fromStdString(last_filepath_),
-      tr("pwf Files (*.pwf)"));
+      tr("JSON (*.json);;pwf (*.pwf)"));
 
   params_.file_name = filename.toLocal8Bit().constData();
   last_filepath_ = filename.toLocal8Bit().constData();

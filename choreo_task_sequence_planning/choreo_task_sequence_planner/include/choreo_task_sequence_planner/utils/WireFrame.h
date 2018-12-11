@@ -194,6 +194,8 @@ class WireFrame
  public:
   void LoadFromOBJ(const char *path);
   void LoadFromPWF(const char *path);
+  void LoadFromJson(const std::string& file_path);
+
   void WriteToOBJ(const char *path);
   void WriteToPWF(
       bool bVert, bool bLine,
@@ -222,8 +224,6 @@ class WireFrame
   void MakeCeiling(vector<WF_edge*> &bound_e);
   void MakeSubGraph(vector<WF_edge*> &subg_e);
 
-  void SetUnitScale(double unit_scale) { unit_scale_ = unit_scale; }
-
   inline int SizeOfVertList() const { return pvert_list_->size(); }
   inline int SizeOfEdgeList() const { return pedge_list_->size(); }
   inline int SizeOfFixedVert() const { return fixed_vert_; }
@@ -248,8 +248,6 @@ class WireFrame
   inline Vec3f GetCenterPos() const { return center_pos_; }
   inline Vec3f GetBaseCenterPos() const { return base_center_pos_; }
 
-  inline double GetUnitScale() const { return unit_scale_; }
-
   inline bool isFixed(int u) const { assert(u < SizeOfVertList() && u >= 0); return((*pvert_list_)[u]->isFixed()); }
   inline bool isPillar(int i) const	{ assert(i < SizeOfEdgeList() && i >= 0); return((*pedge_list_)[i]->isPillar()); }
 
@@ -259,6 +257,8 @@ class WireFrame
   inline double minY() const { return miny_; }
   inline double maxZ() const { return maxz_; }
   inline double minZ() const { return minz_; }
+
+  double getUnitScale2Meter() const { return unit_scale_to_meter_; }
 
   inline double Norm(point u) const
   {
@@ -311,6 +311,5 @@ class WireFrame
   double unify_size_;
   double delta_tol_;
 
-  // from millimeter to ..
-  double unit_scale_;
+  double unit_scale_to_meter_;
 };

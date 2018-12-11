@@ -1,13 +1,45 @@
 #include "choreo_task_sequence_planner/utils/WireFrame.h"
 #include <ros/console.h>
 
-WireFrame::WireFrame()
-    :delta_tol_(1e-1), unify_size_(2.0), layer_size_(0), unit_scale_(1.0)
-{
-  pvert_list_ = new vector<WF_vert*>;
-  pedge_list_ = new vector<WF_edge*>;
-}
+#include <choreo_rapidjson/include/rapidjson/document.h>
+#include <choreo_rapidjson/include/rapidjson/filereadstream.h>
 
+namespace
+{
+double unitScaleConvert2Meter(const std::string &unit)
+{
+  if (unit == "millimeter" || unit == "mm")
+  {
+    return 0.001;
+  }
+  if (unit == "centimeter" || unit == "cm")
+  {
+    return 0.01;
+  }
+  if (unit == "meter" || unit == "m")
+  {
+    return 1;
+  }
+  if (unit == "inch" || unit == "in")
+  {
+    return 0.0254;
+  }
+  if (unit == "foot" || unit == "ft")
+  {
+    return 0.3048;
+  }
+
+  ROS_ERROR("Unrecognized Unit type in Model Input Parameters!");
+  assert(false);
+}
+} // anon namespace util
+
+WireFrame::WireFrame()
+    : delta_tol_(1e-1), unify_size_(2.0), layer_size_(0), unit_scale_to_meter_(1.0)
+{
+  pvert_list_ = new vector<WF_vert *>;
+  pedge_list_ = new vector<WF_edge *>;
+}
 
 WireFrame::~WireFrame()
 {
@@ -30,7 +62,6 @@ WireFrame::~WireFrame()
   pedge_list_ = NULL;
 }
 
-
 void WireFrame::LoadFromOBJ(const char *path)
 {
   /* need to deal with replication */
@@ -43,7 +74,7 @@ void WireFrame::LoadFromOBJ(const char *path)
     fseek(fp, 0, SEEK_SET);
     char pLine[512];
     char *tok;
-    vector<WF_vert*> tmp_points;
+    vector < WF_vert * > tmp_points;
     while (fgets(pLine, 512, fp))
     {
       if (pLine[0] == 'v' && pLine[1] == ' ')
@@ -56,7 +87,7 @@ void WireFrame::LoadFromOBJ(const char *path)
           tok = strtok(NULL, " ");
           strcpy(tmp, tok);
           tmp[strcspn(tmp, " ")] = 0;
-          p[i] = (float)atof(tmp);
+          p[i] = (float) atof(tmp);
         }
 
         p = point(p.x(), p.y(), p.z());
@@ -85,8 +116,7 @@ void WireFrame::LoadFromOBJ(const char *path)
       prev = -1;
       while (c != '\n' && c != EOF)
       {
-        while (c = fgetc(fp), c != '\n' && c != EOF && !isdigit(c))
-          ;
+        while (c = fgetc(fp), c != '\n' && c != EOF && !isdigit(c)) {}
 
         if (c == '\n' || c == EOF)
         {
@@ -114,14 +144,14 @@ void WireFrame::LoadFromOBJ(const char *path)
     {
       if (pLine[0] == 'f' && pLine[1] == ' ')
       {
-        vector<WF_vert*> bound_points;
+        vector < WF_vert * > bound_points;
         tok = strtok(pLine, " ");
         char tmp[128];
         while (tok = strtok(NULL, " "))
         {
           strcpy(tmp, tok);
           tmp[strcspn(tmp, " ")] = 0;
-          int u = (int)atof(tmp) - 1;
+          int u = (int) atof(tmp) - 1;
           bound_points.push_back(tmp_points[u]);
         }
 
@@ -143,7 +173,6 @@ void WireFrame::LoadFromOBJ(const char *path)
 
   fclose(fp);
 }
-
 
 void WireFrame::LoadFromPWF(const char *path)
 {
@@ -171,7 +200,7 @@ void WireFrame::LoadFromPWF(const char *path)
           tok = strtok(NULL, " ");
           strcpy(tmp, tok);
           tmp[strcspn(tmp, " ")] = 0;
-          p[i] = (float)atof(tmp);
+          p[i] = (float) atof(tmp);
         }
 
         p = point(p.x(), p.y(), p.z());
@@ -191,24 +220,24 @@ void WireFrame::LoadFromPWF(const char *path)
         tok = strtok(NULL, " ");
         strcpy(tmp, tok);
         tmp[strcspn(tmp, " ")] = 0;
-        int u = (int)atof(tmp) - 1;
+        int u = (int) atof(tmp) - 1;
 
         tok = strtok(NULL, " ");
         strcpy(tmp, tok);
         tmp[strcspn(tmp, " ")] = 0;
-        int v = (int)atof(tmp) - 1;
+        int v = (int) atof(tmp) - 1;
 
         tok = strtok(NULL, " ");
         strcpy(tmp, tok);
         tmp[strcspn(tmp, " ")] = 0;
-        int layer = (int)atof(tmp);
+        int layer = (int) atof(tmp);
 
-        if(!(0 <= u && u < pvert_list_->size()))
+        if (!(0 <= u && u < pvert_list_->size()))
         {
           ROS_ERROR_STREAM("read layer: start node id overflow: " << u << "/" << pvert_list_->size());
           assert(0 <= u && u < pvert_list_->size());
         }
-        if(!(0 <= v && v < pvert_list_->size()))
+        if (!(0 <= v && v < pvert_list_->size()))
         {
           ROS_ERROR_STREAM("read layer: end node id overflow: " << v << "/" << pvert_list_->size());
           assert(0 <= v && v < pvert_list_->size());
@@ -217,10 +246,10 @@ void WireFrame::LoadFromPWF(const char *path)
         WF_edge *e = InsertEdge((*pvert_list_)[u], (*pvert_list_)[v]);
         if (e != NULL)
         {
-          if(e->Layer() != -1)
+          if (e->Layer() != -1)
           {
             ROS_WARN_STREAM("Overwrite previously set id! - prev layer id : " << e->Layer()
-            << ", current id: " << layer);
+                                                                              << ", current id: " << layer);
             assert(e->Layer() == -1);
           }
 
@@ -250,8 +279,7 @@ void WireFrame::LoadFromPWF(const char *path)
       prev = -1;
       while (c != '\n' && c != EOF)
       {
-        while (c = fgetc(fp), c != '\n' && c != EOF && !isdigit(c))
-          ;
+        while (c = fgetc(fp), c != '\n' && c != EOF && !isdigit(c)) {}
 
         if (c == '\n' || c == EOF)
         {
@@ -266,12 +294,12 @@ void WireFrame::LoadFromPWF(const char *path)
 
         if (prev != -1)
         {
-          if(!(0 <= prev && prev < pvert_list_->size()))
+          if (!(0 <= prev && prev < pvert_list_->size()))
           {
             ROS_ERROR_STREAM("read lines: start node id overflow: " << prev << "/" << pvert_list_->size());
             assert(0 <= prev && prev < pvert_list_->size());
           }
-          if(!(0 <= curv && curv < pvert_list_->size()))
+          if (!(0 <= curv && curv < pvert_list_->size()))
           {
             ROS_ERROR_STREAM("read lines: end node id overflow: " << curv << "/" << pvert_list_->size());
             assert(0 <= curv && curv < pvert_list_->size());
@@ -296,12 +324,12 @@ void WireFrame::LoadFromPWF(const char *path)
         tok = strtok(NULL, " ");
         strcpy(tmp, tok);
         tmp[strcspn(tmp, " ")] = 0;
-        int u = (int)atof(tmp) - 1;
+        int u = (int) atof(tmp) - 1;
 
         tok = strtok(NULL, " ");
         strcpy(tmp, tok);
         tmp[strcspn(tmp, " ")] = 0;
-        int v = (int)atof(tmp) - 1;
+        int v = (int) atof(tmp) - 1;
 
         WF_vert *b = (*pvert_list_)[u];
         b->SetBase(true);
@@ -330,12 +358,12 @@ void WireFrame::LoadFromPWF(const char *path)
         tok = strtok(NULL, " ");
         strcpy(tmp, tok);
         tmp[strcspn(tmp, " ")] = 0;
-        int u = (int)atof(tmp) - 1;
+        int u = (int) atof(tmp) - 1;
 
         tok = strtok(NULL, " ");
         strcpy(tmp, tok);
         tmp[strcspn(tmp, " ")] = 0;
-        int v = (int)atof(tmp) - 1;
+        int v = (int) atof(tmp) - 1;
 
         WF_edge *e = InsertEdge((*pvert_list_)[u], (*pvert_list_)[v]);
         if (e != NULL)
@@ -356,6 +384,132 @@ void WireFrame::LoadFromPWF(const char *path)
   fclose(fp);
 }
 
+void WireFrame::LoadFromJson(const std::string &file_path)
+{
+  using namespace std;
+  using namespace rapidjson;
+
+  FILE *fp = fopen(file_path.c_str(), "r");
+  assert(fp);
+
+  char readBuffer[65536];
+  FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+
+  Document document;
+  if (document.ParseStream(is).HasParseError())
+  {
+    std::cout << "ERROR parsing the input json file!\n";
+    fclose(fp);
+    assert(false);
+  }
+
+  fclose(fp);
+
+//  // reset all existing vert and element list
+//  clear();
+
+  if (!document.HasMember("unit"))
+  {
+    cout << "WARNING: no unit is specified - using millimeter by default" << endl;
+  }
+  unit_scale_to_meter_ = unitScaleConvert2Meter(document["unit"].GetString());
+
+  assert(document.HasMember("dimension"));
+  int dim = document["dimension"].GetInt();
+  assert(dim == 2 || dim == 3);
+
+  // read vertices
+  assert(document.HasMember("node_list"));
+  assert(document["node_list"].Size() > 0);
+
+  int full_node_dof = 0;
+  if (dim == 3)
+  {
+    full_node_dof = 6;
+  }
+  else
+  {
+    full_node_dof = 3;
+  }
+
+  for (int i = 0; i < document["node_list"].Size(); i++)
+  {
+    const Value &p = document["node_list"][i]["point"];
+    auto vert = InsertVertex(
+        point(
+            p["X"].GetDouble() * unit_scale_to_meter_,
+            p["Y"].GetDouble() * unit_scale_to_meter_,
+            p["Z"].GetDouble() * unit_scale_to_meter_));
+
+    if (document["node_list"][i]["is_grounded"].GetInt())
+    {
+      vert->SetFixed(true);
+
+//      Eigen::VectorXi fixities = Eigen::VectorXi::Zero(full_node_dof);
+//      if (document["node_list"][i].HasMember("fixities"))
+//      {
+//        assert(document["node_list"][i]["fixities"].Size() == full_node_dof);
+//
+//        for (int j = 0; j < full_node_dof; j++)
+//        {
+//          fixities[j] = document["node_list"][i]["fixities"][j].GetInt();
+//        }
+//      }
+//      else
+//      {
+//        // default to be all fixed
+//        fixities = Eigen::VectorXi::Constant(full_node_dof, 1);
+//      }
+//
+//      vert->setFixities(fixities);
+//      fixed_vert_size_++;
+    }
+  }
+
+//  assert(fixed_vert_size_ > 0 && "there needs to be at least one support (fixed) vertex in the model!");
+
+  // read edges (beams)
+  assert(document.HasMember("element_list"));
+  assert(document["element_list"].Size() > 0);
+
+  for (int i = 0; i < document["element_list"].Size(); i++)
+  {
+    int u = document["element_list"][i]["end_node_ids"][0].GetInt();
+    int v = document["element_list"][i]["end_node_ids"][1].GetInt();
+    int layer = document["element_list"][i]["layer_id"].GetInt();
+
+    assert(0 <= u && u < pvert_list_->size());
+    assert(0 <= v && v < pvert_list_->size());
+
+//    FrameElementPtr e = insertElement(vert_list_[u], vert_list_[v]);
+    WF_edge *e = InsertEdge((*pvert_list_)[u], (*pvert_list_)[v]);
+    if (e != NULL)
+    {
+      if (e->Layer() != -1)
+      {
+        ROS_WARN_STREAM("Overwrite previously set id! - prev layer id : " << e->Layer()
+                                                                          << ", current id: " << layer);
+        assert(e->Layer() == -1);
+      }
+
+      e->SetLayer(layer);
+      e->ppair_->SetLayer(layer);
+
+      if (layer > layer_size_ - 1)
+      {
+        layer_size_++;
+      }
+
+      if ((*pvert_list_)[u]->isFixed() || (*pvert_list_)[v]->isFixed())
+      {
+        e->SetPillar(true);
+        e->ppair_->SetPillar(true);
+      }
+    }
+  }
+
+  Unify();
+}
 
 void WireFrame::WriteToOBJ(const char *path)
 {
@@ -398,7 +552,6 @@ void WireFrame::WriteToOBJ(const char *path)
   fclose(fp);
 }
 
-
 void WireFrame::WriteToPWF(
     bool bVert, bool bLine,
     bool bPillar, bool bCeiling,
@@ -410,7 +563,6 @@ void WireFrame::WriteToPWF(
     min_layer = -(1 << 20);
     max_layer = (1 << 20);
   }
-
 
   FILE *fp = fopen(path, "wb+");
   int N = SizeOfVertList();
@@ -524,7 +676,6 @@ void WireFrame::WriteToPWF(
   fclose(fp);
 }
 
-
 void WireFrame::ImportFrom3DD(const char *path)
 {
   FILE *fp = fopen(path, "r");
@@ -553,14 +704,14 @@ void WireFrame::ImportFrom3DD(const char *path)
           tok = strtok(pLine, " ");
           strcpy(tmp, tok);
           tmp[strcspn(tmp, " ")] = 0;
-          p[0] = (float)atof(tmp);
+          p[0] = (float) atof(tmp);
 
           for (int i = 1; i < 3; i++)
           {
             tok = strtok(NULL, " ");
             strcpy(tmp, tok);
             tmp[strcspn(tmp, " ")] = 0;
-            p[i] = (float)atof(tmp);
+            p[i] = (float) atof(tmp);
           }
 
           p = point(p.x(), p.y(), p.z());
@@ -583,7 +734,6 @@ void WireFrame::ImportFrom3DD(const char *path)
 
   fclose(fp);
 }
-
 
 void WireFrame::ExportSubgraph(const char *path)
 {
@@ -638,7 +788,6 @@ void WireFrame::ExportSubgraph(const char *path)
   fclose(fp);
 }
 
-
 void WireFrame::ExportPoints(int min_layer, int max_layer, const char *path)
 {
   if ((*pedge_list_)[0]->Layer() == -1)
@@ -680,7 +829,6 @@ void WireFrame::ExportPoints(int min_layer, int max_layer, const char *path)
   fclose(fp);
 }
 
-
 void WireFrame::ExportLines(int min_layer, int max_layer, const char *path)
 {
   if ((*pedge_list_)[0]->Layer() == -1)
@@ -708,15 +856,14 @@ void WireFrame::ExportLines(int min_layer, int max_layer, const char *path)
       point u = e2->pvert_->RenderPos();
       point v = e1->pvert_->RenderPos();
       fprintf(fp, "%lf %lf %lf %lf %lf %lf\r\n",
-              u.x(), u.y(), u.z(), v.x(), v.y(), v.z());
+          u.x(), u.y(), u.z(), v.x(), v.y(), v.z());
     }
   }
 
   fclose(fp);
 }
 
-
-WF_vert* WireFrame::InsertVertex(Vec3f p)
+WF_vert *WireFrame::InsertVertex(Vec3f p)
 {
   // detect duplication
   int N = SizeOfVertList();
@@ -725,7 +872,7 @@ WF_vert* WireFrame::InsertVertex(Vec3f p)
     if (Dist(p, (*pvert_list_)[i]->Position()) < 1e-3)
     {
       ROS_WARN_STREAM("duplicate point read! (" << p.x() << ", " << p.y() << ", " << p.z() << ")");
-      return ( *pvert_list_)[i];
+      return (*pvert_list_)[i];
     }
   }
 
@@ -735,8 +882,7 @@ WF_vert* WireFrame::InsertVertex(Vec3f p)
   return vert;
 }
 
-
-WF_edge* WireFrame::InsertEdge(WF_vert *u, WF_vert *v)
+WF_edge *WireFrame::InsertEdge(WF_vert *u, WF_vert *v)
 {
   // detect duplication
   WF_edge *e = u->pedge_;
@@ -759,8 +905,7 @@ WF_edge* WireFrame::InsertEdge(WF_vert *u, WF_vert *v)
   return e1;
 }
 
-
-WF_edge* WireFrame::InsertOneWayEdge(WF_vert *u, WF_vert *v)
+WF_edge *WireFrame::InsertOneWayEdge(WF_vert *u, WF_vert *v)
 {
   if (u == v)
   {
@@ -776,7 +921,6 @@ WF_edge* WireFrame::InsertOneWayEdge(WF_vert *u, WF_vert *v)
   pedge_list_->push_back(edge);
   return edge;
 }
-
 
 void WireFrame::Unify()
 {
@@ -853,10 +997,10 @@ void WireFrame::Unify()
     }
   }
 
-  if(pillar_size_ > 0)
+  if (pillar_size_ > 0)
   {
     // pillar is always in the first layer if exists
-    if(0 == layer_size_)
+    if (0 == layer_size_)
     {
       layer_size_ = 1;
     }
@@ -865,7 +1009,7 @@ void WireFrame::Unify()
     {
       if (!(*pedge_list_)[i]->isPillar())
       {
-        if(1 == layer_size_)
+        if (1 == layer_size_)
         {
           (*pedge_list_)[i]->SetLayer(1);
         }
@@ -903,7 +1047,7 @@ void WireFrame::Unify()
 
   for (size_t i = 0; i < N; i++)
   {
-    (*pvert_list_)[i]->SetRenderPos( Unify((*pvert_list_)[i]->Position()) );
+    (*pvert_list_)[i]->SetRenderPos(Unify((*pvert_list_)[i]->Position()));
     if ((*pvert_list_)[i]->isFixed())
     {
       fixed_vert_++;
@@ -915,12 +1059,10 @@ void WireFrame::Unify()
   }
 }
 
-
 point WireFrame::Unify(Vec3f p)
 {
   return (p - center_pos_) * scaleV_;
 }
-
 
 void WireFrame::SimplifyFrame()
 {
@@ -961,7 +1103,7 @@ void WireFrame::SimplifyFrame()
     }
   }
 
-  vector<WF_vert*>::iterator itv = pvert_list_->begin();
+  vector<WF_vert *>::iterator itv = pvert_list_->begin();
   while (itv != pvert_list_->end())
   {
     if (delete_vert[(*itv)->ID()])
@@ -974,7 +1116,7 @@ void WireFrame::SimplifyFrame()
     }
   }
 
-  vector<WF_edge*>::iterator ite = pedge_list_->begin();
+  vector<WF_edge *>::iterator ite = pedge_list_->begin();
   while (ite != pedge_list_->end())
   {
     if (delete_edge[(*ite)->ID()])
@@ -989,7 +1131,6 @@ void WireFrame::SimplifyFrame()
 
   Unify();
 }
-
 
 void WireFrame::ProjectBound(double len)
 {
@@ -1019,7 +1160,6 @@ void WireFrame::ProjectBound(double len)
   Unify();
 }
 
-
 void WireFrame::ModifyProjection(double len)
 {
   if (SizeOfFixedVert() == 0)
@@ -1043,8 +1183,7 @@ void WireFrame::ModifyProjection(double len)
   Unify();
 }
 
-
-void WireFrame::MakeCeiling(vector<WF_edge*> &bound_e)
+void WireFrame::MakeCeiling(vector < WF_edge * > &bound_e)
 {
   if (bound_e.size() == 0)
   {
@@ -1068,8 +1207,7 @@ void WireFrame::MakeCeiling(vector<WF_edge*> &bound_e)
   Unify();
 }
 
-
-void WireFrame::MakeBase(vector<WF_vert*> &base_v)
+void WireFrame::MakeBase(vector < WF_vert * > &base_v)
 {
   if (base_v.size() == 0)
   {
@@ -1099,8 +1237,7 @@ void WireFrame::MakeBase(vector<WF_vert*> &base_v)
   Unify();
 }
 
-
-void WireFrame::MakeSubGraph(vector<WF_edge*> &subg_e)
+void WireFrame::MakeSubGraph(vector < WF_edge * > &subg_e)
 {
   if (subg_e.size() == 0)
   {

@@ -5,6 +5,8 @@ find_package(catkin REQUIRED COMPONENTS
 	roscpp
 	#	cmake_modules
 	geometric_tools_engine
+	conmech
+	#
 	geometry_msgs
 	choreo_msgs
 	moveit_msgs

@@ -11,6 +11,8 @@
     <!--  <test_depend>roslaunch</test_depend>-->
 
     <depend>geometric_tools_engine</depend>
+    <depend>conmech</depend>
+
     <depend>geometry_msgs</depend>
     <depend>choreo_msgs</depend>
     <depend>moveit_msgs</depend>

@@ -18,6 +18,11 @@
 
 #include "choreo_task_sequence_planner/utils/GCommon.h"
 
+#include <stiffness_checker/Frame.h>
+#include <stiffness_checker/Util.h>
+#include <stiffness_checker/Stiffness.h>
+#include <stiffness_checker/StiffnessIO.h>
+
 const static std::string GET_PLANNING_SCENE_SERVICE = "get_planning_scene";
 const static double ROBOT_KINEMATICS_CHECK_TIMEOUT = 2.0;
 //const double STATEMAP_UPDATE_DISTANCE = 300; // mm
@@ -191,6 +196,15 @@ SeqAnalyzer::SeqAnalyzer(
   hotend_model_ = hotend_model;
   moveit_model_ = moveit_model;
   hotend_group_name_ = hotend_group_name;
+
+  // conmech frame init
+  std::string file_dir =
+      "/Users/yijiangh/";
+
+  std::string file_name = "sf-test_3-frame.json";
+  std::string file_path = file_dir + file_name;
+
+  conmech::stiffness_checker::Stiffness sf(file_path, true);
 }
 
 SeqAnalyzer::~SeqAnalyzer()

@@ -73,6 +73,11 @@ void choreo_task_sequence_processing::TaskSequenceProcessor::setParams(
       unit_scale_ = 0.01;
       break;
     }
+    case choreo_msgs::ModelInputParameters::METER:
+    {
+      unit_scale_ = 1;
+      break;
+    }
     case choreo_msgs::ModelInputParameters::INCH:
     {
       unit_scale_ = 0.0254;
