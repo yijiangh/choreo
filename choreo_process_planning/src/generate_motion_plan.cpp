@@ -42,7 +42,7 @@ void retractionPlanning(descartes_core::RobotModelPtr model,
                         const std::vector <planning_scene::PlanningScenePtr> &planning_scenes_approach,
                         const std::vector <planning_scene::PlanningScenePtr> &planning_scenes_depart,
                         const std::vector <descartes_planner::ConstrainedSegment> &segs,
-                        std::vector <choreo_msgs::UnitProcessPlan> &plans)
+                        std::vector<choreo_msgs::UnitProcessPlan> &plans)
 {
   if (plans.size() == 0)
   {
@@ -76,9 +76,11 @@ void retractionPlanning(descartes_core::RobotModelPtr model,
     model->setPlanningScene(planning_scenes_approach[i]);
 
     std::vector <std::vector<double>> approach_retract_traj;
-    if (!choreo_process_planning::retractPath(start_process_joint, segs[i].retract_dist, segs[i].linear_vel,
-                                                segs[i].orientations,
-                                                model, approach_retract_traj))
+    if (!choreo_process_planning::retractPath(
+        start_process_joint, segs[i].retract_dist, segs[i].retract_vel,
+        segs[i].retract_disc,
+        segs[i].orientations,
+        model, approach_retract_traj))
     {
       ROS_ERROR_STREAM("[retraction planning] process #" << i << " failed to find feasible approach retract motion!");
     }
@@ -103,9 +105,11 @@ void retractionPlanning(descartes_core::RobotModelPtr model,
     model->setPlanningScene(planning_scenes_depart[i]);
 
     std::vector <std::vector<double>> depart_retract_traj;
-    if (!choreo_process_planning::retractPath(end_process_joint, segs[i].retract_dist, segs[i].linear_vel,
-                                                segs[i].orientations,
-                                                model, depart_retract_traj))
+    if (!choreo_process_planning::retractPath(
+        end_process_joint, segs[i].retract_dist, segs[i].retract_vel,
+        segs[i].retract_disc,
+        segs[i].orientations,
+        model, depart_retract_traj))
     {
       ROS_ERROR_STREAM("[retraction planning] process #" << i << " failed to find feasible depart retract motion!");
     }
@@ -201,16 +205,16 @@ void transitionPlanning(std::vector <choreo_msgs::UnitProcessPlan> &plans,
       joint_target_meet = true;
 
       ros_trans_traj = choreo_process_planning::getMoveitTransitionPlan(move_group_name,
-                                                                          last_joint_pose,
-                                                                          current_first_joint_pose,
-                                                                          start_state,
-                                                                          moveit_model);
+          last_joint_pose,
+          current_first_joint_pose,
+          start_state,
+          moveit_model);
 
       // TODO: recover from transition planning failure
       if (repeat_planning_call > 0)
       {
         ROS_WARN_STREAM("[Process Planning] transition planning retry - round "
-                            << repeat_planning_call << "/" << TRANSITION_PLANNING_LOOP_COUNT);
+            << repeat_planning_call << "/" << TRANSITION_PLANNING_LOOP_COUNT);
       }
 
       if (0 == ros_trans_traj.points.size())
@@ -234,7 +238,7 @@ void transitionPlanning(std::vector <choreo_msgs::UnitProcessPlan> &plans,
       {
         std::string retry_msg = repeat_planning_call>0 ? "retry":"";
         ROS_WARN_STREAM("[Process Planning] transition planning "
-                            << retry_msg << " succeed!");
+            << retry_msg << " succeed!");
         break;
       }
 
@@ -350,16 +354,16 @@ void transitionPlanningPickNPlace(std::vector <choreo_msgs::UnitProcessPlan> &pl
           joint_target_meet = true;
 
           ros_trans_traj = choreo_process_planning::getMoveitTransitionPlan(move_group_name,
-                                                                              last_joint_pose,
-                                                                              current_first_joint_pose,
-                                                                              start_state,
-                                                                              moveit_model);
+              last_joint_pose,
+              current_first_joint_pose,
+              start_state,
+              moveit_model);
 
           // TODO: recover from transition planning failure
           if (repeat_planning_call > 0)
           {
             ROS_WARN_STREAM("[Process Planning] transition planning retry - round "
-                                << repeat_planning_call << "/" << TRANSITION_PLANNING_LOOP_COUNT);
+                << repeat_planning_call << "/" << TRANSITION_PLANNING_LOOP_COUNT);
           }
 
           if (0 == ros_trans_traj.points.size())
@@ -383,7 +387,7 @@ void transitionPlanningPickNPlace(std::vector <choreo_msgs::UnitProcessPlan> &pl
           {
             std::string retry_msg = repeat_planning_call > 0 ? "retry" : "";
             ROS_WARN_STREAM("[Process Planning] transition planning "
-                                << retry_msg << " succeed!");
+                << retry_msg << " succeed!");
             break;
           }
 
@@ -457,10 +461,18 @@ void adjustTrajectoryTiming(std::vector <choreo_msgs::UnitProcessPlan> &plans,
       plans[i].sub_process_array[j].unit_process_id = i;
       plans[i].sub_process_array[j].sub_process_id = j;
 
-      double sim_speed = 0.9;
-      if (choreo_msgs::SubProcess::TRANSITION != plans[i].sub_process_array[j].process_type)
+      double sim_speed = 1.0;
+      if (choreo_msgs::SubProcess::PROCESS == plans[i].sub_process_array[j].process_type)
       {
-        sim_speed = 0.1;
+        sim_speed = 1.0;
+      }
+      if (choreo_msgs::SubProcess::RETRACTION == plans[i].sub_process_array[j].process_type)
+      {
+        sim_speed = 4;
+      }
+      if (choreo_msgs::SubProcess::TRANSITION == plans[i].sub_process_array[j].process_type)
+      {
+        sim_speed = 0.9;
       }
 
       adjustTrajectoryHeaders(last_filled_jts, plans[i].sub_process_array[j], sim_speed);
@@ -597,21 +609,21 @@ bool generateMotionPlan(
   std::vector <planning_scene::PlanningScenePtr> planning_scenes_shrinked_depart;
   std::vector <planning_scene::PlanningScenePtr> planning_scenes_full;
   constructPlanningScenes(moveit_model, wf_collision_objs,
-                          planning_scenes_shrinked_approach,
-                          planning_scenes_shrinked_depart,
-                          planning_scenes_full);
+      planning_scenes_shrinked_approach,
+      planning_scenes_shrinked_depart,
+      planning_scenes_full);
 
   // Step 2: CLT RRT* to solve process trajectory
   CLTRRTforProcessROSTraj(model, segs, clt_rrt_unit_process_timeout, clt_rrt_timeout,
-                          planning_scenes_shrinked_approach, planning_scenes_shrinked_depart,
-                          task_seq, plans, saved_graph_file_name, use_saved_graph);
+      planning_scenes_shrinked_approach, planning_scenes_shrinked_depart,
+      task_seq, plans, saved_graph_file_name, use_saved_graph);
 
   // retract planning
   retractionPlanning(model, planning_scenes_shrinked_approach, planning_scenes_shrinked_depart, segs, plans);
 
   // Step 5 : Plan for transition between each pair of sequential path
   transitionPlanning(plans, moveit_model, planning_scene_diff_client, move_group_name,
-                     start_state, planning_scenes_full);
+      start_state, planning_scenes_full);
 
   // Step 7 : fill in trajectory's time headers and pack into sub_process_plans
   // for each unit_process (process id is added here too)
@@ -673,28 +685,28 @@ bool generateMotionPlan(
   std::vector<std::vector<planning_scene::PlanningScenePtr>> planning_scenes_subprocess;
 
   constructPlanningScenes(moveit_model,
-                          world_frame,
-                          as_pnp,
-                          planning_scenes_transition,
-                          planning_scenes_subprocess);
+      world_frame,
+      as_pnp,
+      planning_scenes_transition,
+      planning_scenes_subprocess);
 
   // Step 2: CLT RRT* to solve process trajectory
   CLTRRTforProcessROSTraj(model,
-                          as_pnp,
-                          clt_rrt_unit_process_timeout,
-                          clt_rrt_timeout,
-                          linear_vel,
-                          linear_disc,
-                          planning_scenes_subprocess,
-                          plans,
-                          saved_graph_file_name,
-                          use_saved_graph);
+      as_pnp,
+      clt_rrt_unit_process_timeout,
+      clt_rrt_timeout,
+      linear_vel,
+      linear_disc,
+      planning_scenes_subprocess,
+      plans,
+      saved_graph_file_name,
+      use_saved_graph);
 
   // skip retract planning for picknplace
 
 //  // Step 5 : Plan for transition between each pair of sequential path
   transitionPlanningPickNPlace(plans, moveit_model, planning_scene_diff_client, move_group_name,
-                               start_state, planning_scenes_subprocess);
+      start_state, planning_scenes_subprocess);
 
 //  // Step 7 : fill in trajectory's time headers and pack into sub_process_plans
 //  // for each unit_process (process id is added here too)

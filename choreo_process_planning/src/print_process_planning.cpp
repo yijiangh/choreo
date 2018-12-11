@@ -38,10 +38,13 @@ bool ProcessPlanningManager::handlePrintPlanning(choreo_msgs::ProcessPlanning::R
   }
 
   const static double LINEAR_VEL = 0.1; // (m/s)
+  const static double RETRACT_VEL = 0.001; // (m/s)
+
   const static double RETRACT_DISTANCE = 0.010; // meters
 
-  // 0.005
+  // TODO: this should be exposed as paramters to users
   const static double LINEAR_DISCRETIZATION = 0.005; // meters
+  const static double RETRACT_DISCRETIZATION = 10;
 
   // the distance between angular steps about z for each orientationcreateCollisionObject
   const static double ANGULAR_DISCRETIZATION = PRINT_ANGLE_DISCRETIZATION; // radians
@@ -51,6 +54,8 @@ bool ProcessPlanningManager::handlePrintPlanning(choreo_msgs::ProcessPlanning::R
   constrained_seg_params.linear_disc = LINEAR_DISCRETIZATION;
   constrained_seg_params.angular_disc = ANGULAR_DISCRETIZATION;
   constrained_seg_params.retract_dist = RETRACT_DISTANCE;
+  constrained_seg_params.retract_vel = RETRACT_VEL;
+  constrained_seg_params.retract_disc = RETRACT_DISCRETIZATION;
 
   //  Eigen::Affine3d start_home_pose;
   //  hotend_model_->getFK(current_joints, start_home_pose);

@@ -28,9 +28,13 @@ struct ConstrainedSegParameters
   double linear_vel;
   double linear_disc;
 
-  // used only in spatial extrusion
-  double angular_disc;
+  double retract_vel;
   double retract_dist;
+  int retract_disc;
+
+  // TODO: for now this is extrusion-specific
+  // rotation angle discretization around z axis
+  double angular_disc;
 };
 
 // TODO: overload for picknplace
@@ -50,7 +54,7 @@ std::vector<descartes_planner::ConstrainedSegment> toDescartesConstrainedPath(
     const double& linear_vel, const double& linear_disc,
     const double& angular_disc, const double& retract_dist);
 
-bool retractPath(const std::vector<double>& start_joint, double retract_dist, double TCP_speed,
+bool retractPath(const std::vector<double>& start_joint, double retract_dist, double TCP_speed, int retract_disc,
                  const std::vector<Eigen::Matrix3d>& eef_directions,
                  descartes_core::RobotModelPtr& descartes_model,
                  std::vector<std::vector<double>>& retract_jt_traj);

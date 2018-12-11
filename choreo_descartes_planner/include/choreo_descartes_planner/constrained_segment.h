@@ -27,9 +27,12 @@ struct ConstrainedSegment
   double linear_disc; /** The distance between sampled points in linear space (I'd like to do this automatically) */
   double linear_vel; /** Linear velocity between each disc point */
 
+  double retract_dist;
+  int retract_disc;
+  double retract_vel;
+
   // TODO: spatial extrusion specific
   double z_axis_disc; /** The distance between angular steps about z for each orientation */
-  double retract_dist;
   PROCESS_TYPE process_type; /** create type, one node is floating; connect type, both of the nodes have been printed */
 };
 

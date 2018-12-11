@@ -106,8 +106,8 @@ void CLTRRTforProcessROSTraj(descartes_core::RobotModelPtr model,
                             graph_indices,
                             use_saved_graph);
 
-//    graph_list_msg = descartes_parser::convertToLadderGraphListMsg(graphs);
-//    saveLadderGraph(saved_graph_file_name, graph_list_msg);
+    graph_list_msg = descartes_parser::convertToLadderGraphListMsg(graphs);
+    saveLadderGraph(saved_graph_file_name, graph_list_msg);
   }
   else
   {

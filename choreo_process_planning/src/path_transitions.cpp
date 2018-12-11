@@ -171,7 +171,7 @@ toDescartesConstrainedPath(const std::vector <choreo_msgs::ElementCandidatePoses
       {
         seg.process_type = ConstrainedSegment::PROCESS_TYPE::SUPPORT;
         // TODO: this should be opened to users
-        seg.linear_disc = 0.005;
+        seg.linear_disc = seg_params.linear_disc;
         break;
       }
       case choreo_msgs::ElementCandidatePoses::CREATE:
@@ -190,6 +190,8 @@ toDescartesConstrainedPath(const std::vector <choreo_msgs::ElementCandidatePoses
 
     seg.z_axis_disc = seg_params.angular_disc;
     seg.retract_dist = seg_params.retract_dist;
+    seg.retract_disc = seg_params.retract_disc;
+    seg.retract_vel = seg_params.retract_vel;
   };
 
   for (std::size_t i = 0; i < task_sequence.size(); ++i)
@@ -214,7 +216,7 @@ std::vector <descartes_planner::ConstrainedSegment> toDescartesConstrainedPath(
 }
 
 bool retractPath(
-    const std::vector<double> &start_joint, double retract_dist, double TCP_speed,
+    const std::vector<double> &start_joint, double retract_dist, double TCP_speed, int retract_disc,
     const std::vector <Eigen::Matrix3d> &eef_directions,
     descartes_core::RobotModelPtr &model,
     std::vector <std::vector<double>> &retract_jt_traj)
@@ -269,7 +271,7 @@ bool retractPath(
 
     auto st_pt = start_pose.matrix().col(3).head<3>();
     auto end_pt = retract_pose.matrix().col(3).head<3>();
-    double ds = (st_pt - end_pt).norm() / 2;
+    double ds = (st_pt - end_pt).norm() / retract_disc;
 
     std::vector <Eigen::Vector3d> path_pts = descartes_planner::discretizePositions(st_pt, end_pt, ds);
     graph.resize(path_pts.size());
@@ -324,7 +326,7 @@ bool retractPath(
     {
       ROS_WARN_STREAM("[process planning] retraction sampling fails, recursively decrease retract dist to "
                           << retract_dist * 0.8);
-      return retractPath(start_joint, retract_dist * 0.8, TCP_speed, eef_directions, model, retract_jt_traj);
+      return retractPath(start_joint, retract_dist * 0.8, TCP_speed, retract_disc, eef_directions, model, retract_jt_traj);
     }
   }
 
