@@ -1,4 +1,4 @@
-- git: {local-name: Choreo, uri: 'https://github.com/yijiangh/Choreo', version: kinetic-devel}
+- git: {local-name: choreo, uri: 'https://github.com/yijiangh/choreo', version: kinetic-devel}
 
 # ros industrial dependency
 - git: {local-name: industrial_core, uri: 'https://github.com/ros-industrial/industrial_core.git', version: kinetic-devel}
