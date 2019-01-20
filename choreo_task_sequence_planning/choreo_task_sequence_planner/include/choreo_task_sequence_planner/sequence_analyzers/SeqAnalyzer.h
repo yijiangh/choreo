@@ -63,6 +63,9 @@
 #include <descartes_core/robot_model.h>
 #include <pluginlib/class_loader.h>
 
+// conmech stiffness checker
+#include <stiffness_checker/Stiffness.h>
+
 struct SingleTaskPlanningResult
 {
   WF_edge* e_;
@@ -78,7 +81,7 @@ class SeqAnalyzer
   typedef Eigen::Vector3d V3;
 
  public:
-  explicit SeqAnalyzer(
+  SeqAnalyzer(
       DualGraph			*ptr_dualgraph,
       QuadricCollision	*ptr_collision,
       Stiffness			*ptr_stiffness,
@@ -89,7 +92,7 @@ class SeqAnalyzer
       descartes_core::RobotModelPtr hotend_model,
       moveit::core::RobotModelConstPtr moveit_model,
       std::string hotend_group_name
-  ) noexcept;
+  );
 
   virtual ~SeqAnalyzer();
 
@@ -102,6 +105,8 @@ class SeqAnalyzer
   virtual void PrintOutTimer();
 
  public:
+  bool InitStiffnessChecker(const std::string& file_path);
+
   bool InputPrintOrder(const std::vector<int>& print_queue);
   bool ConstructCollisionObjsInQueue(const std::vector<int>& print_queue_edge_ids,
                                      std::vector<choreo_msgs::WireFrameCollisionObject>& collision_objs);
@@ -133,7 +138,10 @@ class SeqAnalyzer
  public:
   WireFrame* ptr_frame_;
   DualGraph* ptr_dualgraph_;
+
   Stiffness* ptr_stiffness_;
+  conmech::stiffness_checker::Stiffness cm_stiff_checker_;
+
   QuadricCollision* ptr_collision_;
   char* ptr_path_;
 
@@ -189,4 +197,6 @@ class SeqAnalyzer
   int num_backtrack_;
 
   int search_rerun_;
+
+  bool stiffness_checker_init_;
 };

@@ -18,10 +18,7 @@
 
 #include "choreo_task_sequence_planner/utils/GCommon.h"
 
-#include <stiffness_checker/Frame.h>
-#include <stiffness_checker/Util.h>
 #include <stiffness_checker/Stiffness.h>
-#include <stiffness_checker/StiffnessIO.h>
 
 const static std::string GET_PLANNING_SCENE_SERVICE = "get_planning_scene";
 const static double ROBOT_KINEMATICS_CHECK_TIMEOUT = 2.0;
@@ -170,7 +167,7 @@ SeqAnalyzer::SeqAnalyzer(
     descartes_core::RobotModelPtr hotend_model,
     moveit::core::RobotModelConstPtr moveit_model,
     std::string hotend_group_name
-) noexcept
+)
 {
   ptr_frame_ = ptr_dualgraph->ptr_frame_;
   ptr_dualgraph_ = ptr_dualgraph;
@@ -190,27 +187,32 @@ SeqAnalyzer::SeqAnalyzer(
   terminal_output_ = terminal_output;
   keep_timing_ = keep_timing;
 
-  update_collision_ = true;
+  update_collision_ = false;
   search_rerun_ = 0;
 
   hotend_model_ = hotend_model;
   moveit_model_ = moveit_model;
   hotend_group_name_ = hotend_group_name;
 
-  // conmech frame init
-  std::string file_dir =
-      "/Users/yijiangh/";
-
-  std::string file_name = "sf-test_3-frame.json";
-  std::string file_path = file_dir + file_name;
-
-  conmech::stiffness_checker::Stiffness sf(file_path, true);
+  stiffness_checker_init_ = false;
 }
 
 SeqAnalyzer::~SeqAnalyzer()
 {
   delete ptr_wholegraph_;
   ptr_wholegraph_ = NULL;
+}
+
+bool SeqAnalyzer::InitStiffnessChecker(const std::string& file_path)
+{
+  bool verbose = false;
+
+  cm_stiff_checker_ = conmech::stiffness_checker::Stiffness(file_path, verbose, "frame");
+  cm_stiff_checker_.setSelfWeightNodalLoad(true);
+
+  cm_stiff_checker_.setNodalDisplacementTolerance(1e-3, 5 * (3.14 / 180));
+
+  stiffness_checker_init_ = true;
 }
 
 bool SeqAnalyzer::SeqPrint()
@@ -654,43 +656,84 @@ std::vector<moveit_msgs::CollisionObject> SeqAnalyzer::RecoverCollisionObjects(W
 
 bool SeqAnalyzer::TestifyStiffness(WF_edge *e)
 {
+  assert(stiffness_checker_init_);
+
   if(keep_timing_)
   {
     test_stiff_.Start();
   }
+  bool bSuccess = true;
 
   /* insert a trail edge */
   UpdateStructure(e, false);
 
   /* examinate stiffness on printing subgraph */
-  ptr_stiffness_->Init();
+//  ptr_stiffness_->Init();
+//
+//  int Ns = ptr_dualgraph_->SizeOfFreeFace();
+//  VX D(Ns * 6);
+//  D.setZero();
+//
+//  bool bSuccess = ptr_stiffness_->CalculateD(D);
+//
+//  if (bSuccess)
+//  {
+//    for (int k = 0; k < Ns; k++)
+//    {
+//      VX offset(3);
+//      for (int t = 0; t < 3; t++)
+//      {
+//        offset[t] = D[k * 6 + t];
+//      }
+//
+//      if (offset.norm() >= D_tol_)
+//      {
+//        //printf("$$$Stiffness offset: %lf\n", offset.norm());
+//        bSuccess = false;
+//        break;
+//      }
+//    }
+//  }
+//
+//  D0_ = D;
 
-  int Ns = ptr_dualgraph_->SizeOfFreeFace();
-  VX D(Ns * 6);
-  D.setZero();
+//  const int orig_j = ej->ID();
+//  const int dual_j = ptr_wholegraph_->e_dual_id(orig_j);
 
-  bool bSuccess = ptr_stiffness_->CalculateD(D);
+  // check arc consistency for all unprinted elements
+//  if (!ptr_dualgraph_->isExistingEdge(ej))
+  const auto ptr_frame = ptr_dualgraph_->ptr_frame_;
+  std::vector<int> exist_e_ids;
 
-  if (bSuccess)
+  for(int i=0; i<ptr_frame->SizeOfEdgeList(); i+=2)
   {
-    for (int k = 0; k < Ns; k++)
+    if(ptr_dualgraph_->isExistingEdge(ptr_frame->GetEdge(i)))
     {
-      VX offset(3);
-      for (int t = 0; t < 3; t++)
-      {
-        offset[t] = D[k * 6 + t];
-      }
-
-      if (offset.norm() >= D_tol_)
-      {
-        //printf("$$$Stiffness offset: %lf\n", offset.norm());
-        bSuccess = false;
-        break;
-      }
+      assert(i%2 == 0);
+      exist_e_ids.push_back(i/2);
     }
   }
 
-  D0_ = D;
+  std::string e_msg="";
+
+  for(auto t : exist_e_ids)
+  {
+    e_msg = e_msg + " " + std::to_string(t);
+  }
+  ROS_INFO_STREAM(e_msg);
+
+  if(exist_e_ids.size() == 0)
+  {
+    assert(0);
+    return false;
+  }
+
+  std::string msg;
+  bSuccess = cm_stiff_checker_.solve(exist_e_ids, msg);
+//  if(!bSuccess)
+//  {
+//    ROS_INFO_STREAM(msg);
+//  }
 
   /* remove the trail edge */
   RecoverStructure(e, false);

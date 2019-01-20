@@ -195,7 +195,7 @@ bool FFAnalyzer::GenerateSeq(int l, int h, int t)
     // update collision (geometric domain)
     // tmp is the pruned domain by direct arc consistency pruning
     std::map<int, EEDirArray> tmp_cmap;
-    UpdateStateMap(ej, tmp_cmap);
+//    UpdateStateMap(ej, tmp_cmap);
 
     num_p_assign_visited_++;
 
@@ -211,7 +211,7 @@ bool FFAnalyzer::GenerateSeq(int l, int h, int t)
     }
 
     // backtrack
-    RecoverStateMap(ej, tmp_cmap);
+//    RecoverStateMap(ej, tmp_cmap);
     RecoverStructure(ej, update_collision_);
 
     print_queue_.pop_back();
@@ -289,44 +289,44 @@ double FFAnalyzer::GenerateCost(WF_edge *ej, const int h, const int t, const int
       test_collision_.Stop();
     }
 
-    if (free_angle == 0)
-    {
-      if (terminal_output_)
-      {
-        fprintf(stderr, "...collision test failed at edge #%d.\n", ej->ID() / 2);
-
-        fprintf(stderr,
-                "fail edge vert u: (%f, %f, %f), vert v: (%f, %f, %f)\n\n",
-                ej->pvert_->Position().x(),
-                ej->pvert_->Position().y(),
-                ej->pvert_->Position().z(),
-                ej->ppair_->pvert_->Position().x(),
-                ej->ppair_->pvert_->Position().y(),
-                ej->ppair_->pvert_->Position().z());
-      }
-
-      return -2;
-    }
-    else
-    {
-      /* robot kinematics test */
-      if(update_collision_)
-      {
-        if (!TestRobotKinematics(ej, ee_dir_states_[dual_j]))
-        {
-          /* examination failed */
-          if (terminal_output_)
-          {
-            fprintf(stderr, "...robot kinematics test failed at edge #%d.\n", ej->ID() / 2);
-            fprintf(stderr, "fail edge vert u: (%f, %f, %f), vert v: (%f, %f, %f)\n\n",
-                    ej->pvert_->Position().x(), ej->pvert_->Position().y(), ej->pvert_->Position().z(),
-                    ej->ppair_->pvert_->Position().x(), ej->ppair_->pvert_->Position().y(), ej->ppair_->pvert_->Position().z());
-          }
-
-          return -2;
-        }
-      }
-    }
+//    if (free_angle == 0)
+//    {
+//      if (terminal_output_)
+//      {
+//        fprintf(stderr, "...collision test failed at edge #%d.\n", ej->ID() / 2);
+//
+//        fprintf(stderr,
+//                "fail edge vert u: (%f, %f, %f), vert v: (%f, %f, %f)\n\n",
+//                ej->pvert_->Position().x(),
+//                ej->pvert_->Position().y(),
+//                ej->pvert_->Position().z(),
+//                ej->ppair_->pvert_->Position().x(),
+//                ej->ppair_->pvert_->Position().y(),
+//                ej->ppair_->pvert_->Position().z());
+//      }
+//
+//      return -2;
+//    }
+//    else
+//    {
+//      /* robot kinematics test */
+//      if(update_collision_)
+//      {
+//        if (!TestRobotKinematics(ej, ee_dir_states_[dual_j]))
+//        {
+//          /* examination failed */
+//          if (terminal_output_)
+//          {
+//            fprintf(stderr, "...robot kinematics test failed at edge #%d.\n", ej->ID() / 2);
+//            fprintf(stderr, "fail edge vert u: (%f, %f, %f), vert v: (%f, %f, %f)\n\n",
+//                    ej->pvert_->Position().x(), ej->pvert_->Position().y(), ej->pvert_->Position().z(),
+//                    ej->ppair_->pvert_->Position().x(), ej->ppair_->pvert_->Position().y(), ej->ppair_->pvert_->Position().z());
+//          }
+//
+//          return -2;
+//        }
+//      }
+//    }
 
     /* stiffness test */
     if (!ej->isPillar() && !TestifyStiffness(ej))
@@ -336,7 +336,7 @@ double FFAnalyzer::GenerateCost(WF_edge *ej, const int h, const int t, const int
       {
         fprintf(stderr, "...stiffness examination failed at edge #%d.\n\n", ej->ID() / 2);
       }
-//      return -1;
+      return -1;
     }
 
     // Forward Checking

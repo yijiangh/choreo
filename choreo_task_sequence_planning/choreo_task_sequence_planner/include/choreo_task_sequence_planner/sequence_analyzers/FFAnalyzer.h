@@ -63,7 +63,7 @@ class FFAnalyzer : public SeqAnalyzer
   typedef Eigen::Vector3d V3;
 
  public:
-  explicit FFAnalyzer(
+  FFAnalyzer(
       DualGraph			*ptr_dualgraph,
       QuadricCollision	*ptr_collision,
       Stiffness			*ptr_stiffness,
@@ -74,7 +74,7 @@ class FFAnalyzer : public SeqAnalyzer
       descartes_core::RobotModelPtr hotend_model,
       moveit::core::RobotModelConstPtr moveit_model,
       std::string hotend_group_name
-  ) noexcept
+  )
       : SeqAnalyzer(ptr_dualgraph, ptr_collision, ptr_stiffness,
                     ptr_parm, ptr_path, terminal_output, keep_timing,
                     hotend_model, moveit_model, hotend_group_name){}

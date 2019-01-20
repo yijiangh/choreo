@@ -121,6 +121,8 @@ class FiberPrintPlugIn
   std::string hotend_group_name_;
 
   std::string world_frame_;
+
+  std::string frame_file_path_;
 };
 
 #endif // FIBERPRINTPLUGIN_H

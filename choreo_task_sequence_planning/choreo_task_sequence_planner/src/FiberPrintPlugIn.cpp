@@ -377,6 +377,8 @@ bool FiberPrintPlugIn::DirectSearch()
         hotend_group_name_
     );
 
+    ptr_seqanalyzer_->InitStiffnessChecker(frame_file_path_);
+
     ptr_seqanalyzer_->setFrameMsgs(frame_msgs_);
 
     ROS_INFO_STREAM("[TSP] Seq Analyzer init.");
@@ -493,7 +495,7 @@ bool FiberPrintPlugIn::handleTaskSequencePlanning(
   {
     case choreo_msgs::TaskSequencePlanning::Request::READ_WIREFRAME:
     {
-      std::string file_path = req.model_params.file_name;
+      frame_file_path_  = req.model_params.file_name;
 
 //      // TODO: all of these char* should be const char*
 //      // convert std::string to writable char*
@@ -507,9 +509,9 @@ bool FiberPrintPlugIn::handleTaskSequencePlanning(
 
       // TODO: if contains keyword "pwf"
       ptr_frame_ = new WireFrame();
-      ptr_frame_->LoadFromJson(file_path);
+      ptr_frame_->LoadFromJson(frame_file_path_);
 
-      ROS_INFO_STREAM("[Ts planning] wire frame read : " << file_path);
+      ROS_INFO_STREAM("[Ts planning] wire frame read : " << frame_file_path_);
 
       double unit_scale;
       Eigen::Vector3d ref_pt(req.model_params.ref_pt_x, req.model_params.ref_pt_y, req.model_params.ref_pt_z);
@@ -542,7 +544,7 @@ bool FiberPrintPlugIn::handleTaskSequencePlanning(
       ptr_path_ = "/home";
       const char* json_output_path = req.task_sequence_params.file_path.c_str();
 
-      terminal_output_ = false;
+      terminal_output_ = true;
 
       if(DirectSearch())
       {

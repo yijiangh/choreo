@@ -30,8 +30,8 @@ const static rviz_visual_tools::scales GRASP_POSE_ARROW_SIZE = rviz_visual_tools
 
 // TODO: should be moved to UI
 //******************
-const static rviz_visual_tools::scales WIREFRAME_SIZE = rviz_visual_tools::XXXSMALL;
-const static double VISUAL_DIAMETER_SCALE = 1;
+const static rviz_visual_tools::scales WIREFRAME_SIZE = rviz_visual_tools::XSMALL;
+const static double VISUAL_DIAMETER_SCALE = 10;
 //******************
 
 const static std::string FILE_URL_PREFIX = "file://";
